@@ -26,7 +26,7 @@
 	}
 </script>
 
-<div class="wrapper" on:dragstart={onCmpDown} on:mousedown={onCmpDown} bind:this={wrapper}>
+<div class="wrapper" on:mousedown={onCmpDown} bind:this={wrapper}>
 	<p>{label}</p>
 </div>
 
