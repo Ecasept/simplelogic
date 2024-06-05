@@ -25,9 +25,8 @@
 	}
 
 	export function addCmp(cmp) {
-		let newCmp = { label: 'test', position: { x: 0, y: 0 } };
-		components.push(newCmp);
-		components = components;
+		let newCmp = { label: 'test', position: { x: 400, y: 0 } };
+		components = [...components, newCmp];
 	}
 </script>
 
