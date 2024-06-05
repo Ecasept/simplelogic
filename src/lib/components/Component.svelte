@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 
-	export const label: string = 'Component';
+	export let label: string = 'Component';
 	export let position: { x: number, y: number } = { x: 0, y: 0 };
 	let inputs;
 	let outputs;
@@ -26,7 +26,7 @@
 	}
 </script>
 
-<div class="wrapper" on:mousedown={onCmpDown} bind:this={wrapper}>
+<div class="wrapper" on:mousedown={onCmpDown} bind:this={wrapper} style="--x: {position.x}px; --y: {position.y}px">
 	<p>{label}</p>
 </div>
 
@@ -35,12 +35,12 @@
 		height: 200px;
 		width: 200px;
 		position: absolute;
-		top: 0;
-		left: 0;
+		top: var(--y);
+		left: var(--x);
 		border: black 2px solid;
 		cursor: grabbing;
 
-		&:not(.active) {
+		&:not(.grabbed) {
 			cursor: grab;
 		}
 	}

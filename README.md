@@ -6,11 +6,11 @@ Simple Logic aims to be an open source and basic editor for building and simulat
 
 It currently supports:
 
-## Installation
+## Usage
 
 
 ## Screenshots
 
 ---
 
-This project was developed together by [Arbee](https://github.com/Arbee4ever) and [Ecasept](https://github.com/Ecasept) &mdash; please report any bugs as issues in this GitHub repository.
+This project was developed together by [Arbee](https://arbeeco.de) and [Ecasept](https://github.com/Ecasept) &mdash; please report any bugs as issues in this GitHub repository.
