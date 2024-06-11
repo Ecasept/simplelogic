@@ -1,13 +1,30 @@
 <script lang="ts">
 	import Component from '$lib/components/Component.svelte';
+	import { graph } from '$lib/stores/stores';
+	import { onMount } from 'svelte';
 
 	let gridSize = 50;
 	let updatePosition: ((x: number, y: number) => void) | null = null;
 	let grabbedCmp: HTMLDivElement | null = null;
 
-	let components: { label: string, position: { x: number, y: number } }[] = [];
 	let canvas: HTMLDivElement;
 	let mouseStartOffset = { x: 0, y: 0 };
+
+	let graph_data: {
+		id: number;
+		label: string;
+		size: { x: number; y: number; };
+		position: { x: number; y: number; };
+		input: number[];
+		output: number[];
+	}[] = [];
+
+	onMount(() => {
+		graph.subscribe((data) => {
+			graph_data = data;
+			console.log('graph_data', graph_data);
+		});
+	});
 
 	function onCmpDown(e) {
 		grabbedCmp = e.detail.component;
@@ -28,15 +45,22 @@
 	}
 
 	export function addCmp(cmp) {
-		let newCmp = { label: 'test', position: { x: 400, y: 200 } };
-		components = [...components, newCmp];
+		graph_data[graph_data.length] = {
+			id: graph_data.length,
+			label: 'test',
+			size: { x: 200, y: 200 },
+			position: { x: 400, y: 400 },
+			input: [],
+			output: []
+		};
+		graph.set(graph_data);
 	}
 </script>
 
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp}></svelte:window>
 
 <div class="canvasWrapper" bind:this={canvas}>
-	{#each components as { label, position }, id}
+	{#each graph_data as { label, position }, id}
 		<Component {id} {label} {position} on:componentDown={onCmpDown}></Component>
 	{/each}
 </div>
