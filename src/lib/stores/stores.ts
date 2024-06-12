@@ -5,8 +5,8 @@ const emptyComponent = {
 	label: "",
 	size: {x: 200, y: 200},
 	position: {x: 0, y: 0},
-	input: [] as number[],
-	output: [] as number[]
+	inputs: [] as number[],
+	outputs: [] as number[]
 }
 const graphArr: any[] = []
 

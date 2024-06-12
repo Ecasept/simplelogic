@@ -22,7 +22,6 @@
 	onMount(() => {
 		graph.subscribe((data) => {
 			graph_data = data;
-			console.log('graph_data', graph_data);
 		});
 	});
 
@@ -45,15 +44,17 @@
 	}
 
 	export function addCmp(cmp) {
-		graph_data[graph_data.length] = {
-			id: graph_data.length,
-			label: 'test',
-			size: { x: 200, y: 200 },
-			position: { x: 400, y: 400 },
-			input: [],
-			output: []
-		};
-		graph.set(graph_data);
+		graph.update((data) => {
+			data[data.length] = {
+				id: graph_data.length,
+				label: 'test',
+				size: { x: 200, y: 200 },
+				position: { x: 400, y: 400 },
+				inputs: [],
+				outputs: []
+			}
+			return data;
+		});
 	}
 </script>
 
