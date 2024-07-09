@@ -48,6 +48,7 @@
 			padding: 0;
 			border: unset;
 			background: rgba(255, 255, 255, 0.1);
+			cursor: pointer;
 
 			span {
 				color: white;

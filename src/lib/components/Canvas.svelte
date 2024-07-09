@@ -13,6 +13,7 @@
 	let graph_data: {
 		id: number;
 		label: string;
+		type: string;
 		size: { x: number; y: number; };
 		position: { x: number; y: number; };
 		input: number[];
@@ -32,6 +33,22 @@
 		mouseStartOffset = e.detail.mouseOffset;
 	}
 
+	function onHandleDown(e) {
+		e.preventDefault();
+		graph.update((data) => {
+			data[data.length] = {
+				id: graph_data.length,
+				label: 'test',
+				type: 'CABLE',
+				size: { x: 200, y: 200 },
+				position: { x: 400, y: 400 },
+				inputs: [],
+				outputs: []
+			};
+			return data;
+		});
+	}
+
 	function onMouseMove(e: MouseEvent) {
 		if (updatePosition === null) return;
 		updatePosition(e.clientX - mouseStartOffset.x, e.clientY - mouseStartOffset.y);
@@ -48,6 +65,7 @@
 			data[data.length] = {
 				id: graph_data.length,
 				label: 'test',
+				type: 'AND',
 				size: { x: 200, y: 200 },
 				position: { x: 400, y: 400 },
 				inputs: [],
@@ -61,8 +79,8 @@
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp}></svelte:window>
 
 <div class="canvasWrapper" bind:this={canvas}>
-	{#each graph_data as { label, position }, id}
-		<Component {id} {label} {position} on:componentDown={onCmpDown}></Component>
+	{#each graph_data as { label, position, type }, id}
+		<Component {id} {label} {position} {type} on:componentDown={onCmpDown} on:handleDown={onHandleDown}></Component>
 	{/each}
 </div>
 
