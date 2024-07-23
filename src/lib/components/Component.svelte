@@ -1,6 +1,6 @@
 <script lang="ts">
     import { GRID_SIZE } from '$lib/util/global';
-    import type { ComponentIOList, handleDownEvent, componentDownEvent } from '$lib/util/types';
+    import type { ComponentIOList, HandleDownEvent, ComponentDownEvent } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
 	export let id: number;
