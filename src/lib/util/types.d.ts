@@ -8,13 +8,13 @@ export type ComponentIOList = {
 // list of x/y coordinates and id of objects that a wire connects to
 export type WireIOList = { x: number; y: number; id: number }[];
 
-export interface handleDownEvent {
+export interface HandleDownEvent {
   pos: Position;
   handleIndex: number;
   id: number;
 }
 
-export interface componentDownEvent {
+export interface ComponentDownEvent {
   id: number;
   component: any;
   mouseOffset: { x: number; y: number };
@@ -26,7 +26,7 @@ export interface componentDownEvent {
   ) => void;
 }
 
-export interface graphItem {
+export interface GraphItem {
   id: number;
   label: string;
   type: string;

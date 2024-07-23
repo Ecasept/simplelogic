@@ -3,7 +3,7 @@
 	import { graph } from '$lib/stores/stores';
 	import { onMount } from 'svelte';
 	import Wire from '$lib/components/Wire.svelte';
-	import type { ComponentIOList, WireIOList, componentDownEvent, graphItem, handleDownEvent } from '$lib/util/types'
+	import type { ComponentIOList, WireIOList, ComponentDownEvent, GraphItem, HandleDownEvent } from '$lib/util/types'
     import { GRID_SIZE } from '$lib/util/global';
 
 	let updatePosition: ((x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) => void) | null = null;
@@ -12,7 +12,7 @@
 	let canvas: HTMLDivElement;
 	let mouseStartOffset = { x: 0, y: 0 };
 
-	let graph_data: graphItem[] = [];
+	let graph_data: GraphItem[] = [];
 
 	onMount(() => {
 		graph.subscribe((data) => {
@@ -20,14 +20,14 @@
 		});
 	});
 
-	function onCmpDown(e: CustomEvent<componentDownEvent>) {
+	function onCmpDown(e: CustomEvent<ComponentDownEvent>) {
 		grabbedCmp = e.detail.component;
 		updatePosition = e.detail.updatePosition;
 		grabbedCmp?.classList.add('grabbed');
 		mouseStartOffset = e.detail.mouseOffset;
 	}
 
-	function onHandleDown(e: CustomEvent<handleDownEvent>) {
+	function onHandleDown(e: CustomEvent<HandleDownEvent>) {
 		let cmp = graph_data[e.detail.id];
 		let x = 0;
 		let y = 0;

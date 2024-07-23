@@ -1,4 +1,4 @@
-import type { graphItem } from "$lib/util/types";
+import type { GraphItem } from "$lib/util/types";
 import { writable } from "svelte/store";
 
 const emptyComponent = {
@@ -12,4 +12,4 @@ const emptyComponent = {
 };
 const graphArr: any[] = [];
 
-export const graph = writable<graphItem[]>(graphArr);
+export const graph = writable<GraphItem[]>(graphArr);

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { componentDownEvent, handleDownEvent } from '$lib/util/types';
+    import type { ComponentDownEvent, HandleDownEvent } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
 	export let id: number;
@@ -14,8 +14,8 @@
 	let innerWidth = 0;
 	let innerHeight = 0;
 	const dispatch = createEventDispatcher<{
-		componentDown: componentDownEvent,
-		handleDown: handleDownEvent
+		componentDown: ComponentDownEvent,
+		handleDown: HandleDownEvent
 	}>();
 
 </script>

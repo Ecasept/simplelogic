@@ -17,8 +17,8 @@
 	let wrapper: HTMLDivElement;
 	let grabbed: boolean = false;
 	const dispatch = createEventDispatcher<{
-		componentDown: componentDownEvent,
-		handleDown: handleDownEvent
+		componentDown: ComponentDownEvent,
+		handleDown: HandleDownEvent
 	}>();
 
 	function onCmpDown(e: MouseEvent) {
