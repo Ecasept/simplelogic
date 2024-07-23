@@ -5,8 +5,8 @@
 
 	let open = true;
 
-	function addCmp() {
-		canvas.addCmp('test');
+	function addCmp(label, type) {
+		canvas.addCmp(label, type);
 	}
 
 	function collapse() {
@@ -17,7 +17,8 @@
 <div class="sidebarWrapper" class:open={open}>
 	<button class="collapse" on:click={collapse}><span>▶</span></button>
 	<div class="content">
-		<button on:click={addCmp}>Add Component</button>
+		<button on:click={() => addCmp("test", "AND")}>Add AND</button>
+		<button on:click={() => addCmp("test2", "OR")}>Add OR</button>
 	</div>
 </div>
 

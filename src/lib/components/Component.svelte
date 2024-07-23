@@ -3,23 +3,14 @@
 
 	export let id;
 	export let label: string = 'Component';
+	export let size: {x: number, y: number};
 	export let type: string;
 	export let position: { x: number, y: number } = { x: 0, y: 0 };
+	export let inputs;
+	export let outputs;
 	let absolutePosition: { x: number, y: number } = { x: position.x, y: position.y };
-	let inputs: [] = [];
-	let outputs: [] = [];
-
-	let mapping: {} = {
-		AND: {
-			inputs: [{ pos: 'right', handles: [{ type: 'in1' }, { type: 'in2' }] }],
-			outputs: [{ pos: 'left', handles: [{ type: 'out' }] }]
-		}
-	};
-
-	if (Object.hasOwn(mapping, type)) {
-		inputs = mapping[type].inputs;
-		outputs = mapping[type].outputs;
-	}
+	let height = size.y;
+	let width = size.x;
 
 	let wrapper: HTMLDivElement;
 	let grabbed: boolean = false;
@@ -35,19 +26,20 @@
 		});
 	}
 
-	function handleDown(pos, e) {
+	function handleDown(pos, handle, e) {
 		e.preventDefault();
 		dispatch('handleDown', {
 			pos: pos,
-			component: this
+			handle: handle,
+			component: id
 		});
 	}
 
 	export let gridSize = 50;
 
-	function updatePosition(x, y) {
-		absolutePosition.x = x;
-		absolutePosition.y = y;
+	function updatePosition(x, mouseStartOffsetX, y, mouseStartOffsetY) {
+		absolutePosition.x = x - mouseStartOffsetX;
+		absolutePosition.y = y - mouseStartOffsetY;
 		position.x = Math.round(absolutePosition.x / gridSize) * gridSize;
 		position.y = Math.round(absolutePosition.y / gridSize) * gridSize;
 		wrapper.style.left = String(position.x) + 'px';
@@ -56,23 +48,24 @@
 </script>
 
 
-<div id={id} class="wrapper" bind:this={wrapper} style="--x: {position.x}px; --y: {position.y}px">
+<div id={id} class="wrapper" bind:this={wrapper}
+		 style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}">
 	<div class="contentWrapper" on:mousedown={onCmpDown}>
 		<p>{label}</p>
 		{id}
 	</div>
-	{#each inputs as input}
-		{#each input.handles as handle, i}
-			<div class="handle {input.pos}" on:mousedown={(e) => handleDown(handle.type, e)}
-					 style="--num: {input.handles.length}; --index: {i}" title={handle.type}>
+	{#each Object.entries(inputs) as [position, handles]}
+		{#each handles as handle, i}
+			<div class="handle {position}" on:mousedown={(e) => handleDown(position, i, e)}
+					 style="--num: {handles.length}; --index: {i}" title={handle.type}>
 				<div />
 			</div>
 		{/each}
 	{/each}
-	{#each outputs as output}
-		{#each output.handles as handle, i}
-			<div class="handle {output.pos}" on:mousedown={(e) => handleDown(handle.type, e)}
-					 style="--num: {output.handles.length}; --index: {i}" title={handle.type}>
+	{#each Object.entries(outputs) as [position, handles]}
+		{#each handles as handle, i}
+			<div class="handle {position}" on:mousedown={(e) => handleDown(position, i, e)}
+					 style="--num: {handles.length}; --index: {i}" title={handle.type}>
 				<div />
 			</div>
 		{/each}
@@ -81,8 +74,8 @@
 
 <style lang="scss">
 	.wrapper {
-		height: 198px;
-		width: 198px;
+		height: calc((var(--height, 0)) * 50px - 2px);
+		width: calc((var(--width, 0)) * 50px - 2px);
 		position: absolute;
 		top: var(--y);
 		left: var(--x);
@@ -110,9 +103,6 @@
 		.handle {
 			display: none;
 			z-index: 1;
-		}
-
-		.handle {
 			width: 10px;
 			height: 10px;
 			padding: 10px;
@@ -133,28 +123,28 @@
 			&.top {
 				position: absolute;
 				top: -16px;
-				left: calc((100% / (var(--num) + 1)) * (var(--index) + 1));
+				left: calc(50px * (var(--index) + 1));
 				transform: translate(-50%);
 			}
 
 			&.right {
 				position: absolute;
 				right: -16px;
-				top: calc((100% / (var(--num) + 1)) * (var(--index) + 1));
+				top: calc(50px * (var(--index) + 1));
 				transform: translateY(-50%);
 			}
 
 			&.bottom {
 				position: absolute;
 				bottom: -16px;
-				left: calc((100% / (var(--num) + 1)) * (var(--index) + 1));
+				left: calc(50px * (var(--index) + 1));
 				transform: translate(-50%);
 			}
 
 			&.left {
 				position: absolute;
 				left: -16px;
-				top: calc((100% / (var(--num) + 1)) * (var(--index) + 1));
+				top: calc(50px * (var(--index) + 1));
 				transform: translateY(-50%);
 			}
 		}
