@@ -9,8 +9,10 @@ export type ComponentIOList = {
 export type WireIOList = { x: number; y: number; id: number }[];
 
 export interface HandleDownEvent {
-  pos: Position;
+  pos: string;
   handleIndex: number;
+  handleX: number;
+  handleY: number;
   id: number;
 }
 
@@ -26,13 +28,25 @@ export interface ComponentDownEvent {
   ) => void;
 }
 
-export interface GraphItem {
+export interface WireData {
+  id: number;
+  label: string;
+  inputs: WireIOList;
+  outputs: WireIOList;
+}
+
+export interface ComponentData {
   id: number;
   label: string;
   type: string;
   size: { x: number; y: number };
   position: { x: number; y: number };
-  inputs: ComponentIOList | WireIOList;
-  outputs: ComponentIOList | WireIOList;
-  points: { x: number; y: number }[];
+  inputs: ComponentIOList;
+  outputs: ComponentIOList;
+}
+
+export interface GraphData {
+  wires: WireData[];
+  components: ComponentData[];
+  nextId: number;
 }

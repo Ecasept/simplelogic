@@ -3,9 +3,7 @@
 	import { createEventDispatcher } from 'svelte';
 
 	export let id: number;
-	export let position: { x: number, y: number } = { x: 0, y: 0 };
-	let absolutePosition: { x: number, y: number } = { x: position.x, y: position.y };
-	export let points: { x: number, y: number }[] = [];
+	export let points: {x: number, y: number}[];
 	let inputs = [];
 	let outputs = [];
 

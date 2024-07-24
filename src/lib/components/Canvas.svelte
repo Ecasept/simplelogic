@@ -3,7 +3,14 @@
 	import { graph } from '$lib/stores/stores';
 	import { onMount } from 'svelte';
 	import Wire from '$lib/components/Wire.svelte';
-	import type { ComponentIOList, WireIOList, ComponentDownEvent, GraphItem, HandleDownEvent } from '$lib/util/types'
+	import type {
+		ComponentIOList,
+		WireIOList,
+		ComponentDownEvent,
+		HandleDownEvent,
+		ComponentData,
+		WireData, GraphData
+	} from '$lib/util/types';
     import { GRID_SIZE } from '$lib/util/global';
 
 	let updatePosition: ((x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) => void) | null = null;
@@ -14,7 +21,7 @@
 	let innerWidth: number;
 	let mouseStartOffset = { x: 0, y: 0 };
 
-	let graph_data: GraphItem[] = [];
+	let graph_data: GraphData = {components: [], wires: []};
 
 	onMount(() => {
 		graph.subscribe((data) => {
@@ -30,29 +37,16 @@
 	}
 
 	function onHandleDown(e: CustomEvent<HandleDownEvent>) {
-		let cmp = graph_data[e.detail.id];
-		let x = 0;
-		let y = 0;
-		if(["left", "right"].includes(e.detail.pos)) {
-			x = cmp.position.x + (e.detail.pos == "right" ? (GRID_SIZE * cmp.size.x) : 0)
-			y = cmp.position.y + (GRID_SIZE * (e.detail.handleIndex + 1))
-		} else {
-			x = cmp.position.x + (GRID_SIZE * (e.detail.handleIndex + 1));
-			y = cmp.position.y + (e.detail.pos == "bottom" ? (GRID_SIZE * cmp.size.y) : 0)
-		}
 		e.preventDefault();
-		let id = 0;
 		graph.update((data) => {
-			id = data.length;
-			data[id] = {
+			let id = data.nextId;
+			data.nextId++;
+			data.wires[id] = {
 				id: id,
 				label: 'test',
-				type: 'CABLE',
-				size: { x: 200, y: 200 },
-				position: { x: 400, y: 400 },
 				inputs: [{
-					x: x,
-					y: y,
+					x: e.detail.handleX,
+					y: e.detail.handleY,
 					id: e.detail.id
 				}],
 				outputs: []
@@ -71,7 +65,7 @@
 				return data;
 			});
 		}
-		updatePosition(x, 0, y, 0)
+		updatePosition(e.detail.handleX, 0, e.detail.handleY, 0)
 	}
 
 	function onMouseMove(e: MouseEvent) {
@@ -106,8 +100,11 @@
 				let width = (inputs.top?.length || 0) + (outputs.top?.length || 0);
 				width = Math.max(width, (inputs.bottom?.length || 0) + (outputs.bottom?.length || 0));
 
-				data[data.length] = {
-					id: graph_data.length,
+				let id = data.nextId;
+				data.nextId++;
+
+				data.components[id] = {
+					id: id,
 					label: label,
 					type: 'AND',
 					size: { x: width + 1, y: height + 1 },
@@ -127,20 +124,15 @@
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} bind:innerHeight bind:innerWidth></svelte:window>
 
 <div class="canvasWrapper" bind:this={canvas}>
-	{#each graph_data as { label, size, position, type, inputs, outputs }, id}
-		{#if type !== "CABLE"}
+	{#each graph_data.components as { id, label, size, position, type, inputs, outputs }}
 			<Component {id} {label} {size} {position} {type} {inputs} {outputs} on:componentDown={onCmpDown}
 								 on:handleDown={onHandleDown}></Component>
-		{/if}
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
 		<svg viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
-			{#each graph_data as { label, size, position, type, inputs, outputs }, id}
-				{#if type === "CABLE"}
-					<Wire {id} {position}
-								points="{[{x: inputs[0].x, y: inputs[0].y}, {x: outputs[0].x || 0, y: outputs[0].y || 0}]}">
+			{#each graph_data.wires as { label, inputs, outputs }, id}
+					<Wire {id} points="{[{x: inputs[0].x, y: inputs[0].y}, {x: outputs[0].x || 0, y: outputs[0].y || 0}]}">
 					</Wire>
-				{/if}
 			{/each}
 		</svg>
 	</div>

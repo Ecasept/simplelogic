@@ -33,9 +33,22 @@
 
 	function handleDown(pos: string, handleIndex: number, e: MouseEvent) {
 		e.preventDefault();
+
+		// calculate position of handle
+		let x, y;
+		if(["left", "right"].includes(pos)) {
+			x = position.x + (pos == "right" ? (GRID_SIZE * width) : 0)
+			y = position.y + (GRID_SIZE * (handleIndex + 1))
+		} else {
+			x = position.x + (GRID_SIZE * (handleIndex + 1));
+			y = position.y + (pos == "bottom" ? (GRID_SIZE * height) : 0)
+		}
+
 		dispatch('handleDown', {
 			pos: pos,
 			handleIndex: handleIndex,
+			handleX: x,
+			handleY: y,
 			id: id
 		});
 	}
