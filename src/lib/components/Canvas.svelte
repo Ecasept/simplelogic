@@ -62,9 +62,10 @@
 		updatePosition = function(x, mouseStartOffsetX, y, mouseStartOffsetY) {
 			graph.update((data) => {
 				let outputs = data[id].outputs as WireIOList;
+				let inputs = data[id].inputs as WireIOList
 				outputs[0] = {
 				  x: Math.round(x / GRID_SIZE) * GRID_SIZE,
-				  y: Math.round(graph_data[id].inputs[0].y / GRID_SIZE) * GRID_SIZE,
+				  y: Math.round(inputs[0].y / GRID_SIZE) * GRID_SIZE,
 					id: -1
 				}
 				return data;

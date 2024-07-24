@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { ComponentDownEvent, HandleDownEvent } from '$lib/util/types';
+	import type { ComponentDownEvent, HandleDownEvent } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
 	export let id: number;
@@ -17,15 +17,16 @@
 		handleDown: HandleDownEvent
 	}>();
 
-	function handleDown(pos, e) {
+	function handleDown(pos: string, handleIndex: number, e: MouseEvent) {
 		e.preventDefault();
 		dispatch('handleDown', {
 			pos: pos,
-			component: this
+			handleIndex: handleIndex,
+			id: id
 		});
 	}
 
-	function hover(e) {
+	function hover(e: MouseEvent) {
 		handleVisible = true;
 	}
 </script>
