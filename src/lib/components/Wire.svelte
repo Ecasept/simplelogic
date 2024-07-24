@@ -42,7 +42,7 @@
 	}
 
 	function handleDown(pos: string, e: MouseEvent) {
-		e.preventDefault();
+		e.preventDefault();		
 		const handle = pos === "input" ? input : output;
 		dispatch('handleDown', {
 			pos: pos,
@@ -53,29 +53,26 @@
 		});
 	}
 
-	function hover(e: MouseEvent) {
-		handleVisible = true;
+	function onMouseOver(e: MouseEvent) {
+		(e.target as HTMLElement).setAttribute("r", "10");
 	}
+
+	function onMouseLeave(e: MouseEvent) {
+		(e.target as HTMLElement).setAttribute("r", "5");
+	}
+
 </script>
 
+<path d="M{input.x+1} {input.y+1} L{output.x+1} {output.y+1}" stroke="black" fill="none"></path>
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<path d="M{input.x+1} {input.y+1} L{output.x+1} {output.y+1}" stroke="black" fill="none" on:mouseover={hover}></path>
 {#if input.id === -1}
-	<foreignObject>
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div class="handle" class:handleVisible={"visible"} on:mousedown={(e) => handleDown("input", e)}>
-			<div />
-		</div>
-	</foreignObject>
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
+	<circle on:mouseover={onMouseOver} on:mouseleave={onMouseLeave} class="handle" cx="{input.x}" cy="{input.y}" r="5" on:mousedown={(e) => handleDown("input", e)}></circle>
 {/if}
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 {#if output.id === -1}
-	<foreignObject x="20" y="20" width="10" height="10">
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div class="handle" class:handleVisible={"visible"} on:mousedown={(e) => handleDown("output", e)}>
-			<div />
-		</div>
-	</foreignObject>
+	<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+	<circle on:mouseover={onMouseOver} on:mouseleave={onMouseLeave} class="handle" cx="{output.x}" cy="{output.y}" r="5"  on:mousedown={(e) => handleDown("output", e)} ></circle>
 {/if}
 
 <style lang="scss">
@@ -84,27 +81,11 @@
 	}
 
 	.handle {
-		display: none;
-		z-index: 1;
-		width: 10px;
-		height: 10px;
-		padding: 10px;
-
-		:global(.visible) {
-			display: block;
-		}
-
+		pointer-events: all;
+		transform-origin: center center;
 		&:hover {
-			width: 20px;
-			height: 20px;
-			padding: 5px;
-		}
-
-		div {
-			height: 100%;
-			width: 100%;
-			background-color: black;
-			border-radius: 100%;
+			r: 30;
+			// transform: scale(2, 2);
 		}
 	}
 </style>

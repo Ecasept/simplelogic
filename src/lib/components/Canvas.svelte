@@ -9,9 +9,7 @@
 		HandleDownEvent,
 		GraphData,
 	    WireAddEvent,
-
-      UpdatePositionFunction,
-
+	    UpdatePositionFunction,
 	} from '$lib/util/types';
 
 	let updatePosition: UpdatePositionFunction | null = null;
@@ -138,8 +136,7 @@
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
 		<svg viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
 			{#each Object.entries(graph_data.wires) as [id_as_key, { id, label, input, output }]}
-					<Wire on:wireAdd={onWireAdd} {label} {id} {input} {output}>
-					</Wire>
+					<Wire on:wireAdd={onWireAdd} on:handleDown={onHandleDown} {label} {id} {input} {output}></Wire>
 			{/each}
 		</svg>
 	</div>
