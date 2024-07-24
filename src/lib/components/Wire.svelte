@@ -74,18 +74,3 @@
 	<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 	<circle on:mouseover={onMouseOver} on:mouseleave={onMouseLeave} class="handle" cx="{output.x}" cy="{output.y}" r="5"  on:mousedown={(e) => handleDown("output", e)} ></circle>
 {/if}
-
-<style lang="scss">
-	path {
-		margin: 10vh;
-	}
-
-	.handle {
-		pointer-events: all;
-		transform-origin: center center;
-		&:hover {
-			r: 30;
-			// transform: scale(2, 2);
-		}
-	}
-</style>

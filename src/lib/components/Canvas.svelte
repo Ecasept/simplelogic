@@ -8,8 +8,8 @@
 		ComponentDownEvent,
 		HandleDownEvent,
 		GraphData,
-	    WireAddEvent,
-	    UpdatePositionFunction,
+		WireAddEvent,
+		UpdatePositionFunction,
 	} from '$lib/util/types';
 
 	let updatePosition: UpdatePositionFunction | null = null;
@@ -25,7 +25,7 @@
 
 	onMount(() => {
 		graph.subscribe((data) => {
-			graph_data = data;			
+			graph_data = data;
 		});
 	});
 
@@ -43,7 +43,6 @@
 		graph.update((data) => {
 			let id = data.nextId;
 			data.nextId++;
-			console.log(data.wires[id])
 			data.wires[id] = {
 				id: id,
 				label: 'test',
