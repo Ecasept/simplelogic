@@ -3,8 +3,9 @@
 	import { graph } from '$lib/stores/stores';
 	import { onMount } from 'svelte';
 	import Wire from '$lib/components/Wire.svelte';
+	import type { ComponentIOList, WireIOList, ComponentDownEvent, GraphItem, HandleDownEvent } from '$lib/util/types'
+    import { GRID_SIZE } from '$lib/util/global';
 
-	const GRID_SIZE = 50;
 	let updatePosition: ((x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) => void) | null = null;
 	let grabbedCmp: HTMLDivElement | null = null;
 
@@ -13,16 +14,7 @@
 	let innerWidth: number;
 	let mouseStartOffset = { x: 0, y: 0 };
 
-	let graph_data: {
-		id: number;
-		label: string;
-		type: string;
-		size: { x: number; y: number; };
-		position: { x: number; y: number; };
-		inputs: number[] | { x: number, y: number, id: number | undefined }[];
-		outputs: number[] | { x: number, y: number, id: number | undefined }[];
-		points: { x: number, y: number }[]
-	}[] = [];
+	let graph_data: GraphItem[] = [];
 
 	onMount(() => {
 		graph.subscribe((data) => {
@@ -30,24 +22,23 @@
 		});
 	});
 
-	function onCmpDown(e) {
+	function onCmpDown(e: CustomEvent<ComponentDownEvent>) {
 		grabbedCmp = e.detail.component;
 		updatePosition = e.detail.updatePosition;
 		grabbedCmp?.classList.add('grabbed');
 		mouseStartOffset = e.detail.mouseOffset;
 	}
 
-	function onHandleDown(e) {
-		let cmp = graph_data[e.detail.component];
-		console.log('e.detail', e.detail);
+	function onHandleDown(e: CustomEvent<HandleDownEvent>) {
+		let cmp = graph_data[e.detail.id];
 		let x = 0;
 		let y = 0;
-		if (['left', 'right'].includes(e.detail.pos)) {
-			x = cmp.position.x + (e.detail.pos == 'right' ? (GRID_SIZE * cmp.size.x) : 0);
-			y = cmp.position.y + (GRID_SIZE * (e.detail.handle + 1));
+		if(["left", "right"].includes(e.detail.pos)) {
+			x = cmp.position.x + (e.detail.pos == "right" ? (GRID_SIZE * cmp.size.x) : 0)
+			y = cmp.position.y + (GRID_SIZE * (e.detail.handleIndex + 1))
 		} else {
-			x = cmp.position.x + (GRID_SIZE * (e.detail.handle + 1));
-			y = cmp.position.y + (e.detail.pos == 'bottom' ? (GRID_SIZE * cmp.size.y) : 0);
+			x = cmp.position.x + (GRID_SIZE * (e.detail.handleIndex + 1));
+			y = cmp.position.y + (e.detail.pos == "bottom" ? (GRID_SIZE * cmp.size.y) : 0)
 		}
 		e.preventDefault();
 		let id = 0;
@@ -62,20 +53,24 @@
 				inputs: [{
 					x: x,
 					y: y,
-					id: e.detail.component
+					id: e.detail.id
 				}],
 				outputs: []
 			};
 			return data;
 		});
 		updatePosition = function(x, mouseStartOffsetX, y, mouseStartOffsetY) {
-			graph_data[id].outputs[0] = {
-				x: Math.round(x / GRID_SIZE) * GRID_SIZE,
-				y: Math.round(graph_data[id].inputs[0].y / GRID_SIZE) * GRID_SIZE,
-				id: -1
-			};
-		};
-		updatePosition(x, 0, y, 0);
+			graph.update((data) => {
+				let outputs = data[id].outputs as WireIOList;
+				outputs[0] = {
+				  x: Math.round(x / GRID_SIZE) * GRID_SIZE,
+				  y: Math.round(graph_data[id].inputs[0].y / GRID_SIZE) * GRID_SIZE,
+					id: -1
+				}
+				return data;
+			});
+		}
+		updatePosition(x, 0, y, 0)
 	}
 
 	function onMouseMove(e: MouseEvent) {
@@ -83,13 +78,13 @@
 		updatePosition(e.clientX, mouseStartOffset.x, e.clientY, mouseStartOffset.y);
 	}
 
-	function onMouseUp(e) {
+	function onMouseUp(e: MouseEvent) {
 		grabbedCmp?.classList.remove('grabbed');
 		grabbedCmp = null;
 		updatePosition = null;
 	}
 
-	let mapping: {} = {
+	let mapping: {[key:string]: {inputs: ComponentIOList, outputs: ComponentIOList}} = {
 		AND: {
 			inputs: { 'left': [{ type: 'in1' }, { type: 'in2' }] },
 			outputs: { 'right': [{ type: 'out' }] }
@@ -100,7 +95,7 @@
 		}
 	};
 
-	export function addCmp(cmp, type) {
+	export function addCmp(label: string, type: string) {
 		graph.update((data) => {
 			if (type in mapping) {
 				const inputs = mapping[type].inputs;
@@ -112,7 +107,7 @@
 
 				data[data.length] = {
 					id: graph_data.length,
-					label: 'test',
+					label: label,
 					type: 'AND',
 					size: { x: width + 1, y: height + 1 },
 					position: { x: 400, y: 400 },
@@ -120,6 +115,9 @@
 					outputs: outputs
 				};
 				return data;
+			} else {
+				console.error(`Tried to add component of non-existing type \"${type}\"!`)
+				return data; // return unmodified data
 			}
 		});
 	}
@@ -151,7 +149,7 @@
 	.canvasWrapper {
 		width: 100vw;
 		height: 100vh;
-		background-size: 50px 50px;
+		background-size: var(--grid-size) var(--grid-size);
 		background-position: -24px -24px;
 		background-image: radial-gradient(circle, #000000 1px, rgba(0, 0, 0, 0) 1px);
 

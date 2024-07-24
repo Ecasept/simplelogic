@@ -1,7 +1,8 @@
 <script lang="ts">
+    import type { ComponentDownEvent, HandleDownEvent } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
-	export let id;
+	export let id: number;
 	export let position: { x: number, y: number } = { x: 0, y: 0 };
 	let absolutePosition: { x: number, y: number } = { x: position.x, y: position.y };
 	export let points: { x: number, y: number }[] = [];
@@ -11,17 +12,10 @@
 	let inputHandle;
 	let outputHandle;
 	let handleVisible = false;
-	const dispatch = createEventDispatcher();
-
-	function onCmpDown(e: MouseEvent) {
-		e.preventDefault();
-		dispatch('componentDown', {
-			id: id,
-			component: this,
-			mouseOffset: { x: e.offsetX, y: e.offsetY },
-			updatePosition: undefined
-		});
-	}
+	const dispatch = createEventDispatcher<{
+		componentDown: ComponentDownEvent,
+		handleDown: HandleDownEvent
+	}>();
 
 	function handleDown(pos, e) {
 		e.preventDefault();

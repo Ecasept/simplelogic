@@ -5,7 +5,7 @@
 
 	let open = true;
 
-	function addCmp(label, type) {
+	function addCmp(label: string, type: string) {
 		canvas.addCmp(label, type);
 	}
 

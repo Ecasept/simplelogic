@@ -1,20 +1,25 @@
 <script lang="ts">
+    import { GRID_SIZE } from '$lib/util/global';
+    import type { ComponentIOList, HandleDownEvent, ComponentDownEvent } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
-	export let id;
+	export let id: number;
 	export let label: string = 'Component';
 	export let size: {x: number, y: number};
 	export let type: string;
 	export let position: { x: number, y: number } = { x: 0, y: 0 };
-	export let inputs;
-	export let outputs;
+	export let inputs: ComponentIOList;
+	export let outputs: ComponentIOList;
 	let absolutePosition: { x: number, y: number } = { x: position.x, y: position.y };
 	let height = size.y;
 	let width = size.x;
 
 	let wrapper: HTMLDivElement;
 	let grabbed: boolean = false;
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<{
+		componentDown: ComponentDownEvent,
+		handleDown: HandleDownEvent
+	}>();
 
 	function onCmpDown(e: MouseEvent) {
 		e.preventDefault();
@@ -26,36 +31,38 @@
 		});
 	}
 
-	function handleDown(pos, handle, e) {
+	function handleDown(pos: string, handleIndex: number, e: MouseEvent) {
 		e.preventDefault();
 		dispatch('handleDown', {
 			pos: pos,
-			handle: handle,
-			component: id
+			handleIndex: handleIndex,
+			id: id
 		});
 	}
 
-	export let gridSize = 50;
 
-	function updatePosition(x, mouseStartOffsetX, y, mouseStartOffsetY) {
+	function updatePosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
 		absolutePosition.x = x - mouseStartOffsetX;
 		absolutePosition.y = y - mouseStartOffsetY;
-		position.x = Math.round(absolutePosition.x / gridSize) * gridSize;
-		position.y = Math.round(absolutePosition.y / gridSize) * gridSize;
+		position.x = Math.round(absolutePosition.x / GRID_SIZE) * GRID_SIZE;
+		position.y = Math.round(absolutePosition.y / GRID_SIZE) * GRID_SIZE;
 		wrapper.style.left = String(position.x) + 'px';
 		wrapper.style.top = String(position.y) + 'px';
 	}
 </script>
 
 
-<div id={id} class="wrapper" bind:this={wrapper}
+<div id={id.toString()} class="wrapper" bind:this={wrapper}
 		 style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}">
+	<!-- svelte-ignore a11y-interactive-supports-focus -->
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="contentWrapper" on:mousedown={onCmpDown}>
 		<p>{label}</p>
 		{id}
 	</div>
 	{#each Object.entries(inputs) as [position, handles]}
 		{#each handles as handle, i}
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div class="handle {position}" on:mousedown={(e) => handleDown(position, i, e)}
 					 style="--num: {handles.length}; --index: {i}" title={handle.type}>
 				<div />
@@ -64,6 +71,7 @@
 	{/each}
 	{#each Object.entries(outputs) as [position, handles]}
 		{#each handles as handle, i}
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div class="handle {position}" on:mousedown={(e) => handleDown(position, i, e)}
 					 style="--num: {handles.length}; --index: {i}" title={handle.type}>
 				<div />
@@ -74,8 +82,8 @@
 
 <style lang="scss">
 	.wrapper {
-		height: calc((var(--height, 0)) * 50px - 2px);
-		width: calc((var(--width, 0)) * 50px - 2px);
+		height: calc((var(--height, 0)) * var(--grid-size) - 2px);
+		width: calc((var(--width, 0)) * var(--grid-size) - 2px);
 		position: absolute;
 		top: var(--y);
 		left: var(--x);
@@ -123,28 +131,28 @@
 			&.top {
 				position: absolute;
 				top: -16px;
-				left: calc(50px * (var(--index) + 1));
+				left: calc(var(--grid-size) * (var(--index) + 1));
 				transform: translate(-50%);
 			}
 
 			&.right {
 				position: absolute;
 				right: -16px;
-				top: calc(50px * (var(--index) + 1));
+				top: calc(var(--grid-size) * (var(--index) + 1));
 				transform: translateY(-50%);
 			}
 
 			&.bottom {
 				position: absolute;
 				bottom: -16px;
-				left: calc(50px * (var(--index) + 1));
+				left: calc(var(--grid-size) * (var(--index) + 1));
 				transform: translate(-50%);
 			}
 
 			&.left {
 				position: absolute;
 				left: -16px;
-				top: calc(50px * (var(--index) + 1));
+				top: calc(var(--grid-size) * (var(--index) + 1));
 				transform: translateY(-50%);
 			}
 		}
