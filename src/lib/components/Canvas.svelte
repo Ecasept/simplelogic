@@ -5,15 +5,17 @@
 	import Wire from '$lib/components/Wire.svelte';
 	import type {
 		ComponentIOList,
-		WireIOList,
 		ComponentDownEvent,
 		HandleDownEvent,
-		ComponentData,
-		WireData, GraphData
-	} from '$lib/util/types';
-    import { GRID_SIZE } from '$lib/util/global';
+		GraphData,
+	    WireAddEvent,
 
-	let updatePosition: ((x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) => void) | null = null;
+      UpdatePositionFunction,
+
+	} from '$lib/util/types';
+
+	let updatePosition: UpdatePositionFunction | null = null;
+	let setPosition: UpdatePositionFunction | null = null;
 	let grabbedCmp: HTMLDivElement | null = null;
 
 	let canvas: HTMLDivElement;
@@ -21,65 +23,70 @@
 	let innerWidth: number;
 	let mouseStartOffset = { x: 0, y: 0 };
 
-	let graph_data: GraphData = {components: [], wires: []};
+	let graph_data: GraphData = {components: [], wires: [], nextId: 0};
 
 	onMount(() => {
 		graph.subscribe((data) => {
-			graph_data = data;
+			graph_data = data;			
 		});
 	});
 
 	function onCmpDown(e: CustomEvent<ComponentDownEvent>) {
 		grabbedCmp = e.detail.component;
 		updatePosition = e.detail.updatePosition;
+		setPosition = e.detail.setPosition;
 		grabbedCmp?.classList.add('grabbed');
 		mouseStartOffset = e.detail.mouseOffset;
 	}
 
 	function onHandleDown(e: CustomEvent<HandleDownEvent>) {
 		e.preventDefault();
+		mouseStartOffset = {x: 0, y: 0};
 		graph.update((data) => {
 			let id = data.nextId;
 			data.nextId++;
+			console.log(data.wires[id])
 			data.wires[id] = {
 				id: id,
 				label: 'test',
-				inputs: [{
+				input: {
 					x: e.detail.handleX,
 					y: e.detail.handleY,
 					id: e.detail.id
-				}],
-				outputs: []
+				},
+				output: {
+					x: e.detail.handleX,
+					y: e.detail.handleY,
+					id: -1
+				}
 			};
 			return data;
 		});
-		updatePosition = function(x, mouseStartOffsetX, y, mouseStartOffsetY) {
-			graph.update((data) => {
-				let outputs = data[id].outputs as WireIOList;
-				let inputs = data[id].inputs as WireIOList
-				outputs[0] = {
-				  x: Math.round(x / GRID_SIZE) * GRID_SIZE,
-				  y: Math.round(inputs[0].y / GRID_SIZE) * GRID_SIZE,
-					id: -1
-				}
-				return data;
-			});
-		}
-		updatePosition(e.detail.handleX, 0, e.detail.handleY, 0)
+	}
+
+	function onWireAdd(e: CustomEvent<WireAddEvent>) {
+		updatePosition = e.detail.updatePosition;
+		setPosition = e.detail.setPosition;
 	}
 
 	function onMouseMove(e: MouseEvent) {
-		if (updatePosition === null) return;
-		updatePosition(e.clientX, mouseStartOffset.x, e.clientY, mouseStartOffset.y);
+		if (updatePosition) {
+			updatePosition(e.clientX, mouseStartOffset.x, e.clientY, mouseStartOffset.y);
+		}
 	}
 
 	function onMouseUp(e: MouseEvent) {
 		grabbedCmp?.classList.remove('grabbed');
+		if (setPosition) {
+			setPosition(e.clientX, mouseStartOffset.x, e.clientY, mouseStartOffset.y);
+		}
+		
 		grabbedCmp = null;
 		updatePosition = null;
+		setPosition = null;
 	}
 
-	let mapping: {[key:string]: {inputs: ComponentIOList, outputs: ComponentIOList}} = {
+	const mapping: {[key:string]: {inputs: ComponentIOList, outputs: ComponentIOList}} = {
 		AND: {
 			inputs: { 'left': [{ type: 'in1' }, { type: 'in2' }] },
 			outputs: { 'right': [{ type: 'out' }] }
@@ -124,14 +131,14 @@
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} bind:innerHeight bind:innerWidth></svelte:window>
 
 <div class="canvasWrapper" bind:this={canvas}>
-	{#each graph_data.components as { id, label, size, position, type, inputs, outputs }}
-			<Component {id} {label} {size} {position} {type} {inputs} {outputs} on:componentDown={onCmpDown}
+	{#each Object.entries(graph_data.components) as [id_as_key, { id, label, size, position, type, inputs, outputs }]}
+	<Component {id} {label} {size} {position} {type} {inputs} {outputs} on:componentDown={onCmpDown}
 								 on:handleDown={onHandleDown}></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
 		<svg viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
-			{#each graph_data.wires as { label, inputs, outputs }, id}
-					<Wire {id} points="{[{x: inputs[0].x, y: inputs[0].y}, {x: outputs[0].x || 0, y: outputs[0].y || 0}]}">
+			{#each Object.entries(graph_data.wires) as [id_as_key, { id, label, input, output }]}
+					<Wire on:wireAdd={onWireAdd} {label} {id} {input} {output}>
 					</Wire>
 			{/each}
 		</svg>

@@ -1,26 +1,55 @@
 <script lang="ts">
-	import type { ComponentDownEvent, HandleDownEvent } from '$lib/util/types';
-	import { createEventDispatcher } from 'svelte';
+  import { graph } from '$lib/stores/stores';
+  import { gridSnap } from '$lib/util/global';
+	import type { ComponentDownEvent, HandleDownEvent, WireAddEvent, WireIO } from '$lib/util/types';
+	import { createEventDispatcher, onMount } from 'svelte';
 
 	export let id: number;
-	export let points: {x: number, y: number}[];
-	let inputs = [];
-	let outputs = [];
+	export let label: string;
+	export let input: WireIO;
+	export let output: WireIO;
 
 	let inputHandle;
 	let outputHandle;
 	let handleVisible = false;
 	const dispatch = createEventDispatcher<{
 		componentDown: ComponentDownEvent,
-		handleDown: HandleDownEvent
+		handleDown: HandleDownEvent,
+		wireAdd: WireAddEvent,
 	}>();
 
-	function handleDown(pos: string, handleIndex: number, e: MouseEvent) {
+	onMount(() => {
+		dispatch("wireAdd", {
+			updatePosition: updateEndPosition,
+			setPosition: setEndPosition,
+		});
+	});
+
+	function updateEndPosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
+		output.x = x;
+		output.y = y;
+	}
+
+	function setEndPosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
+		graph.update((data) => {
+			data.wires[id].output = {
+				x: gridSnap(x),
+				y: gridSnap(y),
+				id: -1
+			}
+			return data;
+		});
+	}
+
+	function handleDown(pos: string, e: MouseEvent) {
 		e.preventDefault();
+		const handle = pos === "input" ? input : output;
 		dispatch('handleDown', {
 			pos: pos,
-			handleIndex: handleIndex,
-			id: id
+			handleIndex: 0,
+			handleX: handle.x,
+			handleY: handle.y,
+			id: id,
 		});
 	}
 
@@ -29,18 +58,21 @@
 	}
 </script>
 
-<path d="{points.map((c, i) => i ? `${c.x+1} ${c.y+1}` : `M${c.x+1} ${c.y+1}`).join(' ')}" stroke="black"
-			fill="none" on:mouseover={hover}></path>
-{#if inputs.length === 0}
+<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<path d="M{input.x+1} {input.y+1} L{output.x+1} {output.y+1}" stroke="black" fill="none" on:mouseover={hover}></path>
+{#if input.id === -1}
 	<foreignObject>
-		<div class="handle" class:handleVisible={"visible"} on:mousedown={(e) => handleDown(position, i, e)}>
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<div class="handle" class:handleVisible={"visible"} on:mousedown={(e) => handleDown("input", e)}>
 			<div />
 		</div>
 	</foreignObject>
 {/if}
-{#if outputs.length === 0}
+{#if output.id === -1}
 	<foreignObject x="20" y="20" width="10" height="10">
-		<div class="handle" class:handleVisible={"visible"} on:mousedown={(e) => handleDown(position, i, e)}>
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<div class="handle" class:handleVisible={"visible"} on:mousedown={(e) => handleDown("output", e)}>
 			<div />
 		</div>
 	</foreignObject>
