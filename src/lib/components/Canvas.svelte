@@ -9,6 +9,8 @@
 	let grabbedCmp: HTMLDivElement | null = null;
 
 	let canvas: HTMLDivElement;
+	let innerHeight: number;
+	let innerWidth: number;
 	let mouseStartOffset = { x: 0, y: 0 };
 
 	let graph_data: {
@@ -17,8 +19,8 @@
 		type: string;
 		size: { x: number; y: number; };
 		position: { x: number; y: number; };
-		inputs: number[]|{x: number, y: number, id: number|undefined}[];
-		outputs: number[]|{x: number, y: number, id: number|undefined}[];
+		inputs: number[] | { x: number, y: number, id: number | undefined }[];
+		outputs: number[] | { x: number, y: number, id: number | undefined }[];
 		points: { x: number, y: number }[]
 	}[] = [];
 
@@ -40,12 +42,12 @@
 		console.log('e.detail', e.detail);
 		let x = 0;
 		let y = 0;
-		if(["left", "right"].includes(e.detail.pos)) {
-			x = cmp.position.x + (e.detail.pos == "right" ? (GRID_SIZE * cmp.size.x) : 0)
-			y = cmp.position.y + (GRID_SIZE * (e.detail.handle + 1))
+		if (['left', 'right'].includes(e.detail.pos)) {
+			x = cmp.position.x + (e.detail.pos == 'right' ? (GRID_SIZE * cmp.size.x) : 0);
+			y = cmp.position.y + (GRID_SIZE * (e.detail.handle + 1));
 		} else {
 			x = cmp.position.x + (GRID_SIZE * (e.detail.handle + 1));
-			y = cmp.position.y + (e.detail.pos == "bottom" ? (GRID_SIZE * cmp.size.y) : 0)
+			y = cmp.position.y + (e.detail.pos == 'bottom' ? (GRID_SIZE * cmp.size.y) : 0);
 		}
 		e.preventDefault();
 		let id = 0;
@@ -68,17 +70,17 @@
 		});
 		updatePosition = function(x, mouseStartOffsetX, y, mouseStartOffsetY) {
 			graph_data[id].outputs[0] = {
-				x: x,
-				y: y,
+				x: Math.round(x / GRID_SIZE) * GRID_SIZE,
+				y: Math.round(graph_data[id].inputs[0].y / GRID_SIZE) * GRID_SIZE,
 				id: -1
-			}
-		}
-		updatePosition(x, 0, y, 0)
+			};
+		};
+		updatePosition(x, 0, y, 0);
 	}
 
 	function onMouseMove(e: MouseEvent) {
 		if (updatePosition === null) return;
-		updatePosition(e.clientX,mouseStartOffset.x, e.clientY, mouseStartOffset.y);
+		updatePosition(e.clientX, mouseStartOffset.x, e.clientY, mouseStartOffset.y);
 	}
 
 	function onMouseUp(e) {
@@ -123,18 +125,26 @@
 	}
 </script>
 
-<svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp}></svelte:window>
+<svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} bind:innerHeight bind:innerWidth></svelte:window>
 
 <div class="canvasWrapper" bind:this={canvas}>
 	{#each graph_data as { label, size, position, type, inputs, outputs }, id}
 		{#if type !== "CABLE"}
-			<Component {id} {label} {size} {position} {type} {inputs} {outputs} on:componentDown={onCmpDown} on:handleDown={onHandleDown}></Component>
-		{:else}
-			<Wire {id} {position}
-						points="{[{x: inputs[0].x, y: inputs[0].y}, {x: outputs[0].x || 0, y: outputs[0].y || 0}]}">
-			</Wire>
+			<Component {id} {label} {size} {position} {type} {inputs} {outputs} on:componentDown={onCmpDown}
+								 on:handleDown={onHandleDown}></Component>
 		{/if}
 	{/each}
+	<div class="cableWrapper" style="--x: 0px; --y: 0px">
+		<svg viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
+			{#each graph_data as { label, size, position, type, inputs, outputs }, id}
+				{#if type === "CABLE"}
+					<Wire {id} {position}
+								points="{[{x: inputs[0].x, y: inputs[0].y}, {x: outputs[0].x || 0, y: outputs[0].y || 0}]}">
+					</Wire>
+				{/if}
+			{/each}
+		</svg>
+	</div>
 </div>
 
 <style lang="scss">
@@ -145,5 +155,16 @@
 		background-position: -24px -24px;
 		background-image: radial-gradient(circle, #000000 1px, rgba(0, 0, 0, 0) 1px);
 
+		.cableWrapper {
+			position: absolute;
+			top: 0;
+			left: 0;
+			pointer-events: none;
+
+			svg {
+				height: 100vh;
+				width: 100vw;
+			}
+		}
 	}
 </style>
