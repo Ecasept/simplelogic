@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { GRID_SIZE } from '$lib/util/global';
+  import { graph } from '$lib/stores/stores';
+    import { GRID_SIZE, gridSnap } from '$lib/util/global';
     import type { ComponentIOList, HandleDownEvent, ComponentDownEvent } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
@@ -7,10 +8,9 @@
 	export let label: string = 'Component';
 	export let size: {x: number, y: number};
 	export let type: string;
-	export let position: { x: number, y: number } = { x: 0, y: 0 };
+	export let position: { x: number, y: number };
 	export let inputs: ComponentIOList;
 	export let outputs: ComponentIOList;
-	let absolutePosition: { x: number, y: number } = { x: position.x, y: position.y };
 	let height = size.y;
 	let width = size.x;
 
@@ -27,27 +27,48 @@
 			id: id,
 			component: this,
 			mouseOffset: { x: e.offsetX, y: e.offsetY },
-			updatePosition: updatePosition
+			updatePosition: updatePosition,
+			setPosition: setPosition
 		});
 	}
 
 	function handleDown(pos: string, handleIndex: number, e: MouseEvent) {
 		e.preventDefault();
+
+		// calculate position of handle
+		let x, y;
+		if(["left", "right"].includes(pos)) {
+			x = position.x + (pos == "right" ? (GRID_SIZE * width) : 0)
+			y = position.y + (GRID_SIZE * (handleIndex + 1))
+		} else {
+			x = position.x + (GRID_SIZE * (handleIndex + 1));
+			y = position.y + (pos == "bottom" ? (GRID_SIZE * height) : 0)
+		}
+
 		dispatch('handleDown', {
 			pos: pos,
 			handleIndex: handleIndex,
+			handleX: x,
+			handleY: y,
 			id: id
 		});
 	}
 
 
 	function updatePosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
-		absolutePosition.x = x - mouseStartOffsetX;
-		absolutePosition.y = y - mouseStartOffsetY;
-		position.x = Math.round(absolutePosition.x / GRID_SIZE) * GRID_SIZE;
-		position.y = Math.round(absolutePosition.y / GRID_SIZE) * GRID_SIZE;
-		wrapper.style.left = String(position.x) + 'px';
-		wrapper.style.top = String(position.y) + 'px';
+		position.x = x - mouseStartOffsetX;
+		position.y = y - mouseStartOffsetY;
+		
+	}
+
+	function setPosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
+		graph.update((data) => {
+			data.components[id].position = {
+				x: gridSnap(x - mouseStartOffsetX),
+				y: gridSnap(y - mouseStartOffsetY)
+			};
+			return data;
+		});
 	}
 </script>
 

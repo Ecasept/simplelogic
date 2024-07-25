@@ -6,33 +6,62 @@ export type ComponentIOList = {
 };
 
 // list of x/y coordinates and id of objects that a wire connects to
-export type WireIOList = { x: number; y: number; id: number }[];
+// export type WireIOList = { x: number; y: number; id: number }[];
 
-export interface HandleDownEvent {
-  pos: Position;
-  handleIndex: number;
+export type WireIO = { x: number; y: number; id: number };
+
+// ==== Function Types ====
+
+export type UpdatePositionFunction = (
+  x: number,
+  mouseStartOffsetX: number,
+  y: number,
+  mouseStartOffsetY: number
+) => void;
+
+// ==== Graph Types ====
+
+export interface WireData {
   id: number;
+  label: string;
+  input: WireIO;
+  output: WireIO;
 }
 
-export interface ComponentDownEvent {
-  id: number;
-  component: any;
-  mouseOffset: { x: number; y: number };
-  updatePosition: (
-    x: number,
-    mouseStartOffsetX: number,
-    y: number,
-    mouseStartOffsetY: number
-  ) => void;
-}
-
-export interface GraphItem {
+export interface ComponentData {
   id: number;
   label: string;
   type: string;
   size: { x: number; y: number };
   position: { x: number; y: number };
-  inputs: ComponentIOList | WireIOList;
-  outputs: ComponentIOList | WireIOList;
-  points: { x: number; y: number }[];
+  inputs: ComponentIOList;
+  outputs: ComponentIOList;
+}
+
+export interface GraphData {
+  wires: { [id in number]: WireData };
+  components: { [id in number]: ComponentData };
+  nextId: number;
+}
+
+// ==== Events ====
+export interface HandleDownEvent {
+  pos: string; // ("top" | "bottom" | "left" | "right") | ("input" | "output");
+  handleIndex: number;
+  handleX: number;
+  handleY: number;
+  id: number;
+}
+
+export interface ComponentDownEvent {
+  id: number;
+  component: HTMLDivElement | null;
+  mouseOffset: { x: number; y: number };
+  updatePosition: UpdatePositionFunction;
+  setPosition: UpdatePositionFunction;
+}
+
+export interface WireAddEvent {
+  updatePosition: UpdatePositionFunction;
+  setPosition: UpdatePositionFunction;
 }
