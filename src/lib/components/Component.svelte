@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { graph } from '$lib/stores/stores';
     import { GRID_SIZE, gridSnap } from '$lib/util/global';
-    import type { ComponentIOList, HandleDownEvent } from '$lib/util/types';
+	import { executeCommand, SetComponentPositionCommand } from '$lib/util/graph';
+    import type { ComponentIOList, HandleDownEvent, XYPair } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
 	export let id: number;
 	export let label: string = 'Component';
-	export let size: {x: number, y: number};
+	export let size: XYPair;
 	export let type: string;
-	export let position: { x: number, y: number };
+	export let position: XYPair;
 	export let inputs: ComponentIOList;
 	export let outputs: ComponentIOList;
 	let height = size.y;
@@ -62,13 +62,14 @@
 	}
 
 	function setPosition(e: MouseEvent) {
-		graph.update((data) => {
-			data.components[id].position = {
+		const cmd = new SetComponentPositionCommand(
+			{
 				x: gridSnap(e.clientX - (mouseOffset?.x ?? 0)),
 				y: gridSnap(e.clientY - (mouseOffset?.y ?? 0))
-			};
-			return data;
-		});
+			},
+			id,
+		);
+		executeCommand(cmd);
 
 		mouseOffset = null;
 		grabbing = false;

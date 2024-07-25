@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Component from '$lib/components/Component.svelte';
-	import { graph } from '$lib/stores/stores';
+	import { graph_store } from '$lib/stores/stores';
+	import { AddComponentCommand, AddWireCommand, executeCommand } from '$lib/util/graph';
 	import { onMount } from 'svelte';
 	import Wire from '$lib/components/Wire.svelte';
 	import type {
@@ -8,6 +9,7 @@
 		HandleDownEvent,
 		GraphData,
 	} from '$lib/util/types';
+	import { COMPONENT_IO_MAPPING, deepCopy } from '$lib/util/global';
 
 	let canvas: HTMLDivElement;
 	let innerHeight: number;
@@ -16,20 +18,15 @@
 	let graph_data: GraphData = {components: [], wires: [], nextId: 0};
 
 	onMount(() => {
-		graph.subscribe((data) => {
+		graph_store.subscribe((data) => {
 			graph_data = data;
 			console.log(graph_data);
-			
 		});
 	});
 
 	function onHandleDown(e: CustomEvent<HandleDownEvent>) {
 		e.preventDefault();
-		graph.update((data) => {
-			let id = data.nextId;
-			data.nextId++;
-			data.wires[id] = {
-				id: id,
+		const cmd = new AddWireCommand({
 				label: 'test',
 				input: {
 					x: e.detail.handleX,
@@ -41,63 +38,42 @@
 					y: e.detail.handleY,
 					id: e.detail.type === "input" ? e.detail.id : -1,
 				},
-			};
-			return data;
 		});
+		executeCommand(cmd);
 	}
 
-	const mapping: {[key:string]: {inputs: ComponentIOList, outputs: ComponentIOList}} = {
-		AND: {
-			inputs: { 'left': [{ type: 'in1' }, { type: 'in2' }] },
-			outputs: { 'right': [{ type: 'out' }] }
-		},
-		OR: {
-			inputs: { 'top': [{ type: 'in1' }, { type: 'in2' }] },
-			outputs: { 'bottom': [{ type: 'out' }] }
-		}
-	};
-
 	export function addCmp(label: string, type: string) {
-		graph.update((data) => {
-			if (type in mapping) {
-				const inputs = mapping[type].inputs;
-				const outputs = mapping[type].outputs;
-				let height = (inputs.left?.length || 0) + (outputs.left?.length || 0);
-				height = Math.max(height, (inputs.right?.length || 0) + (outputs.right?.length || 0));
-				let width = (inputs.top?.length || 0) + (outputs.top?.length || 0);
-				width = Math.max(width, (inputs.bottom?.length || 0) + (outputs.bottom?.length || 0));
 
-				let id = data.nextId;
-				data.nextId++;
+		const inputs = COMPONENT_IO_MAPPING[type].inputs;
+		const outputs = COMPONENT_IO_MAPPING[type].outputs;
+		let height = (inputs.left?.length || 0) + (outputs.left?.length || 0);
+		height = Math.max(height, (inputs.right?.length || 0) + (outputs.right?.length || 0));
+		let width = (inputs.top?.length || 0) + (outputs.top?.length || 0);
+		width = Math.max(width, (inputs.bottom?.length || 0) + (outputs.bottom?.length || 0));
 
-				data.components[id] = {
-					id: id,
-					label: label,
-					type: 'AND',
-					size: { x: width + 1, y: height + 1 },
-					position: { x: 400, y: 400 },
-					inputs: inputs,
-					outputs: outputs
-				};
-				return data;
-			} else {
-				console.error(`Tried to add component of non-existing type \"${type}\"!`)
-				return data; // return unmodified data
-			}
+		const cmd = new AddComponentCommand({
+			label:label,
+			type:type,
+			size: { x: width + 1, y: height + 1},
+			position: {x: 400, y: 400},
+			inputs: inputs,
+			outputs: outputs,
 		});
+
+		executeCommand(cmd);
 	}
 </script>
 
 
 <div class="canvasWrapper" bind:this={canvas}>
 	{#each Object.entries(graph_data.components) as [id_as_key, { id, label, size, position, type, inputs, outputs }]}
-	<Component {id} {label} {size} {position} {type} {inputs} {outputs}
+	<Component {id} {label} size={deepCopy(size)} position={deepCopy(position)} {type} inputs={deepCopy(inputs)} outputs={deepCopy(outputs)}
 								 on:handleDown={onHandleDown}></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
 		<svg viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
 			{#each Object.entries(graph_data.wires) as [id_as_key, { id, label, input, output }]}
-					<Wire on:handleDown={onHandleDown} {label} {id} {input} {output}></Wire>
+					<Wire on:handleDown={onHandleDown} {label} {id} input={deepCopy(input)} output={deepCopy(output)}></Wire>
 			{/each}
 		</svg>
 	</div>

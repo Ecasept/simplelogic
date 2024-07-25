@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Canvas from '$lib/components/Canvas.svelte';
+	import { undoLastCommand } from '$lib/util/graph';
 
 	export let canvas: Canvas;
 
@@ -19,6 +20,7 @@
 	<div class="content">
 		<button on:click={() => addCmp("test", "AND")}>Add AND</button>
 		<button on:click={() => addCmp("test2", "OR")}>Add OR</button>
+		<button on:click={undoLastCommand}>Undo</button>
 	</div>
 </div>
 
