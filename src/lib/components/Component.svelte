@@ -48,7 +48,6 @@
 
 		dispatch('handleDown', {
 			type: type,
-			pos: pos,
 			handleIndex: handleIndex,
 			handleX: x,
 			handleY: y,

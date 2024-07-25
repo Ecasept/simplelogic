@@ -53,11 +53,11 @@
 		window.removeEventListener("mouseup", setInputPosition);
 	}
 
-	function handleDown(pos: string, e: MouseEvent) {
+	function handleDown(type: string, e: MouseEvent) {
 		e.preventDefault();		
-		const handle = pos === "input" ? input : output;
+		const handle = type === "input" ? input : output;
 		dispatch('handleDown', {
-			pos: pos,
+			type: type,
 			handleIndex: 0,
 			handleX: handle.x,
 			handleY: handle.y,
