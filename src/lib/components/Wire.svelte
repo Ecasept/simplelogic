@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { graph } from '$lib/stores/stores';
-  import { gridSnap } from '$lib/util/global';
-	import type { ComponentDownEvent, HandleDownEvent, WireAddEvent, WireIO } from '$lib/util/types';
+	import { graph } from '$lib/stores/stores';
+	import { gridSnap } from '$lib/util/global';
+	import type { HandleDownEvent, WireIO } from '$lib/util/types';
 	import { createEventDispatcher, onMount } from 'svelte';
 
 	export let id: number;
@@ -9,36 +9,31 @@
 	export let input: WireIO;
 	export let output: WireIO;
 
-	let inputHandle;
-	let outputHandle;
-	let handleVisible = false;
 	const dispatch = createEventDispatcher<{
-		componentDown: ComponentDownEvent,
 		handleDown: HandleDownEvent,
-		wireAdd: WireAddEvent,
 	}>();
 
 	onMount(() => {
-		dispatch("wireAdd", {
-			updatePosition: updateEndPosition,
-			setPosition: setEndPosition,
-		});
+		window.addEventListener("mousemove", updateEndPosition);
+		window.addEventListener("mouseup", setEndPosition);
 	});
 
-	function updateEndPosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
-		output.x = x;
-		output.y = y;
+	function updateEndPosition(e: MouseEvent) {
+		output.x = e.clientX;
+		output.y = e.clientY;
 	}
 
-	function setEndPosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
+	function setEndPosition(e: MouseEvent) {
 		graph.update((data) => {
 			data.wires[id].output = {
-				x: gridSnap(x),
-				y: gridSnap(y),
+				x: gridSnap(e.clientX),
+				y: gridSnap(e.clientY),
 				id: -1
 			}
 			return data;
 		});
+		window.removeEventListener("mousemove", updateEndPosition);
+		window.removeEventListener("mouseup", setEndPosition);
 	}
 
 	function handleDown(pos: string, e: MouseEvent) {
@@ -53,7 +48,7 @@
 		});
 	}
 
-	function onMouseOver(e: MouseEvent) {
+	function onMouseEnter(e: MouseEvent) {
 		(e.target as HTMLElement).setAttribute("r", "10");
 	}
 
@@ -67,10 +62,16 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 {#if input.id === -1}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<circle on:mouseover={onMouseOver} on:mouseleave={onMouseLeave} class="handle" cx="{input.x}" cy="{input.y}" r="5" on:mousedown={(e) => handleDown("input", e)}></circle>
+	<circle on:mouseenter={onMouseEnter} on:mouseleave={onMouseLeave} class="handle" cx="{input.x}" cy="{input.y}" r="5" on:mousedown={(e) => handleDown("input", e)}></circle>
 {/if}
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 {#if output.id === -1}
 	<!-- svelte-ignore a11y-mouse-events-have-key-events -->
-	<circle on:mouseover={onMouseOver} on:mouseleave={onMouseLeave} class="handle" cx="{output.x}" cy="{output.y}" r="5"  on:mousedown={(e) => handleDown("output", e)} ></circle>
+	<circle on:mouseenter={onMouseEnter} on:mouseleave={onMouseLeave} class="handle" cx="{output.x}" cy="{output.y}" r="5"  on:mousedown={(e) => handleDown("output", e)} ></circle>
 {/if}
+
+<style>
+	.handle {
+		pointer-events: all;
+	}
+</style>

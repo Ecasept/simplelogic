@@ -5,21 +5,13 @@
 	import Wire from '$lib/components/Wire.svelte';
 	import type {
 		ComponentIOList,
-		ComponentDownEvent,
 		HandleDownEvent,
 		GraphData,
-		WireAddEvent,
-		UpdatePositionFunction,
 	} from '$lib/util/types';
-
-	let updatePosition: UpdatePositionFunction | null = null;
-	let setPosition: UpdatePositionFunction | null = null;
-	let grabbedCmp: HTMLDivElement | null = null;
 
 	let canvas: HTMLDivElement;
 	let innerHeight: number;
 	let innerWidth: number;
-	let mouseStartOffset = { x: 0, y: 0 };
 
 	let graph_data: GraphData = {components: [], wires: [], nextId: 0};
 
@@ -29,17 +21,8 @@
 		});
 	});
 
-	function onCmpDown(e: CustomEvent<ComponentDownEvent>) {
-		grabbedCmp = e.detail.component;
-		updatePosition = e.detail.updatePosition;
-		setPosition = e.detail.setPosition;
-		grabbedCmp?.classList.add('grabbed');
-		mouseStartOffset = e.detail.mouseOffset;
-	}
-
 	function onHandleDown(e: CustomEvent<HandleDownEvent>) {
 		e.preventDefault();
-		mouseStartOffset = {x: 0, y: 0};
 		graph.update((data) => {
 			let id = data.nextId;
 			data.nextId++;
@@ -59,28 +42,6 @@
 			};
 			return data;
 		});
-	}
-
-	function onWireAdd(e: CustomEvent<WireAddEvent>) {
-		updatePosition = e.detail.updatePosition;
-		setPosition = e.detail.setPosition;
-	}
-
-	function onMouseMove(e: MouseEvent) {
-		if (updatePosition) {
-			updatePosition(e.clientX, mouseStartOffset.x, e.clientY, mouseStartOffset.y);
-		}
-	}
-
-	function onMouseUp(e: MouseEvent) {
-		grabbedCmp?.classList.remove('grabbed');
-		if (setPosition) {
-			setPosition(e.clientX, mouseStartOffset.x, e.clientY, mouseStartOffset.y);
-		}
-		
-		grabbedCmp = null;
-		updatePosition = null;
-		setPosition = null;
 	}
 
 	const mapping: {[key:string]: {inputs: ComponentIOList, outputs: ComponentIOList}} = {
@@ -125,17 +86,16 @@
 	}
 </script>
 
-<svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} bind:innerHeight bind:innerWidth></svelte:window>
 
 <div class="canvasWrapper" bind:this={canvas}>
 	{#each Object.entries(graph_data.components) as [id_as_key, { id, label, size, position, type, inputs, outputs }]}
-	<Component {id} {label} {size} {position} {type} {inputs} {outputs} on:componentDown={onCmpDown}
+	<Component {id} {label} {size} {position} {type} {inputs} {outputs}
 								 on:handleDown={onHandleDown}></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
 		<svg viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
 			{#each Object.entries(graph_data.wires) as [id_as_key, { id, label, input, output }]}
-					<Wire on:wireAdd={onWireAdd} on:handleDown={onHandleDown} {label} {id} {input} {output}></Wire>
+					<Wire on:handleDown={onHandleDown} {label} {id} {input} {output}></Wire>
 			{/each}
 		</svg>
 	</div>

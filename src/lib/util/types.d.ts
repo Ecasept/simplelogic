@@ -52,16 +52,3 @@ export interface HandleDownEvent {
   handleY: number;
   id: number;
 }
-
-export interface ComponentDownEvent {
-  id: number;
-  component: HTMLDivElement | null;
-  mouseOffset: { x: number; y: number };
-  updatePosition: UpdatePositionFunction;
-  setPosition: UpdatePositionFunction;
-}
-
-export interface WireAddEvent {
-  updatePosition: UpdatePositionFunction;
-  setPosition: UpdatePositionFunction;
-}

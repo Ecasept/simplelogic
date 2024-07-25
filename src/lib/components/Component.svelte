@@ -1,7 +1,7 @@
 <script lang="ts">
   import { graph } from '$lib/stores/stores';
     import { GRID_SIZE, gridSnap } from '$lib/util/global';
-    import type { ComponentIOList, HandleDownEvent, ComponentDownEvent } from '$lib/util/types';
+    import type { ComponentIOList, HandleDownEvent } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
 	export let id: number;
@@ -15,21 +15,22 @@
 	let width = size.x;
 
 	let wrapper: HTMLDivElement;
-	let grabbed: boolean = false;
 	const dispatch = createEventDispatcher<{
-		componentDown: ComponentDownEvent,
 		handleDown: HandleDownEvent
 	}>();
 
+	let mouseOffset: {x: number, y: number} | null;
+	let grabbing = false;
+	$: cursor = grabbing ? 'grabbing' : 'grab';
+
 	function onCmpDown(e: MouseEvent) {
 		e.preventDefault();
-		dispatch('componentDown', {
-			id: id,
-			component: this,
-			mouseOffset: { x: e.offsetX, y: e.offsetY },
-			updatePosition: updatePosition,
-			setPosition: setPosition
-		});
+
+		mouseOffset = {x: e.offsetX, y: e.offsetY};
+		grabbing = true;
+
+		window.addEventListener("mousemove", updatePosition);
+		window.addEventListener("mouseup", setPosition);
 	}
 
 	function handleDown(pos: string, handleIndex: number, e: MouseEvent) {
@@ -55,26 +56,31 @@
 	}
 
 
-	function updatePosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
-		position.x = x - mouseStartOffsetX;
-		position.y = y - mouseStartOffsetY;
-		
+	function updatePosition(e: MouseEvent) {
+		position.x = e.clientX - (mouseOffset?.x ?? 0);
+		position.y = e.clientY - (mouseOffset?.y ?? 0);
 	}
 
-	function setPosition(x: number, mouseStartOffsetX: number, y: number, mouseStartOffsetY: number) {
+	function setPosition(e: MouseEvent) {
 		graph.update((data) => {
 			data.components[id].position = {
-				x: gridSnap(x - mouseStartOffsetX),
-				y: gridSnap(y - mouseStartOffsetY)
+				x: gridSnap(e.clientX - (mouseOffset?.x ?? 0)),
+				y: gridSnap(e.clientY - (mouseOffset?.y ?? 0))
 			};
 			return data;
 		});
+
+		mouseOffset = null;
+		grabbing = false;
+
+		window.removeEventListener("mousemove", updatePosition);
+		window.removeEventListener("mouseup", setPosition);
 	}
 </script>
 
 
 <div id={id.toString()} class="wrapper" bind:this={wrapper}
-		 style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}">
+		 style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}; cursor: {cursor}">
 	<!-- svelte-ignore a11y-interactive-supports-focus -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="contentWrapper" on:mousedown={onCmpDown}>
