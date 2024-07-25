@@ -46,7 +46,8 @@ export interface GraphData {
 
 // ==== Events ====
 export interface HandleDownEvent {
-  pos: string; // ("top" | "bottom" | "left" | "right") | ("input" | "output");
+  type: string; // "input" | "output"
+  pos: string; // "top" | "bottom" | "left" | "right"
   handleIndex: number;
   handleX: number;
   handleY: number;

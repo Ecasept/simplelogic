@@ -33,7 +33,7 @@
 		window.addEventListener("mouseup", setPosition);
 	}
 
-	function handleDown(pos: string, handleIndex: number, e: MouseEvent) {
+	function handleDown(type: string, pos: string, handleIndex: number, e: MouseEvent) {
 		e.preventDefault();
 
 		// calculate position of handle
@@ -47,6 +47,7 @@
 		}
 
 		dispatch('handleDown', {
+			type: type,
 			pos: pos,
 			handleIndex: handleIndex,
 			handleX: x,
@@ -90,7 +91,7 @@
 	{#each Object.entries(inputs) as [position, handles]}
 		{#each handles as handle, i}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div class="handle {position}" on:mousedown={(e) => handleDown(position, i, e)}
+			<div class="handle {position}" on:mousedown={(e) => handleDown("input", position, i, e)}
 					 style="--num: {handles.length}; --index: {i}" title={handle.type}>
 				<div />
 			</div>
@@ -99,7 +100,7 @@
 	{#each Object.entries(outputs) as [position, handles]}
 		{#each handles as handle, i}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div class="handle {position}" on:mousedown={(e) => handleDown(position, i, e)}
+			<div class="handle {position}" on:mousedown={(e) => handleDown("output", position, i, e)}
 					 style="--num: {handles.length}; --index: {i}" title={handle.type}>
 				<div />
 			</div>

@@ -18,6 +18,8 @@
 	onMount(() => {
 		graph.subscribe((data) => {
 			graph_data = data;
+			console.log(graph_data);
+			
 		});
 	});
 
@@ -32,13 +34,13 @@
 				input: {
 					x: e.detail.handleX,
 					y: e.detail.handleY,
-					id: e.detail.id
+					id: e.detail.type === "output" ? e.detail.id : -1,
 				},
 				output: {
 					x: e.detail.handleX,
 					y: e.detail.handleY,
-					id: -1
-				}
+					id: e.detail.type === "input" ? e.detail.id : -1,
+				},
 			};
 			return data;
 		});

@@ -14,26 +14,43 @@
 	}>();
 
 	onMount(() => {
-		window.addEventListener("mousemove", updateEndPosition);
-		window.addEventListener("mouseup", setEndPosition);
+		if (output.id !== -1) {
+			window.addEventListener("mousemove", updateInputPosition);
+			window.addEventListener("mouseup", setInputPosition);
+		} else {
+			window.addEventListener("mousemove", updateOutputPosition);
+			window.addEventListener("mouseup", setOutputPosition);
+		}
 	});
 
-	function updateEndPosition(e: MouseEvent) {
+	function updateOutputPosition(e: MouseEvent) {
 		output.x = e.clientX;
 		output.y = e.clientY;
 	}
 
-	function setEndPosition(e: MouseEvent) {
+	function updateInputPosition(e: MouseEvent) {
+		input.x = e.clientX;
+		input.y = e.clientY;
+	}
+
+	function setOutputPosition(e: MouseEvent) {
 		graph.update((data) => {
-			data.wires[id].output = {
-				x: gridSnap(e.clientX),
-				y: gridSnap(e.clientY),
-				id: -1
-			}
+			data.wires[id].output.x = gridSnap(e.clientX);
+			data.wires[id].output.y = gridSnap(e.clientY);
 			return data;
 		});
-		window.removeEventListener("mousemove", updateEndPosition);
-		window.removeEventListener("mouseup", setEndPosition);
+		window.removeEventListener("mousemove", updateOutputPosition);
+		window.removeEventListener("mouseup", setOutputPosition);
+	}
+
+	function setInputPosition(e: MouseEvent) {
+		graph.update((data) => {
+			data.wires[id].input.x = gridSnap(e.clientX);
+			data.wires[id].input.y = gridSnap(e.clientY);
+			return data;
+		});
+		window.removeEventListener("mousemove", updateInputPosition);
+		window.removeEventListener("mouseup", setInputPosition);
 	}
 
 	function handleDown(pos: string, e: MouseEvent) {
