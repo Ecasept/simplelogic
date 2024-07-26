@@ -1,6 +1,6 @@
 <script lang="ts">
     import { GRID_SIZE, gridSnap } from '$lib/util/global';
-	import { executeCommand, SetComponentPositionCommand } from '$lib/util/graph';
+	import { AddWireCommand, executeCommand, SetComponentPositionCommand } from '$lib/util/graph';
     import type { ComponentIOList, HandleDownEvent, XYPair } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
 
@@ -33,26 +33,33 @@
 		window.addEventListener("mouseup", setPosition);
 	}
 
-	function handleDown(type: string, pos: string, handleIndex: number, e: MouseEvent) {
+	function handleDown(type: string, edge: string, handleIndex: number, e: MouseEvent) {
 		e.preventDefault();
 
 		// calculate position of handle
 		let x, y;
-		if(["left", "right"].includes(pos)) {
-			x = position.x + (pos == "right" ? (GRID_SIZE * width) : 0)
+		if(["left", "right"].includes(edge)) {
+			x = position.x + (edge == "right" ? (GRID_SIZE * width) : 0)
 			y = position.y + (GRID_SIZE * (handleIndex + 1))
 		} else {
 			x = position.x + (GRID_SIZE * (handleIndex + 1));
-			y = position.y + (pos == "bottom" ? (GRID_SIZE * height) : 0)
+			y = position.y + (edge == "bottom" ? (GRID_SIZE * height) : 0)
 		}
 
-		dispatch('handleDown', {
-			type: type,
-			handleIndex: handleIndex,
-			handleX: x,
-			handleY: y,
-			id: id
+		const cmd = new AddWireCommand({
+				label: 'test',
+				input: {
+					x: x,
+					y: y,
+					id: type === "output" ? id : -1,
+				},
+				output: {
+					x: x,
+					y: y,
+					id: type === "input" ? id : -1,
+				},
 		});
+		executeCommand(cmd);
 	}
 
 
@@ -85,8 +92,7 @@
 	<!-- svelte-ignore a11y-interactive-supports-focus -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="contentWrapper" on:mousedown={onCmpDown}>
-		<p>{label}</p>
-		{id}
+		{label} &centerdot; {type} &centerdot; id: {id}
 	</div>
 	{#each Object.entries(inputs) as [position, handles]}
 		{#each handles as handle, i}

@@ -1,12 +1,10 @@
 <script lang="ts">
 	import Component from '$lib/components/Component.svelte';
 	import { graph_store } from '$lib/stores/stores';
-	import { AddComponentCommand, AddWireCommand, executeCommand } from '$lib/util/graph';
+	import { AddComponentCommand, executeCommand } from '$lib/util/graph';
 	import { onMount } from 'svelte';
 	import Wire from '$lib/components/Wire.svelte';
 	import type {
-		ComponentIOList,
-		HandleDownEvent,
 		GraphData,
 	} from '$lib/util/types';
 	import { COMPONENT_IO_MAPPING, deepCopy } from '$lib/util/global';
@@ -23,24 +21,6 @@
 			console.log(graph_data);
 		});
 	});
-
-	function onHandleDown(e: CustomEvent<HandleDownEvent>) {
-		e.preventDefault();
-		const cmd = new AddWireCommand({
-				label: 'test',
-				input: {
-					x: e.detail.handleX,
-					y: e.detail.handleY,
-					id: e.detail.type === "output" ? e.detail.id : -1,
-				},
-				output: {
-					x: e.detail.handleX,
-					y: e.detail.handleY,
-					id: e.detail.type === "input" ? e.detail.id : -1,
-				},
-		});
-		executeCommand(cmd);
-	}
 
 	export function addCmp(label: string, type: string) {
 
@@ -67,13 +47,12 @@
 
 <div class="canvasWrapper" bind:this={canvas}>
 	{#each Object.entries(graph_data.components) as [id_as_key, { id, label, size, position, type, inputs, outputs }]}
-	<Component {id} {label} size={deepCopy(size)} position={deepCopy(position)} {type} inputs={deepCopy(inputs)} outputs={deepCopy(outputs)}
-								 on:handleDown={onHandleDown}></Component>
+	<Component {id} {label} size={deepCopy(size)} position={deepCopy(position)} {type} inputs={deepCopy(inputs)} outputs={deepCopy(outputs)}></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
 		<svg viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
 			{#each Object.entries(graph_data.wires) as [id_as_key, { id, label, input, output }]}
-					<Wire on:handleDown={onHandleDown} {label} {id} input={deepCopy(input)} output={deepCopy(output)}></Wire>
+					<Wire {label} {id} input={deepCopy(input)} output={deepCopy(output)}></Wire>
 			{/each}
 		</svg>
 	</div>

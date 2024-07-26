@@ -1,5 +1,5 @@
 import { graph_store, history_store } from "$lib/stores/stores";
-import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
+import { COMPONENT_IO_MAPPING, deepCopy, gridSnap } from "./global";
 import type { Command, ComponentIOList, WireIO, XYPair } from "./types";
 
 interface AddComponentData {
@@ -16,19 +16,50 @@ interface AddWireData {
 	input: WireIO;
 	output: WireIO;
 }
+// afds
+export class SetWireIOCommand implements Command {
+	oldIO: WireIO | null = null;
+
+	constructor(
+		private newIO: WireIO,
+		private type: "input" | "output",
+		private wireId: number,
+	) {}
+
+	execute() {
+		graph_store.update((data) => {
+			this.oldIO = data.wires[this.wireId][this.type];
+			data.wires[this.wireId][this.type] = this.newIO;
+			return data;
+		});
+	}
+
+	undo() {
+		if (this.oldIO === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		} else {
+			graph_store.update((data) => {
+				data.wires[this.wireId][this.type] = this.oldIO as WireIO;
+				this.oldIO = null;
+				return data;
+			});
+		}
+	}
+}
 
 export class SetComponentPositionCommand implements Command {
 	oldPosition: XYPair | null = null;
 
 	constructor(
-		private position: XYPair,
+		private newPosition: XYPair,
 		private componentId: number,
 	) {}
 
 	execute() {
 		graph_store.update((data) => {
 			this.oldPosition = deepCopy(data.components[this.componentId].position);
-			data.components[this.componentId].position = this.position;
+			data.components[this.componentId].position = this.newPosition;
 			return data;
 		});
 	}
@@ -50,11 +81,11 @@ export class SetComponentPositionCommand implements Command {
 export class AddWireCommand implements Command {
 	oldNextId: number | null = null;
 
-	constructor(private wireData: AddWireData) {}
+	constructor(private newWireData: AddWireData) {}
 	execute() {
 		graph_store.update((data) => {
 			this.oldNextId = data.nextId;
-			data.wires[data.nextId] = { ...this.wireData, id: data.nextId };
+			data.wires[data.nextId] = { ...this.newWireData, id: data.nextId };
 			data.nextId++;
 			return data;
 		});
@@ -78,9 +109,9 @@ export class AddWireCommand implements Command {
 export class AddComponentCommand implements Command {
 	oldNextId: number | null = null;
 
-	constructor(private componentData: AddComponentData) {}
+	constructor(private newComponentData: AddComponentData) {}
 	execute() {
-		const type = this.componentData.type;
+		const type = this.newComponentData.type;
 		if (!(type in COMPONENT_IO_MAPPING)) {
 			console.error(`Tried to add component of non-existing type \"${type}\"!`);
 			return;
@@ -88,14 +119,17 @@ export class AddComponentCommand implements Command {
 
 		graph_store.update((data) => {
 			this.oldNextId = data.nextId;
-			data.components[data.nextId] = { ...this.componentData, id: data.nextId };
+			data.components[data.nextId] = {
+				...this.newComponentData,
+				id: data.nextId,
+			};
 			data.nextId++;
 			return data;
 		});
 	}
 
 	undo() {
-		const type = this.componentData.type;
+		const type = this.newComponentData.type;
 		if (!(type in COMPONENT_IO_MAPPING)) {
 			console.error(
 				`Tried to undo add component of non-existing type \"${type}\"!`,
