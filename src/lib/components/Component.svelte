@@ -1,8 +1,9 @@
 <script lang="ts">
     import { GRID_SIZE, gridSnap } from '$lib/util/global';
-	import { AddWireCommand, executeCommand, SetComponentPositionCommand } from '$lib/util/graph';
-    import type { ComponentIOList, HandleDownEvent, XYPair } from '$lib/util/types';
+	import { executeCommand, SetComponentPositionCommand } from '$lib/util/graph';
+    import type { AddWireEvent, ComponentIOList, XYPair } from '$lib/util/types';
 	import { createEventDispatcher } from 'svelte';
+	import Wire from './Wire.svelte';
 
 	export let id: number;
 	export let label: string = 'Component';
@@ -15,13 +16,12 @@
 	let width = size.x;
 
 	let wrapper: HTMLDivElement;
-	const dispatch = createEventDispatcher<{
-		handleDown: HandleDownEvent
-	}>();
 
 	let mouseOffset: {x: number, y: number} | null;
 	let grabbing = false;
 	$: cursor = grabbing ? 'grabbing' : 'grab';
+
+	const dispatch = createEventDispatcher<{addWire: AddWireEvent}>()
 
 	function onCmpDown(e: MouseEvent) {
 		e.preventDefault();
@@ -46,20 +46,20 @@
 			y = position.y + (edge == "bottom" ? (GRID_SIZE * height) : 0)
 		}
 
-		const cmd = new AddWireCommand({
-				label: 'test',
-				input: {
-					x: x,
-					y: y,
-					id: type === "output" ? id : -1,
-				},
-				output: {
-					x: x,
-					y: y,
-					id: type === "input" ? id : -1,
-				},
-		});
-		executeCommand(cmd);
+		dispatch("addWire", {
+			label: 'test',
+			input: {
+				x: x,
+				y: y,
+				// if the handle was an output handle, the input of the new wire will be this component
+				id: type === "output" ? id : -1,
+			},
+			output: {
+				x: x,
+				y: y,
+				id: type === "input" ? id : -1,
+			},
+		})
 	}
 
 

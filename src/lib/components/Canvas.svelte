@@ -5,11 +5,13 @@
 	import { onMount } from 'svelte';
 	import Wire from '$lib/components/Wire.svelte';
 	import type {
+	AddWireEvent,
 		GraphData,
 	} from '$lib/util/types';
 	import { COMPONENT_IO_MAPPING, deepCopy } from '$lib/util/global';
 
 	let canvas: HTMLDivElement;
+	let svgWrapper: SVGSVGElement;
 	let innerHeight: number;
 	let innerWidth: number;
 
@@ -42,15 +44,30 @@
 
 		executeCommand(cmd);
 	}
+
+	export function addWire(e: CustomEvent<AddWireEvent>) {
+		const wire = new Wire({
+			target: svgWrapper,
+			props: {
+				id: null,
+				input: e.detail.input,
+				output: e.detail.output,
+				label: e.detail.label
+			}
+		})
+		wire.$on("wireAdded", () => {
+			wire.$destroy();
+		});
+	}
 </script>
 
 
 <div class="canvasWrapper" bind:this={canvas}>
 	{#each Object.entries(graph_data.components) as [id_as_key, { id, label, size, position, type, inputs, outputs }]}
-	<Component {id} {label} size={deepCopy(size)} position={deepCopy(position)} {type} inputs={deepCopy(inputs)} outputs={deepCopy(outputs)}></Component>
+	<Component {id} {label} size={deepCopy(size)} position={deepCopy(position)} {type} inputs={deepCopy(inputs)} outputs={deepCopy(outputs)} on:addWire={addWire}></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
-		<svg viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
+		<svg bind:this={svgWrapper} viewBox="0 0 -{innerHeight} -{innerWidth}" xmlns="http://www.w3.org/2000/svg" stroke-width="2px">
 			{#each Object.entries(graph_data.wires) as [id_as_key, { id, label, input, output }]}
 					<Wire {label} {id} input={deepCopy(input)} output={deepCopy(output)}></Wire>
 			{/each}

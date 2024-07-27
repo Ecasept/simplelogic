@@ -2,57 +2,78 @@
 	import { gridSnap } from '$lib/util/global';
 	import { AddWireCommand, executeCommand, SetWireIOCommand } from '$lib/util/graph';
 	import type { WireIO } from '$lib/util/types';
-	import { onMount } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 
-	export let id: number;
+	export let id: number | null; // when the wire is being added, id is null
 	export let label: string;
 	export let input: WireIO;
 	export let output: WireIO;
 
+
 	let mouseMoveHandler: (e: MouseEvent) => void;
 	let mouseUpHandler: (e: MouseEvent) => void;
 
-	onMount(() => {
-		if (output.id !== -1) {
-			mouseMoveHandler = (e: MouseEvent) => updatePosition("input", e);
-			mouseUpHandler = (e: MouseEvent) => setPosition("input", e);
-		} else {
-			mouseMoveHandler = (e: MouseEvent) => updatePosition("output", e);
-			mouseUpHandler = (e: MouseEvent) => setPosition("output", e);
-		}
+	const dispatch = createEventDispatcher()
 
-		window.addEventListener("mousemove", mouseMoveHandler);
-		window.addEventListener("mouseup", mouseUpHandler);
+	onMount(() => {
+		if (id === null) { // being created
+			if (output.id !== -1) {
+				mouseMoveHandler = (e: MouseEvent) => updatePosition("input", e);
+				mouseUpHandler = (e: MouseEvent) => setPosition("input", e);
+			} else {
+				mouseMoveHandler = (e: MouseEvent) => updatePosition("output", e);
+				mouseUpHandler = (e: MouseEvent) => setPosition("output", e);
+			}
+
+			window.addEventListener("mousemove", mouseMoveHandler);
+			window.addEventListener("mouseup", mouseUpHandler);
+		}
 	});
 
-	function updatePosition(pos: "input" | "output", e: MouseEvent) {
-		if (pos ===  "input") {
-			input.x = e.clientX;
-			input.y = e.clientY;
+	function updatePosition(type: "input" | "output", e: MouseEvent) {
+		if (type ===  "input") {
+			input.x = gridSnap(e.clientX);
+			input.y = gridSnap(e.clientY);
 		} else {
-			output.x = e.clientX;
-			output.y = e.clientY;
+			output.x = gridSnap(e.clientX);
+			output.y = gridSnap(e.clientY);
 		}
 	}
 
 	function setPosition(type: "input" | "output", e: MouseEvent) {
-		const cmd = new SetWireIOCommand(
-			{
-				x: gridSnap(e.clientX),
-				y: gridSnap(e.clientY),
-				id: -1
-			},
-			type,
-			id
-		)
-		executeCommand(cmd);
-
-        window.removeEventListener("mousemove", mouseMoveHandler);
-        window.removeEventListener("mouseup", mouseUpHandler);
+		if (id === null) {
+			updatePosition(type, e)
+			const cmd = new AddWireCommand({
+				label: label,
+				input: input,
+				output: output,
+			});
+			executeCommand(cmd);
+			window.removeEventListener("mousemove", mouseMoveHandler);
+			window.removeEventListener("mouseup", mouseUpHandler);
+			dispatch("wireAdded");
+		} else {
+			const cmd = new SetWireIOCommand(
+				{
+					x: gridSnap(e.clientX),
+					y: gridSnap(e.clientY),
+					id: -1
+				},
+				type,
+				id,
+			);
+			executeCommand(cmd);
+			window.removeEventListener("mousemove", mouseMoveHandler);
+			window.removeEventListener("mouseup", mouseUpHandler);
+		}
 	}
 
 	function handleDown(type: string, e: MouseEvent) {
 		e.preventDefault();
+		if (id === null) {
+			console.error("Tried to click handle on not initialized wire");
+			return;
+		}
 		const handle = type === "input" ? input : output;
 		const cmd = new AddWireCommand({
 				label: 'test',

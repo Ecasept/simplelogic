@@ -1,12 +1,11 @@
+import type { AddWireCommand } from "./graph";
+
 export type Handle = { type: string };
 
 // list of handles for each position
 export type ComponentIOList = {
 	[key in "top" | "bottom" | "left" | "right"]?: Handle[];
 };
-
-// list of x/y coordinates and id of objects that a wire connects to
-// export type WireIOList = { x: number; y: number; id: number }[];
 
 export type WireIO = { x: number; y: number; id: number };
 
@@ -47,15 +46,13 @@ export interface GraphData {
 }
 
 // ==== Events ====
-export interface HandleDownEvent {
-	type: string; // "input" | "output"
-	handleIndex: number;
-	handleX: number;
-	handleY: number;
-	id: number;
-}
 
-interface Command {
-	execute(): void;
-	undo(): void;
+/** Event for when a handle was clicked */
+export interface AddWireEvent {
+	/** the label of the new wire */
+	label: "test";
+	/** the input of the new wire */
+	input: WireIO;
+	/** the output of the new wire */
+	output: WireIO;
 }

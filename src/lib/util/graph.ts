@@ -1,6 +1,11 @@
 import { graph_store, history_store } from "$lib/stores/stores";
-import { COMPONENT_IO_MAPPING, deepCopy, gridSnap } from "./global";
-import type { Command, ComponentIOList, WireIO, XYPair } from "./types";
+import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
+import type { ComponentIOList, WireIO, XYPair } from "./types";
+
+interface Command {
+	execute(): void;
+	undo(): void | Command | null;
+}
 
 interface AddComponentData {
 	label: string;
@@ -16,7 +21,7 @@ interface AddWireData {
 	input: WireIO;
 	output: WireIO;
 }
-// afds
+
 export class SetWireIOCommand implements Command {
 	oldIO: WireIO | null = null;
 
@@ -160,7 +165,7 @@ export function executeCommand(command: Command) {
 
 export function undoLastCommand() {
 	history_store.update((arr) => {
-		const command = arr.pop();
+		const command: Command | undefined = arr.pop();
 		command?.undo();
 		return arr;
 	});
