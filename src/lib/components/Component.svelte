@@ -3,7 +3,6 @@
 	import { executeCommand, SetComponentPositionCommand } from "$lib/util/graph";
 	import type { AddWireEvent, ComponentIOList, XYPair } from "$lib/util/types";
 	import { createEventDispatcher } from "svelte";
-	import Wire from "./Wire.svelte";
 
 	export let id: number;
 	export let label: string = "Component";
@@ -14,8 +13,6 @@
 	export let outputs: ComponentIOList;
 	let height = size.y;
 	let width = size.x;
-
-	let wrapper: HTMLDivElement;
 
 	let mouseOffset: { x: number; y: number } | null;
 	let grabbing = false;
@@ -93,7 +90,6 @@
 <div
 	id={id.toString()}
 	class="wrapper"
-	bind:this={wrapper}
 	style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}; cursor: {cursor}"
 >
 	<!-- svelte-ignore a11y-interactive-supports-focus -->
