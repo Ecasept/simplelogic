@@ -96,11 +96,29 @@
 	}
 
 	function onMouseEnter(e: MouseEvent) {
-		(e.target as HTMLElement).setAttribute("r", "10");
+		if (e.target === null) {
+			console.error("e.target is null, can't highlight wire handle.");
+			return;
+		}
+		if (!(e.target instanceof Element)) {
+			console.error("e.target is not an element, can't highlight wire handle");
+			return;
+		}
+		e.target.setAttribute("r", "10");
 	}
 
 	function onMouseLeave(e: MouseEvent) {
-		(e.target as HTMLElement).setAttribute("r", "5");
+		if (e.target === null) {
+			console.error("e.target is null, can't dehighlight wire handle.");
+			return;
+		}
+		if (!(e.target instanceof Element)) {
+			console.error(
+				"e.target is not an element, can't dehighlight wire handle",
+			);
+			return;
+		}
+		e.target.setAttribute("r", "5");
 	}
 </script>
 

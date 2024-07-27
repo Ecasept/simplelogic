@@ -35,16 +35,15 @@ export class SetWireIOCommand implements Command {
 	}
 
 	undo() {
-		if (this.oldIO === null) {
-			console.error(`Tried to undo command that has not been executed`);
-			return;
-		} else {
-			graph_store.update((data) => {
-				data.wires[this.wireId][this.type] = this.oldIO as WireIO;
-				this.oldIO = null;
+		graph_store.update((data) => {
+			if (this.oldIO === null) {
+				console.error(`Tried to undo command that has not been executed`);
 				return data;
-			});
-		}
+			}
+			data.wires[this.wireId][this.type] = this.oldIO;
+			this.oldIO = null;
+			return data;
+		});
 	}
 }
 
@@ -65,16 +64,15 @@ export class SetComponentPositionCommand implements Command {
 	}
 
 	undo() {
-		if (this.oldPosition === null) {
-			console.error(`Tried to undo command that has not been executed`);
-			return;
-		} else {
-			graph_store.update((data) => {
-				data.components[this.componentId].position = this.oldPosition as XYPair;
-				this.oldPosition = null;
+		graph_store.update((data) => {
+			if (this.oldPosition === null) {
+				console.error(`Tried to undo command that has not been executed`);
 				return data;
-			});
-		}
+			}
+			data.components[this.componentId].position = this.oldPosition;
+			this.oldPosition = null;
+			return data;
+		});
 	}
 }
 
@@ -92,14 +90,14 @@ export class AddWireCommand implements Command {
 	}
 
 	undo() {
-		if (this.oldNextId === null) {
-			console.error(`Tried to undo command that has not been executed`);
-			return;
-		}
-
 		graph_store.update((data) => {
-			data.nextId = this.oldNextId as number;
-			delete data.wires[this.oldNextId as number];
+			if (this.oldNextId === null) {
+				console.error(`Tried to undo command that has not been executed`);
+				return data;
+			}
+
+			data.nextId = this.oldNextId;
+			delete data.wires[this.oldNextId];
 			this.oldNextId = null;
 			return data;
 		});
@@ -136,14 +134,14 @@ export class AddComponentCommand implements Command {
 			);
 			return;
 		}
-		if (this.oldNextId === null) {
-			console.error(`Tried to undo command that has not been executed`);
-			return;
-		}
-
 		graph_store.update((data) => {
-			data.nextId = this.oldNextId as number;
-			delete data.components[this.oldNextId as number];
+			if (this.oldNextId === null) {
+				console.error(`Tried to undo command that has not been executed`);
+				return data;
+			}
+
+			data.nextId = this.oldNextId;
+			delete data.components[this.oldNextId];
 			this.oldNextId = null;
 			return data;
 		});
