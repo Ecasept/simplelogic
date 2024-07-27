@@ -63,6 +63,8 @@
 	}
 </script>
 
+<svelte:window bind:innerHeight bind:innerWidth />
+
 <div class="canvasWrapper" bind:this={canvas}>
 	{#each Object.entries(graph_data.components) as [id_as_key, { id, label, size, position, type, inputs, outputs }]}
 		<Component
