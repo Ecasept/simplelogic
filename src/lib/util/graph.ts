@@ -1,11 +1,6 @@
 import { graph_store, history_store } from "$lib/stores/stores";
 import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
-import type { ComponentIOList, WireIO, XYPair } from "./types";
-
-interface Command {
-	execute(): void;
-	undo(): void | Command | null;
-}
+import type { Command, ComponentIOList, WireIO, XYPair } from "./types";
 
 interface AddComponentData {
 	label: string;

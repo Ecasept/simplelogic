@@ -11,6 +11,11 @@ export type WireIO = { x: number; y: number; id: number };
 
 export type XYPair = { x: number; y: number };
 
+interface Command {
+	execute(): void;
+	undo(): void | Command | null;
+}
+
 // ==== Function Types ====
 
 export type UpdatePositionFunction = (
