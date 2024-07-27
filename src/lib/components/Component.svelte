@@ -1,60 +1,71 @@
 <script lang="ts">
-  import { graph } from '$lib/stores/stores';
-    import { GRID_SIZE, gridSnap } from '$lib/util/global';
-    import type { ComponentIOList, HandleDownEvent } from '$lib/util/types';
-	import { createEventDispatcher } from 'svelte';
+	import { GRID_SIZE, gridSnap } from "$lib/util/global";
+	import { executeCommand, SetComponentPositionCommand } from "$lib/util/graph";
+	import type { AddWireEvent, ComponentIOList, XYPair } from "$lib/util/types";
+	import { createEventDispatcher } from "svelte";
+	import Wire from "./Wire.svelte";
 
 	export let id: number;
-	export let label: string = 'Component';
-	export let size: {x: number, y: number};
+	export let label: string = "Component";
+	export let size: XYPair;
 	export let type: string;
-	export let position: { x: number, y: number };
+	export let position: XYPair;
 	export let inputs: ComponentIOList;
 	export let outputs: ComponentIOList;
 	let height = size.y;
 	let width = size.x;
 
 	let wrapper: HTMLDivElement;
-	const dispatch = createEventDispatcher<{
-		handleDown: HandleDownEvent
-	}>();
 
-	let mouseOffset: {x: number, y: number} | null;
+	let mouseOffset: { x: number; y: number } | null;
 	let grabbing = false;
-	$: cursor = grabbing ? 'grabbing' : 'grab';
+	$: cursor = grabbing ? "grabbing" : "grab";
+
+	const dispatch = createEventDispatcher<{ addWire: AddWireEvent }>();
 
 	function onCmpDown(e: MouseEvent) {
 		e.preventDefault();
 
-		mouseOffset = {x: e.offsetX, y: e.offsetY};
+		mouseOffset = { x: e.offsetX, y: e.offsetY };
 		grabbing = true;
 
 		window.addEventListener("mousemove", updatePosition);
 		window.addEventListener("mouseup", setPosition);
 	}
 
-	function handleDown(type: string, pos: string, handleIndex: number, e: MouseEvent) {
+	function handleDown(
+		type: string,
+		edge: string,
+		handleIndex: number,
+		e: MouseEvent,
+	) {
 		e.preventDefault();
 
 		// calculate position of handle
 		let x, y;
-		if(["left", "right"].includes(pos)) {
-			x = position.x + (pos == "right" ? (GRID_SIZE * width) : 0)
-			y = position.y + (GRID_SIZE * (handleIndex + 1))
+		if (["left", "right"].includes(edge)) {
+			x = position.x + (edge == "right" ? GRID_SIZE * width : 0);
+			y = position.y + GRID_SIZE * (handleIndex + 1);
 		} else {
-			x = position.x + (GRID_SIZE * (handleIndex + 1));
-			y = position.y + (pos == "bottom" ? (GRID_SIZE * height) : 0)
+			x = position.x + GRID_SIZE * (handleIndex + 1);
+			y = position.y + (edge == "bottom" ? GRID_SIZE * height : 0);
 		}
 
-		dispatch('handleDown', {
-			type: type,
-			handleIndex: handleIndex,
-			handleX: x,
-			handleY: y,
-			id: id
+		dispatch("addWire", {
+			label: "test",
+			input: {
+				x: x,
+				y: y,
+				// if the handle was an output handle, the input of the new wire will be this component
+				id: type === "output" ? id : -1,
+			},
+			output: {
+				x: x,
+				y: y,
+				id: type === "input" ? id : -1,
+			},
 		});
 	}
-
 
 	function updatePosition(e: MouseEvent) {
 		position.x = e.clientX - (mouseOffset?.x ?? 0);
@@ -62,13 +73,14 @@
 	}
 
 	function setPosition(e: MouseEvent) {
-		graph.update((data) => {
-			data.components[id].position = {
+		const cmd = new SetComponentPositionCommand(
+			{
 				x: gridSnap(e.clientX - (mouseOffset?.x ?? 0)),
-				y: gridSnap(e.clientY - (mouseOffset?.y ?? 0))
-			};
-			return data;
-		});
+				y: gridSnap(e.clientY - (mouseOffset?.y ?? 0)),
+			},
+			id,
+		);
+		executeCommand(cmd);
 
 		mouseOffset = null;
 		grabbing = false;
@@ -78,20 +90,26 @@
 	}
 </script>
 
-
-<div id={id.toString()} class="wrapper" bind:this={wrapper}
-		 style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}; cursor: {cursor}">
+<div
+	id={id.toString()}
+	class="wrapper"
+	bind:this={wrapper}
+	style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}; cursor: {cursor}"
+>
 	<!-- svelte-ignore a11y-interactive-supports-focus -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="contentWrapper" on:mousedown={onCmpDown}>
-		<p>{label}</p>
-		{id}
+		{label} &centerdot; {type} &centerdot; id: {id}
 	</div>
 	{#each Object.entries(inputs) as [position, handles]}
 		{#each handles as handle, i}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div class="handle {position}" on:mousedown={(e) => handleDown("input", position, i, e)}
-					 style="--num: {handles.length}; --index: {i}" title={handle.type}>
+			<div
+				class="handle {position}"
+				on:mousedown={(e) => handleDown("input", position, i, e)}
+				style="--num: {handles.length}; --index: {i}"
+				title={handle.type}
+			>
 				<div />
 			</div>
 		{/each}
@@ -99,8 +117,12 @@
 	{#each Object.entries(outputs) as [position, handles]}
 		{#each handles as handle, i}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div class="handle {position}" on:mousedown={(e) => handleDown("output", position, i, e)}
-					 style="--num: {handles.length}; --index: {i}" title={handle.type}>
+			<div
+				class="handle {position}"
+				on:mousedown={(e) => handleDown("output", position, i, e)}
+				style="--num: {handles.length}; --index: {i}"
+				title={handle.type}
+			>
 				<div />
 			</div>
 		{/each}
@@ -133,7 +155,6 @@
 			position: absolute;
 			top: 0;
 		}
-
 
 		.handle {
 			display: none;

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import Canvas from '$lib/components/Canvas.svelte';
+	import Canvas from "$lib/components/Canvas.svelte";
+	import { undoLastCommand } from "$lib/util/graph";
 
 	export let canvas: Canvas;
 
@@ -14,11 +15,12 @@
 	}
 </script>
 
-<div class="sidebarWrapper" class:open={open}>
+<div class="sidebarWrapper" class:open>
 	<button class="collapse" on:click={collapse}><span>▶</span></button>
 	<div class="content">
 		<button on:click={() => addCmp("test", "AND")}>Add AND</button>
 		<button on:click={() => addCmp("test2", "OR")}>Add OR</button>
+		<button on:click={undoLastCommand}>Undo</button>
 	</div>
 </div>
 
@@ -30,7 +32,7 @@
 		right: 0;
 		top: 0;
 		background-color: rgb(51, 51, 51);
-		transition: left .3s ease-in-out;
+		transition: left 0.3s ease-in-out;
 		left: 80vw;
 		display: flex;
 
@@ -54,7 +56,7 @@
 			span {
 				color: white;
 				display: block;
-				transition: transform .3s;
+				transition: transform 0.3s;
 			}
 		}
 	}
