@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { GRID_SIZE, gridSnap } from "$lib/util/global";
+	import { GRID_SIZE, gridSnap, isClickOverSidebar } from "$lib/util/global";
 	import {
 		AddComponentCommand,
 		executeCommand,
@@ -103,6 +103,9 @@
 	}
 
 	function setPosition(e: MouseEvent) {
+		if (isClickOverSidebar(e)) {
+			return;
+		}
 		if (id === null) {
 			updatePosition(e);
 			const cmd = new AddComponentCommand({

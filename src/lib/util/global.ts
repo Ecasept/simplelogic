@@ -41,3 +41,18 @@ export const COMPONENT_IO_MAPPING: {
 		width: 4,
 	},
 };
+
+export function isClickOverSidebar(e: MouseEvent) {
+	const sidebar = document.querySelector(".sidebarWrapper");
+	if (sidebar === null) {
+		console.error("sidebar does not exist");
+		return false;
+	}
+	const sidebarRect = sidebar.getBoundingClientRect();
+	return (
+		e.clientX >= sidebarRect.left &&
+		e.clientX <= sidebarRect.right &&
+		e.clientY >= sidebarRect.top &&
+		e.clientY <= sidebarRect.bottom
+	);
+}

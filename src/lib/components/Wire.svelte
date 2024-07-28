@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { gridSnap } from "$lib/util/global";
+	import { gridSnap, isClickOverSidebar } from "$lib/util/global";
 	import {
 		AddWireCommand,
 		executeCommand,
@@ -45,6 +45,9 @@
 	}
 
 	function setPosition(type: "input" | "output", e: MouseEvent) {
+		if (isClickOverSidebar(e)) {
+			return;
+		}
 		if (id === null) {
 			updatePosition(type, e);
 			const cmd = new AddWireCommand({
