@@ -16,15 +16,6 @@ interface Command {
 	undo(): void | Command | null;
 }
 
-// ==== Function Types ====
-
-export type UpdatePositionFunction = (
-	x: number,
-	mouseStartOffsetX: number,
-	y: number,
-	mouseStartOffsetY: number,
-) => void;
-
 // ==== Graph Types ====
 
 export interface WireData {
