@@ -87,12 +87,12 @@
 				x: x,
 				y: y,
 				// if the handle was an output handle, the input of the new wire will be this component
-				id: type === "output" ? id : -1,
+				id: type === "output" ? id : null,
 			},
 			output: {
 				x: x,
 				y: y,
-				id: type === "input" ? id : -1,
+				id: type === "input" ? id : null,
 			},
 		});
 	}

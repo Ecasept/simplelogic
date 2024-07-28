@@ -21,7 +21,7 @@
 	onMount(() => {
 		if (id === null) {
 			// being created
-			if (output.id !== -1) {
+			if (output.id !== null) {
 				mouseMoveHandler = (e) => updatePosition("input", e);
 				mouseUpHandler = (e) => setPosition("input", e);
 			} else {
@@ -61,7 +61,7 @@
 				{
 					x: gridSnap(e.clientX),
 					y: gridSnap(e.clientY),
-					id: -1,
+					id: null,
 				},
 				type,
 				id,
@@ -84,12 +84,12 @@
 			input: {
 				x: handle.x,
 				y: handle.y,
-				id: type === "output" ? id : -1,
+				id: type === "output" ? id : null,
 			},
 			output: {
 				x: handle.x,
 				y: handle.y,
-				id: type === "input" ? id : -1,
+				id: type === "input" ? id : null,
 			},
 		});
 		executeCommand(cmd);
@@ -138,7 +138,7 @@
 	fill="none"
 ></path>
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-{#if input.id === -1}
+{#if input.id === null}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<circle
 		on:mouseenter={onMouseEnter}
@@ -151,7 +151,7 @@
 	></circle>
 {/if}
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-{#if output.id === -1}
+{#if output.id === null}
 	<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 	<circle
 		on:mouseenter={onMouseEnter}
