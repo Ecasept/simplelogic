@@ -62,7 +62,7 @@
 	function handleDown(
 		type: string,
 		edge: string,
-		handleIndex: number,
+		handlePos: number,
 		e: MouseEvent,
 	) {
 		e.preventDefault();
@@ -75,9 +75,9 @@
 		let x, y;
 		if (["left", "right"].includes(edge)) {
 			x = position.x + (edge == "right" ? GRID_SIZE * width : 0);
-			y = position.y + GRID_SIZE * (handleIndex + 1);
+			y = position.y + GRID_SIZE * (handlePos + 1);
 		} else {
-			x = position.x + GRID_SIZE * (handleIndex + 1);
+			x = position.x + GRID_SIZE * (handlePos + 1);
 			y = position.y + (edge == "bottom" ? GRID_SIZE * height : 0);
 		}
 
@@ -156,26 +156,26 @@
 	<div class="contentWrapper" on:mousedown={onCmpDown}>
 		{label} &centerdot; {type} &centerdot; id: {id}
 	</div>
-	{#each Object.entries(inputs) as [position, handles]}
-		{#each handles as handle, i}
+	{#each Object.entries(inputs) as [edge, handles]}
+		{#each handles as handle}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
-				class="handle {position}"
-				on:mousedown={(e) => handleDown("input", position, i, e)}
-				style="--num: {handles.length}; --index: {i}"
+				class="handle {edge}"
+				on:mousedown={(e) => handleDown("input", edge, handle.pos, e)}
+				style="--pos: {handle.pos}"
 				title={handle.type}
 			>
 				<div />
 			</div>
 		{/each}
 	{/each}
-	{#each Object.entries(outputs) as [position, handles]}
-		{#each handles as handle, i}
+	{#each Object.entries(outputs) as [edge, handles]}
+		{#each handles as handle}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
-				class="handle {position}"
-				on:mousedown={(e) => handleDown("output", position, i, e)}
-				style="--num: {handles.length}; --index: {i}"
+				class="handle {edge}"
+				on:mousedown={(e) => handleDown("output", edge, handle.pos, e)}
+				style="--pos: {handle.pos}"
 				title={handle.type}
 			>
 				<div />
@@ -235,28 +235,28 @@
 			&.top {
 				position: absolute;
 				top: -16px;
-				left: calc(var(--grid-size) * (var(--index) + 1));
+				left: calc(var(--grid-size) * (var(--pos)));
 				transform: translate(-50%);
 			}
 
 			&.right {
 				position: absolute;
 				right: -16px;
-				top: calc(var(--grid-size) * (var(--index) + 1));
+				top: calc(var(--grid-size) * (var(--pos)));
 				transform: translateY(-50%);
 			}
 
 			&.bottom {
 				position: absolute;
 				bottom: -16px;
-				left: calc(var(--grid-size) * (var(--index) + 1));
+				left: calc(var(--grid-size) * (var(--pos)));
 				transform: translate(-50%);
 			}
 
 			&.left {
 				position: absolute;
 				left: -16px;
-				top: calc(var(--grid-size) * (var(--index) + 1));
+				top: calc(var(--grid-size) * (var(--pos)));
 				transform: translateY(-50%);
 			}
 		}

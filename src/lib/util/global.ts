@@ -11,14 +11,33 @@ export function deepCopy<Type>(val: Type): Type {
 }
 
 export const COMPONENT_IO_MAPPING: {
-	[key: string]: { inputs: ComponentIOList; outputs: ComponentIOList };
+	[key: string]: {
+		inputs: ComponentIOList;
+		outputs: ComponentIOList;
+		height: number;
+		width: number;
+	};
 } = {
 	AND: {
-		inputs: { left: [{ type: "in1" }, { type: "in2" }] },
-		outputs: { right: [{ type: "out" }] },
+		inputs: {
+			left: [
+				{ type: "in1", pos: 1 },
+				{ type: "in2", pos: 3 },
+			],
+		},
+		outputs: { right: [{ type: "out", pos: 2 }] },
+		height: 4,
+		width: 4,
 	},
 	OR: {
-		inputs: { top: [{ type: "in1" }, { type: "in2" }] },
-		outputs: { bottom: [{ type: "out" }] },
+		inputs: {
+			top: [
+				{ type: "in1", pos: 1 },
+				{ type: "in2", pos: 3 },
+			],
+		},
+		outputs: { bottom: [{ type: "out", pos: 2 }] },
+		height: 4,
+		width: 4,
 	},
 };

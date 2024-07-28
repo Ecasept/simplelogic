@@ -1,8 +1,8 @@
 import type { AddWireCommand } from "./graph";
 
-export type Handle = { type: string };
+export type Handle = { type: string; pos: number };
 
-// list of handles for each position
+// list of handles for each edge
 export type ComponentIOList = {
 	[key in "top" | "bottom" | "left" | "right"]?: Handle[];
 };
