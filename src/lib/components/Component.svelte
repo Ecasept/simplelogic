@@ -5,7 +5,11 @@
 		executeCommand,
 		SetComponentPositionCommand,
 	} from "$lib/util/graph";
-	import type { AddWireEvent, ComponentIOList, XYPair } from "$lib/util/types";
+	import type {
+		ComponentIOList,
+		CreateWireEvent,
+		XYPair,
+	} from "$lib/util/types";
 	import { createEventDispatcher, onMount } from "svelte";
 
 	export let id: number | null;
@@ -23,8 +27,8 @@
 	$: cursor = grabbing ? "grabbing" : "grab";
 
 	const dispatch = createEventDispatcher<{
-		addWire: AddWireEvent;
-		componentAdded: null;
+		createWire: CreateWireEvent;
+		delete: null;
 	}>();
 
 	onMount(() => {
@@ -35,8 +39,6 @@
 				x: Math.round((size.x * GRID_SIZE) / 2),
 				y: Math.round((size.y * GRID_SIZE) / 2),
 			};
-
-			console.log(mouseOffset);
 
 			window.addEventListener("mousemove", updatePosition);
 			window.addEventListener("mouseup", setPosition);
@@ -79,7 +81,7 @@
 			y = position.y + (edge == "bottom" ? GRID_SIZE * height : 0);
 		}
 
-		dispatch("addWire", {
+		dispatch("createWire", {
 			label: "test",
 			input: {
 				x: x,
@@ -115,7 +117,7 @@
 
 			window.removeEventListener("mousemove", updatePosition);
 			window.removeEventListener("mouseup", setPosition);
-			dispatch("componentAdded");
+			dispatch("delete");
 		} else {
 			const cmd = new SetComponentPositionCommand(
 				{

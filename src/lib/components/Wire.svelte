@@ -8,7 +8,7 @@
 	import type { WireIO } from "$lib/util/types";
 	import { createEventDispatcher, onMount } from "svelte";
 
-	export let id: number | null; // when the wire is being added, id is null
+	export let id: number | null; // when the wire is being created, id is null
 	export let label: string;
 	export let input: WireIO;
 	export let output: WireIO;
@@ -16,7 +16,7 @@
 	let mouseMoveHandler: (e: MouseEvent) => void;
 	let mouseUpHandler: (e: MouseEvent) => void;
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<{ delete: null }>();
 
 	onMount(() => {
 		if (id === null) {
@@ -55,7 +55,7 @@
 			executeCommand(cmd);
 			window.removeEventListener("mousemove", mouseMoveHandler);
 			window.removeEventListener("mouseup", mouseUpHandler);
-			dispatch("wireAdded");
+			dispatch("delete");
 		} else {
 			const cmd = new SetWireIOCommand(
 				{
@@ -125,7 +125,7 @@
 		if (e.key === "Escape" && id === null) {
 			window.removeEventListener("mousemove", mouseMoveHandler);
 			window.removeEventListener("mouseup", mouseUpHandler);
-			dispatch("wireAdded");
+			dispatch("delete");
 		}
 	}
 </script>

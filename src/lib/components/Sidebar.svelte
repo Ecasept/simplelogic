@@ -2,14 +2,16 @@
 	import Canvas from "$lib/components/Canvas.svelte";
 	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
 	import { undoLastCommand } from "$lib/util/graph";
-	import type { AddComponentEvent } from "$lib/util/types";
+	import type { CreateComponentEvent } from "$lib/util/types";
 	import { createEventDispatcher } from "svelte";
 
-	const dispatch = createEventDispatcher<{ componentAdd: AddComponentEvent }>();
+	const dispatch = createEventDispatcher<{
+		createComponent: CreateComponentEvent;
+	}>();
 
 	let open = true;
 
-	function addCmp(label: string, type: string) {
+	function createComponent(label: string, type: string) {
 		const inputs = COMPONENT_IO_MAPPING[type].inputs;
 		const outputs = COMPONENT_IO_MAPPING[type].outputs;
 		let height = (inputs.left?.length || 0) + (outputs.left?.length || 0);
@@ -23,7 +25,7 @@
 			(inputs.bottom?.length || 0) + (outputs.bottom?.length || 0),
 		);
 
-		dispatch("componentAdd", {
+		dispatch("createComponent", {
 			type: type,
 			label: label,
 			size: { x: width + 1, y: height + 1 },
@@ -41,8 +43,8 @@
 <div class="sidebarWrapper" class:open>
 	<button class="collapse" on:click={collapse}><span>▶</span></button>
 	<div class="content">
-		<button on:click={() => addCmp("test", "AND")}>Add AND</button>
-		<button on:click={() => addCmp("test2", "OR")}>Add OR</button>
+		<button on:click={() => createComponent("test", "AND")}>Add AND</button>
+		<button on:click={() => createComponent("test2", "OR")}>Add OR</button>
 		<button on:click={undoLastCommand}>Undo</button>
 	</div>
 </div>

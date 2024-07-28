@@ -4,8 +4,8 @@
 	import { onMount } from "svelte";
 	import Wire from "$lib/components/Wire.svelte";
 	import type {
-		AddComponentEvent,
-		AddWireEvent,
+		CreateComponentEvent,
+		CreateWireEvent,
 		GraphData,
 	} from "$lib/util/types";
 	import { deepCopy } from "$lib/util/global";
@@ -24,7 +24,7 @@
 		});
 	});
 
-	export function addComponent(e: CustomEvent<AddComponentEvent>) {
+	export function createComponent(e: CustomEvent<CreateComponentEvent>) {
 		const cmp = new Component({
 			target: canvas,
 			props: {
@@ -37,12 +37,12 @@
 				size: e.detail.size,
 			},
 		});
-		cmp.$on("componentAdded", () => {
+		cmp.$on("delete", () => {
 			cmp.$destroy();
 		});
 	}
 
-	export function addWire(e: CustomEvent<AddWireEvent>) {
+	export function createWire(e: CustomEvent<CreateWireEvent>) {
 		const wire = new Wire({
 			target: svgWrapper,
 			props: {
@@ -52,7 +52,7 @@
 				label: e.detail.label,
 			},
 		});
-		wire.$on("wireAdded", () => {
+		wire.$on("delete", () => {
 			wire.$destroy();
 		});
 	}
@@ -70,7 +70,7 @@
 			{type}
 			inputs={deepCopy(inputs)}
 			outputs={deepCopy(outputs)}
-			on:addWire={addWire}
+			on:createWire={createWire}
 		></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">

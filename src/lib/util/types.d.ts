@@ -44,7 +44,7 @@ export interface GraphData {
 // ==== Events ====
 
 /** Event for when a handle was clicked */
-export interface AddWireEvent {
+export interface CreateWireEvent {
 	/** the label of the new wire */
 	label: string;
 	/** the input of the new wire */
@@ -53,7 +53,7 @@ export interface AddWireEvent {
 	output: WireIO;
 }
 
-export interface AddComponentEvent {
+export interface CreateComponentEvent {
 	type: string;
 	label: string;
 	size: XYPair;

@@ -7,5 +7,5 @@
 
 <div class="wrapper">
 	<Canvas bind:this={canvas}></Canvas>
-	<Sidebar on:componentAdd={canvas.addComponent}></Sidebar>
+	<Sidebar on:createComponent={canvas.createComponent}></Sidebar>
 </div>
