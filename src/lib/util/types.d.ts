@@ -61,3 +61,12 @@ export interface AddWireEvent {
 	/** the output of the new wire */
 	output: WireIO;
 }
+
+export interface AddComponentEvent {
+	type: string;
+	label: string;
+	size: XYPair;
+	position: XYPair;
+	inputs: ComponentIOList;
+	outputs: ComponentIOList;
+}

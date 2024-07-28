@@ -1,13 +1,36 @@
 <script lang="ts">
 	import Canvas from "$lib/components/Canvas.svelte";
+	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
 	import { undoLastCommand } from "$lib/util/graph";
+	import type { AddComponentEvent } from "$lib/util/types";
+	import { createEventDispatcher } from "svelte";
 
-	export let canvas: Canvas;
+	const dispatch = createEventDispatcher<{ componentAdd: AddComponentEvent }>();
 
 	let open = true;
 
 	function addCmp(label: string, type: string) {
-		canvas.addCmp(label, type);
+		const inputs = COMPONENT_IO_MAPPING[type].inputs;
+		const outputs = COMPONENT_IO_MAPPING[type].outputs;
+		let height = (inputs.left?.length || 0) + (outputs.left?.length || 0);
+		height = Math.max(
+			height,
+			(inputs.right?.length || 0) + (outputs.right?.length || 0),
+		);
+		let width = (inputs.top?.length || 0) + (outputs.top?.length || 0);
+		width = Math.max(
+			width,
+			(inputs.bottom?.length || 0) + (outputs.bottom?.length || 0),
+		);
+
+		dispatch("componentAdd", {
+			type: type,
+			label: label,
+			size: { x: width + 1, y: height + 1 },
+			position: { x: 400, y: 400 },
+			inputs: inputs,
+			outputs: outputs,
+		});
 	}
 
 	function collapse() {

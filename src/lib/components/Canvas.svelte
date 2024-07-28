@@ -1,11 +1,14 @@
 <script lang="ts">
 	import Component from "$lib/components/Component.svelte";
 	import { graph_store } from "$lib/stores/stores";
-	import { AddComponentCommand, executeCommand } from "$lib/util/graph";
 	import { onMount } from "svelte";
 	import Wire from "$lib/components/Wire.svelte";
-	import type { AddWireEvent, GraphData } from "$lib/util/types";
-	import { COMPONENT_IO_MAPPING, deepCopy } from "$lib/util/global";
+	import type {
+		AddComponentEvent,
+		AddWireEvent,
+		GraphData,
+	} from "$lib/util/types";
+	import { deepCopy } from "$lib/util/global";
 
 	let canvas: HTMLDivElement;
 	let svgWrapper: SVGSVGElement;
@@ -21,30 +24,22 @@
 		});
 	});
 
-	export function addCmp(label: string, type: string) {
-		const inputs = COMPONENT_IO_MAPPING[type].inputs;
-		const outputs = COMPONENT_IO_MAPPING[type].outputs;
-		let height = (inputs.left?.length || 0) + (outputs.left?.length || 0);
-		height = Math.max(
-			height,
-			(inputs.right?.length || 0) + (outputs.right?.length || 0),
-		);
-		let width = (inputs.top?.length || 0) + (outputs.top?.length || 0);
-		width = Math.max(
-			width,
-			(inputs.bottom?.length || 0) + (outputs.bottom?.length || 0),
-		);
-
-		const cmd = new AddComponentCommand({
-			label: label,
-			type: type,
-			size: { x: width + 1, y: height + 1 },
-			position: { x: 400, y: 400 },
-			inputs: inputs,
-			outputs: outputs,
+	export function addComponent(e: CustomEvent<AddComponentEvent>) {
+		const cmp = new Component({
+			target: canvas,
+			props: {
+				id: null,
+				type: e.detail.type,
+				label: e.detail.label,
+				inputs: e.detail.inputs,
+				outputs: e.detail.outputs,
+				position: e.detail.position,
+				size: e.detail.size,
+			},
 		});
-
-		executeCommand(cmd);
+		cmp.$on("componentAdded", () => {
+			cmp.$destroy();
+		});
 	}
 
 	export function addWire(e: CustomEvent<AddWireEvent>) {

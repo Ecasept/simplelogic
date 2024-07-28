@@ -1,10 +1,14 @@
 <script lang="ts">
 	import { GRID_SIZE, gridSnap } from "$lib/util/global";
-	import { executeCommand, SetComponentPositionCommand } from "$lib/util/graph";
+	import {
+		AddComponentCommand,
+		executeCommand,
+		SetComponentPositionCommand,
+	} from "$lib/util/graph";
 	import type { AddWireEvent, ComponentIOList, XYPair } from "$lib/util/types";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 
-	export let id: number;
+	export let id: number | null;
 	export let label: string = "Component";
 	export let size: XYPair;
 	export let type: string;
@@ -18,10 +22,33 @@
 	let grabbing = false;
 	$: cursor = grabbing ? "grabbing" : "grab";
 
-	const dispatch = createEventDispatcher<{ addWire: AddWireEvent }>();
+	const dispatch = createEventDispatcher<{
+		addWire: AddWireEvent;
+		componentAdded: null;
+	}>();
+
+	onMount(() => {
+		if (id === null) {
+			// being created
+
+			mouseOffset = {
+				x: Math.round((size.x * GRID_SIZE) / 2),
+				y: Math.round((size.y * GRID_SIZE) / 2),
+			};
+
+			console.log(mouseOffset);
+
+			window.addEventListener("mousemove", updatePosition);
+			window.addEventListener("mouseup", setPosition);
+		}
+	});
 
 	function onCmpDown(e: MouseEvent) {
 		e.preventDefault();
+
+		if (id === null) {
+			return;
+		}
 
 		mouseOffset = { x: e.offsetX, y: e.offsetY };
 		grabbing = true;
@@ -37,6 +64,10 @@
 		e: MouseEvent,
 	) {
 		e.preventDefault();
+
+		if (id === null) {
+			return;
+		}
 
 		// calculate position of handle
 		let x, y;
@@ -70,25 +101,41 @@
 	}
 
 	function setPosition(e: MouseEvent) {
-		const cmd = new SetComponentPositionCommand(
-			{
-				x: gridSnap(e.clientX - (mouseOffset?.x ?? 0)),
-				y: gridSnap(e.clientY - (mouseOffset?.y ?? 0)),
-			},
-			id,
-		);
-		executeCommand(cmd);
+		if (id === null) {
+			updatePosition(e);
+			const cmd = new AddComponentCommand({
+				label: label,
+				type: type,
+				size: size,
+				position: position,
+				inputs: inputs,
+				outputs: outputs,
+			});
+			executeCommand(cmd);
 
-		mouseOffset = null;
-		grabbing = false;
+			window.removeEventListener("mousemove", updatePosition);
+			window.removeEventListener("mouseup", setPosition);
+			dispatch("componentAdded");
+		} else {
+			const cmd = new SetComponentPositionCommand(
+				{
+					x: gridSnap(e.clientX - (mouseOffset?.x ?? 0)),
+					y: gridSnap(e.clientY - (mouseOffset?.y ?? 0)),
+				},
+				id,
+			);
+			executeCommand(cmd);
 
-		window.removeEventListener("mousemove", updatePosition);
-		window.removeEventListener("mouseup", setPosition);
+			mouseOffset = null;
+			grabbing = false;
+
+			window.removeEventListener("mousemove", updatePosition);
+			window.removeEventListener("mouseup", setPosition);
+		}
 	}
 </script>
 
 <div
-	id={id.toString()}
 	class="wrapper"
 	style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}; cursor: {cursor}"
 >
