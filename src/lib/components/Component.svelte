@@ -194,6 +194,7 @@
 		left: var(--x);
 		border: black var(--border-size) solid;
 		cursor: grabbing;
+		z-index: 1;
 
 		&:not(.grabbed) {
 			cursor: grab;
@@ -214,7 +215,6 @@
 
 		.handle {
 			display: none;
-			z-index: 1;
 			width: 10px;
 			height: 10px;
 			padding: 10px;

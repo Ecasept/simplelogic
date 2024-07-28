@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Canvas from "$lib/components/Canvas.svelte";
-	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
+	import { COMPONENT_IO_MAPPING, GRID_SIZE } from "$lib/util/global";
 	import { undoLastCommand } from "$lib/util/graph";
 	import type { CreateComponentEvent } from "$lib/util/types";
 	import { createEventDispatcher } from "svelte";
@@ -11,14 +11,17 @@
 
 	let open = true;
 
-	function createComponent(label: string, type: string) {
+	function createComponent(label: string, type: string, e: MouseEvent) {
 		const data = COMPONENT_IO_MAPPING[type];
 
 		dispatch("createComponent", {
 			type: type,
 			label: label,
 			size: { x: data.width, y: data.height },
-			position: { x: 400, y: 400 },
+			position: {
+				x: e.clientX - (data.width * GRID_SIZE) / 2,
+				y: e.clientY - (data.height * GRID_SIZE) / 2,
+			},
 			inputs: data.inputs,
 			outputs: data.outputs,
 		});
@@ -32,8 +35,8 @@
 <div class="sidebarWrapper" class:open>
 	<button class="collapse" on:click={collapse}><span>▶</span></button>
 	<div class="content">
-		<button on:click={() => createComponent("test", "AND")}>Add AND</button>
-		<button on:click={() => createComponent("test2", "OR")}>Add OR</button>
+		<button on:click={(e) => createComponent("test", "AND", e)}>Add AND</button>
+		<button on:click={(e) => createComponent("test2", "OR", e)}>Add OR</button>
 		<button on:click={undoLastCommand}>Undo</button>
 	</div>
 </div>
