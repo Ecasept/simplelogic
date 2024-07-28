@@ -135,7 +135,17 @@
 			window.removeEventListener("mouseup", setPosition);
 		}
 	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key === "Escape" && id === null) {
+			window.removeEventListener("mousemove", updatePosition);
+			window.removeEventListener("mouseup", setPosition);
+			dispatch("delete");
+		}
+	}
 </script>
+
+<svelte:window on:keydown={onKeyDown} />
 
 <div
 	class="wrapper"
