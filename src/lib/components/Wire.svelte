@@ -22,11 +22,11 @@
 		if (id === null) {
 			// being created
 			if (output.id !== -1) {
-				mouseMoveHandler = (e: MouseEvent) => updatePosition("input", e);
-				mouseUpHandler = (e: MouseEvent) => setPosition("input", e);
+				mouseMoveHandler = (e) => updatePosition("input", e);
+				mouseUpHandler = (e) => setPosition("input", e);
 			} else {
-				mouseMoveHandler = (e: MouseEvent) => updatePosition("output", e);
-				mouseUpHandler = (e: MouseEvent) => setPosition("output", e);
+				mouseMoveHandler = (e) => updatePosition("output", e);
+				mouseUpHandler = (e) => setPosition("output", e);
 			}
 
 			window.addEventListener("mousemove", mouseMoveHandler);
