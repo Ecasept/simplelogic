@@ -55,7 +55,7 @@ export interface GraphData {
 /** Event for when a handle was clicked */
 export interface AddWireEvent {
 	/** the label of the new wire */
-	label: "test";
+	label: string;
 	/** the input of the new wire */
 	input: WireIO;
 	/** the output of the new wire */
