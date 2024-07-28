@@ -98,8 +98,8 @@
 	}
 
 	function updatePosition(e: MouseEvent) {
-		position.x = e.clientX - (mouseOffset?.x ?? 0);
-		position.y = e.clientY - (mouseOffset?.y ?? 0);
+		position.x = gridSnap(e.clientX - (mouseOffset?.x ?? 0));
+		position.y = gridSnap(e.clientY - (mouseOffset?.y ?? 0));
 	}
 
 	function setPosition(e: MouseEvent) {
