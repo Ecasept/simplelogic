@@ -186,12 +186,13 @@
 
 <style lang="scss">
 	.wrapper {
-		height: calc((var(--height, 0)) * var(--grid-size) - 2px);
-		width: calc((var(--width, 0)) * var(--grid-size) - 2px);
+		--border-size: 2px;
+		height: calc((var(--height)) * var(--grid-size) - var(--border-size));
+		width: calc((var(--width)) * var(--grid-size) - var(--border-size));
 		position: absolute;
 		top: var(--y);
 		left: var(--x);
-		border: black 2px solid;
+		border: black var(--border-size) solid;
 		cursor: grabbing;
 
 		&:not(.grabbed) {

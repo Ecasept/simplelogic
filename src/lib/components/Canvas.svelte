@@ -93,11 +93,16 @@
 		width: 100vw;
 		height: 100vh;
 		background-size: var(--grid-size) var(--grid-size);
-		background-position: -24px -24px;
+		/* shift the grid back by half of its size (because the dots are in the center) */
+		/* and then shift it forward by half of the dot size (= its radius) so that the top left corner of the dot (and not the center) is the beginning of the image */
+		background-position: calc(
+				-1 * var(--grid-size) / 2 + var(--grid-dot-radius)
+			)
+			calc(-1 * var(--grid-size) / 2 + var(--grid-dot-radius));
 		background-image: radial-gradient(
 			circle,
-			#000000 1px,
-			rgba(0, 0, 0, 0) 1px
+			#000000 var(--grid-dot-radius),
+			rgba(0, 0, 0, 0) var(--grid-dot-radius)
 		);
 
 		.cableWrapper {
