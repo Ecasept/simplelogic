@@ -120,7 +120,17 @@
 		}
 		e.target.setAttribute("r", "5");
 	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key === "Escape" && id === null) {
+			window.removeEventListener("mousemove", mouseMoveHandler);
+			window.removeEventListener("mouseup", mouseUpHandler);
+			dispatch("wireAdded");
+		}
+	}
 </script>
+
+<svelte:window on:keydown={onKeyDown} />
 
 <path
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
