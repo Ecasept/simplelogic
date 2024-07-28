@@ -75,9 +75,9 @@
 		let x, y;
 		if (["left", "right"].includes(edge)) {
 			x = position.x + (edge == "right" ? GRID_SIZE * width : 0);
-			y = position.y + GRID_SIZE * (handlePos + 1);
+			y = position.y + GRID_SIZE * handlePos;
 		} else {
-			x = position.x + GRID_SIZE * (handlePos + 1);
+			x = position.x + GRID_SIZE * handlePos;
 			y = position.y + (edge == "bottom" ? GRID_SIZE * height : 0);
 		}
 
