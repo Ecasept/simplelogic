@@ -1,18 +1,24 @@
-export type Handle = { pos: number; connectionId: number | null };
-
 export type Edge = "top" | "bottom" | "left" | "right";
 
-export type ConnectionType = "input" | "output";
+export type HandleType = "input" | "output";
 
-export type ComponentConnectionList = {
-	[handleIdentifier in string]: {
+export type ComponentConnection = { id: number; handleId: string };
+export type WireConnection = { id: number; handleType: HandleType };
+
+export type ComponentHandleList = {
+	[handleId in string]: {
 		edge: Edge;
 		pos: number;
-		type: ConnectionType;
+		type: HandleType;
+		connection: WireConnection | ComponentConnection | null;
 	};
 };
 
-export type WireConnection = { x: number; y: number; id: number };
+export type WireHandle = {
+	x: number;
+	y: number;
+	connection: WireConnection | ComponentConnection | null;
+};
 
 export type XYPair = { x: number; y: number };
 
@@ -26,8 +32,8 @@ interface Command {
 export interface WireData {
 	id: number;
 	label: string;
-	input: WireConnection;
-	output: WireConnection;
+	input: WireHandle;
+	output: WireHandle;
 }
 
 export interface ComponentData {
@@ -36,7 +42,7 @@ export interface ComponentData {
 	type: string;
 	size: XYPair;
 	position: XYPair;
-	connections: ComponentConnectionList;
+	connections: ComponentHandleList;
 }
 
 export interface GraphData {
@@ -52,9 +58,13 @@ export interface WireCreateEvent {
 	/** the label of the new wire */
 	label: string;
 	/** the input of the new wire */
-	input: WireConnection;
+	input: WireHandle;
 	/** the output of the new wire */
-	output: WireConnection;
+	output: WireHandle;
+	/** which handle the wire should start at */
+	wireStart: HandleType;
+	/** the first connection of the new wire */
+	connection: ComponentConnection | WireConnection;
 }
 
 export interface ComponentCreateEvent {
@@ -62,5 +72,5 @@ export interface ComponentCreateEvent {
 	label: string;
 	size: XYPair;
 	position: XYPair;
-	connections: ComponentConnectionList;
+	connections: ComponentHandleList;
 }

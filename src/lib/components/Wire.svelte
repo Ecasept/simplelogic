@@ -5,13 +5,23 @@
 		executeCommand,
 		MoveWireConnectionCommand,
 	} from "$lib/util/graph";
-	import type { WireConnection } from "$lib/util/types";
+	import type {
+		ComponentConnection,
+		HandleType,
+		WireConnection,
+		WireHandle,
+	} from "$lib/util/types";
+	import { json } from "@sveltejs/kit";
 	import { createEventDispatcher, onMount } from "svelte";
 
 	export let id: number | null; // when the wire is being created, id is null
 	export let label: string;
-	export let input: WireConnection;
-	export let output: WireConnection;
+	export let input: WireHandle;
+	export let output: WireHandle;
+	/** The handle that the wire should start at when it is being created*/
+	export let start: HandleType | null = null;
+	/** The connection to the connected object when the wire is being created*/
+	export let connection: ComponentConnection | WireConnection | null = null;
 
 	let mouseMoveHandler: (e: MouseEvent) => void;
 	let mouseUpHandler: (e: MouseEvent) => void;
@@ -20,21 +30,24 @@
 
 	onMount(() => {
 		if (id === null) {
-			// being created
-			if (output.id !== null) {
-				mouseMoveHandler = (e) => updatePosition("input", e);
-				mouseUpHandler = (e) => setPosition("input", e);
-			} else {
-				mouseMoveHandler = (e) => updatePosition("output", e);
-				mouseUpHandler = (e) => setPosition("output", e);
+			if (start === null) {
+				console.error("Wire was added without connection info");
+				dispatch("delete");
+				return;
 			}
+
+			const end = start === "input" ? "output" : "input";
+
+			// Update end handle
+			mouseMoveHandler = (e) => updatePosition(end, e);
+			mouseUpHandler = (e) => setPosition(end, e);
 
 			window.addEventListener("mousemove", mouseMoveHandler);
 			window.addEventListener("mouseup", mouseUpHandler);
 		}
 	});
 
-	function updatePosition(type: "input" | "output", e: MouseEvent) {
+	function updatePosition(type: HandleType, e: MouseEvent) {
 		if (type === "input") {
 			input.x = gridSnap(e.clientX);
 			input.y = gridSnap(e.clientY);
@@ -44,17 +57,26 @@
 		}
 	}
 
-	function setPosition(type: "input" | "output", e: MouseEvent) {
+	function setPosition(type: HandleType, e: MouseEvent) {
 		if (isClickOverSidebar(e)) {
 			return;
 		}
 		if (id === null) {
 			updatePosition(type, e);
-			const cmd = new AddWireCommand({
-				label: label,
-				input: input,
-				output: output,
-			});
+			if (connection === null || start === null) {
+				console.error("Wire was added without connection info");
+				dispatch("delete");
+				return;
+			}
+			const cmd = new AddWireCommand(
+				{
+					label: label,
+					input: input,
+					output: output,
+				},
+				connection,
+				start,
+			);
 			executeCommand(cmd);
 			window.removeEventListener("mousemove", mouseMoveHandler);
 			window.removeEventListener("mouseup", mouseUpHandler);
@@ -139,8 +161,7 @@
 	stroke="black"
 	fill="none"
 ></path>
-<!-- svelte-ignore a11y-mouse-events-have-key-events -->
-{#if input.id === null}
+{#if input.connection === null && (start === "output" || start === null)}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<circle
 		on:mouseenter={onMouseEnter}
@@ -152,9 +173,8 @@
 		on:mousedown={(e) => handleDown("input", e)}
 	></circle>
 {/if}
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-{#if output.id === null}
-	<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+{#if output.connection === null && (start === "input" || start === null)}
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<circle
 		on:mouseenter={onMouseEnter}
 		on:mouseleave={onMouseLeave}

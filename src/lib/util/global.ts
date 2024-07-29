@@ -1,4 +1,4 @@
-import type { ComponentConnectionList } from "./types";
+import type { ComponentHandleList } from "./types";
 
 export const GRID_SIZE = 20;
 
@@ -12,25 +12,25 @@ export function deepCopy<Type>(val: Type): Type {
 
 export const COMPONENT_IO_MAPPING: {
 	[key: string]: {
-		connections: ComponentConnectionList;
+		connections: ComponentHandleList;
 		height: number;
 		width: number;
 	};
 } = {
 	AND: {
 		connections: {
-			in1: { edge: "left", pos: 1, type: "input" },
-			in2: { edge: "left", pos: 3, type: "input" },
-			out: { edge: "right", pos: 2, type: "output" },
+			in1: { edge: "left", pos: 1, type: "input", connection: null },
+			in2: { edge: "left", pos: 3, type: "input", connection: null },
+			out: { edge: "right", pos: 2, type: "output", connection: null },
 		},
 		height: 4,
 		width: 4,
 	},
 	OR: {
 		connections: {
-			in1: { edge: "top", pos: 1, type: "input" },
-			in2: { edge: "top", pos: 3, type: "input" },
-			out: { edge: "bottom", pos: 2, type: "output" },
+			in1: { edge: "top", pos: 1, type: "input", connection: null },
+			in2: { edge: "top", pos: 3, type: "input", connection: null },
+			out: { edge: "bottom", pos: 2, type: "output", connection: null },
 		},
 		height: 4,
 		width: 4,

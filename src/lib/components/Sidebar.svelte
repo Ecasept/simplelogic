@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Canvas from "$lib/components/Canvas.svelte";
-	import { COMPONENT_IO_MAPPING, GRID_SIZE } from "$lib/util/global";
+	import { COMPONENT_IO_MAPPING, deepCopy, GRID_SIZE } from "$lib/util/global";
 	import { undoLastCommand } from "$lib/util/graph";
 	import type { ComponentCreateEvent } from "$lib/util/types";
 	import { createEventDispatcher } from "svelte";
@@ -12,7 +12,7 @@
 	let open = true;
 
 	function createComponent(label: string, type: string, e: MouseEvent) {
-		const data = COMPONENT_IO_MAPPING[type];
+		const data = deepCopy(COMPONENT_IO_MAPPING[type]);
 
 		dispatch("componentCreate", {
 			type: type,

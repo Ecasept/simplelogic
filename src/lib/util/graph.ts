@@ -3,9 +3,11 @@ import type { ComponentType } from "svelte";
 import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
 import type {
 	Command,
-	ComponentConnectionList,
-	ConnectionType,
+	ComponentConnection,
+	ComponentHandleList,
+	HandleType,
 	WireConnection,
+	WireHandle,
 	XYPair,
 } from "./types";
 
@@ -14,13 +16,82 @@ interface AddComponentData {
 	type: string;
 	size: XYPair;
 	position: XYPair;
-	connections: ComponentConnectionList;
+	connections: ComponentHandleList;
 }
 
 interface AddWireData {
 	label: string;
-	input: WireConnection;
-	output: WireConnection;
+	input: WireHandle;
+	output: WireHandle;
+}
+
+export class ConnectCommand implements Command {
+	oldConnection1: ComponentConnection | WireConnection | null = null;
+	oldConnection2: ComponentConnection | WireConnection | null = null;
+
+	constructor(
+		private connection1: ComponentConnection | WireConnection,
+		private connection2: ComponentConnection | WireConnection,
+	) {}
+
+	execute() {
+		graph_store.update((data) => {
+			if ("handleId" in this.connection1) {
+				const handle =
+					data.components[this.connection1.id].connections[
+						this.connection1.handleId
+					];
+				this.oldConnection1 = handle.connection;
+				handle.connection = this.connection2;
+			} else {
+				const handle =
+					data.wires[this.connection1.id][this.connection1.handleType];
+				this.oldConnection1 = handle.connection;
+				handle.connection = this.connection2;
+			}
+			if ("handleId" in this.connection2) {
+				const handle =
+					data.components[this.connection2.id].connections[
+						this.connection2.handleId
+					];
+				this.oldConnection2 = handle.connection;
+				handle.connection = this.connection1;
+			} else {
+				const handle =
+					data.wires[this.connection2.id][this.connection2.handleType];
+				this.oldConnection2 = handle.connection;
+				handle.connection = this.connection1;
+			}
+			return data;
+		});
+	}
+	undo() {
+		graph_store.update((data) => {
+			if ("handleId" in this.connection1) {
+				const handle =
+					data.components[this.connection1.id].connections[
+						this.connection1.handleId
+					];
+				handle.connection = this.oldConnection1;
+			} else {
+				const handle =
+					data.wires[this.connection1.id][this.connection1.handleType];
+				handle.connection = this.oldConnection1;
+			}
+			if ("handleId" in this.connection2) {
+				const handle =
+					data.components[this.connection2.id].connections[
+						this.connection2.handleId
+					];
+				handle.connection = this.oldConnection2;
+			} else {
+				const handle =
+					data.wires[this.connection2.id][this.connection2.handleType];
+				handle.connection = this.oldConnection2;
+			}
+			return data;
+		});
+	}
 }
 
 export class MoveWireConnectionCommand implements Command {
@@ -28,7 +99,7 @@ export class MoveWireConnectionCommand implements Command {
 
 	constructor(
 		private newPosition: XYPair,
-		private type: ConnectionType,
+		private type: HandleType,
 		private wireId: number,
 	) {}
 
@@ -87,15 +158,27 @@ export class MoveComponentCommand implements Command {
 
 export class AddWireCommand implements Command {
 	oldNextId: number | null = null;
+	connectCmd: ConnectCommand | null = null;
 
-	constructor(private newWireData: AddWireData) {}
+	constructor(
+		private newWireData: AddWireData,
+		private connection: WireConnection | ComponentConnection,
+		private start: HandleType,
+	) {}
 	execute() {
 		graph_store.update((data) => {
 			this.oldNextId = data.nextId;
 			data.wires[data.nextId] = { ...this.newWireData, id: data.nextId };
+
+			this.connectCmd = new ConnectCommand(this.connection, {
+				id: this.oldNextId,
+				handleType: this.start,
+			});
+
 			data.nextId++;
 			return data;
 		});
+		this.connectCmd?.execute();
 	}
 
 	undo() {
@@ -105,9 +188,14 @@ export class AddWireCommand implements Command {
 				return data;
 			}
 
+			this.connectCmd?.undo();
+
 			data.nextId = this.oldNextId;
 			delete data.wires[this.oldNextId];
+
 			this.oldNextId = null;
+			this.connectCmd = null;
+
 			return data;
 		});
 	}
