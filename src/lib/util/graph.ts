@@ -26,36 +26,71 @@ interface AddWireData {
 }
 
 export class ConnectCommand implements Command {
+	oldConnection1: ComponentConnection | WireConnection | null = null;
+	oldConnection2: ComponentConnection | WireConnection | null = null;
+
 	constructor(
 		private connection1: ComponentConnection | WireConnection,
 		private connection2: ComponentConnection | WireConnection,
 	) {}
 
-	execute(): void {
+	execute() {
 		graph_store.update((data) => {
 			if ("handleId" in this.connection1) {
-				data.components[this.connection1.id].connections[
-					this.connection1.handleId
-				].connection = this.connection2;
+				const handle =
+					data.components[this.connection1.id].connections[
+						this.connection1.handleId
+					];
+				this.oldConnection1 = handle.connection;
+				handle.connection = this.connection2;
 			} else {
-				data.wires[this.connection1.id][
-					this.connection1.handleType
-				].connection = this.connection2;
+				const handle =
+					data.wires[this.connection1.id][this.connection1.handleType];
+				this.oldConnection1 = handle.connection;
+				handle.connection = this.connection2;
 			}
 			if ("handleId" in this.connection2) {
-				data.components[this.connection2.id].connections[
-					this.connection2.handleId
-				].connection = this.connection1;
+				const handle =
+					data.components[this.connection2.id].connections[
+						this.connection2.handleId
+					];
+				this.oldConnection2 = handle.connection;
+				handle.connection = this.connection1;
 			} else {
-				data.wires[this.connection2.id][
-					this.connection2.handleType
-				].connection = this.connection1;
+				const handle =
+					data.wires[this.connection2.id][this.connection2.handleType];
+				this.oldConnection2 = handle.connection;
+				handle.connection = this.connection1;
 			}
 			return data;
 		});
 	}
-	undo(): void | Command | null {
-		throw new Error("Method not implemented.");
+	undo() {
+		graph_store.update((data) => {
+			if ("handleId" in this.connection1) {
+				const handle =
+					data.components[this.connection1.id].connections[
+						this.connection1.handleId
+					];
+				handle.connection = this.oldConnection1;
+			} else {
+				const handle =
+					data.wires[this.connection1.id][this.connection1.handleType];
+				handle.connection = this.oldConnection1;
+			}
+			if ("handleId" in this.connection2) {
+				const handle =
+					data.components[this.connection2.id].connections[
+						this.connection2.handleId
+					];
+				handle.connection = this.oldConnection2;
+			} else {
+				const handle =
+					data.wires[this.connection2.id][this.connection2.handleType];
+				handle.connection = this.oldConnection2;
+			}
+			return data;
+		});
 	}
 }
 
