@@ -11,7 +11,6 @@
 		WireConnection,
 		WireHandle,
 	} from "$lib/util/types";
-	import { json } from "@sveltejs/kit";
 	import { createEventDispatcher, onMount } from "svelte";
 
 	export let id: number | null; // when the wire is being created, id is null

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Canvas from "$lib/components/Canvas.svelte";
 	import { COMPONENT_IO_MAPPING, deepCopy, GRID_SIZE } from "$lib/util/global";
 	import { undoLastCommand } from "$lib/util/graph";
 	import type { ComponentCreateEvent } from "$lib/util/types";

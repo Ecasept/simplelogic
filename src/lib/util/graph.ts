@@ -1,5 +1,4 @@
 import { graph_store, history_store } from "$lib/stores/stores";
-import type { ComponentType } from "svelte";
 import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
 import type {
 	Command,
@@ -255,7 +254,7 @@ export function executeCommand(command: Command) {
 
 export function undoLastCommand() {
 	history_store.update((arr) => {
-		const command: Command | undefined = arr.pop();
+		const command = arr.pop();
 		command?.undo();
 		return arr;
 	});
