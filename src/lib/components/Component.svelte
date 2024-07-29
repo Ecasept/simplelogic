@@ -172,6 +172,8 @@
 				handleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 			style="--pos: {handle.pos}"
 			title={identifier}
+			data-type={handle.type}
+			data-has-connection={handle.connection !== null}
 		>
 			<div />
 		</div>
@@ -195,7 +197,7 @@
 		}
 
 		&:hover {
-			.handle {
+			.handle:not([data-type="input"][data-has-connection="true"]) {
 				display: block;
 			}
 		}
