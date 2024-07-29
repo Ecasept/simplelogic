@@ -1,13 +1,18 @@
-import type { AddWireCommand } from "./graph";
+export type Handle = { pos: number; connectionId: number | null };
 
-export type Handle = { type: string; pos: number };
+export type Edge = "top" | "bottom" | "left" | "right";
 
-// list of handles for each edge
-export type ComponentIOList = {
-	[key in "top" | "bottom" | "left" | "right"]?: Handle[];
+export type ConnectionType = "input" | "output";
+
+export type ComponentConnectionList = {
+	[handleIdentifier in string]: {
+		edge: Edge;
+		pos: number;
+		type: ConnectionType;
+	};
 };
 
-export type WireIO = { x: number; y: number; id: number };
+export type WireConnection = { x: number; y: number; id: number };
 
 export type XYPair = { x: number; y: number };
 
@@ -21,8 +26,8 @@ interface Command {
 export interface WireData {
 	id: number;
 	label: string;
-	input: WireIO;
-	output: WireIO;
+	input: WireConnection;
+	output: WireConnection;
 }
 
 export interface ComponentData {
@@ -31,8 +36,7 @@ export interface ComponentData {
 	type: string;
 	size: XYPair;
 	position: XYPair;
-	inputs: ComponentIOList;
-	outputs: ComponentIOList;
+	connections: ComponentConnectionList;
 }
 
 export interface GraphData {
@@ -44,20 +48,19 @@ export interface GraphData {
 // ==== Events ====
 
 /** Event for when a handle was clicked */
-export interface CreateWireEvent {
+export interface WireCreateEvent {
 	/** the label of the new wire */
 	label: string;
 	/** the input of the new wire */
-	input: WireIO;
+	input: WireConnection;
 	/** the output of the new wire */
-	output: WireIO;
+	output: WireConnection;
 }
 
-export interface CreateComponentEvent {
+export interface ComponentCreateEvent {
 	type: string;
 	label: string;
 	size: XYPair;
 	position: XYPair;
-	inputs: ComponentIOList;
-	outputs: ComponentIOList;
+	connections: ComponentConnectionList;
 }

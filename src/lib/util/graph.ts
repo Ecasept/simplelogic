@@ -1,53 +1,62 @@
 import { graph_store, history_store } from "$lib/stores/stores";
+import type { ComponentType } from "svelte";
 import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
-import type { Command, ComponentIOList, WireIO, XYPair } from "./types";
+import type {
+	Command,
+	ComponentConnectionList,
+	ConnectionType,
+	WireConnection,
+	XYPair,
+} from "./types";
 
 interface AddComponentData {
 	label: string;
 	type: string;
 	size: XYPair;
 	position: XYPair;
-	inputs: ComponentIOList;
-	outputs: ComponentIOList;
+	connections: ComponentConnectionList;
 }
 
 interface AddWireData {
 	label: string;
-	input: WireIO;
-	output: WireIO;
+	input: WireConnection;
+	output: WireConnection;
 }
 
-export class SetWireIOCommand implements Command {
-	oldIO: WireIO | null = null;
+export class MoveWireConnectionCommand implements Command {
+	oldPosition: XYPair | null = null;
 
 	constructor(
-		private newIO: WireIO,
-		private type: "input" | "output",
+		private newPosition: XYPair,
+		private type: ConnectionType,
 		private wireId: number,
 	) {}
 
 	execute() {
 		graph_store.update((data) => {
-			this.oldIO = data.wires[this.wireId][this.type];
-			data.wires[this.wireId][this.type] = this.newIO;
+			const wireConnection = data.wires[this.wireId][this.type];
+			this.oldPosition = { x: wireConnection.x, y: wireConnection.y };
+			wireConnection.x = this.newPosition.x;
+			wireConnection.y = this.newPosition.x;
 			return data;
 		});
 	}
 
 	undo() {
 		graph_store.update((data) => {
-			if (this.oldIO === null) {
+			if (this.oldPosition === null) {
 				console.error(`Tried to undo command that has not been executed`);
 				return data;
 			}
-			data.wires[this.wireId][this.type] = this.oldIO;
-			this.oldIO = null;
+			data.wires[this.wireId][this.type].x = this.oldPosition.x;
+			data.wires[this.wireId][this.type].y = this.oldPosition.y;
+			this.oldPosition = null;
 			return data;
 		});
 	}
 }
 
-export class SetComponentPositionCommand implements Command {
+export class MoveComponentCommand implements Command {
 	oldPosition: XYPair | null = null;
 
 	constructor(

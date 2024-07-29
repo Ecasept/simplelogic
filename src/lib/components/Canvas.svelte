@@ -4,8 +4,8 @@
 	import { onMount } from "svelte";
 	import Wire from "$lib/components/Wire.svelte";
 	import type {
-		CreateComponentEvent,
-		CreateWireEvent,
+		ComponentCreateEvent,
+		WireCreateEvent,
 		GraphData,
 	} from "$lib/util/types";
 	import { deepCopy } from "$lib/util/global";
@@ -24,15 +24,14 @@
 		});
 	});
 
-	export function createComponent(e: CustomEvent<CreateComponentEvent>) {
+	export function onComponentCreate(e: CustomEvent<ComponentCreateEvent>) {
 		const cmp = new Component({
 			target: canvas,
 			props: {
 				id: null,
 				type: e.detail.type,
 				label: e.detail.label,
-				inputs: e.detail.inputs,
-				outputs: e.detail.outputs,
+				connections: e.detail.connections,
 				position: e.detail.position,
 				size: e.detail.size,
 			},
@@ -42,7 +41,7 @@
 		});
 	}
 
-	export function createWire(e: CustomEvent<CreateWireEvent>) {
+	export function onWireCreate(e: CustomEvent<WireCreateEvent>) {
 		const wire = new Wire({
 			target: svgWrapper,
 			props: {
@@ -61,16 +60,15 @@
 <svelte:window bind:innerHeight bind:innerWidth />
 
 <div class="canvasWrapper" bind:this={canvas}>
-	{#each Object.entries(graph_data.components) as [id_as_key, { id, label, size, position, type, inputs, outputs }]}
+	{#each Object.entries(graph_data.components) as [id_as_key, { id, label, size, position, type, connections }]}
 		<Component
 			{id}
 			{label}
 			size={deepCopy(size)}
 			position={deepCopy(position)}
 			{type}
-			inputs={deepCopy(inputs)}
-			outputs={deepCopy(outputs)}
-			on:createWire={createWire}
+			connections={deepCopy(connections)}
+			on:wireCreate={onWireCreate}
 		></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">

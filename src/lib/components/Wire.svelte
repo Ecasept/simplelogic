@@ -3,15 +3,15 @@
 	import {
 		AddWireCommand,
 		executeCommand,
-		SetWireIOCommand,
+		MoveWireConnectionCommand,
 	} from "$lib/util/graph";
-	import type { WireIO } from "$lib/util/types";
+	import type { WireConnection } from "$lib/util/types";
 	import { createEventDispatcher, onMount } from "svelte";
 
 	export let id: number | null; // when the wire is being created, id is null
 	export let label: string;
-	export let input: WireIO;
-	export let output: WireIO;
+	export let input: WireConnection;
+	export let output: WireConnection;
 
 	let mouseMoveHandler: (e: MouseEvent) => void;
 	let mouseUpHandler: (e: MouseEvent) => void;
@@ -60,11 +60,10 @@
 			window.removeEventListener("mouseup", mouseUpHandler);
 			dispatch("delete");
 		} else {
-			const cmd = new SetWireIOCommand(
+			const cmd = new MoveWireConnectionCommand(
 				{
 					x: gridSnap(e.clientX),
 					y: gridSnap(e.clientY),
-					id: null,
 				},
 				type,
 				id,

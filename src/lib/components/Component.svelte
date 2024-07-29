@@ -3,11 +3,13 @@
 	import {
 		AddComponentCommand,
 		executeCommand,
-		SetComponentPositionCommand,
+		MoveComponentCommand,
 	} from "$lib/util/graph";
 	import type {
-		ComponentIOList,
-		CreateWireEvent,
+		ComponentConnectionList,
+		ConnectionType,
+		Edge,
+		WireCreateEvent,
 		XYPair,
 	} from "$lib/util/types";
 	import { createEventDispatcher, onMount } from "svelte";
@@ -17,8 +19,7 @@
 	export let size: XYPair;
 	export let type: string;
 	export let position: XYPair;
-	export let inputs: ComponentIOList;
-	export let outputs: ComponentIOList;
+	export let connections: ComponentConnectionList;
 	let height = size.y;
 	let width = size.x;
 
@@ -27,7 +28,7 @@
 	$: cursor = grabbing ? "grabbing" : "grab";
 
 	const dispatch = createEventDispatcher<{
-		createWire: CreateWireEvent;
+		wireCreate: WireCreateEvent;
 		delete: null;
 	}>();
 
@@ -60,8 +61,8 @@
 	}
 
 	function handleDown(
-		type: string,
-		edge: string,
+		type: ConnectionType,
+		edge: Edge,
 		handlePos: number,
 		e: MouseEvent,
 	) {
@@ -81,7 +82,7 @@
 			y = position.y + (edge == "bottom" ? GRID_SIZE * height : 0);
 		}
 
-		dispatch("createWire", {
+		dispatch("wireCreate", {
 			label: "test",
 			input: {
 				x: x,
@@ -113,8 +114,7 @@
 				type: type,
 				size: size,
 				position: position,
-				inputs: inputs,
-				outputs: outputs,
+				connections: connections,
 			});
 			executeCommand(cmd);
 
@@ -122,7 +122,7 @@
 			window.removeEventListener("mouseup", setPosition);
 			dispatch("delete");
 		} else {
-			const cmd = new SetComponentPositionCommand(
+			const cmd = new MoveComponentCommand(
 				{
 					x: gridSnap(e.clientX - (mouseOffset?.x ?? 0)),
 					y: gridSnap(e.clientY - (mouseOffset?.y ?? 0)),
@@ -159,31 +159,16 @@
 	<div class="contentWrapper" on:mousedown={onCmpDown}>
 		{label} &centerdot; {type} &centerdot; id: {id}
 	</div>
-	{#each Object.entries(inputs) as [edge, handles]}
-		{#each handles as handle}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div
-				class="handle {edge}"
-				on:mousedown={(e) => handleDown("input", edge, handle.pos, e)}
-				style="--pos: {handle.pos}"
-				title={handle.type}
-			>
-				<div />
-			</div>
-		{/each}
-	{/each}
-	{#each Object.entries(outputs) as [edge, handles]}
-		{#each handles as handle}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div
-				class="handle {edge}"
-				on:mousedown={(e) => handleDown("output", edge, handle.pos, e)}
-				style="--pos: {handle.pos}"
-				title={handle.type}
-			>
-				<div />
-			</div>
-		{/each}
+	{#each Object.entries(connections) as [identifier, handle]}
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<div
+			class="handle {handle.edge}"
+			on:mousedown={(e) => handleDown(handle.type, handle.edge, handle.pos, e)}
+			style="--pos: {handle.pos}"
+			title={identifier}
+		>
+			<div />
+		</div>
 	{/each}
 </div>
 

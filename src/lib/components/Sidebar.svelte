@@ -2,11 +2,11 @@
 	import Canvas from "$lib/components/Canvas.svelte";
 	import { COMPONENT_IO_MAPPING, GRID_SIZE } from "$lib/util/global";
 	import { undoLastCommand } from "$lib/util/graph";
-	import type { CreateComponentEvent } from "$lib/util/types";
+	import type { ComponentCreateEvent } from "$lib/util/types";
 	import { createEventDispatcher } from "svelte";
 
 	const dispatch = createEventDispatcher<{
-		createComponent: CreateComponentEvent;
+		componentCreate: ComponentCreateEvent;
 	}>();
 
 	let open = true;
@@ -14,7 +14,7 @@
 	function createComponent(label: string, type: string, e: MouseEvent) {
 		const data = COMPONENT_IO_MAPPING[type];
 
-		dispatch("createComponent", {
+		dispatch("componentCreate", {
 			type: type,
 			label: label,
 			size: { x: data.width, y: data.height },
@@ -22,8 +22,7 @@
 				x: e.clientX - (data.width * GRID_SIZE) / 2,
 				y: e.clientY - (data.height * GRID_SIZE) / 2,
 			},
-			inputs: data.inputs,
-			outputs: data.outputs,
+			connections: data.connections,
 		});
 	}
 
