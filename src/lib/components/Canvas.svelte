@@ -49,6 +49,8 @@
 				input: e.detail.input,
 				output: e.detail.output,
 				label: e.detail.label,
+				start: e.detail.wireStart,
+				connection: e.detail.connection,
 			},
 		});
 		wire.$on("delete", () => {

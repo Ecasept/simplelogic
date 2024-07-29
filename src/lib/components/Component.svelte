@@ -6,8 +6,8 @@
 		MoveComponentCommand,
 	} from "$lib/util/graph";
 	import type {
-		ComponentConnectionList,
-		ConnectionType,
+		ComponentHandleList,
+		HandleType,
 		Edge,
 		WireCreateEvent,
 		XYPair,
@@ -19,7 +19,7 @@
 	export let size: XYPair;
 	export let type: string;
 	export let position: XYPair;
-	export let connections: ComponentConnectionList;
+	export let connections: ComponentHandleList;
 	let height = size.y;
 	let width = size.x;
 
@@ -61,8 +61,9 @@
 	}
 
 	function handleDown(
-		type: ConnectionType,
-		edge: Edge,
+		handleId: string,
+		handleType: HandleType,
+		handleEdge: Edge,
 		handlePos: number,
 		e: MouseEvent,
 	) {
@@ -74,12 +75,12 @@
 
 		// calculate position of handle
 		let x, y;
-		if (["left", "right"].includes(edge)) {
-			x = position.x + (edge == "right" ? GRID_SIZE * width : 0);
+		if (["left", "right"].includes(handleEdge)) {
+			x = position.x + (handleEdge == "right" ? GRID_SIZE * width : 0);
 			y = position.y + GRID_SIZE * handlePos;
 		} else {
 			x = position.x + GRID_SIZE * handlePos;
-			y = position.y + (edge == "bottom" ? GRID_SIZE * height : 0);
+			y = position.y + (handleEdge == "bottom" ? GRID_SIZE * height : 0);
 		}
 
 		dispatch("wireCreate", {
@@ -87,13 +88,17 @@
 			input: {
 				x: x,
 				y: y,
-				// if the handle was an output handle, the input of the new wire will be this component
-				id: type === "output" ? id : null,
+				connection: null,
 			},
 			output: {
 				x: x,
 				y: y,
-				id: type === "input" ? id : null,
+				connection: null,
+			},
+			wireStart: handleType === "input" ? "output" : "input",
+			connection: {
+				handleId: handleId,
+				id: id,
 			},
 		});
 	}
@@ -163,7 +168,8 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class="handle {handle.edge}"
-			on:mousedown={(e) => handleDown(handle.type, handle.edge, handle.pos, e)}
+			on:mousedown={(e) =>
+				handleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 			style="--pos: {handle.pos}"
 			title={identifier}
 		>
