@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { graph_store } from "$lib/stores/stores";
 	import { GRID_SIZE, gridSnap, isClickOverSidebar } from "$lib/util/global";
 	import {
 		AddComponentCommand,
@@ -145,10 +146,17 @@
 	}
 
 	function onKeyDown(e: KeyboardEvent) {
-		if (e.key === "Escape" && id === null) {
+		if (e.key === "Escape") {
 			window.removeEventListener("mousemove", updatePosition);
 			window.removeEventListener("mouseup", setPosition);
-			dispatch("delete");
+			if (id === null) {
+				dispatch("delete");
+			} else {
+				mouseOffset = null;
+				grabbing = false;
+				// trigger rerender
+				graph_store.update((data) => data);
+			}
 		}
 	}
 </script>
