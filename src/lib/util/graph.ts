@@ -1,29 +1,15 @@
-import { get, writable, type Invalidator, type Subscriber } from "svelte/store";
+import { get, writable } from "svelte/store";
 import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
 import type {
 	Command,
 	ComponentConnection,
-	ComponentHandleList,
+	ComponentData,
 	GraphData,
 	HandleType,
 	WireConnection,
-	WireHandle,
+	WireData,
 	XYPair,
 } from "./types";
-
-interface AddComponentData {
-	label: string;
-	type: string;
-	size: XYPair;
-	position: XYPair;
-	connections: ComponentHandleList;
-}
-
-interface AddWireData {
-	label: string;
-	input: WireHandle;
-	output: WireHandle;
-}
 
 export class ConnectCommand implements Command {
 	oldConnection1: ComponentConnection | WireConnection | null = null;
@@ -143,7 +129,7 @@ export class AddWireCommand implements Command {
 	connectCmd: ConnectCommand | null = null;
 
 	constructor(
-		private newWireData: AddWireData,
+		private newWireData: Omit<WireData, "id">,
 		private connection: WireConnection | ComponentConnection,
 		private start: HandleType,
 	) {}
@@ -179,7 +165,7 @@ export class AddWireCommand implements Command {
 export class AddComponentCommand implements Command {
 	oldNextId: number | null = null;
 
-	constructor(private newComponentData: AddComponentData) {}
+	constructor(private newComponentData: Omit<ComponentData, "id">) {}
 	execute(data: GraphData) {
 		const type = this.newComponentData.type;
 		if (!(type in COMPONENT_IO_MAPPING)) {
