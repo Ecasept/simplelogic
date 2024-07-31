@@ -2,7 +2,7 @@
 	import { gridSnap, isClickOverSidebar } from "$lib/util/global";
 	import {
 		AddWireCommand,
-		executeCommand,
+		graph,
 		MoveWireConnectionCommand,
 	} from "$lib/util/graph";
 	import type {
@@ -76,7 +76,7 @@
 				connection,
 				start,
 			);
-			executeCommand(cmd);
+			graph.executeCommand(cmd);
 			window.removeEventListener("mousemove", mouseMoveHandler);
 			window.removeEventListener("mouseup", mouseUpHandler);
 			dispatch("delete");
@@ -89,7 +89,7 @@
 				type,
 				id,
 			);
-			executeCommand(cmd);
+			graph.executeCommand(cmd);
 			window.removeEventListener("mousemove", mouseMoveHandler);
 			window.removeEventListener("mouseup", mouseUpHandler);
 		}
@@ -115,7 +115,7 @@
 				id: type === "input" ? id : null,
 			},
 		});
-		executeCommand(cmd);
+		graph.executeCommand(cmd);
 	}
 
 	function onMouseEnter(e: MouseEvent) {

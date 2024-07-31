@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { graph_store } from "$lib/stores/stores";
 	import { GRID_SIZE, gridSnap, isClickOverSidebar } from "$lib/util/global";
 	import {
 		AddComponentCommand,
-		executeCommand,
+		graph,
 		MoveComponentCommand,
 	} from "$lib/util/graph";
 	import type {
@@ -122,7 +121,7 @@
 				position: position,
 				connections: connections,
 			});
-			executeCommand(cmd);
+			graph.executeCommand(cmd);
 
 			window.removeEventListener("mousemove", updatePosition);
 			window.removeEventListener("mouseup", setPosition);
@@ -135,7 +134,7 @@
 				},
 				id,
 			);
-			executeCommand(cmd);
+			graph.executeCommand(cmd);
 
 			mouseOffset = null;
 			grabbing = false;
@@ -155,7 +154,7 @@
 				mouseOffset = null;
 				grabbing = false;
 				// trigger rerender
-				graph_store.update((data) => data);
+				graph.data.update((data) => data);
 			}
 		}
 	}

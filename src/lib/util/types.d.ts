@@ -23,8 +23,8 @@ export type WireHandle = {
 export type XYPair = { x: number; y: number };
 
 interface Command {
-	execute(): void;
-	undo(): void | Command | null;
+	execute(graphData: GraphData): void;
+	undo(graphData: GraphData): void | Command | null;
 }
 
 // ==== Graph Types ====

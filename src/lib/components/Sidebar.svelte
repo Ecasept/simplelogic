@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { COMPONENT_IO_MAPPING, deepCopy, GRID_SIZE } from "$lib/util/global";
-	import { undoLastCommand } from "$lib/util/graph";
+	import { graph } from "$lib/util/graph";
 	import type { ComponentCreateEvent } from "$lib/util/types";
 	import { createEventDispatcher } from "svelte";
 
@@ -28,6 +28,10 @@
 	function collapse() {
 		open = !open;
 	}
+
+	function handleUndo() {
+		graph.undoLastCommand();
+	}
 </script>
 
 <div class="sidebarWrapper" class:open>
@@ -35,7 +39,7 @@
 	<div class="content">
 		<button on:click={(e) => createComponent("test", "AND", e)}>Add AND</button>
 		<button on:click={(e) => createComponent("test2", "OR", e)}>Add OR</button>
-		<button on:click={undoLastCommand}>Undo</button>
+		<button on:click={handleUndo}>Undo</button>
 	</div>
 </div>
 
