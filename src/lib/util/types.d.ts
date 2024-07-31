@@ -24,7 +24,7 @@ export type XYPair = { x: number; y: number };
 
 interface Command {
 	execute(graphData: GraphData): void;
-	undo(graphData: GraphData): void | Command | null;
+	undo(graphData: GraphData): void;
 }
 
 // ==== Graph Types ====
