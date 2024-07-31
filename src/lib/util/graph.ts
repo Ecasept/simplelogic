@@ -11,6 +11,20 @@ import type {
 	XYPair,
 } from "./types";
 
+export class CommandGroup implements Command {
+	constructor(private commands: Command[]) {}
+	execute(graphData: GraphData) {
+		for (const command of this.commands) {
+			command.execute(graphData);
+		}
+	}
+	undo(graphData: GraphData) {
+		for (let i = this.commands.length - 1; i >= 0; i--) {
+			this.commands[i].undo(graphData);
+		}
+	}
+}
+
 export class ConnectCommand implements Command {
 	oldConnection1: ComponentConnection | WireConnection | null = null;
 	oldConnection2: ComponentConnection | WireConnection | null = null;
