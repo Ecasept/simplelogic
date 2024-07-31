@@ -1,4 +1,4 @@
-import { writable, type Invalidator, type Subscriber } from "svelte/store";
+import { get, writable, type Invalidator, type Subscriber } from "svelte/store";
 import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
 import type {
 	Command,
@@ -253,4 +253,29 @@ class Graph {
 	}
 }
 
-export const graph = new Graph(true);
+export const graph: Graph = new Graph(true);
+
+class IntermediaryGraph extends Graph {
+	oldGraph: GraphData | null = null;
+	constructor() {
+		super(false);
+	}
+
+	executeCommand(command: Command): void {
+		if (this.oldGraph === null) {
+			this.oldGraph = get(this.data);
+		}
+	}
+	cancelChanges() {
+		if (this.oldGraph === null) {
+			return;
+		}
+		this.data.set(this.oldGraph);
+	}
+
+	applyChanges() {
+		// TODO
+	}
+}
+
+export const interGraph: IntermediaryGraph = new IntermediaryGraph();
