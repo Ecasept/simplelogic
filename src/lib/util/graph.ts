@@ -218,6 +218,8 @@ class Graph {
 	data = writable<GraphData>({ components: [], wires: [], nextId: 0 });
 	history = writable<Command[]>([]);
 
+	constructor(private trackHistory: boolean) {}
+
 	executeCommand(command: Command) {
 		console.log(this);
 
@@ -225,13 +227,21 @@ class Graph {
 			command.execute(data);
 			return data;
 		});
-		this.history.update((arr) => {
-			arr.push(command);
-			return arr;
-		});
+		if (this.trackHistory) {
+			this.history.update((arr) => {
+				arr.push(command);
+				return arr;
+			});
+		}
 	}
 
 	undoLastCommand() {
+		if (this.trackHistory) {
+			console.warn(
+				"Tried to undo command on graph that is not tracking history",
+			);
+			return;
+		}
 		this.history.update((arr) => {
 			const command = arr.pop();
 			this.data.update((data) => {
@@ -243,4 +253,4 @@ class Graph {
 	}
 }
 
-export const graph = new Graph();
+export const graph = new Graph(true);
