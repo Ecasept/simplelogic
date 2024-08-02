@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { get } from "svelte/store";
 import {
 	CommandGroup,
 	ConnectCommand,
