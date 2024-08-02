@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { COMPONENT_IO_MAPPING, deepCopy, GRID_SIZE } from "./global";
+import { deepCopy, GRID_SIZE } from "./global";
 import type {
 	Command,
 	ComponentConnection,
@@ -219,8 +219,6 @@ type ViewModelNotifyFunction = ({
 	data: GraphData;
 	uiState: UiState;
 }) => void;
-
-type ClickedWireHandleType = {};
 
 export type UiState = {
 	isMoving: boolean;
