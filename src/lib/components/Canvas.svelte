@@ -1,62 +1,59 @@
 <script lang="ts">
 	import Component from "$lib/components/Component.svelte";
-	import { onMount } from "svelte";
 	import Wire from "$lib/components/Wire.svelte";
-	import type {
-		ComponentCreateEvent,
-		WireCreateEvent,
-		GraphData,
-	} from "$lib/util/types";
+	import type { ComponentCreateEvent, WireCreateEvent } from "$lib/util/types";
 	import { deepCopy } from "$lib/util/global";
-	import { graph } from "$lib/util/graph";
+	import {
+		CreateComponentCommand,
+		viewModel,
+		CreateWireCommand,
+		ConnectCommand,
+	} from "$lib/util/graph";
 
-	let canvas: HTMLDivElement;
-	let svgWrapper: SVGSVGElement;
 	let innerHeight: number;
 	let innerWidth: number;
 
-	let graph_data: GraphData = { components: [], wires: [], nextId: 0 };
-
 	export function onComponentCreate(e: CustomEvent<ComponentCreateEvent>) {
-		const cmp = new Component({
-			target: canvas,
-			props: {
-				id: null,
-				type: e.detail.type,
-				label: e.detail.label,
-				connections: e.detail.connections,
-				position: e.detail.position,
-				size: e.detail.size,
-			},
+		const cmd = new CreateComponentCommand({
+			label: e.detail.label,
+			type: e.detail.type,
+			position: e.detail.position,
+			size: e.detail.size,
+			connections: e.detail.connections,
 		});
-		cmp.$on("delete", () => {
-			cmp.$destroy();
-		});
+		const id = viewModel.executeCommand(cmd, false);
+		viewModel.setAdding(id);
 	}
 
 	export function onWireCreate(e: CustomEvent<WireCreateEvent>) {
-		const wire = new Wire({
-			target: svgWrapper,
-			props: {
-				id: null,
-				input: e.detail.input,
-				output: e.detail.output,
-				label: e.detail.label,
-				start: e.detail.wireStart,
-				connection: e.detail.connection,
+		const cmd1 = new CreateWireCommand({
+			input: e.detail.input,
+			output: e.detail.output,
+			label: e.detail.label,
+		});
+		const id = viewModel.executeCommand(cmd1, false);
+		viewModel.setAdding(id);
+
+		const cmd2 = new ConnectCommand(
+			{
+				id: id,
+				handleType: e.detail.wireStart,
 			},
-		});
-		wire.$on("delete", () => {
-			wire.$destroy();
-		});
+			e.detail.connection,
+		);
+		viewModel.executeCommand(cmd2);
 	}
-	const graphData = graph.data;
+
+	$: {
+		console.log("Data Change:");
+		console.log($viewModel);
+	}
 </script>
 
 <svelte:window bind:innerHeight bind:innerWidth />
 
-<div class="canvasWrapper" bind:this={canvas}>
-	{#each Object.entries($graphData.components) as [id_as_key, { id, label, size, position, type, connections }]}
+<div class="canvasWrapper">
+	{#each Object.entries($viewModel.data.components) as [id_as_key, { id, label, size, position, type, connections }] (id)}
 		<Component
 			{id}
 			{label}
@@ -64,17 +61,17 @@
 			position={deepCopy(position)}
 			{type}
 			connections={deepCopy(connections)}
+			adding={id === $viewModel.adding}
 			on:wireCreate={onWireCreate}
 		></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
 		<svg
-			bind:this={svgWrapper}
 			viewBox="0 0 -{innerHeight} -{innerWidth}"
 			xmlns="http://www.w3.org/2000/svg"
 			stroke-width="2px"
 		>
-			{#each Object.entries($graphData.wires) as [id_as_key, { id, label, input, output }]}
+			{#each Object.entries($viewModel.data.wires) as [id_as_key, { id, label, input, output }]}
 				<Wire {label} {id} input={deepCopy(input)} output={deepCopy(output)}
 				></Wire>
 			{/each}

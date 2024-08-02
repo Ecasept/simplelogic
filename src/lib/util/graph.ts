@@ -26,64 +26,52 @@ export class CommandGroup implements Command {
 }
 
 export class ConnectCommand implements Command {
-	oldConnection1: ComponentConnection | WireConnection | null = null;
-	oldConnection2: ComponentConnection | WireConnection | null = null;
+	oldFrom: ComponentConnection | WireConnection | null = null;
+	oldTo: ComponentConnection | WireConnection | null = null;
 
 	constructor(
-		private connection1: ComponentConnection | WireConnection,
-		private connection2: ComponentConnection | WireConnection,
+		private from: ComponentConnection | WireConnection,
+		private to: ComponentConnection | WireConnection,
 	) {}
 
-	execute(data: GraphData) {
-		if ("handleId" in this.connection1) {
+	execute(graphData: GraphData) {
+		if ("handleId" in this.from) {
 			const handle =
-				data.components[this.connection1.id].connections[
-					this.connection1.handleId
-				];
-			this.oldConnection1 = handle.connection;
-			handle.connection = this.connection2;
+				graphData.components[this.from.id].connections[this.from.handleId];
+			this.oldFrom = handle.connection;
+			handle.connection = this.to;
 		} else {
-			const handle =
-				data.wires[this.connection1.id][this.connection1.handleType];
-			this.oldConnection1 = handle.connection;
-			handle.connection = this.connection2;
+			const handle = graphData.wires[this.from.id][this.from.handleType];
+			this.oldFrom = handle.connection;
+			handle.connection = this.to;
 		}
-		if ("handleId" in this.connection2) {
+		if ("handleId" in this.to) {
 			const handle =
-				data.components[this.connection2.id].connections[
-					this.connection2.handleId
-				];
-			this.oldConnection2 = handle.connection;
-			handle.connection = this.connection1;
+				graphData.components[this.to.id].connections[this.to.handleId];
+			this.oldTo = handle.connection;
+			handle.connection = this.from;
 		} else {
-			const handle =
-				data.wires[this.connection2.id][this.connection2.handleType];
-			this.oldConnection2 = handle.connection;
-			handle.connection = this.connection1;
+			const handle = graphData.wires[this.to.id][this.to.handleType];
+			this.oldTo = handle.connection;
+			handle.connection = this.from;
 		}
 	}
-	undo(data: GraphData) {
-		if ("handleId" in this.connection1) {
+	undo(graphData: GraphData) {
+		if ("handleId" in this.from) {
 			const handle =
-				data.components[this.connection1.id].connections[
-					this.connection1.handleId
-				];
-			handle.connection = this.oldConnection1;
+				graphData.components[this.from.id].connections[this.from.handleId];
+			handle.connection = this.oldFrom;
 		} else {
-			const handle =
-				data.wires[this.connection1.id][this.connection1.handleType];
-			handle.connection = this.oldConnection1;
+			const handle = graphData.wires[this.from.id][this.from.handleType];
+			handle.connection = this.oldFrom;
 		}
-		if ("handleId" in this.connection2) {
+		if ("handleId" in this.to) {
 			const handle =
-				data.components[this.connection2.id].connections[
-					this.connection2.handleId
-				];
-			handle.connection = this.oldConnection2;
+				graphData.components[this.to.id].connections[this.to.handleId];
+			handle.connection = this.oldTo;
 		} else {
-			const handle =
-				data.wires[this.connection2.id][this.connection2.handleType];
-			handle.connection = this.oldConnection2;
+			const handle = graphData.wires[this.to.id][this.to.handleType];
+			handle.connection = this.oldTo;
 		}
 	}
 }
@@ -97,20 +85,20 @@ export class MoveWireConnectionCommand implements Command {
 		private wireId: number,
 	) {}
 
-	execute(data: GraphData) {
-		const wireConnection = data.wires[this.wireId][this.type];
+	execute(graphData: GraphData) {
+		const wireConnection = graphData.wires[this.wireId][this.type];
 		this.oldPosition = { x: wireConnection.x, y: wireConnection.y };
 		wireConnection.x = this.newPosition.x;
 		wireConnection.y = this.newPosition.x;
 	}
 
-	undo(data: GraphData) {
+	undo(graphData: GraphData) {
 		if (this.oldPosition === null) {
 			console.error(`Tried to undo command that has not been executed`);
 			return;
 		}
-		data.wires[this.wireId][this.type].x = this.oldPosition.x;
-		data.wires[this.wireId][this.type].y = this.oldPosition.y;
+		graphData.wires[this.wireId][this.type].x = this.oldPosition.x;
+		graphData.wires[this.wireId][this.type].y = this.oldPosition.y;
 		this.oldPosition = null;
 	}
 }
@@ -123,93 +111,106 @@ export class MoveComponentCommand implements Command {
 		private componentId: number,
 	) {}
 
-	execute(data: GraphData) {
-		this.oldPosition = deepCopy(data.components[this.componentId].position);
-		data.components[this.componentId].position = this.newPosition;
+	execute(graphData: GraphData) {
+		this.oldPosition = deepCopy(
+			graphData.components[this.componentId].position,
+		);
+		graphData.components[this.componentId].position = this.newPosition;
 	}
 
-	undo(data: GraphData) {
+	undo(graphData: GraphData) {
 		if (this.oldPosition === null) {
 			console.error(`Tried to undo command that has not been executed`);
 			return;
 		}
-		data.components[this.componentId].position = this.oldPosition;
+		graphData.components[this.componentId].position = this.oldPosition;
 		this.oldPosition = null;
 	}
 }
 
-export class AddWireCommand implements Command {
+export class CreateWireCommand implements Command {
 	oldNextId: number | null = null;
-	connectCmd: ConnectCommand | null = null;
 
-	constructor(
-		private newWireData: Omit<WireData, "id">,
-		private connection: WireConnection | ComponentConnection,
-		private start: HandleType,
-	) {}
-	execute(data: GraphData) {
-		this.oldNextId = data.nextId;
-		data.wires[data.nextId] = { ...this.newWireData, id: data.nextId };
+	constructor(private newWireData: Omit<WireData, "id">) {}
+	execute(graphData: GraphData) {
+		this.oldNextId = graphData.nextId;
+		graphData.wires[graphData.nextId] = {
+			...this.newWireData,
+			id: graphData.nextId,
+		};
 
-		this.connectCmd = new ConnectCommand(this.connection, {
-			id: this.oldNextId,
-			handleType: this.start,
-		});
-
-		data.nextId++;
-		this.connectCmd?.execute(data);
+		graphData.nextId++;
+		return this.oldNextId;
 	}
-
-	undo(data: GraphData) {
+	undo(graphData: GraphData) {
 		if (this.oldNextId === null) {
 			console.error(`Tried to undo command that has not been executed`);
 			return;
 		}
 
-		this.connectCmd?.undo(data);
-
-		data.nextId = this.oldNextId;
-		delete data.wires[this.oldNextId];
+		graphData.nextId = this.oldNextId;
+		delete graphData.wires[this.oldNextId];
 
 		this.oldNextId = null;
-		this.connectCmd = null;
 	}
 }
 
-export class AddComponentCommand implements Command {
+export class AddWireCommand implements Command {
+	createWireCommand: CreateWireCommand | null = null;
+	connectCommand: ConnectCommand | null = null;
+
+	constructor(
+		private newWireData: Omit<WireData, "id">,
+		private connectionData: {
+			start: HandleType;
+			connection: ComponentConnection | WireConnection;
+		},
+	) {}
+	execute(graphData: GraphData) {
+		this.createWireCommand = new CreateWireCommand(this.newWireData);
+		const id = this.createWireCommand.execute(graphData);
+		this.connectCommand = new ConnectCommand(
+			{ id: id, handleType: this.connectionData.start },
+			this.connectionData.connection,
+		);
+		this.connectCommand.execute(graphData);
+		return id;
+	}
+
+	undo(graphData: GraphData) {
+		if (this.createWireCommand === null || this.connectCommand === null) {
+			console.error("Tried to undo command that has not been executed");
+			return;
+		}
+		this.connectCommand.undo(graphData);
+		this.createWireCommand.undo(graphData);
+		this.connectCommand = null;
+		this.createWireCommand = null;
+	}
+}
+
+export class CreateComponentCommand implements Command {
 	oldNextId: number | null = null;
 
 	constructor(private newComponentData: Omit<ComponentData, "id">) {}
-	execute(data: GraphData) {
-		const type = this.newComponentData.type;
-		if (!(type in COMPONENT_IO_MAPPING)) {
-			console.error(`Tried to add component of non-existing type \"${type}\"!`);
-			return;
-		}
-
-		this.oldNextId = data.nextId;
-		data.components[data.nextId] = {
+	execute(graphData: GraphData) {
+		this.oldNextId = graphData.nextId;
+		graphData.components[graphData.nextId] = {
 			...this.newComponentData,
-			id: data.nextId,
+			id: graphData.nextId,
 		};
-		data.nextId++;
+		graphData.nextId++;
+		return this.oldNextId;
 	}
 
-	undo(data: GraphData) {
-		const type = this.newComponentData.type;
-		if (!(type in COMPONENT_IO_MAPPING)) {
-			console.error(
-				`Tried to undo add component of non-existing type \"${type}\"!`,
-			);
-			return;
-		}
+	undo(graphData: GraphData) {
 		if (this.oldNextId === null) {
 			console.error(`Tried to undo command that has not been executed`);
 			return;
 		}
 
-		data.nextId = this.oldNextId;
-		delete data.components[this.oldNextId];
+		graphData.nextId = this.oldNextId;
+		delete graphData.components[this.oldNextId];
 		this.oldNextId = null;
 	}
 }
@@ -221,27 +222,17 @@ class Graph {
 	constructor(private trackHistory: boolean) {}
 
 	executeCommand(command: Command) {
-		console.log(this);
-
 		this.data.update((data) => {
 			command.execute(data);
 			return data;
 		});
-		if (this.trackHistory) {
-			this.history.update((arr) => {
-				arr.push(command);
-				return arr;
-			});
-		}
+		this.history.update((arr) => {
+			arr.push(command);
+			return arr;
+		});
 	}
 
 	undoLastCommand() {
-		if (this.trackHistory) {
-			console.warn(
-				"Tried to undo command on graph that is not tracking history",
-			);
-			return;
-		}
 		this.history.update((arr) => {
 			const command = arr.pop();
 			this.data.update((data) => {
@@ -253,29 +244,117 @@ class Graph {
 	}
 }
 
-export const graph: Graph = new Graph(true);
+const graph: Graph = new Graph(true);
 
-class IntermediaryGraph extends Graph {
-	oldGraph: GraphData | null = null;
+type ViewModelNotifyFunction = ({
+	data,
+	adding,
+}: {
+	data: GraphData;
+	adding: number | null;
+}) => void;
+
+class ViewModel {
+	private currentData: GraphData = {
+		components: [],
+		wires: [],
+		nextId: 0,
+	};
+	private history: Command[] = [];
+	private adding: number | null = null;
+	busy = false;
+
 	constructor() {
-		super(false);
+		graph.data.subscribe((data) => {
+			this.currentData = deepCopy(data);
+			this.notifyAllSubscribers();
+		});
 	}
 
-	executeCommand(command: Command): void {
-		if (this.oldGraph === null) {
-			this.oldGraph = get(this.data);
+	executeCommand<C extends Command>(
+		command: C,
+		notify: boolean = true,
+		replace: boolean = true,
+	): ReturnType<C["execute"]> {
+		this.busy = true;
+		const prevCommand = this.history[this.history.length - 1];
+		if (replace && prevCommand instanceof command.constructor) {
+			prevCommand.undo(this.currentData);
+			this.history.pop();
 		}
+
+		const res = command.execute(this.currentData);
+
+		this.history.push(command);
+
+		console.log("Command executed - History:");
+		console.log(this.history);
+
+		if (notify) {
+			this.notifyAllSubscribers();
+		}
+		return res;
 	}
 	cancelChanges() {
-		if (this.oldGraph === null) {
-			return;
-		}
-		this.data.set(this.oldGraph);
+		this.currentData = deepCopy(get(graph.data));
+
+		this.history = [];
+		this.adding = null;
+		this.busy = false;
+
+		this.notifyAllSubscribers();
 	}
 
 	applyChanges() {
-		// TODO
+		const cmd = new CommandGroup(this.history);
+
+		this.history = [];
+		this.adding = null;
+		this.busy = false;
+
+		graph.executeCommand(cmd);
+
+		console.log("applied changes");
+	}
+	undo() {
+		if (!this.busy) {
+			graph.undoLastCommand();
+		}
+	}
+
+	private subscribers: ViewModelNotifyFunction[] = [];
+
+	// ==== Store Contract ====
+
+	subscribe(subscriber: ViewModelNotifyFunction): () => void {
+		this.subscribers.push(subscriber);
+		subscriber({ data: this.currentData, adding: this.adding });
+		return () => {
+			const index = this.subscribers.indexOf(subscriber);
+			if (index !== -1) {
+				this.subscribers.splice(index, 1);
+			}
+		};
+	}
+
+	set(newVal: GraphData) {
+		if (newVal !== this.currentData) {
+			this.currentData = newVal;
+		}
+		this.notifyAllSubscribers();
+	}
+
+	setAdding(val: number) {
+		this.adding = val;
+		this.notifyAllSubscribers();
+	}
+
+	private notifyAllSubscribers() {
+		for (const subscriberFunc of this.subscribers) {
+			subscriberFunc({ data: this.currentData, adding: this.adding });
+		}
 	}
 }
 
-export const interGraph: IntermediaryGraph = new IntermediaryGraph();
+export const viewModel: ViewModel = new ViewModel();
+// interGraph.undoLastCommand();

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { COMPONENT_IO_MAPPING, deepCopy, GRID_SIZE } from "$lib/util/global";
-	import { graph } from "$lib/util/graph";
+	import { viewModel } from "$lib/util/graph";
 	import type { ComponentCreateEvent } from "$lib/util/types";
 	import { createEventDispatcher } from "svelte";
 
@@ -30,7 +30,7 @@
 	}
 
 	function handleUndo() {
-		graph.undoLastCommand();
+		viewModel.undo();
 	}
 </script>
 

@@ -1,66 +1,37 @@
 <script lang="ts">
 	import { GRID_SIZE, gridSnap, isClickOverSidebar } from "$lib/util/global";
 	import {
-		AddComponentCommand,
-		graph,
+		AddWireCommand,
 		MoveComponentCommand,
+		viewModel,
 	} from "$lib/util/graph";
 	import type {
 		ComponentHandleList,
 		HandleType,
 		Edge,
-		WireCreateEvent,
 		XYPair,
 	} from "$lib/util/types";
-	import { createEventDispatcher, onMount } from "svelte";
 
-	export let id: number | null;
+	export let id: number;
 	export let label: string = "Component";
 	export let size: XYPair;
 	export let type: string;
 	export let position: XYPair;
 	export let connections: ComponentHandleList;
+	export let adding: boolean;
 	let height = size.y;
 	let width = size.x;
 
+	let isMouseDown = false;
+
 	let mouseOffset: { x: number; y: number } | null;
-	let grabbing = false;
-	$: cursor = grabbing ? "grabbing" : "grab";
-
-	const dispatch = createEventDispatcher<{
-		wireCreate: WireCreateEvent;
-		delete: null;
-	}>();
-
-	onMount(() => {
-		if (id === null) {
-			// being created
-
-			mouseOffset = {
-				x: Math.round((size.x * GRID_SIZE) / 2),
-				y: Math.round((size.y * GRID_SIZE) / 2),
-			};
-
-			window.addEventListener("mousemove", updatePosition);
-			window.addEventListener("mouseup", setPosition);
-		}
-	});
-
-	function onCmpDown(e: MouseEvent) {
-		e.preventDefault();
-
-		if (id === null) {
-			return;
-		}
-
-		mouseOffset = { x: e.offsetX, y: e.offsetY };
-		grabbing = true;
-
-		window.addEventListener("mousemove", updatePosition);
-		window.addEventListener("mouseup", setPosition);
+	if (adding) {
+		mouseOffset = { x: (size.x * GRID_SIZE) / 2, y: (size.y * GRID_SIZE) / 2 };
 	}
+	let grabbing = false;
+	$: cursor = adding ? "default" : isMouseDown ? "grabbing" : "grab";
 
-	function handleDown(
+	function onHandleDown(
 		handleId: string,
 		handleType: HandleType,
 		handleEdge: Edge,
@@ -69,7 +40,7 @@
 	) {
 		e.preventDefault();
 
-		if (id === null) {
+		if (adding) {
 			return;
 		}
 
@@ -83,84 +54,84 @@
 			y = position.y + (handleEdge == "bottom" ? GRID_SIZE * height : 0);
 		}
 
-		dispatch("wireCreate", {
-			label: "test",
-			input: {
-				x: x,
-				y: y,
-				connection: null,
+		const cmd = new AddWireCommand(
+			{
+				label: "test",
+				input: {
+					x: x,
+					y: y,
+					connection: null,
+				},
+				output: {
+					x: x,
+					y: y,
+					connection: null,
+				},
 			},
-			output: {
-				x: x,
-				y: y,
-				connection: null,
+			{
+				start: handleType === "input" ? "output" : "input",
+				connection: {
+					handleId: handleId,
+					id: id,
+				},
 			},
-			wireStart: handleType === "input" ? "output" : "input",
-			connection: {
-				handleId: handleId,
-				id: id,
-			},
-		});
+		);
+		viewModel.executeCommand(cmd, true);
 	}
 
-	function updatePosition(e: MouseEvent) {
-		position.x = gridSnap(e.clientX - (mouseOffset?.x ?? 0));
-		position.y = gridSnap(e.clientY - (mouseOffset?.y ?? 0));
+	function onMouseDown(e: MouseEvent) {
+		e.preventDefault();
+
+		isMouseDown = true;
+
+		mouseOffset = { x: e.offsetX, y: e.offsetY };
 	}
 
-	function setPosition(e: MouseEvent) {
+	function onMouseMove(e: MouseEvent) {
+		if (!(adding || isMouseDown)) {
+			return;
+		}
+		const newX = gridSnap(e.clientX - (mouseOffset?.x ?? 0));
+		const newY = gridSnap(e.clientY - (mouseOffset?.y ?? 0));
+		if (newX === position.x && newY === position.y) {
+			return;
+		}
+		viewModel.executeCommand(
+			new MoveComponentCommand(
+				{
+					x: newX,
+					y: newY,
+				},
+				id,
+			),
+		);
+	}
+
+	function onMouseUp(e: MouseEvent) {
 		if (isClickOverSidebar(e)) {
 			return;
 		}
-		if (id === null) {
-			updatePosition(e);
-			const cmd = new AddComponentCommand({
-				label: label,
-				type: type,
-				size: size,
-				position: position,
-				connections: connections,
-			});
-			graph.executeCommand(cmd);
+		onMouseMove(e);
 
-			window.removeEventListener("mousemove", updatePosition);
-			window.removeEventListener("mouseup", setPosition);
-			dispatch("delete");
-		} else {
-			const cmd = new MoveComponentCommand(
-				{
-					x: gridSnap(e.clientX - (mouseOffset?.x ?? 0)),
-					y: gridSnap(e.clientY - (mouseOffset?.y ?? 0)),
-				},
-				id,
-			);
-			graph.executeCommand(cmd);
+		mouseOffset = null;
 
-			mouseOffset = null;
-			grabbing = false;
+		isMouseDown = false;
 
-			window.removeEventListener("mousemove", updatePosition);
-			window.removeEventListener("mouseup", setPosition);
-		}
+		viewModel.applyChanges();
 	}
 
 	function onKeyDown(e: KeyboardEvent) {
 		if (e.key === "Escape") {
-			window.removeEventListener("mousemove", updatePosition);
-			window.removeEventListener("mouseup", setPosition);
-			if (id === null) {
-				dispatch("delete");
-			} else {
-				mouseOffset = null;
-				grabbing = false;
-				// trigger rerender
-				graph.data.update((data) => data);
-			}
+			window.removeEventListener("mousemove", onMouseMove);
+			window.removeEventListener("mouseup", onMouseUp);
+			mouseOffset = null;
+			grabbing = false;
+			viewModel.cancelChanges();
 		}
 	}
 </script>
 
-<svelte:window on:keydown={onKeyDown} />
+<svelte:window on:keydown={onKeyDown} on:mousemove={onMouseMove} />
 
 <div
 	class="wrapper"
@@ -168,7 +139,7 @@
 >
 	<!-- svelte-ignore a11y-interactive-supports-focus -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<div class="contentWrapper" on:mousedown={onCmpDown}>
+	<div class="contentWrapper" on:mousedown={onMouseDown} on:mouseup={onMouseUp}>
 		{label} &centerdot; {type} &centerdot; id: {id}
 	</div>
 	{#each Object.entries(connections) as [identifier, handle]}
@@ -176,7 +147,7 @@
 		<div
 			class="handle {handle.edge}"
 			on:mousedown={(e) =>
-				handleDown(identifier, handle.type, handle.edge, handle.pos, e)}
+				onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 			style="--pos: {handle.pos}"
 			title={identifier}
 			data-type={handle.type}
