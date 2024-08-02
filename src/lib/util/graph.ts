@@ -89,7 +89,7 @@ export class MoveWireConnectionCommand implements Command {
 		const wireConnection = graphData.wires[this.wireId][this.type];
 		this.oldPosition = { x: wireConnection.x, y: wireConnection.y };
 		wireConnection.x = this.newPosition.x;
-		wireConnection.y = this.newPosition.x;
+		wireConnection.y = this.newPosition.y;
 	}
 
 	undo(graphData: GraphData) {
