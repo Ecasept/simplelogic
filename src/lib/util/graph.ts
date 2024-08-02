@@ -240,7 +240,7 @@ class ViewModel {
 	executeCommand<C extends Command>(
 		command: C,
 		notify: boolean = true,
-		replace: boolean = true,
+		replace: boolean = false,
 	): ReturnType<C["execute"]> {
 		this.busy = true;
 		const prevCommand = this.history[this.history.length - 1];
