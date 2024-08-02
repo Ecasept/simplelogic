@@ -1,10 +1,6 @@
 <script lang="ts">
 	import { GRID_SIZE, gridSnap, isClickOverSidebar } from "$lib/util/global";
-	import {
-		AddWireCommand,
-		MoveComponentCommand,
-		viewModel,
-	} from "$lib/util/graph";
+	import { MoveComponentCommand, viewModel } from "$lib/util/graph";
 	import type {
 		ComponentHandleList,
 		HandleType,

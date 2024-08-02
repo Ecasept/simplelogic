@@ -155,40 +155,6 @@ export class CreateWireCommand implements Command {
 	}
 }
 
-export class AddWireCommand implements Command {
-	createWireCommand: CreateWireCommand | null = null;
-	connectCommand: ConnectCommand | null = null;
-
-	constructor(
-		private newWireData: Omit<WireData, "id">,
-		private connectionData: {
-			start: HandleType;
-			connection: ComponentConnection | WireConnection;
-		},
-	) {}
-	execute(graphData: GraphData) {
-		this.createWireCommand = new CreateWireCommand(this.newWireData);
-		const id = this.createWireCommand.execute(graphData);
-		this.connectCommand = new ConnectCommand(
-			{ id: id, handleType: this.connectionData.start },
-			this.connectionData.connection,
-		);
-		this.connectCommand.execute(graphData);
-		return id;
-	}
-
-	undo(graphData: GraphData) {
-		if (this.createWireCommand === null || this.connectCommand === null) {
-			console.error("Tried to undo command that has not been executed");
-			return;
-		}
-		this.connectCommand.undo(graphData);
-		this.createWireCommand.undo(graphData);
-		this.connectCommand = null;
-		this.createWireCommand = null;
-	}
-}
-
 export class CreateComponentCommand implements Command {
 	oldNextId: number | null = null;
 
