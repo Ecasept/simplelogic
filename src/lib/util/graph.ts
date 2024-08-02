@@ -216,7 +216,7 @@ export class CreateComponentCommand implements Command {
 }
 
 class Graph {
-	data = writable<GraphData>({ components: [], wires: [], nextId: 0 });
+	data = writable<GraphData>({ components: {}, wires: {}, nextId: 0 });
 	history = writable<Command[]>([]);
 
 	constructor(private trackHistory: boolean) {}
@@ -256,8 +256,8 @@ type ViewModelNotifyFunction = ({
 
 class ViewModel {
 	private currentData: GraphData = {
-		components: [],
-		wires: [],
+		components: {},
+		wires: {},
 		nextId: 0,
 	};
 	private history: Command[] = [];
