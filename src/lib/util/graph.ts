@@ -304,7 +304,7 @@ class ViewModel {
 		graph.executeCommand(cmd);
 	}
 	undo() {
-		if (!this.uiState.isAdding && !this.uiState.isMoving) {
+		if (this.history.length === 0) {
 			graph.undoLastCommand();
 		}
 	}
