@@ -1,48 +1,11 @@
 <script lang="ts">
 	import Component from "$lib/components/Component.svelte";
 	import Wire from "$lib/components/Wire.svelte";
-	import type { ComponentCreateEvent, WireCreateEvent } from "$lib/util/types";
 	import { deepCopy } from "$lib/util/global";
-	import {
-		CreateComponentCommand,
-		viewModel,
-		CreateWireCommand,
-		ConnectCommand,
-	} from "$lib/util/graph";
+	import { viewModel } from "$lib/util/graph";
 
 	let innerHeight: number;
 	let innerWidth: number;
-
-	export function onComponentCreate(e: CustomEvent<ComponentCreateEvent>) {
-		const cmd = new CreateComponentCommand({
-			label: e.detail.label,
-			type: e.detail.type,
-			position: e.detail.position,
-			size: e.detail.size,
-			connections: e.detail.connections,
-		});
-		const id = viewModel.executeCommand(cmd, false);
-		viewModel.setAdding(id);
-	}
-
-	export function onWireCreate(e: CustomEvent<WireCreateEvent>) {
-		const cmd1 = new CreateWireCommand({
-			input: e.detail.input,
-			output: e.detail.output,
-			label: e.detail.label,
-		});
-		const id = viewModel.executeCommand(cmd1, false);
-		viewModel.setAdding(id);
-
-		const cmd2 = new ConnectCommand(
-			{
-				id: id,
-				handleType: e.detail.wireStart,
-			},
-			e.detail.connection,
-		);
-		viewModel.executeCommand(cmd2);
-	}
 
 	$: {
 		console.log("Data Change:");
@@ -61,8 +24,7 @@
 			position={deepCopy(position)}
 			{type}
 			connections={deepCopy(connections)}
-			adding={id === $viewModel.adding}
-			on:wireCreate={onWireCreate}
+			uiState={$viewModel.uiState}
 		></Component>
 	{/each}
 	<div class="cableWrapper" style="--x: 0px; --y: 0px">
@@ -72,7 +34,12 @@
 			stroke-width="2px"
 		>
 			{#each Object.entries($viewModel.data.wires) as [id_as_key, { id, label, input, output }]}
-				<Wire {label} {id} input={deepCopy(input)} output={deepCopy(output)}
+				<Wire
+					{label}
+					{id}
+					input={deepCopy(input)}
+					output={deepCopy(output)}
+					uiState={$viewModel.uiState}
 				></Wire>
 			{/each}
 		</svg>

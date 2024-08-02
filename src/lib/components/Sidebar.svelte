@@ -4,16 +4,12 @@
 	import type { ComponentCreateEvent } from "$lib/util/types";
 	import { createEventDispatcher } from "svelte";
 
-	const dispatch = createEventDispatcher<{
-		componentCreate: ComponentCreateEvent;
-	}>();
-
 	let open = true;
 
-	function createComponent(label: string, type: string, e: MouseEvent) {
+	function addComponent(label: string, type: string, e: MouseEvent) {
 		const data = deepCopy(COMPONENT_IO_MAPPING[type]);
 
-		dispatch("componentCreate", {
+		viewModel.addComponent({
 			type: type,
 			label: label,
 			size: { x: data.width, y: data.height },
@@ -37,8 +33,8 @@
 <div class="sidebarWrapper" class:open>
 	<button class="collapse" on:click={collapse}><span>▶</span></button>
 	<div class="content">
-		<button on:click={(e) => createComponent("test", "AND", e)}>Add AND</button>
-		<button on:click={(e) => createComponent("test2", "OR", e)}>Add OR</button>
+		<button on:click={(e) => addComponent("test", "AND", e)}>Add AND</button>
+		<button on:click={(e) => addComponent("test2", "OR", e)}>Add OR</button>
 		<button on:click={handleUndo}>Undo</button>
 	</div>
 </div>

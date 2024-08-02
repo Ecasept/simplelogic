@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { GRID_SIZE, gridSnap, isClickOverSidebar } from "$lib/util/global";
-	import { MoveComponentCommand, viewModel } from "$lib/util/graph";
+	import { viewModel, type UiState } from "$lib/util/graph";
 	import type {
 		ComponentHandleList,
 		HandleType,
@@ -14,18 +14,15 @@
 	export let type: string;
 	export let position: XYPair;
 	export let connections: ComponentHandleList;
-	export let adding: boolean;
-	let height = size.y;
-	let width = size.x;
+	$: height = size.y;
+	$: width = size.x;
 
-	let isMouseDown = false;
+	export let uiState: UiState;
 
-	let mouseOffset: { x: number; y: number } | null;
-	if (adding) {
-		mouseOffset = { x: (size.x * GRID_SIZE) / 2, y: (size.y * GRID_SIZE) / 2 };
-	}
-	let grabbing = false;
-	$: cursor = adding ? "default" : isMouseDown ? "grabbing" : "grab";
+	$: addingThis = id === uiState.addingId;
+	$: movingThis = id === uiState.movingId;
+
+	$: cursor = addingThis ? "default" : movingThis ? "grabbing" : "grab";
 
 	function onHandleDown(
 		handleId: string,
@@ -36,7 +33,7 @@
 	) {
 		e.preventDefault();
 
-		if (adding) {
+		if (addingThis || movingThis) {
 			return;
 		}
 
@@ -50,7 +47,7 @@
 			y = position.y + (handleEdge == "bottom" ? GRID_SIZE * height : 0);
 		}
 
-		const cmd = new AddWireCommand(
+		viewModel.addWire(
 			{
 				label: "test",
 				input: {
@@ -64,66 +61,53 @@
 					connection: null,
 				},
 			},
-			{
-				start: handleType === "input" ? "output" : "input",
-				connection: {
-					handleId: handleId,
-					id: id,
-				},
-			},
+			handleType,
+			{ id: id, handleId: handleId },
 		);
-		viewModel.executeCommand(cmd, true);
 	}
 
 	function onMouseDown(e: MouseEvent) {
+		if (addingThis) {
+			return;
+		}
 		e.preventDefault();
-
-		isMouseDown = true;
-
-		mouseOffset = { x: e.offsetX, y: e.offsetY };
+		viewModel.startMoveComponent(id, { x: e.offsetX, y: e.offsetY });
 	}
 
 	function onMouseMove(e: MouseEvent) {
-		if (!(adding || isMouseDown)) {
+		if (!(addingThis || movingThis)) {
 			return;
 		}
-		const newX = gridSnap(e.clientX - (mouseOffset?.x ?? 0));
-		const newY = gridSnap(e.clientY - (mouseOffset?.y ?? 0));
+
+		const newX = gridSnap(e.clientX - (uiState.mouseOffset?.x ?? 0));
+		const newY = gridSnap(e.clientY - (uiState.mouseOffset?.y ?? 0));
 		if (newX === position.x && newY === position.y) {
 			return;
 		}
-		viewModel.executeCommand(
-			new MoveComponentCommand(
-				{
-					x: newX,
-					y: newY,
-				},
-				id,
-			),
-			true,
-			true,
+		viewModel.moveComponentReplaceable(
+			{
+				x: newX,
+				y: newY,
+			},
+			id,
 		);
 	}
 
 	function onMouseUp(e: MouseEvent) {
+		if (!(addingThis || movingThis)) {
+			return;
+		}
 		if (isClickOverSidebar(e)) {
 			return;
 		}
-		onMouseMove(e);
-
-		mouseOffset = null;
-
-		isMouseDown = false;
-
 		viewModel.applyChanges();
 	}
 
 	function onKeyDown(e: KeyboardEvent) {
+		if (!(addingThis || movingThis)) {
+			return;
+		}
 		if (e.key === "Escape") {
-			window.removeEventListener("mousemove", onMouseMove);
-			window.removeEventListener("mouseup", onMouseUp);
-			mouseOffset = null;
-			grabbing = false;
 			viewModel.cancelChanges();
 		}
 	}

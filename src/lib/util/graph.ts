@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
+import { COMPONENT_IO_MAPPING, deepCopy, GRID_SIZE } from "./global";
 import type {
 	Command,
 	ComponentConnection,
@@ -214,11 +214,23 @@ const graph: Graph = new Graph(true);
 
 type ViewModelNotifyFunction = ({
 	data,
-	adding,
+	uiState,
 }: {
 	data: GraphData;
-	adding: number | null;
+	uiState: UiState;
 }) => void;
+
+type ClickedWireHandleType = {};
+
+export type UiState = {
+	isMoving: boolean;
+	isAdding: boolean;
+	movingId: number | null;
+	addingId: number | null;
+	mouseOffset: XYPair | null;
+	/** The handle of the wire that is being moved */
+	movingWireHandleType: HandleType | null;
+};
 
 class ViewModel {
 	private currentData: GraphData = {
@@ -227,22 +239,27 @@ class ViewModel {
 		nextId: 0,
 	};
 	private history: Command[] = [];
-	private adding: number | null = null;
-	busy = false;
+
+	private uiState: UiState = {
+		isMoving: false,
+		isAdding: false,
+		movingId: null,
+		addingId: null,
+		mouseOffset: null,
+		movingWireHandleType: null,
+	};
 
 	constructor() {
 		graph.data.subscribe((data) => {
 			this.currentData = deepCopy(data);
-			this.notifyAllSubscribers();
+			this.notifyAll();
 		});
 	}
 
-	executeCommand<C extends Command>(
+	private executeCommand<C extends Command>(
 		command: C,
-		notify: boolean = true,
 		replace: boolean = false,
 	): ReturnType<C["execute"]> {
-		this.busy = true;
 		const prevCommand = this.history[this.history.length - 1];
 		if (replace && prevCommand instanceof command.constructor) {
 			prevCommand.undo(this.currentData);
@@ -256,45 +273,54 @@ class ViewModel {
 		console.log("Command executed - History:");
 		console.log(this.history);
 
-		if (notify) {
-			this.notifyAllSubscribers();
-		}
 		return res;
 	}
+
+	private resetUiState() {
+		this.uiState = {
+			isMoving: false,
+			isAdding: false,
+			movingId: null,
+			addingId: null,
+			mouseOffset: null,
+			movingWireHandleType: null,
+		};
+	}
+
 	cancelChanges() {
 		this.currentData = deepCopy(get(graph.data));
 
+		this.resetUiState();
 		this.history = [];
-		this.adding = null;
-		this.busy = false;
 
-		this.notifyAllSubscribers();
+		this.notifyAll();
 	}
 
 	applyChanges() {
 		const cmd = new CommandGroup(this.history);
 
+		this.resetUiState();
 		this.history = [];
-		this.adding = null;
-		this.busy = false;
-
-		graph.executeCommand(cmd);
 
 		console.log("applied changes");
+		graph.executeCommand(cmd);
 	}
 	undo() {
-		if (!this.busy) {
+		if (!this.uiState.isAdding && !this.uiState.isMoving) {
 			graph.undoLastCommand();
 		}
 	}
 
-	private subscribers: ViewModelNotifyFunction[] = [];
-
 	// ==== Store Contract ====
+
+	private subscribers: ViewModelNotifyFunction[] = [];
 
 	subscribe(subscriber: ViewModelNotifyFunction): () => void {
 		this.subscribers.push(subscriber);
-		subscriber({ data: this.currentData, adding: this.adding });
+		subscriber({
+			data: this.currentData,
+			uiState: this.uiState,
+		});
 		return () => {
 			const index = this.subscribers.indexOf(subscriber);
 			if (index !== -1) {
@@ -303,22 +329,79 @@ class ViewModel {
 		};
 	}
 
-	set(newVal: GraphData) {
-		if (newVal !== this.currentData) {
-			this.currentData = newVal;
-		}
-		this.notifyAllSubscribers();
-	}
-
-	setAdding(val: number) {
-		this.adding = val;
-		this.notifyAllSubscribers();
-	}
-
-	private notifyAllSubscribers() {
+	notifyAll() {
 		for (const subscriberFunc of this.subscribers) {
-			subscriberFunc({ data: this.currentData, adding: this.adding });
+			subscriberFunc({
+				data: this.currentData,
+				uiState: this.uiState,
+			});
 		}
+	}
+
+	// ==== Commands ====
+
+	addComponent(newComponentData: Omit<ComponentData, "id">) {
+		console.log("Command issued: addComponent");
+
+		const cmd = new CreateComponentCommand(newComponentData);
+		const id = this.executeCommand(cmd);
+		this.uiState.isAdding = true;
+		this.uiState.addingId = id;
+		const size = this.currentData.components[id].size;
+		this.uiState.mouseOffset = {
+			x: (size.x * GRID_SIZE) / 2,
+			y: (size.y * GRID_SIZE) / 2,
+		};
+		this.notifyAll();
+	}
+	addWire(
+		newWireData: Omit<WireData, "id">,
+		clickedHandleType: HandleType,
+		componentConnection: ComponentConnection,
+	) {
+		console.log("Command issued: addWire");
+
+		const createWireCmd = new CreateWireCommand(newWireData);
+		const wireId = this.executeCommand(createWireCmd);
+		const connectCmd = new ConnectCommand(
+			{
+				id: wireId,
+				handleType: clickedHandleType === "input" ? "output" : "input",
+			},
+			componentConnection,
+		);
+		this.executeCommand(connectCmd);
+
+		this.uiState.isAdding = true;
+		this.uiState.addingId = wireId;
+		this.uiState.movingWireHandleType = clickedHandleType;
+		this.notifyAll();
+	}
+
+	startMoveComponent(id: number, mouseOffset: XYPair) {
+		console.log("Command issued: startMoveComponent");
+
+		this.uiState.isMoving = true;
+		this.uiState.movingId = id;
+		this.uiState.mouseOffset = mouseOffset;
+		this.notifyAll();
+	}
+	moveComponentReplaceable(newPos: XYPair, id: number) {
+		console.log("Command issued: moveComponentReplaceable");
+
+		const cmd = new MoveComponentCommand(newPos, id);
+		this.executeCommand(cmd, true);
+		this.notifyAll();
+	}
+	moveWireConnectionReplaceable(
+		newPos: XYPair,
+		handleType: HandleType,
+		id: number,
+	) {
+		console.log("Command issued: moveWireConnectionReplaceable");
+		const cmd = new MoveWireConnectionCommand(newPos, handleType, id);
+		this.executeCommand(cmd, true);
+		this.notifyAll();
 	}
 }
 
