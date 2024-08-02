@@ -1,95 +1,78 @@
-import { graph_store, history_store } from "$lib/stores/stores";
-import { COMPONENT_IO_MAPPING, deepCopy } from "./global";
+import { get, writable } from "svelte/store";
+import { deepCopy, GRID_SIZE } from "./global";
 import type {
 	Command,
 	ComponentConnection,
-	ComponentHandleList,
+	ComponentData,
+	GraphData,
 	HandleType,
 	WireConnection,
-	WireHandle,
+	WireData,
 	XYPair,
 } from "./types";
 
-interface AddComponentData {
-	label: string;
-	type: string;
-	size: XYPair;
-	position: XYPair;
-	connections: ComponentHandleList;
-}
-
-interface AddWireData {
-	label: string;
-	input: WireHandle;
-	output: WireHandle;
+export class CommandGroup implements Command {
+	constructor(private commands: Command[]) {}
+	execute(graphData: GraphData) {
+		for (const command of this.commands) {
+			command.execute(graphData);
+		}
+	}
+	undo(graphData: GraphData) {
+		for (let i = this.commands.length - 1; i >= 0; i--) {
+			this.commands[i].undo(graphData);
+		}
+	}
 }
 
 export class ConnectCommand implements Command {
-	oldConnection1: ComponentConnection | WireConnection | null = null;
-	oldConnection2: ComponentConnection | WireConnection | null = null;
+	oldFrom: ComponentConnection | WireConnection | null = null;
+	oldTo: ComponentConnection | WireConnection | null = null;
 
 	constructor(
-		private connection1: ComponentConnection | WireConnection,
-		private connection2: ComponentConnection | WireConnection,
+		private from: ComponentConnection | WireConnection,
+		private to: ComponentConnection | WireConnection,
 	) {}
 
-	execute() {
-		graph_store.update((data) => {
-			if ("handleId" in this.connection1) {
-				const handle =
-					data.components[this.connection1.id].connections[
-						this.connection1.handleId
-					];
-				this.oldConnection1 = handle.connection;
-				handle.connection = this.connection2;
-			} else {
-				const handle =
-					data.wires[this.connection1.id][this.connection1.handleType];
-				this.oldConnection1 = handle.connection;
-				handle.connection = this.connection2;
-			}
-			if ("handleId" in this.connection2) {
-				const handle =
-					data.components[this.connection2.id].connections[
-						this.connection2.handleId
-					];
-				this.oldConnection2 = handle.connection;
-				handle.connection = this.connection1;
-			} else {
-				const handle =
-					data.wires[this.connection2.id][this.connection2.handleType];
-				this.oldConnection2 = handle.connection;
-				handle.connection = this.connection1;
-			}
-			return data;
-		});
+	execute(graphData: GraphData) {
+		if ("handleId" in this.from) {
+			const handle =
+				graphData.components[this.from.id].connections[this.from.handleId];
+			this.oldFrom = handle.connection;
+			handle.connection = this.to;
+		} else {
+			const handle = graphData.wires[this.from.id][this.from.handleType];
+			this.oldFrom = handle.connection;
+			handle.connection = this.to;
+		}
+		if ("handleId" in this.to) {
+			const handle =
+				graphData.components[this.to.id].connections[this.to.handleId];
+			this.oldTo = handle.connection;
+			handle.connection = this.from;
+		} else {
+			const handle = graphData.wires[this.to.id][this.to.handleType];
+			this.oldTo = handle.connection;
+			handle.connection = this.from;
+		}
 	}
-	undo() {
-		graph_store.update((data) => {
-			if ("handleId" in this.connection1) {
-				const handle =
-					data.components[this.connection1.id].connections[
-						this.connection1.handleId
-					];
-				handle.connection = this.oldConnection1;
-			} else {
-				const handle =
-					data.wires[this.connection1.id][this.connection1.handleType];
-				handle.connection = this.oldConnection1;
-			}
-			if ("handleId" in this.connection2) {
-				const handle =
-					data.components[this.connection2.id].connections[
-						this.connection2.handleId
-					];
-				handle.connection = this.oldConnection2;
-			} else {
-				const handle =
-					data.wires[this.connection2.id][this.connection2.handleType];
-				handle.connection = this.oldConnection2;
-			}
-			return data;
-		});
+	undo(graphData: GraphData) {
+		if ("handleId" in this.from) {
+			const handle =
+				graphData.components[this.from.id].connections[this.from.handleId];
+			handle.connection = this.oldFrom;
+		} else {
+			const handle = graphData.wires[this.from.id][this.from.handleType];
+			handle.connection = this.oldFrom;
+		}
+		if ("handleId" in this.to) {
+			const handle =
+				graphData.components[this.to.id].connections[this.to.handleId];
+			handle.connection = this.oldTo;
+		} else {
+			const handle = graphData.wires[this.to.id][this.to.handleType];
+			handle.connection = this.oldTo;
+		}
 	}
 }
 
@@ -102,27 +85,21 @@ export class MoveWireConnectionCommand implements Command {
 		private wireId: number,
 	) {}
 
-	execute() {
-		graph_store.update((data) => {
-			const wireConnection = data.wires[this.wireId][this.type];
-			this.oldPosition = { x: wireConnection.x, y: wireConnection.y };
-			wireConnection.x = this.newPosition.x;
-			wireConnection.y = this.newPosition.x;
-			return data;
-		});
+	execute(graphData: GraphData) {
+		const wireConnection = graphData.wires[this.wireId][this.type];
+		this.oldPosition = { x: wireConnection.x, y: wireConnection.y };
+		wireConnection.x = this.newPosition.x;
+		wireConnection.y = this.newPosition.y;
 	}
 
-	undo() {
-		graph_store.update((data) => {
-			if (this.oldPosition === null) {
-				console.error(`Tried to undo command that has not been executed`);
-				return data;
-			}
-			data.wires[this.wireId][this.type].x = this.oldPosition.x;
-			data.wires[this.wireId][this.type].y = this.oldPosition.y;
-			this.oldPosition = null;
-			return data;
-		});
+	undo(graphData: GraphData) {
+		if (this.oldPosition === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+		graphData.wires[this.wireId][this.type].x = this.oldPosition.x;
+		graphData.wires[this.wireId][this.type].y = this.oldPosition.y;
+		this.oldPosition = null;
 	}
 }
 
@@ -134,128 +111,297 @@ export class MoveComponentCommand implements Command {
 		private componentId: number,
 	) {}
 
-	execute() {
-		graph_store.update((data) => {
-			this.oldPosition = deepCopy(data.components[this.componentId].position);
-			data.components[this.componentId].position = this.newPosition;
-			return data;
-		});
+	execute(graphData: GraphData) {
+		this.oldPosition = deepCopy(
+			graphData.components[this.componentId].position,
+		);
+		graphData.components[this.componentId].position = this.newPosition;
 	}
 
-	undo() {
-		graph_store.update((data) => {
-			if (this.oldPosition === null) {
-				console.error(`Tried to undo command that has not been executed`);
-				return data;
-			}
-			data.components[this.componentId].position = this.oldPosition;
-			this.oldPosition = null;
-			return data;
-		});
+	undo(graphData: GraphData) {
+		if (this.oldPosition === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+		graphData.components[this.componentId].position = this.oldPosition;
+		this.oldPosition = null;
 	}
 }
 
-export class AddWireCommand implements Command {
+export class CreateWireCommand implements Command {
 	oldNextId: number | null = null;
-	connectCmd: ConnectCommand | null = null;
 
-	constructor(
-		private newWireData: AddWireData,
-		private connection: WireConnection | ComponentConnection,
-		private start: HandleType,
-	) {}
-	execute() {
-		graph_store.update((data) => {
-			this.oldNextId = data.nextId;
-			data.wires[data.nextId] = { ...this.newWireData, id: data.nextId };
+	constructor(private newWireData: Omit<WireData, "id">) {}
+	execute(graphData: GraphData) {
+		this.oldNextId = graphData.nextId;
+		graphData.wires[graphData.nextId] = {
+			...this.newWireData,
+			id: graphData.nextId,
+		};
 
-			this.connectCmd = new ConnectCommand(this.connection, {
-				id: this.oldNextId,
-				handleType: this.start,
+		graphData.nextId++;
+		return this.oldNextId;
+	}
+	undo(graphData: GraphData) {
+		if (this.oldNextId === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+
+		graphData.nextId = this.oldNextId;
+		delete graphData.wires[this.oldNextId];
+
+		this.oldNextId = null;
+	}
+}
+
+export class CreateComponentCommand implements Command {
+	oldNextId: number | null = null;
+
+	constructor(private newComponentData: Omit<ComponentData, "id">) {}
+	execute(graphData: GraphData) {
+		this.oldNextId = graphData.nextId;
+		graphData.components[graphData.nextId] = {
+			...this.newComponentData,
+			id: graphData.nextId,
+		};
+		graphData.nextId++;
+		return this.oldNextId;
+	}
+
+	undo(graphData: GraphData) {
+		if (this.oldNextId === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+
+		graphData.nextId = this.oldNextId;
+		delete graphData.components[this.oldNextId];
+		this.oldNextId = null;
+	}
+}
+
+class Graph {
+	data = writable<GraphData>({ components: {}, wires: {}, nextId: 0 });
+	history = writable<Command[]>([]);
+
+	constructor(private trackHistory: boolean) {}
+
+	executeCommand(command: Command) {
+		this.data.update((data) => {
+			command.execute(data);
+			return data;
+		});
+		this.history.update((arr) => {
+			arr.push(command);
+			return arr;
+		});
+	}
+
+	undoLastCommand() {
+		this.history.update((arr) => {
+			const command = arr.pop();
+			this.data.update((data) => {
+				command?.undo(data);
+				return data;
 			});
-
-			data.nextId++;
-			return data;
-		});
-		this.connectCmd?.execute();
-	}
-
-	undo() {
-		graph_store.update((data) => {
-			if (this.oldNextId === null) {
-				console.error(`Tried to undo command that has not been executed`);
-				return data;
-			}
-
-			this.connectCmd?.undo();
-
-			data.nextId = this.oldNextId;
-			delete data.wires[this.oldNextId];
-
-			this.oldNextId = null;
-			this.connectCmd = null;
-
-			return data;
+			return arr;
 		});
 	}
 }
 
-export class AddComponentCommand implements Command {
-	oldNextId: number | null = null;
+const graph: Graph = new Graph(true);
 
-	constructor(private newComponentData: AddComponentData) {}
-	execute() {
-		const type = this.newComponentData.type;
-		if (!(type in COMPONENT_IO_MAPPING)) {
-			console.error(`Tried to add component of non-existing type \"${type}\"!`);
-			return;
+type ViewModelNotifyFunction = ({
+	data,
+	uiState,
+}: {
+	data: GraphData;
+	uiState: UiState;
+}) => void;
+
+export type UiState = {
+	isMoving: boolean;
+	isAdding: boolean;
+	movingId: number | null;
+	addingId: number | null;
+	mouseOffset: XYPair | null;
+	/** The handle of the wire that is being moved */
+	movingWireHandleType: HandleType | null;
+};
+
+class ViewModel {
+	private currentData: GraphData = {
+		components: {},
+		wires: {},
+		nextId: 0,
+	};
+	private history: Command[] = [];
+
+	private uiState: UiState = {
+		isMoving: false,
+		isAdding: false,
+		movingId: null,
+		addingId: null,
+		mouseOffset: null,
+		movingWireHandleType: null,
+	};
+
+	constructor() {
+		graph.data.subscribe((data) => {
+			this.currentData = deepCopy(data);
+			this.notifyAll();
+		});
+	}
+
+	private executeCommand<C extends Command>(
+		command: C,
+		replace: boolean = false,
+	): ReturnType<C["execute"]> {
+		const prevCommand = this.history[this.history.length - 1];
+		if (replace && prevCommand instanceof command.constructor) {
+			prevCommand.undo(this.currentData);
+			this.history.pop();
 		}
 
-		graph_store.update((data) => {
-			this.oldNextId = data.nextId;
-			data.components[data.nextId] = {
-				...this.newComponentData,
-				id: data.nextId,
-			};
-			data.nextId++;
-			return data;
-		});
+		const res = command.execute(this.currentData);
+
+		this.history.push(command);
+
+		console.log("Command executed - History:");
+		console.log(this.history);
+
+		return res;
 	}
 
+	private resetUiState() {
+		this.uiState = {
+			isMoving: false,
+			isAdding: false,
+			movingId: null,
+			addingId: null,
+			mouseOffset: null,
+			movingWireHandleType: null,
+		};
+	}
+
+	cancelChanges() {
+		this.currentData = deepCopy(get(graph.data));
+
+		this.resetUiState();
+		this.history = [];
+
+		this.notifyAll();
+	}
+
+	applyChanges() {
+		const cmd = new CommandGroup(this.history);
+
+		this.resetUiState();
+		this.history = [];
+
+		console.log("applied changes");
+		graph.executeCommand(cmd);
+	}
 	undo() {
-		const type = this.newComponentData.type;
-		if (!(type in COMPONENT_IO_MAPPING)) {
-			console.error(
-				`Tried to undo add component of non-existing type \"${type}\"!`,
-			);
-			return;
+		if (this.history.length === 0) {
+			graph.undoLastCommand();
 		}
-		graph_store.update((data) => {
-			if (this.oldNextId === null) {
-				console.error(`Tried to undo command that has not been executed`);
-				return data;
-			}
+	}
 
-			data.nextId = this.oldNextId;
-			delete data.components[this.oldNextId];
-			this.oldNextId = null;
-			return data;
+	// ==== Store Contract ====
+
+	private subscribers: ViewModelNotifyFunction[] = [];
+
+	subscribe(subscriber: ViewModelNotifyFunction): () => void {
+		this.subscribers.push(subscriber);
+		subscriber({
+			data: this.currentData,
+			uiState: this.uiState,
 		});
+		return () => {
+			const index = this.subscribers.indexOf(subscriber);
+			if (index !== -1) {
+				this.subscribers.splice(index, 1);
+			}
+		};
+	}
+
+	notifyAll() {
+		for (const subscriberFunc of this.subscribers) {
+			subscriberFunc({
+				data: this.currentData,
+				uiState: this.uiState,
+			});
+		}
+	}
+
+	// ==== Commands ====
+
+	addComponent(newComponentData: Omit<ComponentData, "id">) {
+		console.log("Command issued: addComponent");
+
+		const cmd = new CreateComponentCommand(newComponentData);
+		const id = this.executeCommand(cmd);
+		this.uiState.isAdding = true;
+		this.uiState.addingId = id;
+		const size = this.currentData.components[id].size;
+		this.uiState.mouseOffset = {
+			x: (size.x * GRID_SIZE) / 2,
+			y: (size.y * GRID_SIZE) / 2,
+		};
+		this.notifyAll();
+	}
+	addWire(
+		newWireData: Omit<WireData, "id">,
+		clickedHandleType: HandleType,
+		componentConnection: ComponentConnection,
+	) {
+		console.log("Command issued: addWire");
+
+		const createWireCmd = new CreateWireCommand(newWireData);
+		const wireId = this.executeCommand(createWireCmd);
+		const connectCmd = new ConnectCommand(
+			{
+				id: wireId,
+				handleType: clickedHandleType === "input" ? "output" : "input",
+			},
+			componentConnection,
+		);
+		this.executeCommand(connectCmd);
+
+		this.uiState.isAdding = true;
+		this.uiState.addingId = wireId;
+		this.uiState.movingWireHandleType = clickedHandleType;
+		this.notifyAll();
+	}
+
+	startMoveComponent(id: number, mouseOffset: XYPair) {
+		console.log("Command issued: startMoveComponent");
+
+		this.uiState.isMoving = true;
+		this.uiState.movingId = id;
+		this.uiState.mouseOffset = mouseOffset;
+		this.notifyAll();
+	}
+	moveComponentReplaceable(newPos: XYPair, id: number) {
+		console.log("Command issued: moveComponentReplaceable");
+
+		const cmd = new MoveComponentCommand(newPos, id);
+		this.executeCommand(cmd, true);
+		this.notifyAll();
+	}
+	moveWireConnectionReplaceable(
+		newPos: XYPair,
+		handleType: HandleType,
+		id: number,
+	) {
+		console.log("Command issued: moveWireConnectionReplaceable");
+		const cmd = new MoveWireConnectionCommand(newPos, handleType, id);
+		this.executeCommand(cmd, true);
+		this.notifyAll();
 	}
 }
 
-export function executeCommand(command: Command) {
-	command.execute();
-	history_store.update((arr) => {
-		arr.push(command);
-		return arr;
-	});
-}
-
-export function undoLastCommand() {
-	history_store.update((arr) => {
-		const command = arr.pop();
-		command?.undo();
-		return arr;
-	});
-}
+export const viewModel: ViewModel = new ViewModel();
+// interGraph.undoLastCommand();

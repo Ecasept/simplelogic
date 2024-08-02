@@ -23,8 +23,8 @@ export type WireHandle = {
 export type XYPair = { x: number; y: number };
 
 interface Command {
-	execute(): void;
-	undo(): void | Command | null;
+	execute(graphData: GraphData): void | any;
+	undo(graphData: GraphData): void;
 }
 
 // ==== Graph Types ====
@@ -49,28 +49,4 @@ export interface GraphData {
 	wires: { [id in number]: WireData };
 	components: { [id in number]: ComponentData };
 	nextId: number;
-}
-
-// ==== Events ====
-
-/** Event for when a handle was clicked */
-export interface WireCreateEvent {
-	/** the label of the new wire */
-	label: string;
-	/** the input of the new wire */
-	input: WireHandle;
-	/** the output of the new wire */
-	output: WireHandle;
-	/** which handle the wire should start at */
-	wireStart: HandleType;
-	/** the first connection of the new wire */
-	connection: ComponentConnection | WireConnection;
-}
-
-export interface ComponentCreateEvent {
-	type: string;
-	label: string;
-	size: XYPair;
-	position: XYPair;
-	connections: ComponentHandleList;
 }

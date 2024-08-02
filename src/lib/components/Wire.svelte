@@ -1,101 +1,48 @@
 <script lang="ts">
 	import { gridSnap, isClickOverSidebar } from "$lib/util/global";
-	import {
-		AddWireCommand,
-		executeCommand,
-		MoveWireConnectionCommand,
-	} from "$lib/util/graph";
-	import type {
-		ComponentConnection,
-		HandleType,
-		WireConnection,
-		WireHandle,
-	} from "$lib/util/types";
-	import { createEventDispatcher, onMount } from "svelte";
+	import { viewModel, type UiState } from "$lib/util/graph";
+	import type { WireHandle } from "$lib/util/types";
 
-	export let id: number | null; // when the wire is being created, id is null
+	export let id: number;
 	export let label: string;
 	export let input: WireHandle;
 	export let output: WireHandle;
-	/** The handle that the wire should start at when it is being created*/
-	export let start: HandleType | null = null;
-	/** The connection to the connected object when the wire is being created*/
-	export let connection: ComponentConnection | WireConnection | null = null;
 
-	let mouseMoveHandler: (e: MouseEvent) => void;
-	let mouseUpHandler: (e: MouseEvent) => void;
+	export let uiState: UiState;
 
-	const dispatch = createEventDispatcher<{ delete: null }>();
+	$: addingThis = id === uiState.addingId;
+	$: movingThis = id === uiState.movingId;
 
-	onMount(() => {
-		if (id === null) {
-			if (start === null) {
-				console.error("Wire was added without connection info");
-				dispatch("delete");
-				return;
-			}
-
-			const end = start === "input" ? "output" : "input";
-
-			// Update end handle
-			mouseMoveHandler = (e) => updatePosition(end, e);
-			mouseUpHandler = (e) => setPosition(end, e);
-
-			window.addEventListener("mousemove", mouseMoveHandler);
-			window.addEventListener("mouseup", mouseUpHandler);
+	function onMouseMove(e: MouseEvent) {
+		if (!addingThis) {
+			return;
 		}
-	});
-
-	function updatePosition(type: HandleType, e: MouseEvent) {
-		if (type === "input") {
-			input.x = gridSnap(e.clientX);
-			input.y = gridSnap(e.clientY);
-		} else {
-			output.x = gridSnap(e.clientX);
-			output.y = gridSnap(e.clientY);
+		if (uiState.movingWireHandleType === null) {
+			console.error(
+				"Tried to move wire connection when no clicked handle was defined",
+			);
+			return;
 		}
+		viewModel.moveWireConnectionReplaceable(
+			{ x: gridSnap(e.clientX), y: gridSnap(e.clientY) },
+			uiState.movingWireHandleType,
+			id,
+		);
 	}
 
-	function setPosition(type: HandleType, e: MouseEvent) {
+	function onMouseUp(e: MouseEvent) {
+		if (!addingThis) {
+			return;
+		}
 		if (isClickOverSidebar(e)) {
 			return;
 		}
-		if (id === null) {
-			updatePosition(type, e);
-			if (connection === null || start === null) {
-				console.error("Wire was added without connection info");
-				dispatch("delete");
-				return;
-			}
-			const cmd = new AddWireCommand(
-				{
-					label: label,
-					input: input,
-					output: output,
-				},
-				connection,
-				start,
-			);
-			executeCommand(cmd);
-			window.removeEventListener("mousemove", mouseMoveHandler);
-			window.removeEventListener("mouseup", mouseUpHandler);
-			dispatch("delete");
-		} else {
-			const cmd = new MoveWireConnectionCommand(
-				{
-					x: gridSnap(e.clientX),
-					y: gridSnap(e.clientY),
-				},
-				type,
-				id,
-			);
-			executeCommand(cmd);
-			window.removeEventListener("mousemove", mouseMoveHandler);
-			window.removeEventListener("mouseup", mouseUpHandler);
-		}
+		viewModel.applyChanges();
 	}
 
 	function handleDown(type: string, e: MouseEvent) {
+		console.error("Not Implemented");
+		return;
 		e.preventDefault();
 		if (id === null) {
 			console.error("Tried to click handle on not initialized wire");
@@ -115,7 +62,7 @@
 				id: type === "input" ? id : null,
 			},
 		});
-		executeCommand(cmd);
+		graph.executeCommand(cmd);
 	}
 
 	function onMouseEnter(e: MouseEvent) {
@@ -145,22 +92,27 @@
 	}
 
 	function onKeyDown(e: KeyboardEvent) {
-		if (e.key === "Escape" && id === null) {
-			window.removeEventListener("mousemove", mouseMoveHandler);
-			window.removeEventListener("mouseup", mouseUpHandler);
-			dispatch("delete");
+		if (!addingThis) {
+			return;
+		}
+		if (e.key === "Escape") {
+			viewModel.cancelChanges();
 		}
 	}
 </script>
 
-<svelte:window on:keydown={onKeyDown} />
+<svelte:window
+	on:keydown={onKeyDown}
+	on:mousemove={onMouseMove}
+	on:mouseup={onMouseUp}
+/>
 
 <path
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke="black"
 	fill="none"
 ></path>
-{#if input.connection === null && (start === "output" || start === null)}
+{#if input.connection === null}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<circle
 		on:mouseenter={onMouseEnter}
@@ -172,7 +124,7 @@
 		on:mousedown={(e) => handleDown("input", e)}
 	></circle>
 {/if}
-{#if output.connection === null && (start === "input" || start === null)}
+{#if output.connection === null}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<circle
 		on:mouseenter={onMouseEnter}
