@@ -16,34 +16,32 @@
 <svelte:window bind:innerHeight bind:innerWidth />
 
 <div class="canvasWrapper">
-	{#each Object.entries($viewModel.data.components) as [id_as_key, { id, label, size, position, type, connections }] (id)}
-		<Component
-			{id}
-			{label}
-			size={deepCopy(size)}
-			position={deepCopy(position)}
-			{type}
-			connections={deepCopy(connections)}
-			uiState={$viewModel.uiState}
-		></Component>
-	{/each}
-	<div class="cableWrapper" style="--x: 0px; --y: 0px">
-		<svg
-			viewBox="0 0 -{innerHeight} -{innerWidth}"
-			xmlns="http://www.w3.org/2000/svg"
-			stroke-width="2px"
-		>
-			{#each Object.entries($viewModel.data.wires) as [id_as_key, { id, label, input, output }]}
-				<Wire
-					{label}
-					{id}
-					input={deepCopy(input)}
-					output={deepCopy(output)}
-					uiState={$viewModel.uiState}
-				></Wire>
-			{/each}
-		</svg>
-	</div>
+	<svg
+		viewBox="0 0 {innerHeight} {innerWidth}"
+		xmlns="http://www.w3.org/2000/svg"
+		stroke-width="2px"
+	>
+		{#each Object.entries($viewModel.data.components) as [id_as_key, { id, label, size, position, type, connections }] (id)}
+			<Component
+				{id}
+				{label}
+				size={deepCopy(size)}
+				position={deepCopy(position)}
+				{type}
+				connections={deepCopy(connections)}
+				uiState={$viewModel.uiState}
+			></Component>
+		{/each}
+		{#each Object.entries($viewModel.data.wires) as [id_as_key, { id, label, input, output }]}
+			<Wire
+				{label}
+				{id}
+				input={deepCopy(input)}
+				output={deepCopy(output)}
+				uiState={$viewModel.uiState}
+			></Wire>
+		{/each}
+	</svg>
 </div>
 
 <style lang="scss">
@@ -63,16 +61,9 @@
 			rgba(0, 0, 0, 0) var(--grid-dot-radius)
 		);
 
-		.cableWrapper {
-			position: absolute;
-			top: 0;
-			left: 0;
-			pointer-events: none;
-
-			svg {
-				height: 100vh;
-				width: 100vw;
-			}
+		svg {
+			height: 100vh;
+			width: 100vw;
 		}
 	}
 </style>

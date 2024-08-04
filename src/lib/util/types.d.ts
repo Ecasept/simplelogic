@@ -1,4 +1,4 @@
-export type Edge = "top" | "bottom" | "left" | "right";
+export type HandleEdge = "top" | "bottom" | "left" | "right";
 
 export type HandleType = "input" | "output";
 
@@ -7,7 +7,7 @@ export type WireConnection = { id: number; handleType: HandleType };
 
 export type ComponentHandleList = {
 	[handleId in string]: {
-		edge: Edge;
+		edge: HandleEdge;
 		pos: number;
 		type: HandleType;
 		connection: WireConnection | ComponentConnection | null;

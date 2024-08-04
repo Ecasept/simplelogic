@@ -4,7 +4,7 @@
 	import type {
 		ComponentHandleList,
 		HandleType,
-		Edge,
+		HandleEdge,
 		XYPair,
 	} from "$lib/util/types";
 
@@ -14,8 +14,6 @@
 	export let type: string;
 	export let position: XYPair;
 	export let connections: ComponentHandleList;
-	$: height = size.y;
-	$: width = size.x;
 
 	export let uiState: UiState;
 
@@ -24,10 +22,26 @@
 
 	$: cursor = addingThis ? "default" : movingThis ? "grabbing" : "grab";
 
+	function calculateHandleOffset(
+		handleEdge: HandleEdge,
+		handlePos: number,
+		componentSize: XYPair,
+	) {
+		let pos: XYPair = { x: 0, y: 0 };
+		if (["left", "right"].includes(handleEdge)) {
+			pos.x = handleEdge == "right" ? GRID_SIZE * componentSize.x : 0;
+			pos.y = GRID_SIZE * handlePos;
+		} else {
+			pos.x = GRID_SIZE * handlePos;
+			pos.y = handleEdge == "bottom" ? GRID_SIZE * componentSize.y : 0;
+		}
+		return pos;
+	}
+
 	function onHandleDown(
 		handleId: string,
 		handleType: HandleType,
-		handleEdge: Edge,
+		handleEdge: HandleEdge,
 		handlePos: number,
 		e: MouseEvent,
 	) {
@@ -38,26 +52,19 @@
 		}
 
 		// calculate position of handle
-		let x, y;
-		if (["left", "right"].includes(handleEdge)) {
-			x = position.x + (handleEdge == "right" ? GRID_SIZE * width : 0);
-			y = position.y + GRID_SIZE * handlePos;
-		} else {
-			x = position.x + GRID_SIZE * handlePos;
-			y = position.y + (handleEdge == "bottom" ? GRID_SIZE * height : 0);
-		}
+		let handleOffset = calculateHandleOffset(handleEdge, handlePos, size);
 
 		viewModel.addWire(
 			{
 				label: "test",
 				input: {
-					x: x,
-					y: y,
+					x: position.x + handleOffset.x,
+					y: position.y + handleOffset.y,
 					connection: null,
 				},
 				output: {
-					x: x,
-					y: y,
+					x: position.x + handleOffset.x,
+					y: position.y + handleOffset.y,
 					connection: null,
 				},
 			},
@@ -70,6 +77,8 @@
 		if (addingThis) {
 			return;
 		}
+		console.log(e);
+
 		e.preventDefault();
 		viewModel.startMoveComponent(id, { x: e.offsetX, y: e.offsetY });
 	}
@@ -111,43 +120,68 @@
 			viewModel.cancelChanges();
 		}
 	}
+
+	function onHandleEnter(e: MouseEvent) {
+		if (e.target === null) {
+			console.error("e.target is null, can't highlight wire handle.");
+			return;
+		}
+		if (!(e.target instanceof Element)) {
+			console.error("e.target is not an element, can't highlight wire handle");
+			return;
+		}
+		e.target.setAttribute("r", "10");
+	}
+
+	function onHandleLeave(e: MouseEvent) {
+		if (e.target === null) {
+			console.error("e.target is null, can't dehighlight wire handle.");
+			return;
+		}
+		if (!(e.target instanceof Element)) {
+			console.error(
+				"e.target is not an element, can't dehighlight wire handle",
+			);
+			return;
+		}
+		e.target.setAttribute("r", "5");
+	}
 </script>
 
 <svelte:window on:keydown={onKeyDown} on:mousemove={onMouseMove} />
 
-<div
-	class="wrapper"
-	style="--x: {position.x}px; --y: {position.y}px; --width: {width}; --height: {height}; cursor: {cursor}"
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<rect
+	class="component-body"
+	x={position.x}
+	y={position.y}
+	width={size.x * GRID_SIZE}
+	height={size.y * GRID_SIZE}
+	style="cursor: {cursor}"
+	on:mousedown={onMouseDown}
+	on:mouseup={onMouseUp}
 >
-	<!-- svelte-ignore a11y-interactive-supports-focus -->
+</rect>
+
+{#each Object.entries(connections) as [identifier, handle]}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<div class="contentWrapper" on:mousedown={onMouseDown} on:mouseup={onMouseUp}>
-		{label} &centerdot; {type} &centerdot; id: {id}
-	</div>
-	{#each Object.entries(connections) as [identifier, handle]}
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div
-			class="handle {handle.edge}"
-			on:mousedown={(e) =>
-				onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
-			style="--pos: {handle.pos}"
-			title={identifier}
-			data-type={handle.type}
-			data-has-connection={handle.connection !== null}
-		>
-			<div />
-		</div>
-	{/each}
-</div>
+	<circle
+		class="handle {handle.edge}"
+		on:mouseenter={onHandleEnter}
+		on:mouseleave={onHandleLeave}
+		cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
+		cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
+		r="5"
+		on:mousedown={(e) =>
+			onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
+		data-type={handle.type}
+		data-has-connection={handle.connection !== null}
+	></circle>
+{/each}
 
 <style lang="scss">
 	.wrapper {
 		--border-size: 2px;
-		height: calc((var(--height)) * var(--grid-size) - var(--border-size));
-		width: calc((var(--width)) * var(--grid-size) - var(--border-size));
-		position: absolute;
-		top: var(--y);
-		left: var(--x);
 		border: black var(--border-size) solid;
 		cursor: grabbing;
 		z-index: 1;
