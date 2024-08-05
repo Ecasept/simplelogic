@@ -1,19 +1,15 @@
 import { GRID_SIZE, gridSnap } from "./global";
 import type {
-	Command,
 	ComponentConnection,
 	ComponentData,
-	GraphData,
 	HandleType,
 	WireData,
 	XYPair,
 } from "./types";
 import {
-	CommandGroup,
 	ConnectCommand,
 	CreateComponentCommand,
 	CreateWireCommand,
-	graph,
 	graphManager,
 	MoveComponentCommand,
 	MoveWireConnectionCommand,

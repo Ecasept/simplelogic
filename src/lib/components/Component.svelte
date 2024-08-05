@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { GRID_SIZE, gridSnap, isClickOverSidebar } from "$lib/util/global";
+	import { GRID_SIZE, isClickOverSidebar } from "$lib/util/global";
 	import type {
 		ComponentHandleList,
 		HandleType,
