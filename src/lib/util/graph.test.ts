@@ -33,14 +33,14 @@ describe("Command Tests", () => {
 				label: "test",
 				size: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
-				connections: {},
+				handles: {},
 			});
 			const cmd2 = new CreateComponentCommand({
 				type: "test2",
 				label: "test2",
 				size: { x: 10, y: 10 },
 				position: { x: 20 * GRID_SIZE, y: 11 * GRID_SIZE },
-				connections: {},
+				handles: {},
 			});
 			const group = new CommandGroup([cmd1, cmd2]);
 
@@ -62,7 +62,7 @@ describe("Command Tests", () => {
 				label: "test",
 				size: { x: 10, y: 10 },
 				position: { x: 2 * GRID_SIZE, y: 3 * GRID_SIZE },
-				connections: {
+				handles: {
 					in: { edge: "left", pos: 3, type: "input", connection: null },
 				},
 			};
@@ -72,7 +72,7 @@ describe("Command Tests", () => {
 				label: "test",
 				size: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
-				connections: {
+				handles: {
 					out: { edge: "bottom", pos: 100, type: "output", connection: null },
 				},
 			};
@@ -82,20 +82,14 @@ describe("Command Tests", () => {
 			const cmd = new ConnectCommand(from, to);
 
 			cmd.execute(graphData);
-			expect(
-				graphData.components[fromId].connections["out"].connection,
-			).toEqual(to);
-			expect(graphData.components[toId].connections["in"].connection).toEqual(
-				from,
+			expect(graphData.components[fromId].handles["out"].connection).toEqual(
+				to,
 			);
+			expect(graphData.components[toId].handles["in"].connection).toEqual(from);
 
 			cmd.undo(graphData);
-			expect(
-				graphData.components[fromId].connections["out"].connection,
-			).toBeNull();
-			expect(
-				graphData.components[toId].connections["in"].connection,
-			).toBeNull();
+			expect(graphData.components[fromId].handles["out"].connection).toBeNull();
+			expect(graphData.components[toId].handles["in"].connection).toBeNull();
 		});
 		it("should connect and disconnect wire and component", () => {
 			const fromId = 100;
@@ -106,7 +100,7 @@ describe("Command Tests", () => {
 				label: "test",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
-				connections: {
+				handles: {
 					out: { edge: "left", pos: 3, type: "output", connection: null },
 				},
 			};
@@ -122,15 +116,13 @@ describe("Command Tests", () => {
 			const cmd = new ConnectCommand(from, to);
 
 			cmd.execute(graphData);
-			expect(
-				graphData.components[fromId].connections["out"].connection,
-			).toEqual(to);
+			expect(graphData.components[fromId].handles["out"].connection).toEqual(
+				to,
+			);
 			expect(graphData.wires[toId].input.connection).toEqual(from);
 
 			cmd.undo(graphData);
-			expect(
-				graphData.components[fromId].connections["out"].connection,
-			).toBeNull();
+			expect(graphData.components[fromId].handles["out"].connection).toBeNull();
 			expect(graphData.wires[toId].input.connection).toBeNull();
 		});
 		it("should connect and disconnect wires", () => {
@@ -199,7 +191,7 @@ describe("Command Tests", () => {
 				label: "test",
 				size: { x: 4, y: 1000 },
 				position: { x: GRID_SIZE, y: 45 * GRID_SIZE },
-				connections: {},
+				handles: {},
 			};
 			const newPosition: XYPair = { x: 8 * GRID_SIZE, y: 44 * GRID_SIZE };
 			const cmd = new MoveComponentCommand(newPosition, 3);
@@ -242,7 +234,7 @@ describe("Command Tests", () => {
 				label: "component",
 				size: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				position: { x: 30 * GRID_SIZE, y: GRID_SIZE },
-				connections: {},
+				handles: {},
 			};
 			const cmd = new CreateComponentCommand(newComponent);
 

@@ -10,7 +10,7 @@ export type ComponentHandleList = {
 		edge: HandleEdge;
 		pos: number;
 		type: HandleType;
-		connection: WireConnection | ComponentConnection | null;
+		connection: WireConnection | null;
 	};
 };
 
@@ -42,7 +42,7 @@ export interface ComponentData {
 	type: string;
 	size: XYPair;
 	position: XYPair;
-	connections: ComponentHandleList;
+	handles: ComponentHandleList;
 }
 
 export interface GraphData {

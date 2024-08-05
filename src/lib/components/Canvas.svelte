@@ -65,7 +65,7 @@
 			height={$canvasViewModel.viewBox.height}
 			fill="url(#dot-pattern)"
 		/>
-		{#each Object.entries($graphManager.components) as [id_as_key, { id, label, size, position, type, connections }] (id)}
+		{#each Object.entries($graphManager.components) as [id_as_key, { id, label, size, position, type, handles: connections }] (id)}
 			<Component
 				{id}
 				{label}
