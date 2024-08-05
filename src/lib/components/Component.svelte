@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { GRID_SIZE, gridSnap, isClickOverSidebar } from "$lib/util/global";
-	import { viewModel, type UiState } from "$lib/util/graph";
 	import type {
 		ComponentHandleList,
 		HandleType,
 		HandleEdge,
 		XYPair,
 	} from "$lib/util/types";
+	import { viewModel, type UiState } from "$lib/util/viewModels";
 
 	export let id: number;
 	export let label: string = "Component";
@@ -46,6 +46,7 @@
 		e: MouseEvent,
 	) {
 		e.preventDefault();
+		e.stopPropagation();
 
 		if (addingThis || movingThis) {
 			return;
@@ -57,17 +58,9 @@
 		viewModel.addWire(
 			{
 				label: "test",
-				input: {
-					x: position.x + handleOffset.x,
-					y: position.y + handleOffset.y,
-					connection: null,
-				},
-				output: {
-					x: position.x + handleOffset.x,
-					y: position.y + handleOffset.y,
-					connection: null,
-				},
 			},
+			position,
+			handleOffset,
 			handleType,
 			{ id: id, handleId: handleId },
 		);
@@ -80,7 +73,8 @@
 		console.log(e);
 
 		e.preventDefault();
-		viewModel.startMoveComponent(id, { x: e.offsetX, y: e.offsetY });
+		e.stopPropagation();
+		viewModel.startMoveComponent(id);
 	}
 
 	function onMouseMove(e: MouseEvent) {
@@ -88,15 +82,12 @@
 			return;
 		}
 
-		const newX = gridSnap(e.clientX - (uiState.mouseOffset?.x ?? 0));
-		const newY = gridSnap(e.clientY - (uiState.mouseOffset?.y ?? 0));
-		if (newX === position.x && newY === position.y) {
-			return;
-		}
 		viewModel.moveComponentReplaceable(
+			size,
+			position,
 			{
-				x: newX,
-				y: newY,
+				x: e.clientX,
+				y: e.clientY,
 			},
 			id,
 		);
@@ -164,91 +155,19 @@
 </rect>
 
 {#each Object.entries(connections) as [identifier, handle]}
-	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<circle
-		class="handle {handle.edge}"
-		on:mouseenter={onHandleEnter}
-		on:mouseleave={onHandleLeave}
-		cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
-		cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
-		r="5"
-		on:mousedown={(e) =>
-			onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
-		data-type={handle.type}
-		data-has-connection={handle.connection !== null}
-	></circle>
+	{#if !(handle.connection !== null && handle.type === "input")}
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<circle
+			class="handle {handle.edge}"
+			on:mouseenter={onHandleEnter}
+			on:mouseleave={onHandleLeave}
+			cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
+			cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
+			r="5"
+			on:mousedown={(e) =>
+				onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
+			data-type={handle.type}
+			data-has-connection={handle.connection !== null}
+		></circle>
+	{/if}
 {/each}
-
-<style lang="scss">
-	.wrapper {
-		--border-size: 2px;
-		border: black var(--border-size) solid;
-		cursor: grabbing;
-		z-index: 1;
-
-		&:not(.grabbed) {
-			cursor: grab;
-		}
-
-		&:hover {
-			.handle:not([data-type="input"][data-has-connection="true"]) {
-				display: block;
-			}
-		}
-
-		.contentWrapper {
-			height: 100%;
-			width: 100%;
-			position: absolute;
-			top: 0;
-		}
-
-		.handle {
-			display: none;
-			width: 10px;
-			height: 10px;
-			padding: 10px;
-
-			&:hover {
-				width: 20px;
-				height: 20px;
-				padding: 5px;
-			}
-
-			div {
-				height: 100%;
-				width: 100%;
-				background-color: black;
-				border-radius: 100%;
-			}
-
-			&.top {
-				position: absolute;
-				top: -16px;
-				left: calc(var(--grid-size) * (var(--pos)));
-				transform: translate(-50%);
-			}
-
-			&.right {
-				position: absolute;
-				right: -16px;
-				top: calc(var(--grid-size) * (var(--pos)));
-				transform: translateY(-50%);
-			}
-
-			&.bottom {
-				position: absolute;
-				bottom: -16px;
-				left: calc(var(--grid-size) * (var(--pos)));
-				transform: translate(-50%);
-			}
-
-			&.left {
-				position: absolute;
-				left: -16px;
-				top: calc(var(--grid-size) * (var(--pos)));
-				transform: translateY(-50%);
-			}
-		}
-	}
-</style>

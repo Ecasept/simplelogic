@@ -1,27 +1,71 @@
 <script lang="ts">
 	import Component from "$lib/components/Component.svelte";
 	import Wire from "$lib/components/Wire.svelte";
-	import { deepCopy } from "$lib/util/global";
-	import { viewModel } from "$lib/util/graph";
+	import { deepCopy, GRID_SIZE } from "$lib/util/global";
+	import { graphManager } from "$lib/util/graph";
+	import { canvasViewModel, viewModel } from "$lib/util/viewModels";
 
-	let innerHeight: number;
-	let innerWidth: number;
+	let svg: SVGSVGElement;
 
 	$: {
 		console.log("Data Change:");
-		console.log($viewModel);
+		console.log($graphManager);
 	}
+	$: {
+		console.log("UiState Change:");
+		console.log($viewModel.uiState);
+	}
+
+	$: canvasViewModel.svg = svg;
+
+	function pan(e: MouseEvent) {
+		canvasViewModel.pan(e.movementX, e.movementY);
+	}
+	function startPan() {
+		canvasViewModel.startPan();
+	}
+	function endPan() {
+		canvasViewModel.endPan();
+	}
+	function zoom() {}
 </script>
 
-<svelte:window bind:innerHeight bind:innerWidth />
-
 <div class="canvasWrapper">
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<svg
-		viewBox="0 0 {innerHeight} {innerWidth}"
+		bind:this={svg}
+		on:mousedown={startPan}
+		on:mousemove={pan}
+		on:mouseup={endPan}
+		on:mouseleave={endPan}
+		on:wheel={zoom}
+		width="100%"
+		height="100%"
 		xmlns="http://www.w3.org/2000/svg"
 		stroke-width="2px"
+		viewBox="{$canvasViewModel.viewBox.x} {$canvasViewModel.viewBox
+			.y} {$canvasViewModel.viewBox.width} {$canvasViewModel.viewBox.height}"
 	>
-		{#each Object.entries($viewModel.data.components) as [id_as_key, { id, label, size, position, type, connections }] (id)}
+		<defs>
+			<pattern
+				id="dot-pattern"
+				x="0"
+				y="0"
+				width={GRID_SIZE}
+				height={GRID_SIZE}
+				patternUnits="userSpaceOnUse"
+			>
+				<circle cx="2" cy="2" r="1" fill="#999" />
+			</pattern>
+		</defs>
+		<rect
+			x={$canvasViewModel.viewBox.x}
+			y={$canvasViewModel.viewBox.y}
+			width={$canvasViewModel.viewBox.width}
+			height={$canvasViewModel.viewBox.height}
+			fill="url(#dot-pattern)"
+		/>
+		{#each Object.entries($graphManager.components) as [id_as_key, { id, label, size, position, type, connections }] (id)}
 			<Component
 				{id}
 				{label}
@@ -32,7 +76,7 @@
 				uiState={$viewModel.uiState}
 			></Component>
 		{/each}
-		{#each Object.entries($viewModel.data.wires) as [id_as_key, { id, label, input, output }]}
+		{#each Object.entries($graphManager.wires) as [id_as_key, { id, label, input, output }]}
 			<Wire
 				{label}
 				{id}
@@ -46,24 +90,7 @@
 
 <style lang="scss">
 	.canvasWrapper {
-		width: 100vw;
-		height: 100vh;
-		background-size: var(--grid-size) var(--grid-size);
-		/* shift the grid back by half of its size (because the dots are in the center) */
-		/* and then shift it forward by half of the dot size (= its radius) so that the top left corner of the dot (and not the center) is the beginning of the image */
-		background-position: calc(
-				-1 * var(--grid-size) / 2 + var(--grid-dot-radius)
-			)
-			calc(-1 * var(--grid-size) / 2 + var(--grid-dot-radius));
-		background-image: radial-gradient(
-			circle,
-			#000000 var(--grid-dot-radius),
-			rgba(0, 0, 0, 0) var(--grid-dot-radius)
-		);
-
-		svg {
-			height: 100vh;
-			width: 100vw;
-		}
+		width: 100%;
+		height: 100%;
 	}
 </style>

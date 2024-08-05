@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { COMPONENT_IO_MAPPING, deepCopy, GRID_SIZE } from "$lib/util/global";
-	import { viewModel } from "$lib/util/graph";
+	import { canvasViewModel, viewModel } from "$lib/util/viewModels";
 
 	let open = true;
 
 	function addComponent(label: string, type: string, e: MouseEvent) {
 		const data = deepCopy(COMPONENT_IO_MAPPING[type]);
-
+		const svgPos = canvasViewModel.clientToSVGCoords(e.clientX, e.clientY);
 		viewModel.addComponent({
 			type: type,
 			label: label,
 			size: { x: data.width, y: data.height },
 			position: {
-				x: e.clientX - (data.width * GRID_SIZE) / 2,
-				y: e.clientY - (data.height * GRID_SIZE) / 2,
+				x: svgPos.x - (data.width * GRID_SIZE) / 2,
+				y: svgPos.y - (data.height * GRID_SIZE) / 2,
 			},
 			connections: data.connections,
 		});

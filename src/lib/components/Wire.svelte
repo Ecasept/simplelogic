@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { gridSnap, isClickOverSidebar } from "$lib/util/global";
-	import { viewModel, type UiState } from "$lib/util/graph";
+	import { isClickOverSidebar } from "$lib/util/global";
 	import type { WireHandle } from "$lib/util/types";
+	import { viewModel, type UiState } from "$lib/util/viewModels";
 
 	export let id: number;
 	export let label: string;
@@ -11,7 +11,6 @@
 	export let uiState: UiState;
 
 	$: addingThis = id === uiState.addingId;
-	$: movingThis = id === uiState.movingId;
 
 	function onMouseMove(e: MouseEvent) {
 		if (!addingThis) {
@@ -24,7 +23,10 @@
 			return;
 		}
 		viewModel.moveWireConnectionReplaceable(
-			{ x: gridSnap(e.clientX), y: gridSnap(e.clientY) },
+			uiState.movingWireHandleType === "input"
+				? { x: input.x, y: input.y }
+				: { x: output.x, y: output.y },
+			{ x: e.clientX, y: e.clientY },
 			uiState.movingWireHandleType,
 			id,
 		);
