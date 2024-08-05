@@ -1,5 +1,4 @@
-import { get } from "svelte/store";
-import { deepCopy, GRID_SIZE, gridSnap } from "./global";
+import { GRID_SIZE, gridSnap } from "./global";
 import type {
 	Command,
 	ComponentConnection,

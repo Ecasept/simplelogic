@@ -6,10 +6,6 @@ export function gridSnap(val: number) {
 	return Math.round(val / GRID_SIZE) * GRID_SIZE;
 }
 
-export function deepCopy<Type>(val: Type): Type {
-	return JSON.parse(JSON.stringify(val));
-}
-
 export const COMPONENT_IO_MAPPING: {
 	[key: string]: {
 		connections: ComponentHandleList;

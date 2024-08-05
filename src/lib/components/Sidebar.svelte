@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { COMPONENT_IO_MAPPING, deepCopy, GRID_SIZE } from "$lib/util/global";
+	import { COMPONENT_IO_MAPPING, GRID_SIZE } from "$lib/util/global";
 	import { canvasViewModel, viewModel } from "$lib/util/viewModels";
 
 	let open = true;
 
 	function addComponent(label: string, type: string, e: MouseEvent) {
-		const data = deepCopy(COMPONENT_IO_MAPPING[type]);
+		const data = structuredClone(COMPONENT_IO_MAPPING[type]);
 		const svgPos = canvasViewModel.clientToSVGCoords(e.clientX, e.clientY);
 		viewModel.addComponent({
 			type: type,

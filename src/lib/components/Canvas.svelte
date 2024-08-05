@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Component from "$lib/components/Component.svelte";
 	import Wire from "$lib/components/Wire.svelte";
-	import { deepCopy, GRID_SIZE } from "$lib/util/global";
+	import { GRID_SIZE } from "$lib/util/global";
 	import { graphManager } from "$lib/util/graph";
 	import { canvasViewModel, viewModel } from "$lib/util/viewModels";
 
@@ -69,21 +69,15 @@
 			<Component
 				{id}
 				{label}
-				size={deepCopy(size)}
-				position={deepCopy(position)}
+				{size}
+				{position}
 				{type}
-				connections={deepCopy(connections)}
+				{connections}
 				uiState={$viewModel.uiState}
 			></Component>
 		{/each}
 		{#each Object.entries($graphManager.wires) as [id_as_key, { id, label, input, output }]}
-			<Wire
-				{label}
-				{id}
-				input={deepCopy(input)}
-				output={deepCopy(output)}
-				uiState={$viewModel.uiState}
-			></Wire>
+			<Wire {label} {id} {input} {output} uiState={$viewModel.uiState}></Wire>
 		{/each}
 	</svg>
 </div>

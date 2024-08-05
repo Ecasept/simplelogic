@@ -1,5 +1,4 @@
 import { get, writable } from "svelte/store";
-import { deepCopy, GRID_SIZE, gridSnap } from "./global";
 import type {
 	Command,
 	ComponentConnection,
@@ -112,7 +111,7 @@ export class MoveComponentCommand implements Command {
 	) {}
 
 	execute(graphData: GraphData) {
-		this.oldPosition = deepCopy(
+		this.oldPosition = structuredClone(
 			graphData.components[this.componentId].position,
 		);
 		graphData.components[this.componentId].position = this.newPosition;
@@ -216,7 +215,7 @@ class GraphManager {
 
 	constructor() {
 		graph.data.subscribe((data) => {
-			this.currentData = deepCopy(data);
+			this.currentData = structuredClone(data);
 			this.notifyAll();
 		});
 	}
@@ -240,7 +239,7 @@ class GraphManager {
 		return res;
 	}
 	cancelChanges() {
-		this.currentData = deepCopy(get(graph.data));
+		this.currentData = structuredClone(get(graph.data));
 
 		this.history = [];
 	}
