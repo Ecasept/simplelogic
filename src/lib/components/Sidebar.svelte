@@ -6,7 +6,10 @@
 
 	function addComponent(label: string, type: string, e: MouseEvent) {
 		const data = structuredClone(COMPONENT_IO_MAPPING[type]);
-		const svgPos = canvasViewModel.clientToSVGCoords(e.clientX, e.clientY);
+		const svgPos = canvasViewModel.clientToSVGCoords({
+			x: e.clientX,
+			y: e.clientY,
+		});
 		viewModel.addComponent({
 			type: type,
 			label: label,
