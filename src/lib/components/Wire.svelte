@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { isClickOverSidebar } from "$lib/util/global";
-	import type { WireHandle } from "$lib/util/types";
+	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { viewModel, type UiState } from "$lib/util/viewModels";
 
 	export let id: number;
@@ -67,30 +67,14 @@
 		graph.executeCommand(cmd);
 	}
 
-	function onMouseEnter(e: MouseEvent) {
-		if (e.target === null) {
-			console.error("e.target is null, can't highlight wire handle.");
-			return;
-		}
-		if (!(e.target instanceof Element)) {
-			console.error("e.target is not an element, can't highlight wire handle");
-			return;
-		}
-		e.target.setAttribute("r", "10");
+	let hoveringHandle: HandleType | null = null;
+
+	function onMouseEnter(handleType: HandleType) {
+		hoveringHandle = handleType;
 	}
 
-	function onMouseLeave(e: MouseEvent) {
-		if (e.target === null) {
-			console.error("e.target is null, can't dehighlight wire handle.");
-			return;
-		}
-		if (!(e.target instanceof Element)) {
-			console.error(
-				"e.target is not an element, can't dehighlight wire handle",
-			);
-			return;
-		}
-		e.target.setAttribute("r", "5");
+	function onMouseLeave() {
+		hoveringHandle = null;
 	}
 
 	function onKeyDown(e: KeyboardEvent) {
@@ -100,6 +84,19 @@
 		if (e.key === "Escape") {
 			viewModel.cancelChanges();
 		}
+	}
+	let r = { input: 5, output: 5 };
+	$: {
+		let newR = { input: 5, output: 5 };
+		const isBeingEdited =
+			uiState.addingId !== null || uiState.movingId !== null;
+		if (!isBeingEdited) {
+			if (hoveringHandle !== null) {
+				newR[hoveringHandle] = 10;
+			}
+		}
+
+		r = newR;
 	}
 </script>
 
@@ -117,24 +114,28 @@
 {#if input.connection === null}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<circle
-		on:mouseenter={onMouseEnter}
+		on:mouseenter={() => {
+			onMouseEnter("input");
+		}}
 		on:mouseleave={onMouseLeave}
 		class="handle"
 		cx={input.x}
 		cy={input.y}
-		r="5"
+		r={r.input}
 		on:mousedown={(e) => handleDown("input", e)}
 	></circle>
 {/if}
 {#if output.connection === null}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<circle
-		on:mouseenter={onMouseEnter}
+		on:mouseenter={() => {
+			onMouseEnter("output");
+		}}
 		on:mouseleave={onMouseLeave}
 		class="handle"
 		cx={output.x}
 		cy={output.y}
-		r="5"
+		r={r.output}
 		on:mousedown={(e) => handleDown("output", e)}
 	></circle>
 {/if}
