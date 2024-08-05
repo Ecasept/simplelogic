@@ -49,13 +49,13 @@
 		<defs>
 			<pattern
 				id="dot-pattern"
-				x="0"
-				y="0"
+				x="-1"
+				y="-1"
 				width={GRID_SIZE}
 				height={GRID_SIZE}
 				patternUnits="userSpaceOnUse"
 			>
-				<circle cx="2" cy="2" r="1" fill="#999" />
+				<circle cx="1" cy="1" r="1" fill="#999" />
 			</pattern>
 		</defs>
 		<rect
