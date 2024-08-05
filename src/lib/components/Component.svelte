@@ -113,6 +113,9 @@
 	}
 
 	function onHandleEnter(e: MouseEvent) {
+		if (uiState.addingId !== null || uiState.movingId !== null) {
+			return;
+		}
 		if (e.target === null) {
 			console.error("e.target is null, can't highlight wire handle.");
 			return;
@@ -151,6 +154,9 @@
 	style="cursor: {cursor}"
 	on:mousedown={onMouseDown}
 	on:mouseup={onMouseUp}
+	fill="green"
+	stroke="black"
+	fill-opacity="70%"
 >
 </rect>
 
