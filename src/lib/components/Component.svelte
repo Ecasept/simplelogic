@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { GRID_SIZE, isClickOverSidebar } from "$lib/util/global";
+	import {
+		calculateHandleOffset,
+		GRID_SIZE,
+		isClickOverSidebar,
+	} from "$lib/util/global";
 	import type {
 		ComponentHandleList,
 		HandleType,
@@ -21,22 +25,6 @@
 	$: movingThis = id === uiState.movingId;
 
 	$: cursor = addingThis ? "default" : movingThis ? "grabbing" : "grab";
-
-	function calculateHandleOffset(
-		handleEdge: HandleEdge,
-		handlePos: number,
-		componentSize: XYPair,
-	) {
-		let pos: XYPair = { x: 0, y: 0 };
-		if (["left", "right"].includes(handleEdge)) {
-			pos.x = handleEdge == "right" ? GRID_SIZE * componentSize.x : 0;
-			pos.y = GRID_SIZE * handlePos;
-		} else {
-			pos.x = GRID_SIZE * handlePos;
-			pos.y = handleEdge == "bottom" ? GRID_SIZE * componentSize.y : 0;
-		}
-		return pos;
-	}
 
 	function onHandleDown(
 		handleId: string,

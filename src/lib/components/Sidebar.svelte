@@ -18,7 +18,7 @@
 				x: svgPos.x - (data.width * GRID_SIZE) / 2,
 				y: svgPos.y - (data.height * GRID_SIZE) / 2,
 			},
-			connections: data.connections,
+			handles: data.connections,
 		});
 	}
 

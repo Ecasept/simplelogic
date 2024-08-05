@@ -9,6 +9,7 @@ import type {
 	WireData,
 	XYPair,
 } from "./types";
+import { calculateHandleOffset } from "./global";
 
 export class CommandGroup implements Command {
 	constructor(private commands: Command[]) {}
@@ -36,7 +37,7 @@ export class ConnectCommand implements Command {
 	execute(graphData: GraphData) {
 		if ("handleId" in this.from) {
 			const handle =
-				graphData.components[this.from.id].connections[this.from.handleId];
+				graphData.components[this.from.id].handles[this.from.handleId];
 			this.oldFrom = handle.connection;
 			handle.connection = this.to;
 		} else {
@@ -45,8 +46,7 @@ export class ConnectCommand implements Command {
 			handle.connection = this.to;
 		}
 		if ("handleId" in this.to) {
-			const handle =
-				graphData.components[this.to.id].connections[this.to.handleId];
+			const handle = graphData.components[this.to.id].handles[this.to.handleId];
 			this.oldTo = handle.connection;
 			handle.connection = this.from;
 		} else {
@@ -58,15 +58,14 @@ export class ConnectCommand implements Command {
 	undo(graphData: GraphData) {
 		if ("handleId" in this.from) {
 			const handle =
-				graphData.components[this.from.id].connections[this.from.handleId];
+				graphData.components[this.from.id].handles[this.from.handleId];
 			handle.connection = this.oldFrom;
 		} else {
 			const handle = graphData.wires[this.from.id][this.from.handleType];
 			handle.connection = this.oldFrom;
 		}
 		if ("handleId" in this.to) {
-			const handle =
-				graphData.components[this.to.id].connections[this.to.handleId];
+			const handle = graphData.components[this.to.id].handles[this.to.handleId];
 			handle.connection = this.oldTo;
 		} else {
 			const handle = graphData.wires[this.to.id][this.to.handleType];
@@ -254,6 +253,39 @@ class GraphManager {
 		if (this.history.length === 0) {
 			graph.undoLastCommand();
 		}
+	}
+
+	moveComponent(
+		newComponentPos: XYPair,
+		componentId: number,
+		componentSize: XYPair,
+	) {
+		const cmds = [];
+		const moveCmpCmd = new MoveComponentCommand(newComponentPos, componentId);
+		cmds.push(moveCmpCmd);
+
+		const handles = this.currentData.components[componentId].handles;
+
+		for (const [id, handle] of Object.entries(handles)) {
+			if (handle.connection !== null) {
+				const handleOffset = calculateHandleOffset(
+					handle.edge,
+					handle.pos,
+					componentSize,
+				);
+				const moveWireCmd = new MoveWireConnectionCommand(
+					{
+						x: newComponentPos.x + handleOffset.x,
+						y: newComponentPos.y + handleOffset.y,
+					},
+					handle.connection.handleType,
+					handle.connection.id,
+				);
+				cmds.push(moveWireCmd);
+			}
+		}
+		const cmd = new CommandGroup(cmds);
+		graphManager.executeCommand(cmd, true);
 	}
 
 	// ==== Store Contract ====

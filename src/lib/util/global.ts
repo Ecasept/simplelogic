@@ -1,4 +1,4 @@
-import type { ComponentHandleList } from "./types";
+import type { ComponentHandleList, HandleEdge, XYPair } from "./types";
 
 export const GRID_SIZE = 20;
 
@@ -46,4 +46,20 @@ export function isClickOverSidebar(e: MouseEvent) {
 		e.clientY >= sidebarRect.top &&
 		e.clientY <= sidebarRect.bottom
 	);
+}
+
+export function calculateHandleOffset(
+	handleEdge: HandleEdge,
+	handlePos: number,
+	componentSize: XYPair,
+) {
+	let pos: XYPair = { x: 0, y: 0 };
+	if (["left", "right"].includes(handleEdge)) {
+		pos.x = handleEdge == "right" ? GRID_SIZE * componentSize.x : 0;
+		pos.y = GRID_SIZE * handlePos;
+	} else {
+		pos.x = GRID_SIZE * handlePos;
+		pos.y = handleEdge == "bottom" ? GRID_SIZE * componentSize.y : 0;
+	}
+	return pos;
 }

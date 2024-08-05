@@ -164,8 +164,9 @@ class ViewModel {
 		if (newPos === oldPos) {
 			return;
 		}
-		const cmd = new MoveComponentCommand(newPos, id);
-		graphManager.executeCommand(cmd, true);
+
+		graphManager.moveComponent(newPos, id, size);
+
 		graphManager.notifyAll();
 	}
 	moveWireConnectionReplaceable(
