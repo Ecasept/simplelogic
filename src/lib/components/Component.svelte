@@ -33,12 +33,11 @@
 		handlePos: number,
 		e: MouseEvent,
 	) {
-		e.preventDefault();
-		e.stopPropagation();
-
 		if (addingThis || movingThis) {
 			return;
 		}
+		e.preventDefault();
+		e.stopPropagation();
 
 		// calculate position of handle
 		let handleOffset = calculateHandleOffset(handleEdge, handlePos, size);
