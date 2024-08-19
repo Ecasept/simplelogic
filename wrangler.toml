@@ -1,0 +1,8 @@
+name = "simplelogic"
+pages_build_output_dir = ".svelte-kit/cloudflare"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "MAIN_DB"
+database_id = "b4768d67-3be5-4ee0-8704-3453f335c7dc"
+preview_database_id = "DB"
