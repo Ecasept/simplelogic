@@ -3,7 +3,7 @@
 	import Wire from "$lib/components/Wire.svelte";
 	import { GRID_SIZE } from "$lib/util/global";
 	import { graphManager } from "$lib/util/graph";
-	import { canvasViewModel, viewModel } from "$lib/util/viewModels";
+	import { canvasViewModel, editorViewModel } from "$lib/util/viewModels";
 
 	let svg: SVGSVGElement;
 
@@ -13,7 +13,7 @@
 	}
 	$: {
 		console.log("UiState Change:");
-		console.log($viewModel.uiState);
+		console.log($editorViewModel.uiState);
 	}
 
 	$: canvasViewModel.svg = svg;
@@ -73,11 +73,12 @@
 				{position}
 				{type}
 				{connections}
-				uiState={$viewModel.uiState}
+				uiState={$editorViewModel.uiState}
 			></Component>
 		{/each}
 		{#each Object.entries($graphManager.wires) as [id_as_key, { id, label, input, output }]}
-			<Wire {label} {id} {input} {output} uiState={$viewModel.uiState}></Wire>
+			<Wire {label} {id} {input} {output} uiState={$editorViewModel.uiState}
+			></Wire>
 		{/each}
 	</svg>
 </div>

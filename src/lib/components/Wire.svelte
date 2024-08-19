@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isClickOverSidebar } from "$lib/util/global";
 	import type { HandleType, WireHandle } from "$lib/util/types";
-	import { viewModel, type UiState } from "$lib/util/viewModels";
+	import { editorViewModel, type UiState } from "$lib/util/viewModels";
 
 	export let id: number;
 	export let label: string;
@@ -22,7 +22,7 @@
 			);
 			return;
 		}
-		viewModel.moveWireConnectionReplaceable(
+		editorViewModel.moveWireConnectionReplaceable(
 			uiState.movingWireHandleType === "input"
 				? { x: input.x, y: input.y }
 				: { x: output.x, y: output.y },
@@ -39,7 +39,7 @@
 		if (isClickOverSidebar(e)) {
 			return;
 		}
-		viewModel.applyChanges();
+		editorViewModel.applyChanges();
 	}
 
 	function handleDown(type: string, e: MouseEvent) {
@@ -82,7 +82,7 @@
 			return;
 		}
 		if (e.key === "Escape") {
-			viewModel.cancelChanges();
+			editorViewModel.cancelChanges();
 		}
 	}
 	let r = { input: 5, output: 5 };
