@@ -15,7 +15,9 @@
 		"test:watch": "vitest"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20240815.0",
 		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-cloudflare": "^4.7.2",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.1.1",
 		"@testing-library/jest-dom": "^6.4.8",
