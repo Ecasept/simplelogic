@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { COMPONENT_IO_MAPPING, GRID_SIZE } from "$lib/util/global";
-	import { canvasViewModel, viewModel } from "$lib/util/viewModels";
+	import { canvasViewModel, editorViewModel } from "$lib/util/viewModels";
 
 	let open = true;
 
@@ -10,7 +10,7 @@
 			x: e.clientX,
 			y: e.clientY,
 		});
-		viewModel.addComponent({
+		editorViewModel.addComponent({
 			type: type,
 			label: label,
 			size: { x: data.width, y: data.height },
@@ -27,7 +27,7 @@
 	}
 
 	function handleUndo() {
-		viewModel.undo();
+		editorViewModel.undo();
 	}
 </script>
 

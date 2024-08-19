@@ -10,7 +10,7 @@
 		HandleEdge,
 		XYPair,
 	} from "$lib/util/types";
-	import { viewModel, type UiState } from "$lib/util/viewModels";
+	import { editorViewModel, type UiState } from "$lib/util/viewModels";
 
 	export let id: number;
 	export let label: string = "Component";
@@ -42,7 +42,7 @@
 		// calculate position of handle
 		let handleOffset = calculateHandleOffset(handleEdge, handlePos, size);
 
-		viewModel.addWire(
+		editorViewModel.addWire(
 			{
 				label: "test",
 			},
@@ -61,7 +61,7 @@
 
 		e.preventDefault();
 		e.stopPropagation();
-		viewModel.startMoveComponent(id);
+		editorViewModel.startMoveComponent(id);
 	}
 
 	function onMouseMove(e: MouseEvent) {
@@ -69,7 +69,7 @@
 			return;
 		}
 
-		viewModel.moveComponentReplaceable(
+		editorViewModel.moveComponentReplaceable(
 			size,
 			position,
 			{
@@ -87,7 +87,7 @@
 		if (isClickOverSidebar(e)) {
 			return;
 		}
-		viewModel.applyChanges();
+		editorViewModel.applyChanges();
 	}
 
 	function onKeyDown(e: KeyboardEvent) {
@@ -95,7 +95,7 @@
 			return;
 		}
 		if (e.key === "Escape") {
-			viewModel.cancelChanges();
+			editorViewModel.cancelChanges();
 		}
 	}
 

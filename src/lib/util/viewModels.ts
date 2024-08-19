@@ -11,7 +11,6 @@ import {
 	CreateComponentCommand,
 	CreateWireCommand,
 	graphManager,
-	MoveComponentCommand,
 	MoveWireConnectionCommand,
 } from "./graph";
 
@@ -24,7 +23,7 @@ export type UiState = {
 	movingWireHandleType: HandleType | null;
 };
 
-class ViewModel {
+class EditorViewModel {
 	private uiState: UiState = {
 		isMoving: false,
 		isAdding: false,
@@ -191,8 +190,7 @@ class ViewModel {
 	}
 }
 
-export const viewModel: ViewModel = new ViewModel();
-// interGraph.undoLastCommand();
+export const editorViewModel: EditorViewModel = new EditorViewModel();
 
 type CanvasUiState = {
 	isPanning: boolean;
