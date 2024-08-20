@@ -29,6 +29,10 @@
 	function handleUndo() {
 		editorViewModel.undo();
 	}
+
+	function saveGraph() {
+		editorViewModel.saveGraph();
+	}
 </script>
 
 <div class="sidebarWrapper" class:open>
@@ -36,6 +40,7 @@
 	<div class="content">
 		<button on:click={(e) => addComponent("test", "AND", e)}>Add AND</button>
 		<button on:click={(e) => addComponent("test2", "OR", e)}>Add OR</button>
+		<button on:click={saveGraph}>Save</button>
 		<button on:click={handleUndo}>Undo</button>
 	</div>
 </div>

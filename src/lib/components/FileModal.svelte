@@ -1,0 +1,74 @@
+<script lang="ts">
+	import { graph, graphManager } from "$lib/util/graph";
+	import type { APIResponse } from "$lib/util/types";
+	import {
+		fileModalViewModel,
+		type FileModalUiState,
+	} from "$lib/util/viewModels";
+	import { get } from "svelte/store";
+
+	let name = "";
+
+	export let uiState: FileModalUiState;
+
+	function saveGraph() {
+		const data = get(graph.data);
+		fetch("/api/save", {
+			method: "POST",
+			body: JSON.stringify({
+				name: name,
+				data: data,
+			}),
+			headers: {
+				"Content-type": "application/json; charset=UTF-8",
+			},
+		})
+			.then((response) => response.json())
+			.then((data: APIResponse<null>) => {
+				if (data.success) {
+					fileModalViewModel.setSuccess("Saved");
+				} else {
+					fileModalViewModel.setError(data.error);
+				}
+			});
+	}
+
+	function close() {
+		fileModalViewModel.close();
+	}
+</script>
+
+<div class="background">
+	<div class="modal-bg">
+		{#if uiState.state === "save"}
+			<input type="text" bind:value={name} />
+			<button on:click={saveGraph}>Save</button>
+			{#if uiState.message !== null}
+				<span>{uiState.message}</span>
+			{/if}
+		{/if}
+		<button on:click={close}>x</button>
+	</div>
+</div>
+
+<style>
+	.background {
+		width: 100%;
+		height: 100%;
+		background-color: #000000a0;
+		position: absolute;
+		top: 0;
+		left: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.modal-bg {
+		height: 50%;
+		width: 50%;
+		margin: auto;
+		background-color: white;
+		border-radius: 50px;
+		padding: 50px;
+	}
+</style>

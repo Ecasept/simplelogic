@@ -1,7 +1,8 @@
 name = "simplelogic"
 pages_build_output_dir = ".svelte-kit/cloudflare"
+compatibility_date = "2024-08-20"
 
-[[env.production.d1_databases]]
+[[d1_databases]]
 binding = "DB"
 database_name = "MAIN_DB"
 database_id = "b4768d67-3be5-4ee0-8704-3453f335c7dc"

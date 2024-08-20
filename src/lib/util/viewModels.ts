@@ -21,6 +21,7 @@ export type UiState = {
 	addingId: number | null;
 	/** The handle of the wire that is being moved */
 	movingWireHandleType: HandleType | null;
+	isModalOpen: boolean;
 };
 
 class EditorViewModel {
@@ -30,6 +31,7 @@ class EditorViewModel {
 		movingId: null,
 		addingId: null,
 		movingWireHandleType: null,
+		isModalOpen: false,
 	};
 
 	private resetUiState() {
@@ -39,6 +41,7 @@ class EditorViewModel {
 			movingId: null,
 			addingId: null,
 			movingWireHandleType: null,
+			isModalOpen: false,
 		};
 	}
 
@@ -62,6 +65,12 @@ class EditorViewModel {
 	undo() {
 		graphManager.undo();
 		graphManager.notifyAll();
+	}
+
+	saveGraph() {
+		this.uiState.isModalOpen = true;
+		this.notifyAll();
+		fileModalViewModel.saveGraph();
 	}
 
 	// ==== Store Contract ====
@@ -269,3 +278,72 @@ class CanvasViewModel {
 }
 
 export const canvasViewModel = new CanvasViewModel();
+
+export type FileModalUiState = {
+	state: "load" | "save" | null;
+	message: string | null;
+	messageType: "success" | "error" | null;
+};
+
+class FileModalViewModel {
+	uiState: FileModalUiState = {
+		state: null,
+		message: null,
+		messageType: null,
+	};
+
+	resetUiState() {
+		this.uiState = {
+			state: null,
+			message: null,
+			messageType: null,
+		};
+	}
+
+	saveGraph() {
+		this.uiState.state = "save";
+		this.notifyAll();
+	}
+	loadGraph() {
+		throw new Error("Not Implemented");
+	}
+
+	close() {
+		this.resetUiState();
+		this.notifyAll();
+	}
+
+	setSuccess(msg: string) {
+		this.uiState.message = msg;
+		this.uiState.messageType = "success";
+		this.notifyAll();
+	}
+	setError(msg: string) {
+		this.uiState.message = msg;
+		this.uiState.messageType = "error";
+		this.notifyAll();
+	}
+
+	// ==== Store Contract ====
+
+	private subscribers: ((uiState: FileModalUiState) => void)[] = [];
+
+	subscribe(subscriber: (uiState: FileModalUiState) => void): () => void {
+		this.subscribers.push(subscriber);
+		subscriber(this.uiState);
+		return () => {
+			const index = this.subscribers.indexOf(subscriber);
+			if (index !== -1) {
+				this.subscribers.splice(index, 1);
+			}
+		};
+	}
+
+	private notifyAll() {
+		for (const subscriberFunc of this.subscribers) {
+			subscriberFunc(this.uiState);
+		}
+	}
+}
+
+export const fileModalViewModel = new FileModalViewModel();
