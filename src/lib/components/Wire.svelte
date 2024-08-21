@@ -39,7 +39,7 @@
 		if (!addingThis) {
 			return;
 		}
-		if (isClickOverSidebar(e)) {
+		if (addingThis && isClickOverSidebar(e)) {
 			return;
 		}
 		editorViewModel.applyChanges();

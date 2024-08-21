@@ -57,7 +57,7 @@
 	}
 
 	function onMouseDown(e: MouseEvent) {
-		if (addingThis) {
+		if (addingThis || movingThis) {
 			return;
 		}
 		console.log(e);
@@ -87,7 +87,7 @@
 		if (!(addingThis || movingThis)) {
 			return;
 		}
-		if (isClickOverSidebar(e)) {
+		if (addingThis && isClickOverSidebar(e)) {
 			return;
 		}
 		editorViewModel.applyChanges();
@@ -132,7 +132,11 @@
 	}
 </script>
 
-<svelte:window on:keydown={onKeyDown} on:mousemove={onMouseMove} />
+<svelte:window
+	on:keydown={onKeyDown}
+	on:mousemove={onMouseMove}
+	on:mouseup={onMouseUp}
+/>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <rect
@@ -143,7 +147,6 @@
 	height={size.y * GRID_SIZE}
 	style="cursor: {cursor}"
 	on:mousedown={onMouseDown}
-	on:mouseup={onMouseUp}
 	fill="green"
 	stroke="black"
 	fill-opacity="70%"
