@@ -14,7 +14,6 @@ import type {
 	XYPair,
 } from "../types";
 import { canvasViewModel } from "./canvasViewModel";
-import { fileModalViewModel } from "./fileModalViewModel";
 import { ViewModel } from "./viewModel";
 
 export type EditorUiState = {
@@ -69,16 +68,9 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 		graphManager.notifyAll();
 	}
 
-	saveGraph() {
-		this.uiState.isModalOpen = true;
+	setModalOpen(val: boolean) {
+		this.uiState.isModalOpen = val;
 		this.notifyAll();
-		fileModalViewModel.openSaveGraph();
-	}
-
-	loadGraph() {
-		this.uiState.isModalOpen = true;
-		this.notifyAll();
-		fileModalViewModel.openLoadGraph();
 	}
 
 	// ==== Commands ====

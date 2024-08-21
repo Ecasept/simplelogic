@@ -70,12 +70,8 @@ class FileModalViewModel extends ViewModel<FileModalUiState> {
 			});
 	}
 
-	openSaveGraph() {
-		this.uiState.state = "save";
-		this.notifyAll();
-	}
-	openLoadGraph() {
-		this.uiState.state = "load";
+	setState(state: "save" | "load" | null) {
+		this.uiState.state = state;
 		this.notifyAll();
 	}
 

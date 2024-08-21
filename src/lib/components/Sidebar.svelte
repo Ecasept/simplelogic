@@ -1,46 +1,32 @@
 <script lang="ts">
-	import { COMPONENT_IO_MAPPING, GRID_SIZE } from "$lib/util/global";
-	import { canvasViewModel } from "$lib/util/viewModels/canvasViewModel";
-	import { editorViewModel } from "$lib/util/viewModels/editorViewModel";
+	import {
+		sidebarViewModel,
+		type SidebarUiState,
+	} from "$lib/util/viewModels/sidebarViewModel";
 
-	let open = true;
+	export let uiState: SidebarUiState;
 
 	function addComponent(label: string, type: string, e: MouseEvent) {
-		const data = structuredClone(COMPONENT_IO_MAPPING[type]);
-		const svgPos = canvasViewModel.clientToSVGCoords({
-			x: e.clientX,
-			y: e.clientY,
-		});
-		editorViewModel.addComponent({
-			type: type,
-			label: label,
-			size: { x: data.width, y: data.height },
-			position: {
-				x: svgPos.x - (data.width * GRID_SIZE) / 2,
-				y: svgPos.y - (data.height * GRID_SIZE) / 2,
-			},
-			handles: data.connections,
-		});
-	}
-
-	function collapse() {
-		open = !open;
+		sidebarViewModel.addComponent(label, type, { x: e.clientX, y: e.clientY });
 	}
 
 	function handleUndo() {
-		editorViewModel.undo();
+		sidebarViewModel.undo();
 	}
 
 	function saveGraph() {
-		editorViewModel.saveGraph();
+		sidebarViewModel.saveGraph();
 	}
 	function loadGraph() {
-		editorViewModel.loadGraph();
+		sidebarViewModel.loadGraph();
+	}
+	function toggleOpen() {
+		sidebarViewModel.toggleOpen();
 	}
 </script>
 
-<div class="sidebarWrapper" class:open>
-	<button class="collapse" on:click={collapse}><span>▶</span></button>
+<div class="sidebarWrapper" class:open={uiState.open}>
+	<button class="collapse" on:click={toggleOpen}><span>▶</span></button>
 	<div class="content">
 		<button on:click={(e) => addComponent("test", "AND", e)}>Add AND</button>
 		<button on:click={(e) => addComponent("test2", "OR", e)}>Add OR</button>
