@@ -46,6 +46,7 @@ export async function POST({ request, platform }) {
 		"INSERT INTO circuits (name, data) VALUES (?, json(?))",
 	);
 	const query = statement.bind(name, JSON.stringify(data));
+	query.run();
 
 	return json({ success: true, data: null });
 }

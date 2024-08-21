@@ -204,6 +204,14 @@ class Graph {
 			return arr;
 		});
 	}
+
+	loadGraph(graphData: GraphData) {
+		this.data.set(graphData);
+		this.history.set([]);
+	}
+	saveGraph() {
+		return get(this.data);
+	}
 }
 
 export const graph: Graph = new Graph();

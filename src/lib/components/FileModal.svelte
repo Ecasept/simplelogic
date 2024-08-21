@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { graph, graphManager } from "$lib/util/graph";
-	import type { APIResponse } from "$lib/util/types";
+	import type { APIResponse, GraphData } from "$lib/util/types";
 	import {
+		canvasViewModel,
+		editorViewModel,
 		fileModalViewModel,
 		type FileModalUiState,
 	} from "$lib/util/viewModels";
@@ -12,7 +14,7 @@
 	export let uiState: FileModalUiState;
 
 	function saveGraph() {
-		const data = get(graph.data);
+		const data = graph.saveGraph();
 		fetch("/api/save", {
 			method: "POST",
 			body: JSON.stringify({
@@ -33,6 +35,30 @@
 			});
 	}
 
+	function loadGraph() {
+		fetch("/api/load", {
+			method: "POST",
+			body: JSON.stringify({
+				name: name,
+			}),
+			headers: {
+				"Content-type": "application/json; charset=UTF-8",
+			},
+		})
+			.then((response) => response.json())
+			.then((data: APIResponse<GraphData>) => {
+				if (data.success) {
+					// canvasViewModel.resetUiState();
+					// canvasViewModel.notifyAlll();
+					// editorViewModel
+					graph.loadGraph(data.data);
+					fileModalViewModel.setSuccess("Loaded");
+				} else {
+					fileModalViewModel.setError(data.error);
+				}
+			});
+	}
+
 	function close() {
 		fileModalViewModel.close();
 	}
@@ -43,6 +69,13 @@
 		{#if uiState.state === "save"}
 			<input type="text" bind:value={name} />
 			<button on:click={saveGraph}>Save</button>
+			{#if uiState.message !== null}
+				<span>{uiState.message}</span>
+			{/if}
+		{/if}
+		{#if uiState.state === "load"}
+			<input type="text" bind:value={name} />
+			<button on:click={loadGraph}>Load</button>
 			{#if uiState.message !== null}
 				<span>{uiState.message}</span>
 			{/if}

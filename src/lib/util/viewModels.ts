@@ -73,6 +73,12 @@ class EditorViewModel {
 		fileModalViewModel.saveGraph();
 	}
 
+	loadGraph() {
+		this.uiState.isModalOpen = true;
+		this.notifyAll();
+		fileModalViewModel.loadGraph();
+	}
+
 	// ==== Store Contract ====
 
 	private subscribers: ((data: { uiState: UiState }) => void)[] = [];
@@ -305,7 +311,8 @@ class FileModalViewModel {
 		this.notifyAll();
 	}
 	loadGraph() {
-		throw new Error("Not Implemented");
+		this.uiState.state = "load";
+		this.notifyAll();
 	}
 
 	close() {

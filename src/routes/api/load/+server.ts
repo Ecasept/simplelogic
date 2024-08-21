@@ -1,7 +1,7 @@
 import { error, json } from "@sveltejs/kit";
 import { z } from "zod";
 
-export async function GET({ request, platform }) {
+export async function POST({ request, platform }) {
 	// Validate input
 	const schema = z.object({ name: z.string() });
 	const validationResult = schema.safeParse(await request.json());
@@ -29,5 +29,5 @@ export async function GET({ request, platform }) {
 		return json({ success: false, error: "Selected circuit does not exist" });
 	}
 
-	return json({ success: true, data: results[0] });
+	return json({ success: true, data: JSON.parse(results[0].data) });
 }
