@@ -11,49 +11,11 @@
 	export let uiState: FileModalUiState;
 
 	function saveGraph() {
-		const data = graph.saveGraph();
-		fetch("/api/save", {
-			method: "POST",
-			body: JSON.stringify({
-				name: name,
-				data: data,
-			}),
-			headers: {
-				"Content-type": "application/json; charset=UTF-8",
-			},
-		})
-			.then((response) => response.json())
-			.then((data: APIResponse<null>) => {
-				if (data.success) {
-					fileModalViewModel.setSuccess("Saved");
-				} else {
-					fileModalViewModel.setError(data.error);
-				}
-			});
+		fileModalViewModel.saveGraph(name);
 	}
 
 	function loadGraph() {
-		fetch("/api/load", {
-			method: "POST",
-			body: JSON.stringify({
-				name: name,
-			}),
-			headers: {
-				"Content-type": "application/json; charset=UTF-8",
-			},
-		})
-			.then((response) => response.json())
-			.then((data: APIResponse<GraphData>) => {
-				if (data.success) {
-					// canvasViewModel.resetUiState();
-					// canvasViewModel.notifyAlll();
-					// editorViewModel
-					graph.loadGraph(data.data);
-					fileModalViewModel.setSuccess("Loaded");
-				} else {
-					fileModalViewModel.setError(data.error);
-				}
-			});
+		fileModalViewModel.loadGraph(name);
 	}
 
 	function close() {

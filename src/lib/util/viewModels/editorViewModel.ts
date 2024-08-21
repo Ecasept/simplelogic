@@ -72,13 +72,13 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 	saveGraph() {
 		this.uiState.isModalOpen = true;
 		this.notifyAll();
-		fileModalViewModel.saveGraph();
+		fileModalViewModel.openSaveGraph();
 	}
 
 	loadGraph() {
 		this.uiState.isModalOpen = true;
 		this.notifyAll();
-		fileModalViewModel.loadGraph();
+		fileModalViewModel.openLoadGraph();
 	}
 
 	// ==== Commands ====

@@ -209,7 +209,7 @@ class Graph {
 		this.data.set(graphData);
 		this.history.set([]);
 	}
-	saveGraph() {
+	getGraph() {
 		return get(this.data);
 	}
 }
