@@ -3,7 +3,8 @@
 	import Wire from "$lib/components/Wire.svelte";
 	import { GRID_SIZE } from "$lib/util/global";
 	import { graphManager } from "$lib/util/graph";
-	import { canvasViewModel, editorViewModel } from "$lib/util/viewModels";
+	import { canvasViewModel } from "$lib/util/viewModels/canvasViewModel";
+	import { editorViewModel } from "$lib/util/viewModels/editorViewModel";
 
 	let svg: SVGSVGElement;
 

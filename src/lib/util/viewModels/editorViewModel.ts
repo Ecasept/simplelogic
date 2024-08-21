@@ -1,43 +1,21 @@
-import { GRID_SIZE, gridSnap } from "./global";
-import type {
-	ComponentConnection,
-	ComponentData,
-	HandleType,
-	WireData,
-	XYPair,
-} from "./types";
+import { GRID_SIZE, gridSnap } from "../global";
 import {
 	ConnectCommand,
 	CreateComponentCommand,
 	CreateWireCommand,
 	graphManager,
 	MoveWireConnectionCommand,
-} from "./graph";
-
-abstract class ViewModel<UiState> {
-	protected abstract uiState: UiState;
-	protected abstract resetUiState(): void;
-	// ==== Store Contract ====
-
-	private subscribers: ((uiState: UiState) => void)[] = [];
-
-	subscribe(subscriber: (uiState: UiState) => void): () => void {
-		this.subscribers.push(subscriber);
-		subscriber(this.uiState);
-		return () => {
-			const index = this.subscribers.indexOf(subscriber);
-			if (index !== -1) {
-				this.subscribers.splice(index, 1);
-			}
-		};
-	}
-
-	notifyAll() {
-		for (const subscriberFunc of this.subscribers) {
-			subscriberFunc(this.uiState);
-		}
-	}
-}
+} from "../graph";
+import type {
+	ComponentConnection,
+	ComponentData,
+	HandleType,
+	WireData,
+	XYPair,
+} from "../types";
+import { canvasViewModel } from "./canvasViewModel";
+import { fileModalViewModel } from "./fileModalViewModel";
+import { ViewModel } from "./viewModel";
 
 export type EditorUiState = {
 	isMoving: boolean;
@@ -209,116 +187,3 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 }
 
 export const editorViewModel: EditorViewModel = new EditorViewModel();
-
-type CanvasUiState = {
-	isPanning: boolean;
-	viewBox: XYPair & { width: number; height: number };
-};
-
-class CanvasViewModel extends ViewModel<CanvasUiState> {
-	protected uiState: CanvasUiState = {
-		isPanning: false,
-		viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
-	};
-	protected resetUiState(): void {
-		this.uiState = {
-			isPanning: false,
-			viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
-		};
-		this.notifyAll();
-	}
-
-	svg: SVGSVGElement | null = null;
-
-	// ==== Canvas ====
-	startPan() {
-		this.uiState.isPanning = true;
-		this.notifyAll();
-	}
-	endPan() {
-		this.uiState.isPanning = false;
-		this.notifyAll();
-	}
-	pan(movementX: number, movementY: number) {
-		if (!this.uiState.isPanning) {
-			return;
-		}
-
-		this.uiState.viewBox.x -= this.toSvgX(movementX);
-		this.uiState.viewBox.y -= this.toSvgY(movementY);
-		this.notifyAll();
-	}
-	/** Scale client's x-coordinate to svg's x-coordinate */
-	private toSvgX(val: number) {
-		return (val * this.uiState.viewBox.width) / (this.svg?.clientWidth ?? 1);
-	}
-	/** Scale client's y-coordinate to svg's y-coordinate */
-	private toSvgY(val: number) {
-		return (val * this.uiState.viewBox.height) / (this.svg?.clientHeight ?? 1);
-	}
-
-	clientToSVGCoords(clientPos: XYPair) {
-		const point = new DOMPoint(clientPos.x, clientPos.y);
-
-		// Get the current transformation matrix of the SVG
-		const ctm = this.svg?.getScreenCTM();
-		if (ctm) {
-			// Inverse transform the point using the SVG's matrix
-			return point.matrixTransform(ctm.inverse());
-		} else {
-			console.error("Failed to get SVG transformation matrix");
-			return { x: 0, y: 0 };
-		}
-	}
-}
-
-export const canvasViewModel = new CanvasViewModel();
-
-export type FileModalUiState = {
-	state: "load" | "save" | null;
-	message: string | null;
-	messageType: "success" | "error" | null;
-};
-
-class FileModalViewModel extends ViewModel<FileModalUiState> {
-	protected uiState: FileModalUiState = {
-		state: null,
-		message: null,
-		messageType: null,
-	};
-
-	protected resetUiState() {
-		this.uiState = {
-			state: null,
-			message: null,
-			messageType: null,
-		};
-		this.notifyAll();
-	}
-
-	saveGraph() {
-		this.uiState.state = "save";
-		this.notifyAll();
-	}
-	loadGraph() {
-		this.uiState.state = "load";
-		this.notifyAll();
-	}
-
-	close() {
-		this.resetUiState();
-	}
-
-	setSuccess(msg: string) {
-		this.uiState.message = msg;
-		this.uiState.messageType = "success";
-		this.notifyAll();
-	}
-	setError(msg: string) {
-		this.uiState.message = msg;
-		this.uiState.messageType = "error";
-		this.notifyAll();
-	}
-}
-
-export const fileModalViewModel = new FileModalViewModel();

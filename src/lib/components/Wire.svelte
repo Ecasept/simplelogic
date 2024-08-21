@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { isClickOverSidebar } from "$lib/util/global";
 	import type { HandleType, WireHandle } from "$lib/util/types";
-	import { editorViewModel, type EditorUiState } from "$lib/util/viewModels";
+	import {
+		editorViewModel,
+		type EditorUiState,
+	} from "$lib/util/viewModels/editorViewModel";
 
 	export let id: number;
 	export let label: string;

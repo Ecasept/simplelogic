@@ -10,7 +10,10 @@
 		HandleEdge,
 		XYPair,
 	} from "$lib/util/types";
-	import { editorViewModel, type EditorUiState } from "$lib/util/viewModels";
+	import {
+		editorViewModel,
+		type EditorUiState,
+	} from "$lib/util/viewModels/editorViewModel";
 
 	export let id: number;
 	export let label: string = "Component";

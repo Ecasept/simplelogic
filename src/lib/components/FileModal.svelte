@@ -1,13 +1,10 @@
 <script lang="ts">
-	import { graph, graphManager } from "$lib/util/graph";
+	import { graph } from "$lib/util/graph";
 	import type { APIResponse, GraphData } from "$lib/util/types";
 	import {
-		canvasViewModel,
-		editorViewModel,
 		fileModalViewModel,
 		type FileModalUiState,
-	} from "$lib/util/viewModels";
-	import { get } from "svelte/store";
+	} from "$lib/util/viewModels/fileModalViewModel";
 
 	let name = "";
 

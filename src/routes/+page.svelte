@@ -2,7 +2,7 @@
 	import Canvas from "$lib/components/Canvas.svelte";
 	import FileModal from "$lib/components/FileModal.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
-	import { editorViewModel, fileModalViewModel } from "$lib/util/viewModels";
+	import { fileModalViewModel } from "$lib/util/viewModels/fileModalViewModel";
 </script>
 
 <div class="wrapper">

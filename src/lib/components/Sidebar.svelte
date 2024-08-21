@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { COMPONENT_IO_MAPPING, GRID_SIZE } from "$lib/util/global";
-	import { canvasViewModel, editorViewModel } from "$lib/util/viewModels";
+	import { canvasViewModel } from "$lib/util/viewModels/canvasViewModel";
+	import { editorViewModel } from "$lib/util/viewModels/editorViewModel";
 
 	let open = true;
 
