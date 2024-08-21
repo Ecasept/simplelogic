@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { isClickOverSidebar } from "$lib/util/global";
 	import type { HandleType, WireHandle } from "$lib/util/types";
-	import { editorViewModel, type UiState } from "$lib/util/viewModels";
+	import { editorViewModel, type EditorUiState } from "$lib/util/viewModels";
 
 	export let id: number;
 	export let label: string;
 	export let input: WireHandle;
 	export let output: WireHandle;
 
-	export let uiState: UiState;
+	export let uiState: EditorUiState;
 
 	$: addingThis = id === uiState.addingId;
 

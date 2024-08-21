@@ -10,7 +10,7 @@
 		HandleEdge,
 		XYPair,
 	} from "$lib/util/types";
-	import { editorViewModel, type UiState } from "$lib/util/viewModels";
+	import { editorViewModel, type EditorUiState } from "$lib/util/viewModels";
 
 	export let id: number;
 	export let label: string = "Component";
@@ -19,7 +19,7 @@
 	export let position: XYPair;
 	export let connections: ComponentHandleList;
 
-	export let uiState: UiState;
+	export let uiState: EditorUiState;
 
 	$: addingThis = id === uiState.addingId;
 	$: movingThis = id === uiState.movingId;

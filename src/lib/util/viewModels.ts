@@ -14,7 +14,32 @@ import {
 	MoveWireConnectionCommand,
 } from "./graph";
 
-export type UiState = {
+abstract class ViewModel<UiState> {
+	protected abstract uiState: UiState;
+	protected abstract resetUiState(): void;
+	// ==== Store Contract ====
+
+	private subscribers: ((uiState: UiState) => void)[] = [];
+
+	subscribe(subscriber: (uiState: UiState) => void): () => void {
+		this.subscribers.push(subscriber);
+		subscriber(this.uiState);
+		return () => {
+			const index = this.subscribers.indexOf(subscriber);
+			if (index !== -1) {
+				this.subscribers.splice(index, 1);
+			}
+		};
+	}
+
+	notifyAll() {
+		for (const subscriberFunc of this.subscribers) {
+			subscriberFunc(this.uiState);
+		}
+	}
+}
+
+export type EditorUiState = {
 	isMoving: boolean;
 	isAdding: boolean;
 	movingId: number | null;
@@ -24,8 +49,8 @@ export type UiState = {
 	isModalOpen: boolean;
 };
 
-class EditorViewModel {
-	private uiState: UiState = {
+class EditorViewModel extends ViewModel<EditorUiState> {
+	protected uiState: EditorUiState = {
 		isMoving: false,
 		isAdding: false,
 		movingId: null,
@@ -34,7 +59,7 @@ class EditorViewModel {
 		isModalOpen: false,
 	};
 
-	private resetUiState() {
+	protected resetUiState() {
 		this.uiState = {
 			isMoving: false,
 			isAdding: false,
@@ -43,6 +68,7 @@ class EditorViewModel {
 			movingWireHandleType: null,
 			isModalOpen: false,
 		};
+		this.notifyAll();
 	}
 
 	cancelChanges() {
@@ -50,7 +76,6 @@ class EditorViewModel {
 		graphManager.notifyAll();
 
 		this.resetUiState();
-		this.notifyAll();
 	}
 
 	applyChanges() {
@@ -58,7 +83,6 @@ class EditorViewModel {
 		graphManager.notifyAll();
 
 		this.resetUiState();
-		this.notifyAll();
 
 		console.log("applied changes");
 	}
@@ -77,27 +101,6 @@ class EditorViewModel {
 		this.uiState.isModalOpen = true;
 		this.notifyAll();
 		fileModalViewModel.loadGraph();
-	}
-
-	// ==== Store Contract ====
-
-	private subscribers: ((data: { uiState: UiState }) => void)[] = [];
-
-	subscribe(subscriber: (data: { uiState: UiState }) => void): () => void {
-		this.subscribers.push(subscriber);
-		subscriber({ uiState: this.uiState });
-		return () => {
-			const index = this.subscribers.indexOf(subscriber);
-			if (index !== -1) {
-				this.subscribers.splice(index, 1);
-			}
-		};
-	}
-
-	private notifyAll() {
-		for (const subscriberFunc of this.subscribers) {
-			subscriberFunc({ uiState: this.uiState });
-		}
 	}
 
 	// ==== Commands ====
@@ -212,11 +215,18 @@ type CanvasUiState = {
 	viewBox: XYPair & { width: number; height: number };
 };
 
-class CanvasViewModel {
-	uiState: CanvasUiState = {
+class CanvasViewModel extends ViewModel<CanvasUiState> {
+	protected uiState: CanvasUiState = {
 		isPanning: false,
 		viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
 	};
+	protected resetUiState(): void {
+		this.uiState = {
+			isPanning: false,
+			viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
+		};
+		this.notifyAll();
+	}
 
 	svg: SVGSVGElement | null = null;
 
@@ -260,27 +270,6 @@ class CanvasViewModel {
 			return { x: 0, y: 0 };
 		}
 	}
-
-	// ==== Store Contract ====
-
-	private subscribers: ((uiState: CanvasUiState) => void)[] = [];
-
-	subscribe(subscriber: (uiState: CanvasUiState) => void): () => void {
-		this.subscribers.push(subscriber);
-		subscriber(this.uiState);
-		return () => {
-			const index = this.subscribers.indexOf(subscriber);
-			if (index !== -1) {
-				this.subscribers.splice(index, 1);
-			}
-		};
-	}
-
-	private notifyAll() {
-		for (const subscriberFunc of this.subscribers) {
-			subscriberFunc(this.uiState);
-		}
-	}
 }
 
 export const canvasViewModel = new CanvasViewModel();
@@ -291,19 +280,20 @@ export type FileModalUiState = {
 	messageType: "success" | "error" | null;
 };
 
-class FileModalViewModel {
-	uiState: FileModalUiState = {
+class FileModalViewModel extends ViewModel<FileModalUiState> {
+	protected uiState: FileModalUiState = {
 		state: null,
 		message: null,
 		messageType: null,
 	};
 
-	resetUiState() {
+	protected resetUiState() {
 		this.uiState = {
 			state: null,
 			message: null,
 			messageType: null,
 		};
+		this.notifyAll();
 	}
 
 	saveGraph() {
@@ -317,7 +307,6 @@ class FileModalViewModel {
 
 	close() {
 		this.resetUiState();
-		this.notifyAll();
 	}
 
 	setSuccess(msg: string) {
@@ -329,27 +318,6 @@ class FileModalViewModel {
 		this.uiState.message = msg;
 		this.uiState.messageType = "error";
 		this.notifyAll();
-	}
-
-	// ==== Store Contract ====
-
-	private subscribers: ((uiState: FileModalUiState) => void)[] = [];
-
-	subscribe(subscriber: (uiState: FileModalUiState) => void): () => void {
-		this.subscribers.push(subscriber);
-		subscriber(this.uiState);
-		return () => {
-			const index = this.subscribers.indexOf(subscriber);
-			if (index !== -1) {
-				this.subscribers.splice(index, 1);
-			}
-		};
-	}
-
-	private notifyAll() {
-		for (const subscriberFunc of this.subscribers) {
-			subscriberFunc(this.uiState);
-		}
 	}
 }
 

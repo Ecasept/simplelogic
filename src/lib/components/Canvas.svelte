@@ -13,7 +13,7 @@
 	}
 	$: {
 		console.log("UiState Change:");
-		console.log($editorViewModel.uiState);
+		console.log($editorViewModel);
 	}
 
 	$: canvasViewModel.svg = svg;
@@ -73,12 +73,11 @@
 				{position}
 				{type}
 				{connections}
-				uiState={$editorViewModel.uiState}
+				uiState={$editorViewModel}
 			></Component>
 		{/each}
 		{#each Object.entries($graphManager.wires) as [id_as_key, { id, label, input, output }]}
-			<Wire {label} {id} {input} {output} uiState={$editorViewModel.uiState}
-			></Wire>
+			<Wire {label} {id} {input} {output} uiState={$editorViewModel}></Wire>
 		{/each}
 	</svg>
 </div>
