@@ -60,7 +60,6 @@
 		if (addingThis || movingThis) {
 			return;
 		}
-		console.log(e);
 
 		e.preventDefault();
 		e.stopPropagation();

@@ -1,11 +1,11 @@
-import { GRID_SIZE, gridSnap } from "../global";
 import {
 	ConnectCommand,
 	CreateComponentCommand,
 	CreateWireCommand,
-	graphManager,
 	MoveWireConnectionCommand,
-} from "../graph";
+} from "../commands";
+import { GRID_SIZE, gridSnap } from "../global";
+import { graphManager } from "../graph";
 import type {
 	ComponentConnection,
 	ComponentData,
@@ -50,22 +50,17 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 
 	cancelChanges() {
 		graphManager.cancelChanges();
-		graphManager.notifyAll();
 
 		this.resetUiState();
 	}
 
 	applyChanges() {
 		graphManager.applyChanges();
-		graphManager.notifyAll();
 
 		this.resetUiState();
-
-		console.log("applied changes");
 	}
 	undo() {
 		graphManager.undo();
-		graphManager.notifyAll();
 	}
 
 	setModalOpen(val: boolean) {
@@ -76,8 +71,6 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 	// ==== Commands ====
 
 	addComponent(newComponentData: Omit<ComponentData, "id">) {
-		console.log("Command issued: addComponent");
-
 		const cmd = new CreateComponentCommand(newComponentData);
 		const id = graphManager.executeCommand(cmd);
 		graphManager.notifyAll();
@@ -93,8 +86,6 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 		clickedHandleType: HandleType,
 		componentConnection: ComponentConnection,
 	) {
-		console.log("Command issued: addWire");
-
 		const wireData = {
 			...newWireData,
 			input: {
@@ -128,8 +119,6 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 	}
 
 	startMoveComponent(id: number) {
-		console.log("Command issued: startMoveComponent");
-
 		this.uiState.isMoving = true;
 		this.uiState.movingId = id;
 		this.notifyAll();
@@ -140,8 +129,6 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 		newClientPos: XYPair,
 		id: number,
 	) {
-		console.log("Command issued: moveComponentReplaceable");
-
 		// transform to svg coordinate system
 		const svgPos = canvasViewModel.clientToSVGCoords(newClientPos);
 		const newPos = {
@@ -152,17 +139,17 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 			return;
 		}
 
-		graphManager.moveComponent(newPos, id, size);
+		graphManager.moveComponentReplaceable(newPos, id, size);
 
 		graphManager.notifyAll();
 	}
+
 	moveWireConnectionReplaceable(
 		oldPos: XYPair,
 		newClientPos: XYPair,
 		handleType: HandleType,
 		id: number,
 	) {
-		console.log("Command issued: moveWireConnectionReplaceable");
 		// transform to coordinate system of svg
 		const svgPos = canvasViewModel.clientToSVGCoords(newClientPos);
 		const newPos = {

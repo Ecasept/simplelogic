@@ -1,0 +1,178 @@
+import type {
+	Command,
+	ComponentConnection,
+	ComponentData,
+	GraphData,
+	HandleType,
+	WireConnection,
+	WireData,
+	XYPair,
+} from "./types";
+
+export class CommandGroup implements Command {
+	constructor(private commands: Command[]) {}
+	execute(graphData: GraphData) {
+		for (const command of this.commands) {
+			command.execute(graphData);
+		}
+	}
+	undo(graphData: GraphData) {
+		for (let i = this.commands.length - 1; i >= 0; i--) {
+			this.commands[i].undo(graphData);
+		}
+	}
+}
+
+export class ConnectCommand implements Command {
+	oldFrom: ComponentConnection | WireConnection | null = null;
+	oldTo: ComponentConnection | WireConnection | null = null;
+
+	constructor(
+		private from: ComponentConnection | WireConnection,
+		private to: ComponentConnection | WireConnection,
+	) {}
+
+	execute(graphData: GraphData) {
+		if ("handleId" in this.from) {
+			const handle =
+				graphData.components[this.from.id].handles[this.from.handleId];
+			this.oldFrom = handle.connection;
+			handle.connection = this.to;
+		} else {
+			const handle = graphData.wires[this.from.id][this.from.handleType];
+			this.oldFrom = handle.connection;
+			handle.connection = this.to;
+		}
+		if ("handleId" in this.to) {
+			const handle = graphData.components[this.to.id].handles[this.to.handleId];
+			this.oldTo = handle.connection;
+			handle.connection = this.from;
+		} else {
+			const handle = graphData.wires[this.to.id][this.to.handleType];
+			this.oldTo = handle.connection;
+			handle.connection = this.from;
+		}
+	}
+	undo(graphData: GraphData) {
+		if ("handleId" in this.from) {
+			const handle =
+				graphData.components[this.from.id].handles[this.from.handleId];
+			handle.connection = this.oldFrom;
+		} else {
+			const handle = graphData.wires[this.from.id][this.from.handleType];
+			handle.connection = this.oldFrom;
+		}
+		if ("handleId" in this.to) {
+			const handle = graphData.components[this.to.id].handles[this.to.handleId];
+			handle.connection = this.oldTo;
+		} else {
+			const handle = graphData.wires[this.to.id][this.to.handleType];
+			handle.connection = this.oldTo;
+		}
+	}
+}
+
+export class MoveWireConnectionCommand implements Command {
+	oldPosition: XYPair | null = null;
+
+	constructor(
+		private newPosition: XYPair,
+		private type: HandleType,
+		private wireId: number,
+	) {}
+
+	execute(graphData: GraphData) {
+		const wireConnection = graphData.wires[this.wireId][this.type];
+		this.oldPosition = { x: wireConnection.x, y: wireConnection.y };
+		wireConnection.x = this.newPosition.x;
+		wireConnection.y = this.newPosition.y;
+	}
+
+	undo(graphData: GraphData) {
+		if (this.oldPosition === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+		graphData.wires[this.wireId][this.type].x = this.oldPosition.x;
+		graphData.wires[this.wireId][this.type].y = this.oldPosition.y;
+		this.oldPosition = null;
+	}
+}
+
+export class MoveComponentCommand implements Command {
+	oldPosition: XYPair | null = null;
+
+	constructor(
+		private newPosition: XYPair,
+		private componentId: number,
+	) {}
+
+	execute(graphData: GraphData) {
+		this.oldPosition = structuredClone(
+			graphData.components[this.componentId].position,
+		);
+		graphData.components[this.componentId].position = this.newPosition;
+	}
+
+	undo(graphData: GraphData) {
+		if (this.oldPosition === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+		graphData.components[this.componentId].position = this.oldPosition;
+		this.oldPosition = null;
+	}
+}
+
+export class CreateWireCommand implements Command {
+	oldNextId: number | null = null;
+
+	constructor(private newWireData: Omit<WireData, "id">) {}
+	execute(graphData: GraphData) {
+		this.oldNextId = graphData.nextId;
+		graphData.wires[graphData.nextId] = {
+			...this.newWireData,
+			id: graphData.nextId,
+		};
+
+		graphData.nextId++;
+		return this.oldNextId;
+	}
+	undo(graphData: GraphData) {
+		if (this.oldNextId === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+
+		graphData.nextId = this.oldNextId;
+		delete graphData.wires[this.oldNextId];
+
+		this.oldNextId = null;
+	}
+}
+
+export class CreateComponentCommand implements Command {
+	oldNextId: number | null = null;
+
+	constructor(private newComponentData: Omit<ComponentData, "id">) {}
+	execute(graphData: GraphData) {
+		this.oldNextId = graphData.nextId;
+		graphData.components[graphData.nextId] = {
+			...this.newComponentData,
+			id: graphData.nextId,
+		};
+		graphData.nextId++;
+		return this.oldNextId;
+	}
+
+	undo(graphData: GraphData) {
+		if (this.oldNextId === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+
+		graphData.nextId = this.oldNextId;
+		delete graphData.components[this.oldNextId];
+		this.oldNextId = null;
+	}
+}

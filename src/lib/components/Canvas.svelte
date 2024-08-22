@@ -8,15 +8,6 @@
 
 	let svg: SVGSVGElement;
 
-	$: {
-		console.log("Data Change:");
-		console.log($graphManager);
-	}
-	$: {
-		console.log("UiState Change:");
-		console.log($editorViewModel);
-	}
-
 	$: canvasViewModel.svg = svg;
 
 	function pan(e: MouseEvent) {

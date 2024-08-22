@@ -1,250 +1,260 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import {
-	CommandGroup,
-	ConnectCommand,
-	MoveWireConnectionCommand,
-	MoveComponentCommand,
-	CreateWireCommand,
-	CreateComponentCommand,
-} from "./graph";
-import type {
-	GraphData,
-	XYPair,
-	ComponentConnection,
-	WireConnection,
-} from "./types";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { _Graph, _GraphManager, graph } from "./graph";
+import type { GraphData } from "./types";
 import { GRID_SIZE } from "./global";
+import { get } from "svelte/store";
 
-describe("Command Tests", () => {
-	let graphData: GraphData;
+import * as CommandModule from "./commands";
+
+// Mock the Command class and its methods
+class MockCommand {
+	execute = vi.fn();
+	undo = vi.fn();
+}
+
+describe("Graph", () => {
+	let testGraph: _Graph;
 
 	beforeEach(() => {
-		graphData = {
+		testGraph = new _Graph();
+	});
+
+	it("should initialize with empty data and history", () => {
+		expect(get(testGraph.data)).toEqual({
 			components: {},
 			wires: {},
 			nextId: 0,
+		});
+		expect(get(testGraph.history)).toEqual([]);
+	});
+
+	it("should execute a command and update data and history", () => {
+		const mockCommand = new MockCommand();
+		testGraph.executeCommand(mockCommand);
+
+		expect(mockCommand.execute).toHaveBeenCalled();
+		expect(get(testGraph.history)).toHaveLength(1);
+	});
+
+	it("should undo the last command", () => {
+		const mockCommand = new MockCommand();
+		testGraph.executeCommand(mockCommand);
+		testGraph.undoLastCommand();
+
+		expect(mockCommand.undo).toHaveBeenCalled();
+		expect(get(testGraph.history)).toHaveLength(0);
+	});
+
+	it("should load graph data", () => {
+		const graphData: GraphData = {
+			components: {
+				0: {
+					id: 0,
+					handles: {},
+					label: "test",
+					position: { x: 0, y: 0 },
+					size: { x: 0, y: 0 },
+					type: "test",
+				},
+			},
+			wires: {},
+			nextId: 1,
 		};
+		testGraph.loadGraph(graphData);
+
+		expect(get(testGraph.data)).toEqual(graphData);
+		expect(get(testGraph.history)).toEqual([]);
 	});
 
-	describe("CommandGroup", () => {
-		it("should execute and undo multiple commands", () => {
-			const cmd1 = new CreateComponentCommand({
-				type: "test",
-				label: "test",
-				size: { x: 0, y: 0 },
-				position: { x: 0, y: 0 },
-				handles: {},
-			});
-			const cmd2 = new CreateComponentCommand({
-				type: "test2",
-				label: "test2",
-				size: { x: 10, y: 10 },
-				position: { x: 20 * GRID_SIZE, y: 11 * GRID_SIZE },
-				handles: {},
-			});
-			const group = new CommandGroup([cmd1, cmd2]);
-
-			group.execute(graphData);
-			expect(Object.keys(graphData.components).length).toBe(2);
-
-			group.undo(graphData);
-			expect(Object.keys(graphData.components).length).toBe(0);
-		});
-	});
-
-	describe("ConnectCommand", () => {
-		it("should connect and disconnect components", () => {
-			const fromId = 1;
-			const toId = 30;
-			graphData.components[toId] = {
-				id: toId,
-				type: "test",
-				label: "test",
-				size: { x: 10, y: 10 },
-				position: { x: 2 * GRID_SIZE, y: 3 * GRID_SIZE },
-				handles: {
-					in: { edge: "left", pos: 3, type: "input", connection: null },
+	it("should get current graph data", () => {
+		const graphData: GraphData = {
+			components: {
+				0: {
+					id: 0,
+					handles: {},
+					label: "test",
+					position: { x: 0, y: 0 },
+					size: { x: 0, y: 0 },
+					type: "test",
 				},
-			};
-			graphData.components[fromId] = {
-				id: fromId,
-				type: "test",
-				label: "test",
-				size: { x: 0, y: 0 },
-				position: { x: 0, y: 0 },
-				handles: {
-					out: { edge: "bottom", pos: 100, type: "output", connection: null },
+			},
+			wires: {},
+			nextId: 1,
+		};
+		testGraph.loadGraph(graphData);
+
+		expect(testGraph.getGraph()).toEqual(graphData);
+	});
+});
+
+describe("GraphManager", () => {
+	let testGraphManager: _GraphManager;
+
+	beforeEach(() => {
+		graph.history.set([]);
+		graph.data.set({ components: {}, wires: {}, nextId: 0 });
+		testGraphManager = new _GraphManager();
+	});
+
+	it("should execute a command", () => {
+		const mockCommand = new MockCommand();
+		testGraphManager.executeCommand(mockCommand);
+
+		expect(mockCommand.execute).toHaveBeenCalled();
+	});
+
+	it("should replace the last command if replace is true", () => {
+		const mockCommand1 = new MockCommand();
+		const mockCommand2 = new MockCommand();
+
+		testGraphManager.executeCommand(mockCommand1);
+		testGraphManager.executeCommand(mockCommand2, true);
+
+		expect(mockCommand1.undo).toHaveBeenCalled();
+	});
+	it("should not replace the last command if replace is true and commands not the same", () => {
+		class OtherMockCommand {
+			execute = vi.fn();
+			undo = vi.fn();
+		}
+
+		const mockCommand1 = new OtherMockCommand();
+		const mockCommand2 = new MockCommand();
+
+		testGraphManager.executeCommand(mockCommand1);
+		testGraphManager.executeCommand(mockCommand2, true);
+
+		expect(mockCommand1.undo).toHaveBeenCalledTimes(0);
+	});
+
+	it("should cancel changes", () => {
+		const mockSubscriber = vi.fn();
+		testGraphManager.subscribe(mockSubscriber); // notifies
+		const mockCommand = {
+			execute: (data: GraphData) => {
+				data.nextId++;
+			},
+			undo: () => {},
+		};
+		testGraphManager.executeCommand(mockCommand); // does not notify
+		testGraphManager.cancelChanges(); // notifies
+
+		expect((testGraphManager as any).currentData.nextId).toEqual(0);
+		expect((testGraphManager as any).history).toEqual([]);
+		expect(mockSubscriber).toHaveBeenCalledTimes(2);
+	});
+
+	it("should apply changes", () => {
+		const mockCommand = new MockCommand();
+		testGraphManager.executeCommand(mockCommand);
+		testGraphManager.applyChanges();
+
+		// Verify that the changes were applied to the global graph
+		expect(get(graph.history)).toHaveLength(1);
+	});
+
+	it("should undo last command from global graph if local history is empty", () => {
+		const undoSpy = vi.spyOn(graph, "undoLastCommand");
+		testGraphManager.undo();
+
+		expect(undoSpy).toHaveBeenCalled();
+	});
+
+	it("should not undo last command from global graph if local history is not empty", () => {
+		const undoSpy = vi.spyOn(graph, "undoLastCommand");
+		testGraphManager.executeCommand(new MockCommand());
+		testGraphManager.undo();
+
+		expect(undoSpy).toHaveBeenCalledTimes(0);
+	});
+
+	it("should move a component and update connected wires", () => {
+		// TODO
+	});
+
+	it("should notify subscribers when data changes", () => {
+		const mockSubscriber = vi.fn();
+		testGraphManager.subscribe(mockSubscriber);
+
+		// Simulate a data change
+		graph.data.set({ components: {}, wires: {}, nextId: 1 });
+
+		expect(mockSubscriber).toHaveBeenCalled();
+	});
+
+	it("should create and execute commands for moving a component and its connected wires", () => {
+		((testGraphManager as any).currentData as GraphData) = {
+			components: {
+				0: {
+					id: 0,
+					label: "test",
+					type: "test",
+					position: { x: 50, y: 50 },
+					size: { x: 4, y: 4 },
+					handles: {
+						out1: {
+							edge: "top",
+							type: "output",
+							pos: 1,
+							connection: { handleType: "input", id: 3 },
+						},
+						out2: {
+							edge: "bottom",
+							type: "output",
+							pos: 1,
+							connection: null,
+						},
+					},
 				},
-			};
+			},
+			wires: {},
+			nextId: 1,
+		};
+		// Set up mock classes
+		const MoveComponentCommandMock = vi.fn();
+		const MoveWireConnectionCommandMock = vi.fn();
+		const CommandGroupMock = vi.fn();
 
-			const from: ComponentConnection = { id: fromId, handleId: "out" };
-			const to: ComponentConnection = { id: toId, handleId: "in" };
-			const cmd = new ConnectCommand(from, to);
+		// Mock the required classes
+		vi.spyOn(CommandModule, "MoveComponentCommand").mockImplementation(
+			MoveComponentCommandMock,
+		);
+		vi.spyOn(CommandModule, "MoveWireConnectionCommand").mockImplementation(
+			MoveWireConnectionCommandMock,
+		);
+		vi.spyOn(CommandModule, "CommandGroup").mockImplementation(
+			CommandGroupMock,
+		);
+		// Mock the executeCommand method
+		(testGraphManager as any).executeCommand = vi.fn();
 
-			cmd.execute(graphData);
-			expect(graphData.components[fromId].handles["out"].connection).toEqual(
-				to,
-			);
-			expect(graphData.components[toId].handles["in"].connection).toEqual(from);
+		const newComponentPos = { x: 100, y: 200 };
+		const componentId = 0;
 
-			cmd.undo(graphData);
-			expect(graphData.components[fromId].handles["out"].connection).toBeNull();
-			expect(graphData.components[toId].handles["in"].connection).toBeNull();
+		testGraphManager.moveComponentReplaceable(newComponentPos, componentId, {
+			x: 4,
+			y: 4,
 		});
-		it("should connect and disconnect wire and component", () => {
-			const fromId = 100;
-			const toId = 1;
-			graphData.components[fromId] = {
-				id: fromId,
-				type: "test",
-				label: "test",
-				size: { x: 10, y: 10 },
-				position: { x: GRID_SIZE, y: GRID_SIZE },
-				handles: {
-					out: { edge: "left", pos: 3, type: "output", connection: null },
-				},
-			};
-			graphData.wires[toId] = {
-				id: toId,
-				label: "test",
-				input: { x: 100 * GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
-				output: { x: 0, y: GRID_SIZE, connection: null },
-			};
 
-			const from: ComponentConnection = { id: fromId, handleId: "out" };
-			const to: WireConnection = { id: toId, handleType: "input" };
-			const cmd = new ConnectCommand(from, to);
-
-			cmd.execute(graphData);
-			expect(graphData.components[fromId].handles["out"].connection).toEqual(
-				to,
-			);
-			expect(graphData.wires[toId].input.connection).toEqual(from);
-
-			cmd.undo(graphData);
-			expect(graphData.components[fromId].handles["out"].connection).toBeNull();
-			expect(graphData.wires[toId].input.connection).toBeNull();
-		});
-		it("should connect and disconnect wires", () => {
-			const fromId = 79;
-			const toId = 4000;
-			graphData.wires[fromId] = {
-				id: fromId,
-				label: "test",
-				input: { x: 100 * GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
-				output: { x: 0, y: 4 * GRID_SIZE, connection: null },
-			};
-			graphData.wires[toId] = {
-				id: toId,
-				label: "test2",
-				input: { x: 101 * GRID_SIZE, y: 3 * GRID_SIZE, connection: null },
-				output: { x: GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
-			};
-
-			const from: WireConnection = { id: fromId, handleType: "output" };
-			const to: WireConnection = { id: toId, handleType: "input" };
-			const cmd = new ConnectCommand(from, to);
-
-			cmd.execute(graphData);
-			expect(graphData.wires[fromId].output.connection).toEqual(to);
-			expect(graphData.wires[toId].input.connection).toEqual(from);
-
-			cmd.undo(graphData);
-			expect(graphData.wires[fromId].output.connection).toBeNull();
-			expect(graphData.wires[toId].input.connection).toBeNull();
-		});
-	});
-
-	describe("MoveWireConnectionCommand", () => {
-		it("should move wire connection", () => {
-			const id = 32;
-			graphData.wires[id] = {
-				id: id,
-				label: "test",
-				input: { x: GRID_SIZE, y: 2000 * GRID_SIZE, connection: null },
-				output: { x: 0, y: 30 * GRID_SIZE, connection: null },
-			};
-			const newPosition: XYPair = { x: 1000 * GRID_SIZE, y: 999 * GRID_SIZE };
-			const cmd = new MoveWireConnectionCommand(newPosition, "input", id);
-
-			cmd.execute(graphData);
-			expect(graphData.wires[id].input.x).toBe(1000 * GRID_SIZE);
-			expect(graphData.wires[id].input.y).toBe(999 * GRID_SIZE);
-
-			expect(graphData.wires[id].output.x).toBe(0);
-			expect(graphData.wires[id].output.y).toBe(30 * GRID_SIZE);
-
-			cmd.undo(graphData);
-			expect(graphData.wires[id].input.x).toBe(GRID_SIZE);
-			expect(graphData.wires[id].input.y).toBe(2000 * GRID_SIZE);
-
-			expect(graphData.wires[id].output.x).toBe(0);
-			expect(graphData.wires[id].output.y).toBe(30 * GRID_SIZE);
-		});
-	});
-
-	describe("MoveComponentCommand", () => {
-		it("should move component", () => {
-			graphData.components[3] = {
-				id: 3,
-				type: "test",
-				label: "test",
-				size: { x: 4, y: 1000 },
-				position: { x: GRID_SIZE, y: 45 * GRID_SIZE },
-				handles: {},
-			};
-			const newPosition: XYPair = { x: 8 * GRID_SIZE, y: 44 * GRID_SIZE };
-			const cmd = new MoveComponentCommand(newPosition, 3);
-
-			cmd.execute(graphData);
-			expect(graphData.components[3].position).toEqual(newPosition);
-
-			cmd.undo(graphData);
-			expect(graphData.components[3].position).toEqual({
-				x: GRID_SIZE,
-				y: 45 * GRID_SIZE,
-			});
-		});
-	});
-
-	describe("CreateWireCommand", () => {
-		it("should create and remove wire", () => {
-			const newWire = {
-				label: "testlabel",
-				input: { x: 5 * GRID_SIZE, y: 7 * GRID_SIZE, connection: null },
-				output: { x: 2 * GRID_SIZE, y: GRID_SIZE, connection: null },
-			};
-			const cmd = new CreateWireCommand(newWire);
-
-			const id = cmd.execute(graphData);
-			expect(graphData.wires[id]).toBeDefined();
-			expect(graphData.nextId).toBe(1);
-
-			cmd.undo(graphData);
-			expect(graphData.wires[id]).toBeUndefined();
-			expect(graphData.nextId).toBe(0);
-		});
-	});
-
-	describe("CreateComponentCommand", () => {
-		// TODO: rework
-		it("should create and remove component", () => {
-			const newComponent = {
-				type: "test",
-				label: "component",
-				size: { x: 30 * GRID_SIZE, y: GRID_SIZE },
-				position: { x: 30 * GRID_SIZE, y: GRID_SIZE },
-				handles: {},
-			};
-			const cmd = new CreateComponentCommand(newComponent);
-
-			const id = cmd.execute(graphData);
-			expect(graphData.components[id]).toBeDefined();
-			expect(graphData.nextId).toBe(1);
-
-			cmd.undo(graphData);
-			expect(graphData.components[id]).toBeUndefined();
-			expect(graphData.nextId).toBe(0);
-		});
+		// Component was moved
+		expect(MoveComponentCommandMock).toHaveBeenCalledWith(
+			newComponentPos,
+			componentId,
+		);
+		// Wire was moved
+		expect(MoveWireConnectionCommandMock).toHaveBeenCalledWith(
+			{ x: 100 + GRID_SIZE, y: 200 }, // newComponentPos + handleOffset
+			"input",
+			3,
+		);
+		// Only one wire was moved
+		expect(MoveWireConnectionCommandMock).toHaveBeenCalledTimes(1);
+		// Commands were grouped
+		expect(CommandGroupMock).toHaveBeenCalled();
+		// Commands were executed
+		expect((testGraphManager as any).executeCommand).toHaveBeenCalledWith(
+			expect.any(CommandModule.CommandGroup),
+			true,
+		);
 	});
 });

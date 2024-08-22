@@ -14,6 +14,7 @@
 	export let uiState: EditorUiState;
 
 	$: addingThis = id === uiState.addingId;
+	$: movingThis = id === uiState.movingId;
 
 	function onMouseMove(e: MouseEvent) {
 		if (!addingThis) {
@@ -73,10 +74,12 @@
 	let hoveringHandle: HandleType | null = null;
 
 	function onMouseEnter(handleType: HandleType) {
+		console.log("enter");
 		hoveringHandle = handleType;
 	}
 
 	function onMouseLeave() {
+		console.log("leave");
 		hoveringHandle = null;
 	}
 
@@ -91,14 +94,19 @@
 	let r = { input: 5, output: 5 };
 	$: {
 		let newR = { input: 5, output: 5 };
-		const isBeingEdited =
-			uiState.addingId !== null || uiState.movingId !== null;
-		if (!isBeingEdited) {
+		if (addingThis || movingThis) {
+			// Do nothing
+		} else if (uiState.addingId !== null || uiState.movingId !== null) {
+			// Adding/moving something else
+			if (hoveringHandle !== null) {
+				newR[hoveringHandle] = 10;
+			}
+		} else {
+			// Not adding/moving anything
 			if (hoveringHandle !== null) {
 				newR[hoveringHandle] = 10;
 			}
 		}
-
 		r = newR;
 	}
 </script>
