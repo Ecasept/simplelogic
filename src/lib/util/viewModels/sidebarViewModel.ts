@@ -26,11 +26,13 @@ class SidebarViewModel extends ViewModel<SidebarUiState> {
 	}
 
 	saveGraph() {
+		editorViewModel.cancelChanges();
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.setState("save");
 	}
 
 	loadGraph() {
+		editorViewModel.cancelChanges();
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.setState("load");
 	}

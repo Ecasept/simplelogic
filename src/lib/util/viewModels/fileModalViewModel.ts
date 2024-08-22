@@ -1,5 +1,6 @@
 import { graph } from "../graph";
 import type { APIResponse, GraphData } from "../types";
+import { editorViewModel } from "./editorViewModel";
 import { ViewModel } from "./viewModel";
 
 export type FileModalUiState = {
@@ -76,6 +77,7 @@ class FileModalViewModel extends ViewModel<FileModalUiState> {
 	}
 
 	close() {
+		editorViewModel.setModalOpen(false);
 		this.resetUiState();
 	}
 
