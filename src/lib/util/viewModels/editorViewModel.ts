@@ -59,9 +59,6 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 
 		this.resetUiState();
 	}
-	undo() {
-		graphManager.undo();
-	}
 
 	setModalOpen(val: boolean) {
 		this.uiState.isModalOpen = val;

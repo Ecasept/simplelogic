@@ -9,7 +9,7 @@ export type SidebarUiState = {
 	open: boolean;
 };
 
-class SidebarViewModel extends ViewModel<SidebarUiState> {
+export class _SidebarViewModel extends ViewModel<SidebarUiState> {
 	protected uiState: SidebarUiState = {
 		open: true,
 	};
@@ -36,10 +36,11 @@ class SidebarViewModel extends ViewModel<SidebarUiState> {
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.setState("load");
 	}
-	undo() {
-		editorViewModel.undo();
-	}
 	addComponent(label: string, type: string, pos: XYPair) {
+		if (!(type in COMPONENT_IO_MAPPING)) {
+			console.error(`Tried to add non-existing type ${type}`);
+			return;
+		}
 		const data = structuredClone(COMPONENT_IO_MAPPING[type]);
 		const svgPos = canvasViewModel.clientToSVGCoords(pos);
 		editorViewModel.addComponent({
@@ -55,4 +56,4 @@ class SidebarViewModel extends ViewModel<SidebarUiState> {
 	}
 }
 
-export const sidebarViewModel = new SidebarViewModel();
+export const sidebarViewModel = new _SidebarViewModel();

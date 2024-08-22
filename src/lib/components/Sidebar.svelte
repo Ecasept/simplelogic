@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { graphManager } from "$lib/util/graph";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,
@@ -11,7 +12,7 @@
 	}
 
 	function handleUndo() {
-		sidebarViewModel.undo();
+		graphManager.undo();
 	}
 
 	function saveGraph() {

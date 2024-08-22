@@ -256,5 +256,6 @@ describe("GraphManager", () => {
 			expect.any(CommandModule.CommandGroup),
 			true,
 		);
+		vi.restoreAllMocks();
 	});
 });
