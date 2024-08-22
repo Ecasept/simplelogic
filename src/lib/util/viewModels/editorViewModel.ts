@@ -45,19 +45,20 @@ class EditorViewModel extends ViewModel<EditorUiState> {
 			movingWireHandleType: null,
 			isModalOpen: false,
 		};
-		this.notifyAll();
 	}
 
 	cancelChanges() {
 		graphManager.cancelChanges();
 
 		this.resetUiState();
+		this.notifyAll();
 	}
 
 	applyChanges() {
 		graphManager.applyChanges();
 
 		this.resetUiState();
+		this.notifyAll();
 	}
 
 	setModalOpen(val: boolean) {

@@ -16,7 +16,6 @@ class CanvasViewModel extends ViewModel<CanvasUiState> {
 			isPanning: false,
 			viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
 		};
-		this.notifyAll();
 	}
 
 	svg: SVGSVGElement | null = null;

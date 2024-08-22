@@ -22,7 +22,6 @@ class FileModalViewModel extends ViewModel<FileModalUiState> {
 			message: null,
 			messageType: null,
 		};
-		this.notifyAll();
 	}
 
 	saveGraph(currentName: string) {
@@ -79,6 +78,7 @@ class FileModalViewModel extends ViewModel<FileModalUiState> {
 	close() {
 		editorViewModel.setModalOpen(false);
 		this.resetUiState();
+		this.notifyAll();
 	}
 
 	setSuccess(msg: string) {

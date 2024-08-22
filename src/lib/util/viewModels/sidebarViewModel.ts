@@ -17,7 +17,6 @@ export class _SidebarViewModel extends ViewModel<SidebarUiState> {
 		this.uiState = {
 			open: true,
 		};
-		this.notifyAll();
 	}
 
 	toggleOpen() {
