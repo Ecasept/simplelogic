@@ -144,12 +144,17 @@ export class PersistenceAction {
 	static saveGraph() {
 		ChangesAction.discardChanges();
 		editorViewModel.setModalOpen(true);
-		fileModalViewModel.open("save", null);
+		fileModalViewModel.open("save", () => {
+			PersistenceAction.closeModal();
+		});
 	}
 	static loadGraph() {
 		ChangesAction.discardChanges();
 		editorViewModel.setModalOpen(true);
-		fileModalViewModel.open("load", PersistenceAction.setNewGraph);
+		fileModalViewModel.open("load", (newGraphData: GraphData) => {
+			PersistenceAction.setNewGraph(newGraphData);
+			PersistenceAction.closeModal();
+		});
 	}
 	static closeModal() {
 		fileModalViewModel.close();

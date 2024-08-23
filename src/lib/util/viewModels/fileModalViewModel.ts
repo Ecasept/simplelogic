@@ -2,33 +2,55 @@ import type { APIResponse, GraphData } from "../types";
 import { graph } from "../actions";
 import { ViewModel } from "./viewModel";
 
-export type FileModalUiState = {
-	mode: "load" | "save" | null;
-	message: string | null;
-	messageType: "success" | "error" | null;
-	callback: ((graphData: GraphData) => void) | null;
-};
+export type FileModalUiState =
+	| {
+			mode: null;
+			callback: null;
+			errorMessage: null;
+			listRequestData: null;
+	  }
+	| {
+			mode: "load";
+			errorMessage: string | null;
+			callback: (graphData: GraphData) => void;
+			listRequestData: ListRequestData | null;
+	  }
+	| {
+			mode: "save";
+			errorMessage: string | null;
+			callback: () => void;
+			listRequestData: null;
+	  };
+
+type ListRequestData = {
+	graphs: { name: string; id: number }[];
+	pagination: {
+		page: number;
+		limit: number;
+		hasNextPage: boolean;
+	};
+} | null;
 
 export class FileModalViewModel extends ViewModel<FileModalUiState> {
 	protected _uiState: FileModalUiState = {
 		mode: null,
-		message: null,
-		messageType: null,
+		errorMessage: null,
 		callback: null,
+		listRequestData: null,
 	};
 
 	protected resetUiState() {
 		this._uiState = {
 			mode: null,
-			message: null,
-			messageType: null,
+			errorMessage: null,
 			callback: null,
+			listRequestData: null,
 		};
 	}
 
 	saveGraph(currentName: string) {
 		const data = graph.getData();
-		fetch("/api/save", {
+		fetch("/api/graphs", {
 			method: "POST",
 			body: JSON.stringify({
 				name: currentName,
@@ -41,30 +63,40 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 			.then((response) => response.json())
 			.then((data: APIResponse<null>) => {
 				if (data.success) {
-					this.setSuccess("Saved");
+					if (this._uiState.mode !== "save") {
+						return;
+					}
+					this._uiState.callback();
 				} else {
 					this.setError(data.error);
 				}
 			});
 	}
 
-	loadGraph(currentName: string) {
-		fetch("/api/load", {
-			method: "POST",
-			body: JSON.stringify({
-				name: currentName,
-			}),
-			headers: {
-				"Content-type": "application/json; charset=UTF-8",
-			},
+	async loadGraphList(page: number) {
+		const response = await fetch(`/api/graphs?page=${page}&limit=10`, {
+			method: "GET",
+		});
+		const data: APIResponse<ListRequestData> = await response.json();
+		if (data.success) {
+			this._uiState.listRequestData = data.data;
+			this.notifyAll();
+		} else {
+			this.setError(data.error);
+		}
+	}
+
+	loadGraph(id: number) {
+		fetch(`/api/graphs/${id}`, {
+			method: "GET",
 		})
 			.then((response) => response.json())
 			.then((data: APIResponse<GraphData>) => {
 				if (data.success) {
-					if (this._uiState.callback !== null) {
-						this._uiState.callback(data.data);
+					if (this._uiState.mode !== "load") {
+						return;
 					}
-					this.setSuccess("Loaded");
+					this._uiState.callback(data.data);
 				} else {
 					this.setError(data.error);
 				}
@@ -78,6 +110,7 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		this._uiState.mode = mode;
 		this._uiState.callback = callback;
 		this.notifyAll();
+		this.loadGraphList(0);
 	}
 
 	close() {
@@ -85,14 +118,8 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		this.notifyAll();
 	}
 
-	setSuccess(msg: string) {
-		this._uiState.message = msg;
-		this._uiState.messageType = "success";
-		this.notifyAll();
-	}
 	setError(msg: string) {
-		this._uiState.message = msg;
-		this._uiState.messageType = "error";
+		this._uiState.errorMessage = msg;
 		this.notifyAll();
 	}
 }
