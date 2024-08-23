@@ -11,7 +11,7 @@
 		ChangesAction,
 		EditorAction,
 		editorViewModel,
-	} from "$lib/util/viewModels/actions";
+	} from "$lib/util/actions";
 
 	export let id: number;
 	export let label: string = "Component";

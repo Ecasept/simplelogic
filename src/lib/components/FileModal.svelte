@@ -1,9 +1,6 @@
 <script lang="ts">
 	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
-	import {
-		fileModalViewModel,
-		PersistenceAction,
-	} from "$lib/util/viewModels/actions";
+	import { fileModalViewModel, PersistenceAction } from "$lib/util/actions";
 
 	let name = "";
 

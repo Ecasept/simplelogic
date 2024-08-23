@@ -5,7 +5,7 @@
 		EditorAction,
 		graphManager,
 		PersistenceAction,
-	} from "$lib/util/viewModels/actions";
+	} from "$lib/util/actions";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,

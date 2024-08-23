@@ -1,5 +1,5 @@
 import type { APIResponse, GraphData } from "../types";
-import { graph } from "./actions";
+import { graph } from "../actions";
 import { ViewModel } from "./viewModel";
 
 export type FileModalUiState = {

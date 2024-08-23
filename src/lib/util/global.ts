@@ -4,7 +4,7 @@ import type {
 	HandleEdge,
 	XYPair,
 } from "./types";
-import { canvasViewModel } from "./viewModels/actions";
+import { canvasViewModel } from "./actions";
 
 export const GRID_SIZE = 20;
 

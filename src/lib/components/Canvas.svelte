@@ -7,7 +7,7 @@
 		canvasViewModel,
 		editorViewModel,
 		graphManager,
-	} from "$lib/util/viewModels/actions";
+	} from "$lib/util/actions";
 
 	export let uiState: CanvasUiState;
 

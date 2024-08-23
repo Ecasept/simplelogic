@@ -1,6 +1,6 @@
 import { COMPONENT_IO_MAPPING, GRID_SIZE } from "../global";
 import type { XYPair } from "../types";
-import { PersistenceAction } from "./actions";
+import { PersistenceAction } from "../actions";
 import { ViewModel } from "./viewModel";
 
 export type SidebarUiState = {

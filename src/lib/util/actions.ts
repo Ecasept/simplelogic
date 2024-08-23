@@ -3,9 +3,9 @@ import {
 	CreateComponentCommand,
 	CreateWireCommand,
 	MoveWireConnectionCommand,
-} from "../commands";
-import { GRID_SIZE, gridSnap } from "../global";
-import { Graph, GraphManager } from "../graph";
+} from "./commands";
+import { GRID_SIZE, gridSnap } from "./global";
+import { Graph, GraphManager } from "./graph";
 import type {
 	ComponentConnection,
 	ComponentData,
@@ -13,11 +13,11 @@ import type {
 	HandleType,
 	WireData,
 	XYPair,
-} from "../types";
-import { CanvasViewModel } from "./canvasViewModel";
-import { EditorViewModel } from "./editorViewModel";
-import { FileModalViewModel } from "./fileModalViewModel";
-import { sidebarViewModel } from "./sidebarViewModel";
+} from "./types";
+import { CanvasViewModel } from "./viewModels/canvasViewModel";
+import { EditorViewModel } from "./viewModels/editorViewModel";
+import { FileModalViewModel } from "./viewModels/fileModalViewModel";
+import { sidebarViewModel } from "./viewModels/sidebarViewModel";
 
 export const graph = new Graph();
 export const graphManager = new GraphManager(graph);

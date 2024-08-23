@@ -10,7 +10,7 @@
 		editorViewModel,
 		fileModalViewModel,
 		PersistenceAction,
-	} from "$lib/util/viewModels/actions";
+	} from "$lib/util/actions";
 	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
 
 	function onMouseMove(e: MouseEvent) {
