@@ -1,4 +1,10 @@
-import type { ComponentHandleList, HandleEdge, XYPair } from "./types";
+import type {
+	ComponentData,
+	ComponentHandleList,
+	HandleEdge,
+	XYPair,
+} from "./types";
+import { canvasViewModel } from "./viewModels/actions";
 
 export const GRID_SIZE = 20;
 
@@ -62,4 +68,23 @@ export function calculateHandleOffset(
 		pos.y = handleEdge == "bottom" ? GRID_SIZE * componentSize.y : 0;
 	}
 	return pos;
+}
+
+export function constructComponent(label: string, type: string, pos: XYPair) {
+	if (!(type in COMPONENT_IO_MAPPING)) {
+		console.error(`Tried to add non-existing type ${type}`);
+		return;
+	}
+	const data = structuredClone(COMPONENT_IO_MAPPING[type]);
+	const svgPos = canvasViewModel.clientToSVGCoords(pos);
+	return {
+		type: type,
+		label: label,
+		size: { x: data.width, y: data.height },
+		position: {
+			x: svgPos.x - (data.width * GRID_SIZE) / 2,
+			y: svgPos.y - (data.height * GRID_SIZE) / 2,
+		},
+		handles: data.connections,
+	};
 }

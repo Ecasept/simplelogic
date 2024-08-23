@@ -3,14 +3,14 @@ import { ViewModel } from "./viewModel";
 
 // Create a concrete implementation of ViewModel for testing
 class TestViewModel extends ViewModel<{ count: number }> {
-	protected uiState = { count: 0 };
+	protected _uiState = { count: 0 };
 
 	protected resetUiState(): void {
-		this.uiState = { count: 0 };
+		this._uiState = { count: 0 };
 	}
 
 	incrementCount(): void {
-		this.uiState = { count: this.uiState.count + 1 };
+		this._uiState = { count: this._uiState.count + 1 };
 		this.notifyAll();
 	}
 }

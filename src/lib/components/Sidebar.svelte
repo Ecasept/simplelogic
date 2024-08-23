@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { graphManager } from "$lib/util/graph";
+	import { constructComponent, GRID_SIZE } from "$lib/util/global";
+	import {
+		canvasViewModel,
+		EditorAction,
+		graphManager,
+		PersistenceAction,
+	} from "$lib/util/viewModels/actions";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,
@@ -8,18 +14,27 @@
 	export let uiState: SidebarUiState;
 
 	function addComponent(label: string, type: string, e: MouseEvent) {
-		sidebarViewModel.addComponent(label, type, { x: e.clientX, y: e.clientY });
+		const cmpData = constructComponent(label, type, {
+			x: e.clientX,
+			y: e.clientY,
+		});
+		if (cmpData !== undefined) {
+			EditorAction.addComponent(cmpData, {
+				x: canvasViewModel.toClientX(cmpData.size.x * GRID_SIZE) / 2,
+				y: canvasViewModel.toClientY(cmpData.size.y * GRID_SIZE) / 2,
+			});
+		}
 	}
 
 	function handleUndo() {
-		graphManager.undo();
+		graphManager.undoLastCommand();
 	}
 
 	function saveGraph() {
-		sidebarViewModel.saveGraph();
+		PersistenceAction.saveGraph();
 	}
 	function loadGraph() {
-		sidebarViewModel.loadGraph();
+		PersistenceAction.loadGraph();
 	}
 	function toggleOpen() {
 		sidebarViewModel.toggleOpen();

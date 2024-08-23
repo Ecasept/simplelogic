@@ -1,166 +1,64 @@
-import {
-	ConnectCommand,
-	CreateComponentCommand,
-	CreateWireCommand,
-	MoveWireConnectionCommand,
-} from "../commands";
-import { GRID_SIZE, gridSnap } from "../global";
-import { graphManager } from "../graph";
-import type {
-	ComponentConnection,
-	ComponentData,
-	HandleType,
-	WireData,
-	XYPair,
-} from "../types";
-import { canvasViewModel } from "./canvasViewModel";
+import type { HandleType, XYPair } from "../types";
 import { ViewModel } from "./viewModel";
 
 export type EditorUiState = {
-	isMoving: boolean;
-	isAdding: boolean;
-	movingId: number | null;
-	addingId: number | null;
-	/** The handle of the wire that is being moved */
-	movingWireHandleType: HandleType | null;
 	isModalOpen: boolean;
-};
+} & (
+	| ({
+			state: "add" | "move";
+			id: number;
+	  } & (
+			| { draggedHandle: HandleType; clickOffset: null }
+			| { draggedHandle: null; clickOffset: XYPair }
+	  ))
+	| { state: null; id: null; clickOffset: null; draggedHandle: null }
+);
 
-class EditorViewModel extends ViewModel<EditorUiState> {
-	protected uiState: EditorUiState = {
-		isMoving: false,
-		isAdding: false,
-		movingId: null,
-		addingId: null,
-		movingWireHandleType: null,
+export class EditorViewModel extends ViewModel<EditorUiState> {
+	protected _uiState: EditorUiState = {
+		state: null,
+		id: null,
+		draggedHandle: null,
 		isModalOpen: false,
+		clickOffset: null,
 	};
 
 	protected resetUiState() {
-		this.uiState = {
-			isMoving: false,
-			isAdding: false,
-			movingId: null,
-			addingId: null,
-			movingWireHandleType: null,
+		this._uiState = {
+			state: null,
+			id: null,
+			draggedHandle: null,
 			isModalOpen: false,
+			clickOffset: null,
 		};
 	}
 
-	cancelChanges() {
-		graphManager.cancelChanges();
-
-		this.resetUiState();
-		this.notifyAll();
-	}
-
-	applyChanges() {
-		graphManager.applyChanges();
-
+	reset() {
 		this.resetUiState();
 		this.notifyAll();
 	}
 
 	setModalOpen(val: boolean) {
-		this.uiState.isModalOpen = val;
+		this._uiState.isModalOpen = val;
 		this.notifyAll();
 	}
 
-	// ==== Commands ====
-
-	addComponent(newComponentData: Omit<ComponentData, "id">) {
-		const cmd = new CreateComponentCommand(newComponentData);
-		const id = graphManager.executeCommand(cmd);
-		graphManager.notifyAll();
-
-		this.uiState.isAdding = true;
-		this.uiState.addingId = id;
+	startMoveComponent(id: number, clickOffset: XYPair) {
+		this._uiState.state = "move";
+		this._uiState.id = id;
+		this._uiState.clickOffset = clickOffset;
 		this.notifyAll();
 	}
-	addWire(
-		newWireData: Omit<WireData, "id" | "input" | "output">,
-		componentPosition: XYPair,
-		handleOffset: XYPair,
-		clickedHandleType: HandleType,
-		componentConnection: ComponentConnection,
-	) {
-		const wireData = {
-			...newWireData,
-			input: {
-				x: componentPosition.x + handleOffset.x,
-				y: componentPosition.y + handleOffset.y,
-				connection: null,
-			},
-			output: {
-				x: componentPosition.x + handleOffset.x,
-				y: componentPosition.y + handleOffset.y,
-				connection: null,
-			},
-		};
-
-		const createWireCmd = new CreateWireCommand(wireData);
-		const wireId = graphManager.executeCommand(createWireCmd);
-		const connectCmd = new ConnectCommand(
-			{
-				id: wireId,
-				handleType: clickedHandleType === "input" ? "output" : "input",
-			},
-			componentConnection,
-		);
-		graphManager.executeCommand(connectCmd);
-		graphManager.notifyAll();
-
-		this.uiState.isAdding = true;
-		this.uiState.addingId = wireId;
-		this.uiState.movingWireHandleType = clickedHandleType;
+	startAddComponent(id: number, clickOffset: XYPair) {
+		this._uiState.state = "add";
+		this._uiState.id = id;
+		this._uiState.clickOffset = clickOffset;
 		this.notifyAll();
 	}
-
-	startMoveComponent(id: number) {
-		this.uiState.isMoving = true;
-		this.uiState.movingId = id;
+	startAddWire(id: number, draggedHandle: HandleType) {
+		this._uiState.state = "move";
+		this._uiState.id = id;
+		this._uiState.draggedHandle = draggedHandle;
 		this.notifyAll();
-	}
-	moveComponentReplaceable(
-		size: XYPair,
-		oldPos: XYPair,
-		newClientPos: XYPair,
-		id: number,
-	) {
-		// transform to svg coordinate system
-		const svgPos = canvasViewModel.clientToSVGCoords(newClientPos);
-		const newPos = {
-			x: gridSnap(svgPos.x) - (size.x * GRID_SIZE) / 2,
-			y: gridSnap(svgPos.y) - (size.y * GRID_SIZE) / 2,
-		};
-		if (newPos === oldPos) {
-			return;
-		}
-
-		graphManager.moveComponentReplaceable(newPos, id, size);
-
-		graphManager.notifyAll();
-	}
-
-	moveWireConnectionReplaceable(
-		oldPos: XYPair,
-		newClientPos: XYPair,
-		handleType: HandleType,
-		id: number,
-	) {
-		// transform to coordinate system of svg
-		const svgPos = canvasViewModel.clientToSVGCoords(newClientPos);
-		const newPos = {
-			x: gridSnap(svgPos.x),
-			y: gridSnap(svgPos.y),
-		};
-		if (newPos === oldPos) {
-			return;
-		}
-		const cmd = new MoveWireConnectionCommand(newPos, handleType, id);
-		graphManager.executeCommand(cmd, true);
-		graphManager.notifyAll();
 	}
 }
-
-export const editorViewModel: EditorViewModel = new EditorViewModel();

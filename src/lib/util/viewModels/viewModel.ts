@@ -1,13 +1,17 @@
 export abstract class ViewModel<UiState> {
-	protected abstract uiState: UiState;
+	protected abstract _uiState: UiState;
+	public get uiState(): Readonly<UiState> {
+		return this._uiState;
+	}
 	protected abstract resetUiState(): void;
+
 	// ==== Store Contract ====
 
 	private subscribers: ((uiState: UiState) => void)[] = [];
 
 	subscribe(subscriber: (uiState: UiState) => void): () => void {
 		this.subscribers.push(subscriber);
-		subscriber(this.uiState);
+		subscriber(this._uiState);
 		return () => {
 			const index = this.subscribers.indexOf(subscriber);
 			if (index !== -1) {
@@ -18,7 +22,7 @@ export abstract class ViewModel<UiState> {
 
 	notifyAll() {
 		for (const subscriberFunc of this.subscribers) {
-			subscriberFunc(this.uiState);
+			subscriberFunc(this._uiState);
 		}
 	}
 }

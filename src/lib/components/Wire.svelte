@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { isClickOverSidebar } from "$lib/util/global";
 	import type { HandleType, WireHandle } from "$lib/util/types";
-	import {
-		editorViewModel,
-		type EditorUiState,
-	} from "$lib/util/viewModels/editorViewModel";
+	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
+	import { editorViewModel } from "$lib/util/viewModels/actions";
 
 	export let id: number;
 	export let label: string;
@@ -13,38 +11,7 @@
 
 	export let uiState: EditorUiState;
 
-	$: addingThis = id === uiState.addingId;
-	$: movingThis = id === uiState.movingId;
-
-	function onMouseMove(e: MouseEvent) {
-		if (!addingThis) {
-			return;
-		}
-		if (uiState.movingWireHandleType === null) {
-			console.error(
-				"Tried to move wire connection when no clicked handle was defined",
-			);
-			return;
-		}
-		editorViewModel.moveWireConnectionReplaceable(
-			uiState.movingWireHandleType === "input"
-				? { x: input.x, y: input.y }
-				: { x: output.x, y: output.y },
-			{ x: e.clientX, y: e.clientY },
-			uiState.movingWireHandleType,
-			id,
-		);
-	}
-
-	function onMouseUp(e: MouseEvent) {
-		if (!addingThis) {
-			return;
-		}
-		if (addingThis && isClickOverSidebar(e)) {
-			return;
-		}
-		editorViewModel.applyChanges();
-	}
+	$: editingThis = uiState.id === id;
 
 	function handleDown(type: string, e: MouseEvent) {
 		console.error("Not Implemented");
@@ -83,20 +50,12 @@
 		hoveringHandle = null;
 	}
 
-	function onKeyDown(e: KeyboardEvent) {
-		if (!addingThis) {
-			return;
-		}
-		if (e.key === "Escape") {
-			editorViewModel.cancelChanges();
-		}
-	}
 	let r = { input: 5, output: 5 };
 	$: {
 		let newR = { input: 5, output: 5 };
-		if (addingThis || movingThis) {
+		if (editingThis) {
 			// Do nothing
-		} else if (uiState.addingId !== null || uiState.movingId !== null) {
+		} else if (uiState.state !== null) {
 			// Adding/moving something else
 			if (hoveringHandle !== null) {
 				newR[hoveringHandle] = 10;
@@ -110,12 +69,6 @@
 		r = newR;
 	}
 </script>
-
-<svelte:window
-	on:keydown={onKeyDown}
-	on:mousemove={onMouseMove}
-	on:mouseup={onMouseUp}
-/>
 
 <path
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"

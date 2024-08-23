@@ -1,14 +1,19 @@
 <script lang="ts">
 	import Component from "$lib/components/Component.svelte";
 	import Wire from "$lib/components/Wire.svelte";
-	import { GRID_SIZE } from "$lib/util/global";
-	import { graphManager } from "$lib/util/graph";
-	import { canvasViewModel } from "$lib/util/viewModels/canvasViewModel";
-	import { editorViewModel } from "$lib/util/viewModels/editorViewModel";
+	import { GRID_SIZE, isClickOverSidebar } from "$lib/util/global";
+	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
+	import {
+		canvasViewModel,
+		editorViewModel,
+		graphManager,
+	} from "$lib/util/viewModels/actions";
+
+	export let uiState: CanvasUiState;
 
 	let svg: SVGSVGElement;
 
-	$: canvasViewModel.svg = svg;
+	$: canvasViewModel.svg = svg; // TODO bad code
 
 	function pan(e: MouseEvent) {
 		canvasViewModel.pan(e.movementX, e.movementY);
@@ -35,8 +40,8 @@
 		height="100%"
 		xmlns="http://www.w3.org/2000/svg"
 		stroke-width="2px"
-		viewBox="{$canvasViewModel.viewBox.x} {$canvasViewModel.viewBox
-			.y} {$canvasViewModel.viewBox.width} {$canvasViewModel.viewBox.height}"
+		viewBox="{uiState.viewBox.x} {uiState.viewBox.y} {uiState.viewBox
+			.width} {uiState.viewBox.height}"
 	>
 		<defs>
 			<pattern
@@ -51,10 +56,10 @@
 			</pattern>
 		</defs>
 		<rect
-			x={$canvasViewModel.viewBox.x}
-			y={$canvasViewModel.viewBox.y}
-			width={$canvasViewModel.viewBox.width}
-			height={$canvasViewModel.viewBox.height}
+			x={uiState.viewBox.x}
+			y={uiState.viewBox.y}
+			width={uiState.viewBox.width}
+			height={uiState.viewBox.height}
 			fill="url(#dot-pattern)"
 		/>
 		{#each Object.entries($graphManager.components) as [id_as_key, { id, label, size, position, type, handles: connections }] (id)}

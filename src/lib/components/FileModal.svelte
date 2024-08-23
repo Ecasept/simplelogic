@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { graph } from "$lib/util/graph";
-	import type { APIResponse, GraphData } from "$lib/util/types";
+	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
 	import {
 		fileModalViewModel,
-		type FileModalUiState,
-	} from "$lib/util/viewModels/fileModalViewModel";
+		PersistenceAction,
+	} from "$lib/util/viewModels/actions";
 
 	let name = "";
 
@@ -19,20 +18,20 @@
 	}
 
 	function close() {
-		fileModalViewModel.close();
+		PersistenceAction.closeModal();
 	}
 </script>
 
 <div class="background">
 	<div class="modal-bg">
-		{#if uiState.state === "save"}
+		{#if uiState.mode === "save"}
 			<input type="text" bind:value={name} />
 			<button on:click={saveGraph}>Save</button>
 			{#if uiState.message !== null}
 				<span>{uiState.message}</span>
 			{/if}
 		{/if}
-		{#if uiState.state === "load"}
+		{#if uiState.mode === "load"}
 			<input type="text" bind:value={name} />
 			<button on:click={loadGraph}>Load</button>
 			{#if uiState.message !== null}

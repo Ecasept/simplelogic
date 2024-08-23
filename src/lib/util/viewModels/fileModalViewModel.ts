@@ -1,31 +1,33 @@
-import { graph } from "../graph";
 import type { APIResponse, GraphData } from "../types";
-import { editorViewModel } from "./editorViewModel";
+import { graph } from "./actions";
 import { ViewModel } from "./viewModel";
 
 export type FileModalUiState = {
-	state: "load" | "save" | null;
+	mode: "load" | "save" | null;
 	message: string | null;
 	messageType: "success" | "error" | null;
+	callback: ((graphData: GraphData) => void) | null;
 };
 
-class FileModalViewModel extends ViewModel<FileModalUiState> {
-	protected uiState: FileModalUiState = {
-		state: null,
+export class FileModalViewModel extends ViewModel<FileModalUiState> {
+	protected _uiState: FileModalUiState = {
+		mode: null,
 		message: null,
 		messageType: null,
+		callback: null,
 	};
 
 	protected resetUiState() {
-		this.uiState = {
-			state: null,
+		this._uiState = {
+			mode: null,
 			message: null,
 			messageType: null,
+			callback: null,
 		};
 	}
 
 	saveGraph(currentName: string) {
-		const data = graph.getGraph();
+		const data = graph.getData();
 		fetch("/api/save", {
 			method: "POST",
 			body: JSON.stringify({
@@ -39,9 +41,9 @@ class FileModalViewModel extends ViewModel<FileModalUiState> {
 			.then((response) => response.json())
 			.then((data: APIResponse<null>) => {
 				if (data.success) {
-					fileModalViewModel.setSuccess("Saved");
+					this.setSuccess("Saved");
 				} else {
-					fileModalViewModel.setError(data.error);
+					this.setError(data.error);
 				}
 			});
 	}
@@ -59,38 +61,38 @@ class FileModalViewModel extends ViewModel<FileModalUiState> {
 			.then((response) => response.json())
 			.then((data: APIResponse<GraphData>) => {
 				if (data.success) {
-					// canvasViewModel.resetUiState();
-					// canvasViewModel.notifyAlll();
-					// editorViewModel
-					graph.loadGraph(data.data);
-					fileModalViewModel.setSuccess("Loaded");
+					if (this._uiState.callback !== null) {
+						this._uiState.callback(data.data);
+					}
+					this.setSuccess("Loaded");
 				} else {
-					fileModalViewModel.setError(data.error);
+					this.setError(data.error);
 				}
 			});
 	}
 
-	setState(state: "save" | "load" | null) {
-		this.uiState.state = state;
+	open(
+		mode: "save" | "load",
+		callback: ((graphData: GraphData) => void) | null,
+	) {
+		this._uiState.mode = mode;
+		this._uiState.callback = callback;
 		this.notifyAll();
 	}
 
 	close() {
-		editorViewModel.setModalOpen(false);
 		this.resetUiState();
 		this.notifyAll();
 	}
 
 	setSuccess(msg: string) {
-		this.uiState.message = msg;
-		this.uiState.messageType = "success";
+		this._uiState.message = msg;
+		this._uiState.messageType = "success";
 		this.notifyAll();
 	}
 	setError(msg: string) {
-		this.uiState.message = msg;
-		this.uiState.messageType = "error";
+		this._uiState.message = msg;
+		this._uiState.messageType = "error";
 		this.notifyAll();
 	}
 }
-
-export const fileModalViewModel = new FileModalViewModel();

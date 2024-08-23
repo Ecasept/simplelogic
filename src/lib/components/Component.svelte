@@ -1,19 +1,17 @@
 <script lang="ts">
-	import {
-		calculateHandleOffset,
-		GRID_SIZE,
-		isClickOverSidebar,
-	} from "$lib/util/global";
+	import { calculateHandleOffset, GRID_SIZE } from "$lib/util/global";
 	import type {
 		ComponentHandleList,
 		HandleType,
 		HandleEdge,
 		XYPair,
 	} from "$lib/util/types";
+	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
 	import {
+		ChangesAction,
+		EditorAction,
 		editorViewModel,
-		type EditorUiState,
-	} from "$lib/util/viewModels/editorViewModel";
+	} from "$lib/util/viewModels/actions";
 
 	export let id: number;
 	export let label: string = "Component";
@@ -24,10 +22,15 @@
 
 	export let uiState: EditorUiState;
 
-	$: addingThis = id === uiState.addingId;
-	$: movingThis = id === uiState.movingId;
+	let rect: SVGRectElement;
 
-	$: cursor = addingThis ? "default" : movingThis ? "grabbing" : "grab";
+	$: editingThis = uiState.id === id;
+
+	$: cursor = editingThis
+		? uiState.state === "add"
+			? "default"
+			: "grabbing"
+		: "grab";
 
 	function onHandleDown(
 		handleId: string,
@@ -36,7 +39,7 @@
 		handlePos: number,
 		e: MouseEvent,
 	) {
-		if (addingThis || movingThis) {
+		if (editingThis) {
 			return;
 		}
 		e.preventDefault();
@@ -45,7 +48,7 @@
 		// calculate position of handle
 		let handleOffset = calculateHandleOffset(handleEdge, handlePos, size);
 
-		editorViewModel.addWire(
+		EditorAction.addWire(
 			{
 				label: "test",
 			},
@@ -57,52 +60,22 @@
 	}
 
 	function onMouseDown(e: MouseEvent) {
-		if (addingThis || movingThis) {
+		if (editingThis) {
 			return;
 		}
 
 		e.preventDefault();
 		e.stopPropagation();
-		editorViewModel.startMoveComponent(id);
-	}
-
-	function onMouseMove(e: MouseEvent) {
-		if (!(addingThis || movingThis)) {
-			return;
-		}
-
-		editorViewModel.moveComponentReplaceable(
-			size,
-			position,
-			{
-				x: e.clientX,
-				y: e.clientY,
-			},
-			id,
-		);
-	}
-
-	function onMouseUp(e: MouseEvent) {
-		if (!(addingThis || movingThis)) {
-			return;
-		}
-		if (addingThis && isClickOverSidebar(e)) {
-			return;
-		}
-		editorViewModel.applyChanges();
-	}
-
-	function onKeyDown(e: KeyboardEvent) {
-		if (!(addingThis || movingThis)) {
-			return;
-		}
-		if (e.key === "Escape") {
-			editorViewModel.cancelChanges();
-		}
+		const dim = rect.getBoundingClientRect();
+		const offset = {
+			x: e.clientX - (dim?.x ?? 0),
+			y: e.clientY - (dim?.y ?? 0),
+		};
+		editorViewModel.startMoveComponent(id, offset);
 	}
 
 	function onHandleEnter(e: MouseEvent) {
-		if (uiState.addingId !== null || uiState.movingId !== null) {
+		if (editingThis) {
 			return;
 		}
 		if (e.target === null) {
@@ -131,14 +104,9 @@
 	}
 </script>
 
-<svelte:window
-	on:keydown={onKeyDown}
-	on:mousemove={onMouseMove}
-	on:mouseup={onMouseUp}
-/>
-
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <rect
+	bind:this={rect}
 	class="component-body"
 	x={position.x}
 	y={position.y}

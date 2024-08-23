@@ -1,8 +1,6 @@
 import { COMPONENT_IO_MAPPING, GRID_SIZE } from "../global";
 import type { XYPair } from "../types";
-import { canvasViewModel } from "./canvasViewModel";
-import { editorViewModel } from "./editorViewModel";
-import { fileModalViewModel } from "./fileModalViewModel";
+import { PersistenceAction } from "./actions";
 import { ViewModel } from "./viewModel";
 
 export type SidebarUiState = {
@@ -10,48 +8,18 @@ export type SidebarUiState = {
 };
 
 export class _SidebarViewModel extends ViewModel<SidebarUiState> {
-	protected uiState: SidebarUiState = {
+	protected _uiState: SidebarUiState = {
 		open: true,
 	};
 	protected resetUiState(): void {
-		this.uiState = {
+		this._uiState = {
 			open: true,
 		};
 	}
 
 	toggleOpen() {
-		this.uiState.open = !this.uiState.open;
+		this._uiState.open = !this._uiState.open;
 		this.notifyAll();
-	}
-
-	saveGraph() {
-		editorViewModel.cancelChanges();
-		editorViewModel.setModalOpen(true);
-		fileModalViewModel.setState("save");
-	}
-
-	loadGraph() {
-		editorViewModel.cancelChanges();
-		editorViewModel.setModalOpen(true);
-		fileModalViewModel.setState("load");
-	}
-	addComponent(label: string, type: string, pos: XYPair) {
-		if (!(type in COMPONENT_IO_MAPPING)) {
-			console.error(`Tried to add non-existing type ${type}`);
-			return;
-		}
-		const data = structuredClone(COMPONENT_IO_MAPPING[type]);
-		const svgPos = canvasViewModel.clientToSVGCoords(pos);
-		editorViewModel.addComponent({
-			type: type,
-			label: label,
-			size: { x: data.width, y: data.height },
-			position: {
-				x: svgPos.x - (data.width * GRID_SIZE) / 2,
-				y: svgPos.y - (data.height * GRID_SIZE) / 2,
-			},
-			handles: data.connections,
-		});
 	}
 }
 

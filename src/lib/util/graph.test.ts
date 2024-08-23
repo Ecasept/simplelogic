@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { _Graph, _GraphManager, graph } from "./graph";
+import { _Graph, Graph, graph } from "./graph";
 import type { GraphData } from "./types";
 import { GRID_SIZE } from "./global";
 import { get } from "svelte/store";
@@ -88,12 +88,12 @@ describe("Graph", () => {
 });
 
 describe("GraphManager", () => {
-	let testGraphManager: _GraphManager;
+	let testGraphManager: Graph;
 
 	beforeEach(() => {
 		graph.history.set([]);
 		graph.data.set({ components: {}, wires: {}, nextId: 0 });
-		testGraphManager = new _GraphManager();
+		testGraphManager = new Graph();
 	});
 
 	it("should execute a command", () => {
