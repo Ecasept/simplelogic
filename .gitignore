@@ -24,3 +24,9 @@ vite.config.ts.timestamp-*
 
 # Cloudflare
 .wrangler
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
