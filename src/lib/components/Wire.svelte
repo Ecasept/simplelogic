@@ -12,8 +12,12 @@
 	export let uiState: EditorUiState;
 
 	$: editingThis = uiState.id === id;
+	$: editing = uiState.state !== null;
 
 	function handleDown(type: string, e: MouseEvent) {
+		if (editorViewModel.uiState.isModalOpen || editing) {
+			return;
+		}
 		console.error("Not Implemented");
 		return;
 		e.preventDefault();
@@ -41,6 +45,9 @@
 	let hoveringHandle: HandleType | null = null;
 
 	function onMouseEnter(handleType: HandleType) {
+		if (editorViewModel.uiState.isModalOpen || editing) {
+			return;
+		}
 		console.log("enter");
 		hoveringHandle = handleType;
 	}

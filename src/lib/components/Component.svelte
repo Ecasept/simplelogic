@@ -25,6 +25,7 @@
 	let rect: SVGRectElement;
 
 	$: editingThis = uiState.id === id;
+	$: editing = uiState.state !== null;
 
 	$: cursor = editingThis
 		? uiState.state === "add"
@@ -39,7 +40,7 @@
 		handlePos: number,
 		e: MouseEvent,
 	) {
-		if (editingThis) {
+		if (uiState.isModalOpen || editing) {
 			return;
 		}
 		e.preventDefault();
@@ -60,7 +61,7 @@
 	}
 
 	function onMouseDown(e: MouseEvent) {
-		if (editingThis) {
+		if (uiState.isModalOpen || editing) {
 			return;
 		}
 
@@ -75,7 +76,7 @@
 	}
 
 	function onHandleEnter(e: MouseEvent) {
-		if (editingThis) {
+		if (uiState.isModalOpen) {
 			return;
 		}
 		if (e.target === null) {

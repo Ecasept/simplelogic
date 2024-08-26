@@ -19,6 +19,9 @@
 		canvasViewModel.pan(e.movementX, e.movementY);
 	}
 	function startPan() {
+		if (editorViewModel.uiState.isModalOpen) {
+			return;
+		}
 		canvasViewModel.startPan();
 	}
 	function endPan() {

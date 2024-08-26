@@ -147,6 +147,7 @@ export class EditorAction {
 export class PersistenceAction {
 	static saveGraph() {
 		ChangesAction.discardChanges();
+		canvasViewModel.endPan();
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.open("save", () => {
 			PersistenceAction.closeModal();
@@ -154,6 +155,7 @@ export class PersistenceAction {
 	}
 	static loadGraph() {
 		ChangesAction.discardChanges();
+		canvasViewModel.endPan();
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.open("load", (newGraphData: GraphData) => {
 			PersistenceAction.setNewGraph(newGraphData);

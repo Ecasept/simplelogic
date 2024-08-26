@@ -4,6 +4,7 @@
 		canvasViewModel,
 		ChangesAction,
 		EditorAction,
+		editorViewModel,
 		PersistenceAction,
 	} from "$lib/util/actions";
 	import {
@@ -14,6 +15,9 @@
 	export let uiState: SidebarUiState;
 
 	function addComponent(label: string, type: string, e: MouseEvent) {
+		if (editorViewModel.uiState.isModalOpen) {
+			return;
+		}
 		const cmpData = constructComponent(label, type, {
 			x: e.clientX,
 			y: e.clientY,
@@ -27,16 +31,28 @@
 	}
 
 	function handleUndo() {
+		if (editorViewModel.uiState.isModalOpen) {
+			return;
+		}
 		EditorAction.undo();
 	}
 
 	function saveGraph() {
+		if (editorViewModel.uiState.isModalOpen) {
+			return;
+		}
 		PersistenceAction.saveGraph();
 	}
 	function loadGraph() {
+		if (editorViewModel.uiState.isModalOpen) {
+			return;
+		}
 		PersistenceAction.loadGraph();
 	}
 	function toggleOpen() {
+		if (editorViewModel.uiState.isModalOpen) {
+			return;
+		}
 		sidebarViewModel.toggleOpen();
 	}
 </script>
