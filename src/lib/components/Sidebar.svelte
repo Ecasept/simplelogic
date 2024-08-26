@@ -18,16 +18,7 @@
 		if (editorViewModel.uiState.isModalOpen) {
 			return;
 		}
-		const cmpData = constructComponent(label, type, {
-			x: e.clientX,
-			y: e.clientY,
-		});
-		if (cmpData !== undefined) {
-			EditorAction.addComponent(cmpData, {
-				x: canvasViewModel.toClientX(cmpData.size.x * GRID_SIZE) / 2,
-				y: canvasViewModel.toClientY(cmpData.size.y * GRID_SIZE) / 2,
-			});
-		}
+		EditorAction.addComponent(label, type, e);
 	}
 
 	function handleUndo() {

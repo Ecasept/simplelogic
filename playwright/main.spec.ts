@@ -33,6 +33,12 @@ test.describe("editor", () => {
 
 		await expectPosToBe(component, 100, 200);
 	});
+	test("adds component and discards", async ({ page }) => {
+		await page.getByRole("button", { name: "Add AND" }).click();
+
+		await page.keyboard.press("Escape");
+		expect(await page.locator("rect").count()).toBe(1);
+	});
 	test("adds multiple components", async ({ page }) => {
 		const andBtn = page.getByRole("button", { name: "Add AND" });
 		const orBtn = page.getByRole("button", { name: "Add OR" });
@@ -61,6 +67,7 @@ test.describe("editor", () => {
 		await page.getByRole("button", { name: "▶" }).click();
 		expect(await page.locator(".sidebarWrapper.open").count()).toBe(1);
 	});
+
 	test("moves components correctly", async ({ page }) => {
 		await page.getByRole("button", { name: "Add AND" }).click();
 		await page.mouse.click(100, 200);
@@ -74,6 +81,20 @@ test.describe("editor", () => {
 		await page.mouse.up();
 		await page.mouse.move(100, 100, { steps: 10 });
 		await expectPosToBe(page.locator("rect").nth(1), 400, 300);
+	});
+	test("moves component and discards", async ({ page }) => {
+		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.mouse.click(100, 200);
+
+		const component = page.locator("rect").nth(1);
+		const x1 = await component.getAttribute("x");
+		const y1 = await component.getAttribute("y");
+		await page.keyboard.press("Escape");
+
+		const x2 = await component.getAttribute("x");
+		const y2 = await component.getAttribute("y");
+		expect(x1).toBe(x2);
+		expect(y1).toBe(y2);
 	});
 	test("snaps", async ({ page }) => {
 		await page.getByRole("button", { name: "Add AND" }).click();
@@ -110,6 +131,26 @@ test.describe("editor", () => {
 		await page.mouse.move(200, 200, { steps: 10 });
 		await expectPosToBe(handle, 400, 400);
 		expect(await page.locator("circle.handle").count()).toBe(4);
+	});
+	test("drags new wire and discards", async ({ page }) => {
+		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.mouse.click(100, 200);
+
+		const handle = page.locator("circle").nth(2);
+		const x1 = await handle.getAttribute("cx");
+		const y1 = await handle.getAttribute("cy");
+
+		// Drag Wire
+		await handle.hover();
+		await page.mouse.down();
+		await page.mouse.move(300, 300);
+
+		await page.keyboard.press("Escape");
+
+		const x2 = await handle.getAttribute("cx");
+		const y2 = await handle.getAttribute("cy");
+		expect(x1).toBe(x2);
+		expect(y1).toBe(y2);
 	});
 	test("drags wires with components", async ({ page }) => {
 		await page.getByRole("button", { name: "Add AND" }).click();

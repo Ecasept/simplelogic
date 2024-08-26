@@ -4,7 +4,7 @@ import {
 	CreateWireCommand,
 	MoveWireConnectionCommand,
 } from "./commands";
-import { gridSnap } from "./global";
+import { constructComponent, GRID_SIZE, gridSnap } from "./global";
 import { Graph, GraphManager } from "./graph";
 import type {
 	ComponentConnection,
@@ -36,15 +36,22 @@ export class ChangesAction {
 }
 
 export class EditorAction {
-	static addComponent(
-		newComponentData: Omit<ComponentData, "id">,
-		clickOffset: XYPair,
-	) {
-		const cmd = new CreateComponentCommand(newComponentData);
-		const id = graphManager.executeCommand(cmd);
-		graphManager.notifyAll();
+	static addComponent(label: string, type: string, pos: XYPair) {
+		ChangesAction.discardChanges();
+		const cmpData = constructComponent(label, type, pos);
 
-		editorViewModel.startAddComponent(id, clickOffset);
+		if (cmpData !== undefined) {
+			const clickOffset = {
+				x: canvasViewModel.toClientX(cmpData.size.x * GRID_SIZE) / 2,
+				y: canvasViewModel.toClientY(cmpData.size.y * GRID_SIZE) / 2,
+			};
+
+			const cmd = new CreateComponentCommand(cmpData);
+			const id = graphManager.executeCommand(cmd);
+			graphManager.notifyAll();
+
+			editorViewModel.startAddComponent(id, clickOffset);
+		}
 	}
 
 	static addWire(

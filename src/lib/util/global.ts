@@ -6,6 +6,11 @@ import type {
 } from "./types";
 import { canvasViewModel } from "./actions";
 
+export let mousePosition = { x: 0, y: 0 };
+export function setMousePosition(pos: XYPair) {
+	mousePosition = pos;
+}
+
 export const GRID_SIZE = 20;
 
 export function gridSnap(val: number) {

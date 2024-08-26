@@ -2,7 +2,7 @@
 	import Canvas from "$lib/components/Canvas.svelte";
 	import FileModal from "$lib/components/FileModal.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
-	import { isClickOverSidebar } from "$lib/util/global";
+	import { isClickOverSidebar, setMousePosition } from "$lib/util/global";
 	import {
 		canvasViewModel,
 		ChangesAction,
@@ -12,9 +12,11 @@
 		PersistenceAction,
 	} from "$lib/util/actions";
 	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
+	import { handleKey as handleKeyDown } from "$lib/util/keyboard";
 
 	function onMouseMove(e: MouseEvent) {
 		const pos = { x: e.clientX, y: e.clientY };
+		setMousePosition(pos);
 		if (editorViewModel.uiState.state === null) {
 			return;
 		}
@@ -29,21 +31,12 @@
 		}
 		ChangesAction.commitChanges();
 	}
-	function onKeyDown(e: KeyboardEvent) {
-		if (e.key === "Escape") {
-			if (editorViewModel.uiState.state !== null) {
-				ChangesAction.discardChanges();
-			} else if (editorViewModel.uiState.isModalOpen) {
-				PersistenceAction.closeModal();
-			}
-		}
-	}
 </script>
 
 <svelte:window
 	on:mousemove={onMouseMove}
 	on:mouseup={onMouseUp}
-	on:keydown={onKeyDown}
+	on:keydown={handleKeyDown}
 />
 
 <div class="wrapper">
