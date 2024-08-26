@@ -2,8 +2,8 @@
 	import { constructComponent, GRID_SIZE } from "$lib/util/global";
 	import {
 		canvasViewModel,
+		ChangesAction,
 		EditorAction,
-		graphManager,
 		PersistenceAction,
 	} from "$lib/util/actions";
 	import {
@@ -27,7 +27,7 @@
 	}
 
 	function handleUndo() {
-		graphManager.undoLastCommand();
+		EditorAction.undo();
 	}
 
 	function saveGraph() {

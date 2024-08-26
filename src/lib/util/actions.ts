@@ -4,7 +4,7 @@ import {
 	CreateWireCommand,
 	MoveWireConnectionCommand,
 } from "./commands";
-import { GRID_SIZE, gridSnap } from "./global";
+import { gridSnap } from "./global";
 import { Graph, GraphManager } from "./graph";
 import type {
 	ComponentConnection,
@@ -17,7 +17,6 @@ import type {
 import { CanvasViewModel } from "./viewModels/canvasViewModel";
 import { EditorViewModel } from "./viewModels/editorViewModel";
 import { FileModalViewModel } from "./viewModels/fileModalViewModel";
-import { sidebarViewModel } from "./viewModels/sidebarViewModel";
 
 export const graph = new Graph();
 export const graphManager = new GraphManager(graph);
@@ -100,8 +99,6 @@ export class EditorAction {
 
 	static moveComponentReplaceable(newClientPos: XYPair, id: number) {
 		// transform to svg coordinate system
-		console.log(editorViewModel.uiState.clickOffset);
-
 		const svgPos = canvasViewModel.clientToSVGCoords({
 			x: newClientPos.x - (editorViewModel.uiState.clickOffset?.x ?? 0),
 			y: newClientPos.y - (editorViewModel.uiState.clickOffset?.y ?? 0),
@@ -137,6 +134,13 @@ export class EditorAction {
 		const cmd = new MoveWireConnectionCommand(newPos, draggedHandle, id);
 		graphManager.executeCommand(cmd, true);
 		graphManager.notifyAll();
+	}
+	static undo() {
+		if (graphManager.hasChanges) {
+			graphManager.discardChanges();
+		} else {
+			graphManager.undoLastCommand();
+		}
 	}
 }
 

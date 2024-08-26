@@ -1,4 +1,3 @@
-import { get, writable } from "svelte/store";
 import type { Command, GraphData, XYPair } from "./types";
 import { calculateHandleOffset } from "./global";
 import {
@@ -50,6 +49,10 @@ export class GraphManager {
 	private history: CommandGroup[] = [];
 	private changes: Command[] = [];
 
+	get hasChanges(): Readonly<boolean> {
+		return this.changes.length > 0;
+	}
+
 	constructor(private graph: Graph) {
 		graph.subscribe((newData: GraphData, invalidateHistory: boolean) => {
 			this.currentData = newData;
@@ -65,7 +68,7 @@ export class GraphManager {
 		command: C,
 		replace: boolean = false,
 	): ReturnType<C["execute"]> {
-		if (replace && this.changes.length > 0) {
+		if (replace && this.hasChanges) {
 			const prevCommand = this.changes[this.changes.length - 1];
 			if (prevCommand instanceof command.constructor) {
 				prevCommand.undo(this.currentData);
@@ -81,12 +84,9 @@ export class GraphManager {
 	}
 
 	undoLastCommand() {
-		if (this.changes.length > 0) {
-			this.discardChanges();
-		} else {
-			const command = this.history.pop();
-			command?.undo(this.currentData);
-		}
+		const command = this.history.pop();
+		command?.undo(this.currentData);
+		this.notifyAll();
 	}
 
 	discardChanges() {
