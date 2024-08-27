@@ -110,7 +110,9 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		this._uiState.mode = mode;
 		this._uiState.callback = callback;
 		this.notifyAll();
-		this.loadGraphList(0);
+		if (mode === "load") {
+			this.loadGraphList(0);
+		}
 	}
 
 	close() {
