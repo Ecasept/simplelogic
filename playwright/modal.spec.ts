@@ -5,15 +5,79 @@ test.describe("modal", async () => {
 		await page.goto("/");
 		await page.waitForLoadState("networkidle");
 	});
+	test("login flow", async ({ page }) => {
+		// Can't save without being logged in
+		await page.getByRole("button", { name: "Save" }).click();
+		await page.getByRole("button", { name: "Save" }).nth(1).click();
+		await expect(page.getByText("Not logged in")).toBeVisible();
+		await page.getByRole("button", { name: "x" }).click();
+
+		// Can't load without being logged in
+		await page.getByRole("button", { name: "Load" }).click();
+		await expect(page.getByText("Not logged in")).toBeVisible();
+		await page.getByRole("button", { name: "x" }).click();
+
+		// Sending no password
+		await page.getByRole("button", { name: "Login" }).click();
+		await expect(page.getByText("Incorrect password")).toBeVisible();
+
+		// Sending incorrect password
+		await page.locator('input[type="password"]').fill("incorrect password");
+		await page.getByRole("button", { name: "Login" }).click();
+		await expect(page.getByText("Incorrect password")).toBeVisible();
+
+		// Sending correct password
+		await page
+			.locator('input[type="password"]')
+			.fill(process.env.PASSWORD ?? "");
+		await page.getByRole("button", { name: "Login" }).click();
+		await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+		await expect(page.locator('input[type="password"]')).toBeDisabled();
+
+		// Still logged in after reload
+		await page.reload();
+		await page.waitForLoadState("networkidle");
+		await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+		await expect(page.locator('input[type="password"]')).toBeDisabled();
+
+		// Log out
+		await page.getByRole("button", { name: "Log out" }).click();
+		await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
+		await expect(page.locator('input[type="password"]')).not.toBeDisabled();
+
+		// Still logged out after reload
+		await page.reload();
+		await page.waitForLoadState("networkidle");
+		await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
+		await expect(page.locator('input[type="password"]')).not.toBeDisabled();
+
+		// Log in and log out straight after
+		await page
+			.locator('input[type="password"]')
+			.fill(process.env.PASSWORD ?? "");
+		await page.getByRole("button", { name: "Login" }).click();
+		await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+		await expect(page.locator('input[type="password"]')).toBeDisabled();
+
+		await page.getByRole("button", { name: "Log out" }).click();
+		await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
+		await expect(page.locator('input[type="password"]')).not.toBeDisabled();
+	});
 	test("save flow", async ({ page, browser }) => {
 		const graphName = `test_${browser.browserType().name()}_${Date.now()}`;
+
+		// Login
+		await page
+			.locator('input[type="password"]')
+			.fill(process.env.PASSWORD ?? "");
+		await page.getByRole("button", { name: "Login" }).click();
 
 		// Open Modal
 		await page.getByRole("button", { name: "Save" }).click();
 		await expect(page.locator(".modal-bg")).toBeVisible();
 		// Save without data
-		await page.getByRole("textbox").click();
-		await page.getByRole("textbox").fill(graphName);
+		await page.locator('input[type="text"]').click();
+		await page.locator('input[type="text"]').fill(graphName);
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("No data to save - please")).toBeVisible();
 		// Close modal and add data
@@ -29,8 +93,8 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("Please enter a name")).toBeVisible();
 		// Save with name
-		await page.getByRole("textbox").click();
-		await page.getByRole("textbox").fill(graphName);
+		await page.locator('input[type="text"]').click();
+		await page.locator('input[type="text"]').fill(graphName);
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
@@ -38,8 +102,8 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).click();
 		await expect(page.locator(".modal-bg")).toBeVisible();
 		// Save with existing name
-		await page.getByRole("textbox").click();
-		await page.getByRole("textbox").fill(graphName);
+		await page.locator('input[type="text"]').click();
+		await page.locator('input[type="text"]').fill(graphName);
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("Name already exists")).toBeVisible();
 		// Close modal

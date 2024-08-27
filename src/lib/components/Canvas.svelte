@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Component from "$lib/components/Component.svelte";
 	import Wire from "$lib/components/Wire.svelte";
-	import { GRID_SIZE, isClickOverSidebar } from "$lib/util/global";
+	import { GRID_SIZE } from "$lib/util/global";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 	import {
 		canvasViewModel,

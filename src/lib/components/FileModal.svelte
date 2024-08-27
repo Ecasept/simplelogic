@@ -10,10 +10,6 @@
 		fileModalViewModel.saveGraph(name);
 	}
 
-	function loadGraph() {
-		fileModalViewModel.loadGraph(name);
-	}
-
 	function close() {
 		PersistenceAction.closeModal();
 	}

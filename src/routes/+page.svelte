@@ -9,10 +9,13 @@
 		EditorAction,
 		editorViewModel,
 		fileModalViewModel,
-		PersistenceAction,
 	} from "$lib/util/actions";
 	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
-	import { handleKey as handleKeyDown } from "$lib/util/keyboard";
+	import { handleKeyDown } from "$lib/util/keyboard";
+
+	/** @type {import('./$types').LayoutData} */
+	export let data;
+	console.log(data);
 
 	function onMouseMove(e: MouseEvent) {
 		const pos = { x: e.clientX, y: e.clientY };
@@ -41,7 +44,7 @@
 
 <div class="wrapper">
 	<Canvas uiState={$canvasViewModel}></Canvas>
-	<Sidebar uiState={$sidebarViewModel}></Sidebar>
+	<Sidebar loggedIn={data.loggedIn} uiState={$sidebarViewModel}></Sidebar>
 	{#if $fileModalViewModel.mode !== null}
 		<FileModal uiState={$fileModalViewModel}></FileModal>
 	{/if}

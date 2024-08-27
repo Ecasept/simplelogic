@@ -80,6 +80,7 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		const data: APIResponse<ListRequestData> = await response.json();
 		if (data.success) {
 			this._uiState.listRequestData = data.data;
+			this.setError(null);
 			this.notifyAll();
 		} else {
 			this.setError(data.error);
@@ -120,7 +121,7 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		this.notifyAll();
 	}
 
-	setError(msg: string) {
+	setError(msg: string | null) {
 		this._uiState.errorMessage = msg;
 		this.notifyAll();
 	}

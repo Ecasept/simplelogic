@@ -55,7 +55,13 @@ const shortcuts = [
 	},
 ];
 
-export function handleKey(e: KeyboardEvent) {
+export function handleKeyDown(e: KeyboardEvent) {
+	// x == null checks for undefined or null
+	if (e.target !== null && (e.target as HTMLElement).nodeName != null) {
+		if ((e.target as HTMLElement).nodeName.toLowerCase() === "input") {
+			return;
+		}
+	}
 	console.log(e);
 	let env = null;
 	if (editorViewModel.uiState.isModalOpen) {

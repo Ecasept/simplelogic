@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { isClickOverSidebar } from "$lib/util/global";
 	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
 	import { editorViewModel } from "$lib/util/actions";

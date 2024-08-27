@@ -8,7 +8,6 @@ import { constructComponent, GRID_SIZE, gridSnap } from "./global";
 import { Graph, GraphManager } from "./graph";
 import type {
 	ComponentConnection,
-	ComponentData,
 	GraphData,
 	HandleType,
 	WireData,

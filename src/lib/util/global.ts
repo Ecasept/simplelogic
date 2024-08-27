@@ -1,5 +1,4 @@
 import type {
-	ComponentData,
 	ComponentHandleList,
 	HandleEdge,
 	XYPair,
