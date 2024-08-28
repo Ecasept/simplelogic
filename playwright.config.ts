@@ -20,7 +20,7 @@ export default defineConfig({
 	/* Retry on CI only */
 	retries: process.env.CI ? 2 : 0,
 	/* Opt out of parallel tests on CI. */
-	workers: process.env.CI ? 1 : undefined,
+	workers: process.env.CI ? undefined : undefined,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	reporter: "html",
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -74,7 +74,7 @@ export default defineConfig({
 	/* Run your local dev server before starting the tests */
 	webServer: process.env.CI
 		? {
-				command: "npx wrangler pages dev",
+				command: `npx wrangler pages dev -b PASSWORD=${process.env.PASSWORD} -b SECRET_KEY=${process.env.SECRET_KEY}`,
 				url: "http://127.0.0.1:8788",
 				reuseExistingServer: !process.env.CI,
 			}
