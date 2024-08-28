@@ -1,6 +1,6 @@
 import { env } from "$env/dynamic/private";
 import { json, type Handle } from "@sveltejs/kit";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 
 /** @type {import('@sveltejs/kit').Handle} */
 export const handle: Handle = async ({ event, resolve }) => {
@@ -10,7 +10,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 			return json({ success: false, error: "Not logged in" });
 		}
 		try {
-			jwt.verify(token, env.SECRET_KEY);
+			let loggedIn = true;
+			const secret = new TextEncoder().encode(env.SECRET_KEY);
+			await jwtVerify(token, secret);
 		} catch (e) {
 			return json({ success: false, error: "Not logged in" });
 		}

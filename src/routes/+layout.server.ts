@@ -1,5 +1,5 @@
 import { env } from "$env/dynamic/private";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
@@ -7,7 +7,8 @@ export async function load({ cookies }) {
 	const token = cookies.get("auth");
 	if (typeof token === "string") {
 		try {
-			jwt.verify(token, env.SECRET_KEY);
+			const secret = new TextEncoder().encode(env.SECRET_KEY);
+			await jwtVerify(token, secret);
 		} catch (e) {
 			loggedIn = false;
 		}
