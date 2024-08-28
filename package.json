@@ -53,7 +53,6 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@types/jsonwebtoken": "^9.0.6",
 		"jose": "^5.8.0",
 		"zod": "^3.23.8"
 	}
