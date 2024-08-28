@@ -1,7 +1,9 @@
 import test, { expect } from "@playwright/test";
+import { isContext } from "vm";
 
 test.describe("modal", async () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page, context }) => {
+		await context.clearCookies();
 		await page.goto("/");
 		await page.waitForLoadState("networkidle");
 	});
@@ -128,3 +130,21 @@ test.describe("modal", async () => {
 		expect(await page.locator("rect").count()).toBe(1);
 	});
 });
+
+/*
+{
+	"stack": "    at functionsWorker-0.896388872539319.js:6:9
+    at node_modules/safe-buffer/index.js (functionsWorker-0.896388872539319.js:296:18)
+    at __require22 (functionsWorker-0.896388872539319.js:27:50)
+    at node_modules/jws/lib/sign-stream.js (functionsWorker-0.896388872539319.js:813:19)
+    at __require22 (functionsWorker-0.896388872539319.js:27:50)
+    at node_modules/jws/index.js (functionsWorker-0.896388872539319.js:989:22)
+    at __require22 (functionsWorker-0.896388872539319.js:27:50)
+    at node_modules/jsonwebtoken/decode.js (functionsWorker-0.896388872539319.js:1020:15)
+    at __require22 (functionsWorker-0.896388872539319.js:27:50)
+    at node_modules/jsonwebtoken/index.js (functionsWorker-0.896388872539319.js:3896:15)",
+	"name": "Error",
+	"message": "Dynamic require of \"node:buffer\" is not supported",
+	"timestamp": 1724768954028
+  }
+	*/
