@@ -13,32 +13,13 @@
 	$: editingThis = uiState.id === id;
 	$: editing = uiState.state !== null;
 
-	function handleDown(type: string, e: MouseEvent) {
+	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
 		if (editorViewModel.uiState.isModalOpen || editing) {
 			return;
 		}
-		console.error("Not Implemented");
-		return;
 		e.preventDefault();
-		if (id === null) {
-			console.error("Tried to click handle on not initialized wire");
-			return;
-		}
-		const handle = type === "input" ? input : output;
-		const cmd = new AddWireCommand({
-			label: "test",
-			input: {
-				x: handle.x,
-				y: handle.y,
-				id: type === "output" ? id : null,
-			},
-			output: {
-				x: handle.x,
-				y: handle.y,
-				id: type === "input" ? id : null,
-			},
-		});
-		graph.executeCommand(cmd);
+		e.stopPropagation();
+		editorViewModel.startMoveWire(id, clickedHandle);
 	}
 
 	let hoveringHandle: HandleType | null = null;
@@ -92,7 +73,7 @@
 		cx={input.x}
 		cy={input.y}
 		r={r.input}
-		on:mousedown={(e) => handleDown("input", e)}
+		on:mousedown={(e) => onHandleDown("input", e)}
 	></circle>
 {/if}
 {#if output.connection === null}
@@ -106,7 +87,7 @@
 		cx={output.x}
 		cy={output.y}
 		r={r.output}
-		on:mousedown={(e) => handleDown("output", e)}
+		on:mousedown={(e) => onHandleDown("output", e)}
 	></circle>
 {/if}
 

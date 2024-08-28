@@ -1,4 +1,4 @@
-import test, { expect, Locator } from "@playwright/test";
+import test, { expect, Locator, Page } from "@playwright/test";
 
 async function expectPosToBe(component: Locator, x: number, y: number) {
 	const boundingBox = (await component.boundingBox())!;
@@ -11,6 +11,27 @@ async function expectPosToBe(component: Locator, x: number, y: number) {
 	// 30 because of snapping
 	expect(Math.abs(centerX - x)).toBeLessThan(30);
 	expect(Math.abs(centerY - y)).toBeLessThan(30);
+}
+
+async function drag(
+	component: Locator,
+	x: number,
+	y: number,
+	page: Page,
+	{
+		mouseUp = true,
+		expect = true,
+	}: { mouseUp?: boolean; expect?: boolean } = {},
+) {
+	await component.hover();
+	await page.mouse.down();
+	await page.mouse.move(x, y);
+	if (mouseUp) {
+		await page.mouse.up();
+	}
+	if (expect) {
+		await expectPosToBe(component, x, y);
+	}
 }
 
 test.describe("editor", () => {
@@ -226,5 +247,53 @@ test.describe("editor", () => {
 		// Press undo
 		await page.getByRole("button", { name: "Undo" }).click();
 		expect(await page.locator("rect").count()).toBe(1);
+	});
+	test("drags existing wires flow", async ({ page }) => {
+		// Setup: Add two components and connect them
+		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.mouse.click(100, 100);
+
+		// Setup: Drag wire
+		const sourceHandle = page.locator("circle.handle").first();
+		await drag(sourceHandle, 500, 500, page, { expect: false });
+
+		// 1. Drag and release
+		const wire = page.locator("path");
+		const handle = page.locator("circle.handle").nth(2);
+		await drag(handle, 400, 400, page);
+
+		// 2. Drag but not release
+		const initialD = await wire.getAttribute("d");
+		await drag(handle, 150, 150, page, { mouseUp: false });
+		expect(initialD).not.toBe(await wire.getAttribute("d"));
+
+		// 3. Press escape
+		await page.keyboard.press("Escape");
+		await page.mouse.up();
+		await expectPosToBe(handle, 400, 400);
+		expect(initialD).toBe(await wire.getAttribute("d"));
+
+		// 4. Drag
+		await drag(handle, 250, 250, page);
+
+		// 5. Undo
+		await page.getByRole("button", { name: "Undo" }).click();
+		await expectPosToBe(handle, 400, 400);
+		expect(initialD).toBe(await wire.getAttribute("d"));
+
+		// 6. Move component
+		const component = page.locator("rect").nth(1);
+		await drag(component, 50, 50, page);
+		await expectPosToBe(handle, 400, 400);
+		expect(initialD).not.toBe(await wire.getAttribute("d"));
+		// Undo
+		await page.getByRole("button", { name: "Undo" }).click();
+		await expectPosToBe(handle, 400, 400);
+		expect(initialD).toBe(await wire.getAttribute("d"));
+
+		// 7. Undo twice (should remove the wire)
+		await page.getByRole("button", { name: "Undo" }).click();
+		await page.getByRole("button", { name: "Undo" }).click();
+		expect(await page.locator("path").count()).toBe(0);
 	});
 });

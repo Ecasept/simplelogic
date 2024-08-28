@@ -49,6 +49,12 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		this._uiState.clickOffset = clickOffset;
 		this.notifyAll();
 	}
+	startMoveWire(id: number, draggedHandle: HandleType) {
+		this._uiState.state = "move";
+		this._uiState.id = id;
+		this._uiState.draggedHandle = draggedHandle;
+		this.notifyAll();
+	}
 	startAddComponent(id: number, clickOffset: XYPair) {
 		this._uiState.state = "add";
 		this._uiState.id = id;
