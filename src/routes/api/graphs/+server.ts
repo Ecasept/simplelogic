@@ -57,18 +57,18 @@ export async function GET({ url, platform }) {
 	const db = platform.env.DB;
 
 	const page = parseInt(url.searchParams.get("page") ?? "1");
-	const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "10"), 10);
+	const perPage = Math.min(parseInt(url.searchParams.get("limit") ?? "10"), 10);
 
-	const offset = (page - 1) * limit;
+	const offset = (page - 1) * perPage;
 
 	const statement = db
 		.prepare("SELECT id, name FROM circuits LIMIT ? OFFSET ?")
-		.bind(limit, offset);
+		.bind(perPage, offset);
 	const { results } = await statement.run();
 
 	const res = db
 		.prepare("SELECT 1 FROM circuits LIMIT 1 OFFSET ?")
-		.bind(offset + limit)
+		.bind(offset + perPage + 1)
 		.first();
 	const hasNextPage = res !== null;
 
@@ -78,7 +78,7 @@ export async function GET({ url, platform }) {
 			graphs: results,
 			pagination: {
 				page,
-				limit,
+				perPage,
 				hasNextPage,
 			},
 		},
