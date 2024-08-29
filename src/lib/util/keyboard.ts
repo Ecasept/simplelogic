@@ -62,7 +62,6 @@ export function handleKeyDown(e: KeyboardEvent) {
 			return;
 		}
 	}
-	console.log(e);
 	let env = null;
 	if (editorViewModel.uiState.isModalOpen) {
 		env = "modal";

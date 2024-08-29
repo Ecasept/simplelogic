@@ -122,7 +122,6 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		this.notifyAll();
 	}
 	setHoveredHandle(handle: WireConnection | ComponentConnection) {
-		console.log("enter");
 		if (this._uiState.hoveredHandle !== null) {
 			console.warn("hovered handle already set");
 		}
@@ -130,7 +129,6 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		this.notifyAll();
 	}
 	removeHoveredHandle() {
-		console.log("leave");
 		this._uiState.hoveredHandle = null;
 		this.notifyAll();
 	}

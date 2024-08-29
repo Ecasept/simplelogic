@@ -6,7 +6,6 @@ import { defineConfig, devices } from "@playwright/test";
  */
 import dotenv from "dotenv";
 dotenv.config({ path: "./.dev.vars" });
-console.log(process.env);
 
 /**
  * See https://playwright.dev/docs/test-configuration.

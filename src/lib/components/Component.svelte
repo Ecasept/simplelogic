@@ -118,8 +118,6 @@
 		} else {
 			hoveredHandle = null;
 		}
-		console.log(hoverR);
-		console.log(!uiState.outputConnectedToWire);
 	}
 </script>
 

@@ -4,8 +4,6 @@ import { SignJWT } from "jose";
 
 export async function POST({ request, cookies }) {
 	const { password } = await request.json();
-	console.log(password);
-	console.log(env.PASSWORD);
 	if (password === env.PASSWORD) {
 		const secret = new TextEncoder().encode(env.SECRET_KEY);
 		const jwt = await new SignJWT({ auth: true })

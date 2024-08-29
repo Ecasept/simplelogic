@@ -28,8 +28,6 @@
 		canvasViewModel.endPan();
 	}
 	function zoom() {}
-
-	$: console.log($graphManager);
 </script>
 
 <div class="canvasWrapper">
