@@ -17,10 +17,18 @@
 		if (editorViewModel.uiState.isModalOpen) {
 			return;
 		}
+		let outputConnectedToWire = false;
+		if (clickedHandle === "output") {
+			if (output.connection !== null && "handleType" in output.connection) {
+				// if output is connected to wire
+				outputConnectedToWire = true;
+			}
+		}
+
 		editorViewModel.removeHoveredHandle();
 		e.preventDefault();
 		e.stopPropagation();
-		editorViewModel.startMoveWire(id, clickedHandle);
+		editorViewModel.startMoveWire(id, outputConnectedToWire, clickedHandle);
 	}
 
 	function onHandleEnter(handleType: HandleType) {
@@ -37,12 +45,14 @@
 	let hoverR = 5;
 	let hoveredHandle: string | null = null;
 	$: {
-		if (editing) {
+		if (editing && !uiState.outputConnectedToWire) {
 			// Adding/moving something else
 			hoverR = 20;
-		} else {
+		} else if (!uiState.outputConnectedToWire) {
 			// Not adding/moving anything
 			hoverR = 10;
+		} else {
+			hoverR = 5;
 		}
 		if (
 			uiState.hoveredHandle !== null &&
@@ -64,7 +74,7 @@
 ></path>
 {#if input.connection === null}
 	<!-- Hide connected inputs -->
-	{#if !(uiState.draggedHandle === "output" && !editingThis)}
+	{#if !(uiState.draggedHandle === "input" && !editingThis)}
 		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<circle

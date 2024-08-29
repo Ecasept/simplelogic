@@ -7,23 +7,19 @@ import type {
 } from "../types";
 import { ViewModel } from "./viewModel";
 
-// doing nothing
-// adding component: with clickoffset
-// moving component: with clickoffset
-// adding wire: with draggedwire and hoveredhandle
-// moving wire: with draggedwire and hoveredhandle
-
 type EditComponent = {
 	editType: "add" | "move";
 	editedId: number;
 	clickOffset: XYPair;
 
+	outputConnectedToWire: false;
 	draggedHandle: null;
 };
 type EditWire = {
 	editType: "add" | "move";
 	editedId: number;
 	draggedHandle: HandleType;
+	outputConnectedToWire: boolean;
 
 	clickOffset: null;
 };
@@ -32,6 +28,7 @@ type DefaultState = {
 	editedId: null;
 	draggedHandle: null;
 	clickOffset: null;
+	outputConnectedToWire: false;
 };
 
 export type EditorUiState = (EditComponent | EditWire | DefaultState) & {
@@ -47,6 +44,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		clickOffset: null,
 		draggedHandle: null,
 		editedId: null,
+		outputConnectedToWire: false,
 	};
 
 	protected resetUiState() {
@@ -57,6 +55,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			clickOffset: null,
 			draggedHandle: null,
 			editedId: null,
+			outputConnectedToWire: false,
 		};
 	}
 
@@ -78,15 +77,21 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredHandle: null,
 			draggedHandle: null,
+			outputConnectedToWire: false,
 		};
 		this.notifyAll();
 	}
-	startMoveWire(id: number, draggedHandle: HandleType) {
+	startMoveWire(
+		id: number,
+		outputConnectedToWire: boolean,
+		draggedHandle: HandleType,
+	) {
 		this._uiState = {
 			editType: "move",
 			editedId: id,
 			draggedHandle: draggedHandle,
 			isModalOpen: this._uiState.isModalOpen,
+			outputConnectedToWire: outputConnectedToWire,
 			hoveredHandle: null,
 			clickOffset: null,
 		};
@@ -100,6 +105,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredHandle: null,
 			draggedHandle: null,
+			outputConnectedToWire: false,
 		};
 		this.notifyAll();
 	}
@@ -111,6 +117,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredHandle: null,
 			clickOffset: null,
+			outputConnectedToWire: false,
 		};
 		this.notifyAll();
 	}

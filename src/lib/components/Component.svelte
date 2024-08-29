@@ -100,12 +100,14 @@
 	let hoverR = 5;
 	let hoveredHandle: string | null = null;
 	$: {
-		if (editing) {
+		if (editing && !uiState.outputConnectedToWire) {
 			// Adding/moving something else
 			hoverR = 20;
-		} else {
+		} else if (!uiState.outputConnectedToWire) {
 			// Not adding/moving anything
 			hoverR = 10;
+		} else {
+			hoverR = 5;
 		}
 		if (
 			uiState.hoveredHandle !== null &&
@@ -116,6 +118,8 @@
 		} else {
 			hoveredHandle = null;
 		}
+		console.log(hoverR);
+		console.log(!uiState.outputConnectedToWire);
 	}
 </script>
 

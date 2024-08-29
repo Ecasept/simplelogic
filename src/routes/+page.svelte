@@ -33,7 +33,8 @@
 		}
 		if (
 			editorViewModel.uiState.draggedHandle !== null &&
-			editorViewModel.uiState.hoveredHandle !== null
+			editorViewModel.uiState.hoveredHandle !== null &&
+			!editorViewModel.uiState.outputConnectedToWire
 		) {
 			EditorAction.connect(
 				{

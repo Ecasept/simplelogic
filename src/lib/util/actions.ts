@@ -138,8 +138,7 @@ export class EditorAction {
 		if (newPos.x === wireHandle.x && newPos.y === wireHandle.y) {
 			return;
 		}
-		const cmd = new MoveWireConnectionCommand(newPos, draggedHandle, id);
-		graphManager.executeCommand(cmd, true);
+		graphManager.moveWireReplaceable(newPos, draggedHandle, id);
 		graphManager.notifyAll();
 	}
 	static connect(

@@ -1,4 +1,4 @@
-import type { Command, GraphData, XYPair } from "./types";
+import type { Command, GraphData, HandleType, XYPair } from "./types";
 import { calculateHandleOffset } from "./global";
 import {
 	CommandGroup,
@@ -127,6 +127,43 @@ export class GraphManager {
 				);
 				cmds.push(moveWireCmd);
 			}
+		}
+		const cmd = new CommandGroup(cmds);
+		this.executeCommand(cmd, true);
+	}
+
+	moveWireReplaceable(
+		newWirePos: XYPair,
+		draggedHandle: HandleType,
+		wireId: number,
+	) {
+		const cmds = [];
+		const moveWireCmd = new MoveWireConnectionCommand(
+			newWirePos,
+			draggedHandle,
+			wireId,
+		);
+		cmds.push(moveWireCmd);
+
+		const wire = this.getWireData(wireId);
+
+		const handle = wire[draggedHandle];
+		if (handle.connection !== null) {
+			if (!("handleType" in handle.connection)) {
+				console.warn(
+					"Tried to move wire handle connected to component - should not exist",
+				);
+				return;
+			}
+			const moveWireCmd = new MoveWireConnectionCommand(
+				{
+					x: newWirePos.x,
+					y: newWirePos.y,
+				},
+				handle.connection.handleType,
+				handle.connection.id,
+			);
+			cmds.push(moveWireCmd);
 		}
 		const cmd = new CommandGroup(cmds);
 		this.executeCommand(cmd, true);
