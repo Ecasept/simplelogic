@@ -24,13 +24,13 @@
 
 	let rect: SVGRectElement;
 
-	$: editingThis = uiState.id === id;
-	$: editing = uiState.state !== null;
+	$: editingThis = uiState.editedId === id;
+	$: editing = uiState.editType !== null;
 
 	let cursor = "default";
 	$: {
 		if (editingThis) {
-			if (uiState.state === "add") {
+			if (uiState.editType === "add") {
 				cursor = "default";
 			} else {
 				// uiState = "move"
@@ -137,18 +137,22 @@
 
 {#each Object.entries(connections) as [identifier, handle]}
 	{#if !(handle.connection !== null && handle.type === "input")}
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<circle
-			class="handle {handle.edge}"
-			on:mouseenter={() => {
-				onHandleEnter(identifier);
-			}}
-			on:mouseleave={onHandleLeave}
-			cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
-			cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
-			r={hoveredHandle === identifier ? hoverR : 5}
-			on:mousedown={(e) =>
-				onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
-		></circle>
+		<!-- Hide connected inputs -->
+		{#if !(uiState.draggedHandle === handle.type)}
+			<!-- Hide handles of same type as dragged handle -->
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<circle
+				class="handle {handle.edge}"
+				on:mouseenter={() => {
+					onHandleEnter(identifier);
+				}}
+				on:mouseleave={onHandleLeave}
+				cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
+				cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
+				r={hoveredHandle === identifier ? hoverR : 5}
+				on:mousedown={(e) =>
+					onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
+			></circle>
+		{/if}
 	{/if}
 {/each}

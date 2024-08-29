@@ -10,8 +10,8 @@
 
 	export let uiState: EditorUiState;
 
-	$: editingThis = uiState.id === id;
-	$: editing = uiState.state !== null;
+	$: editingThis = uiState.editedId === id;
+	$: editing = uiState.editType !== null;
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
 		if (editorViewModel.uiState.isModalOpen) {
@@ -63,35 +63,42 @@
 	style="pointer-events: {editingThis ? 'none' : 'all'};"
 ></path>
 {#if input.connection === null}
-	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<circle
-		on:mouseenter={() => {
-			onHandleEnter("input");
-		}}
-		on:mouseleave={onHandleLeave}
-		class="handle"
-		cx={input.x}
-		cy={input.y}
-		r={hoveredHandle === "input" ? hoverR : 5}
-		style="pointer-events: {editingThis ? 'none' : 'all'};"
-		on:mousedown={(e) => onHandleDown("input", e)}
-	></circle>
+	<!-- Hide connected inputs -->
+	{#if !(uiState.draggedHandle === "output" && !editingThis)}
+		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<circle
+			on:mouseenter={() => {
+				onHandleEnter("input");
+			}}
+			on:mouseleave={onHandleLeave}
+			class="handle"
+			cx={input.x}
+			cy={input.y}
+			r={hoveredHandle === "input" ? hoverR : 5}
+			style="pointer-events: {editingThis ? 'none' : 'all'};"
+			on:mousedown={(e) => onHandleDown("input", e)}
+		></circle>
+	{/if}
 {/if}
 {#if !(output.connection !== null && "handleId" in output.connection)}
-	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<circle
-		on:mouseenter={() => {
-			onHandleEnter("output");
-		}}
-		on:mouseleave={onHandleLeave}
-		class="handle"
-		cx={output.x}
-		cy={output.y}
-		r={hoveredHandle === "output" ? hoverR : 5}
-		style="pointer-events: {editingThis ? 'none' : 'all'};"
-		on:mousedown={(e) => onHandleDown("output", e)}
-	></circle>
-{/if}
+	<!-- Hide outputs connected to components -->
+	{#if !(uiState.draggedHandle === "output" && !editingThis)}
+		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<circle
+			on:mouseenter={() => {
+				onHandleEnter("output");
+			}}
+			on:mouseleave={onHandleLeave}
+			class="handle"
+			cx={output.x}
+			cy={output.y}
+			r={hoveredHandle === "output" ? hoverR : 5}
+			style="pointer-events: {editingThis ? 'none' : 'all'};"
+			on:mousedown={(e) => onHandleDown("output", e)}
+		></circle>
+	{/if}{/if}
 
 <!--
 Here's a comprehensive list of potential edge cases for your logic gate simulator:

@@ -19,16 +19,16 @@
 	function onMouseMove(e: MouseEvent) {
 		const pos = { x: e.clientX, y: e.clientY };
 		setMousePosition(pos);
-		if (editorViewModel.uiState.state === null) {
+		if (editorViewModel.uiState.editType === null) {
 			return;
 		}
-		EditorAction.move(pos, editorViewModel.uiState.id);
+		EditorAction.move(pos, editorViewModel.uiState.editedId);
 	}
 	function onMouseUp(e: MouseEvent) {
-		if (editorViewModel.uiState.state === null) {
+		if (editorViewModel.uiState.editType === null) {
 			return;
 		}
-		if (editorViewModel.uiState.state === "add" && isClickOverSidebar(e)) {
+		if (editorViewModel.uiState.editType === "add" && isClickOverSidebar(e)) {
 			return;
 		}
 		if (
@@ -37,7 +37,7 @@
 		) {
 			EditorAction.connect(
 				{
-					id: editorViewModel.uiState.id,
+					id: editorViewModel.uiState.editedId,
 					handleType: editorViewModel.uiState.draggedHandle,
 				},
 				editorViewModel.uiState.hoveredHandle,

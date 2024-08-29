@@ -5,7 +5,8 @@ import { defineConfig, devices } from "@playwright/test";
  * https://github.com/motdotla/dotenv
  */
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ path: "./.dev.vars" });
+console.log(process.env);
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -74,7 +75,7 @@ export default defineConfig({
 	/* Run your local dev server before starting the tests */
 	webServer: process.env.CI
 		? {
-				command: `npx wrangler pages dev -b PASSWORD=${process.env.PASSWORD} -b SECRET_KEY=${process.env.SECRET_KEY}`,
+				command: `npx wrangler pages dev`,
 				url: "http://127.0.0.1:8788",
 				reuseExistingServer: !process.env.CI,
 			}
