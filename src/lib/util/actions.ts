@@ -10,6 +10,7 @@ import type {
 	ComponentConnection,
 	GraphData,
 	HandleType,
+	WireConnection,
 	WireData,
 	XYPair,
 } from "./types";
@@ -139,6 +140,14 @@ export class EditorAction {
 		}
 		const cmd = new MoveWireConnectionCommand(newPos, draggedHandle, id);
 		graphManager.executeCommand(cmd, true);
+		graphManager.notifyAll();
+	}
+	static connect(
+		conn1: WireConnection | ComponentConnection,
+		conn2: WireConnection | ComponentConnection,
+	) {
+		const cmd = new ConnectCommand(conn1, conn2);
+		graphManager.executeCommand(cmd);
 		graphManager.notifyAll();
 	}
 	static undo() {

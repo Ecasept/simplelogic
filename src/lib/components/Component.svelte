@@ -27,11 +27,23 @@
 	$: editingThis = uiState.id === id;
 	$: editing = uiState.state !== null;
 
-	$: cursor = editingThis
-		? uiState.state === "add"
-			? "default"
-			: "grabbing"
-		: "grab";
+	let cursor = "default";
+	$: {
+		if (editingThis) {
+			if (uiState.state === "add") {
+				cursor = "default";
+			} else {
+				// uiState = "move"
+				cursor = "grabbing";
+			}
+		} else {
+			if (editing) {
+				cursor = "default";
+			} else {
+				cursor = "grab";
+			}
+		}
+	}
 
 	function onHandleDown(
 		handleId: string,
@@ -45,6 +57,8 @@
 		}
 		e.preventDefault();
 		e.stopPropagation();
+
+		editorViewModel.removeHoveredHandle();
 
 		// calculate position of handle
 		let handleOffset = calculateHandleOffset(handleEdge, handlePos, size);
@@ -75,33 +89,33 @@
 		editorViewModel.startMoveComponent(id, offset);
 	}
 
-	function onHandleEnter(e: MouseEvent) {
-		if (uiState.isModalOpen) {
-			return;
-		}
-		if (e.target === null) {
-			console.error("e.target is null, can't highlight wire handle.");
-			return;
-		}
-		if (!(e.target instanceof Element)) {
-			console.error("e.target is not an element, can't highlight wire handle");
-			return;
-		}
-		e.target.setAttribute("r", "10");
+	function onHandleEnter(identifier: string) {
+		editorViewModel.setHoveredHandle({ handleId: identifier, id: id });
 	}
 
-	function onHandleLeave(e: MouseEvent) {
-		if (e.target === null) {
-			console.error("e.target is null, can't dehighlight wire handle.");
-			return;
+	function onHandleLeave() {
+		editorViewModel.removeHoveredHandle();
+	}
+
+	let hoverR = 5;
+	let hoveredHandle: string | null = null;
+	$: {
+		if (editing) {
+			// Adding/moving something else
+			hoverR = 20;
+		} else {
+			// Not adding/moving anything
+			hoverR = 10;
 		}
-		if (!(e.target instanceof Element)) {
-			console.error(
-				"e.target is not an element, can't dehighlight wire handle",
-			);
-			return;
+		if (
+			uiState.hoveredHandle !== null &&
+			id === uiState.hoveredHandle.id &&
+			"handleId" in uiState.hoveredHandle
+		) {
+			hoveredHandle = uiState.hoveredHandle.handleId;
+		} else {
+			hoveredHandle = null;
 		}
-		e.target.setAttribute("r", "5");
 	}
 </script>
 
@@ -126,15 +140,15 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<circle
 			class="handle {handle.edge}"
-			on:mouseenter={onHandleEnter}
+			on:mouseenter={() => {
+				onHandleEnter(identifier);
+			}}
 			on:mouseleave={onHandleLeave}
 			cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
 			cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
-			r="5"
+			r={hoveredHandle === identifier ? hoverR : 5}
 			on:mousedown={(e) =>
 				onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
-			data-type={handle.type}
-			data-has-connection={handle.connection !== null}
 		></circle>
 	{/if}
 {/each}

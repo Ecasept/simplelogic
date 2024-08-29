@@ -15,7 +15,6 @@
 
 	/** @type {import('./$types').LayoutData} */
 	export let data;
-	console.log(data);
 
 	function onMouseMove(e: MouseEvent) {
 		const pos = { x: e.clientX, y: e.clientY };
@@ -31,6 +30,18 @@
 		}
 		if (editorViewModel.uiState.state === "add" && isClickOverSidebar(e)) {
 			return;
+		}
+		if (
+			editorViewModel.uiState.draggedHandle !== null &&
+			editorViewModel.uiState.hoveredHandle !== null
+		) {
+			EditorAction.connect(
+				{
+					id: editorViewModel.uiState.id,
+					handleType: editorViewModel.uiState.draggedHandle,
+				},
+				editorViewModel.uiState.hoveredHandle,
+			);
 		}
 		ChangesAction.commitChanges();
 	}
