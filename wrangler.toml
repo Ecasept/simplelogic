@@ -7,9 +7,11 @@ binding = "DB"
 database_name = "MAIN_DB"
 database_id = "b4768d67-3be5-4ee0-8704-3453f335c7dc"
 preview_database_id = "DB"
+migrations_dir = "prisma/migrations"
 
 [[env.preview.d1_databases]]
 binding = "DB"
 database_name = "MAIN_DB"
 database_id = "49be9c5e-3199-4770-b9db-97467b599fb8"
 preview_database_id = "DB"
+migrations_dir = "prisma/migrations"

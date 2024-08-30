@@ -138,7 +138,7 @@ test.describe("editor", () => {
 		await page.mouse.down();
 
 		// Move handle
-		const handle = page.locator("circle.handle").nth(3);
+		const handle = page.locator("circle.handle").nth(2);
 		await page.mouse.move(300, 300, { steps: 10 });
 		await expectPosToBe(handle, 300, 300);
 		await expect(page.locator("path").first()).toBeVisible();
@@ -150,7 +150,7 @@ test.describe("editor", () => {
 		// Release and move mouse
 		await page.mouse.up();
 		await page.mouse.move(200, 200, { steps: 10 });
-		await expectPosToBe(handle, 400, 400);
+		await expectPosToBe(page.locator("circle.handle").nth(3), 400, 400);
 		expect(await page.locator("circle.handle").count()).toBe(4);
 	});
 	test("drags new wire and discards", async ({ page }) => {
@@ -264,7 +264,8 @@ test.describe("editor", () => {
 
 		// 2. Drag but not release
 		const initialD = await wire.getAttribute("d");
-		await drag(handle, 150, 150, page, { mouseUp: false });
+		await drag(handle, 150, 150, page, { mouseUp: false, expect: false });
+		await expectPosToBe(page.locator("circle.handle").nth(1), 150, 150);
 		expect(initialD).not.toBe(await wire.getAttribute("d"));
 
 		// 3. Press escape

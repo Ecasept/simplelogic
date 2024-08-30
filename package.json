@@ -43,17 +43,21 @@
 		"jsdom": "^24.1.1",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
+		"prisma": "^5.19.0",
 		"sass": "^1.77.4",
 		"svelte": "^4.2.7",
 		"svelte-check": "^3.6.0",
 		"tslib": "^2.4.1",
-		"typescript": "^5.0.0",
+		"typescript": "^5.5.4",
 		"vite": "^5.0.3",
 		"vitest": "^2.0.5"
 	},
 	"type": "module",
 	"dependencies": {
+		"@prisma/adapter-d1": "^5.19.0",
+		"@prisma/client": "^5.19.0",
 		"jose": "^5.8.0",
+		"tsx": "^4.19.0",
 		"zod": "^3.23.8"
 	}
 }

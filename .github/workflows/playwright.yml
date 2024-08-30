@@ -22,8 +22,8 @@ jobs:
         run: npx playwright install --with-deps
       - name: Build Application
         run: npx vite build
-      - name: Reset Database
-        run: npx wrangler d1 execute MAIN_DB --local --file=./schema.sql
+      - name: Setup Database
+        run: npx wrangler d1 migrations apply MAIN_DB --local
       - name: "Create .dev.vars file"
         run: |
           touch .dev.vars

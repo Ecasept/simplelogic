@@ -3,7 +3,7 @@ import { error, json } from "@sveltejs/kit";
 import { z } from "zod";
 
 /** @type {import("./$types").RequestHandler} */
-export async function POST({ request, platform }) {
+export async function POST({ request, locals: { prisma } }) {
 	// Validate input
 	const schema = z.object({ name: z.string(), data: ZGraphData });
 	const validationResult = schema.safeParse(await request.json());
@@ -11,11 +11,6 @@ export async function POST({ request, platform }) {
 		return error(400, validationResult.error.message);
 	}
 	const { name, data } = validationResult.data;
-
-	if (typeof platform === "undefined") {
-		return error(500);
-	}
-	const db = platform.env.DB;
 
 	// Check for empty data
 	if (
@@ -31,55 +26,50 @@ export async function POST({ request, platform }) {
 		return json({ success: false, error: "Please enter a name" });
 	}
 
-	// Check if name already exists
-	const count = (await db
-		.prepare("SELECT COUNT(*) AS count FROM circuits WHERE name = ?")
-		.bind(name)
-		.first("count")) as number;
-	if (count > 0) {
+	const existingGraph = await prisma.graph.findUnique({
+		where: { name: name },
+	});
+
+	if (existingGraph !== null) {
 		return json({ success: false, error: "Name already exists" });
 	}
 
-	const { results } = await db
-		.prepare(
-			"INSERT INTO circuits (name, data) VALUES (?, json(?)) RETURNING id",
-		)
-		.bind(name, JSON.stringify(data))
-		.run();
+	const graph = await prisma.graph.create({
+		data: {
+			name: name,
+			data: JSON.stringify(data),
+		},
+	});
 
-	return json({ success: true, data: results[0].id });
+	return json({ success: true, data: graph.id });
 }
 
-export async function GET({ url, platform }) {
-	if (typeof platform === "undefined") {
-		return error(500);
-	}
-	const db = platform.env.DB;
-
+export async function GET({ url, locals: { prisma } }) {
 	const page = parseInt(url.searchParams.get("page") ?? "1");
 	const perPage = Math.min(parseInt(url.searchParams.get("limit") ?? "10"), 10);
 
 	const offset = (page - 1) * perPage;
 
-	const statement = db
-		.prepare("SELECT id, name FROM circuits LIMIT ? OFFSET ?")
-		.bind(perPage, offset);
-	const { results } = await statement.run();
+	const items = await prisma.graph.findMany({
+		select: {
+			id: true,
+			name: true,
+		},
+		skip: offset,
+		take: perPage + 1,
+	});
 
-	const res = db
-		.prepare("SELECT 1 FROM circuits LIMIT 1 OFFSET ?")
-		.bind(offset + perPage + 1)
-		.first();
-	const hasNextPage = res !== null;
+	const hasNextPage = items.length > perPage;
+	const data = hasNextPage ? items.slice(0, -1) : items;
 
 	return json({
 		success: true,
 		data: {
-			graphs: results,
+			graphs: data,
+			hasNextPage: hasNextPage,
 			pagination: {
 				page,
 				perPage,
-				hasNextPage,
 			},
 		},
 	});
