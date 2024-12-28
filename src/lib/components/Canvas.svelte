@@ -39,8 +39,9 @@
 		on:mouseup={endPan}
 		on:mouseleave={endPan}
 		on:wheel={zoom}
-		width="100%"
-		height="100%"
+		width="100vw"
+		height="100vh"
+		preserveAspectRatio="xMinYMin slice"
 		xmlns="http://www.w3.org/2000/svg"
 		stroke-width="2px"
 		viewBox="{uiState.viewBox.x} {uiState.viewBox.y} {uiState.viewBox
