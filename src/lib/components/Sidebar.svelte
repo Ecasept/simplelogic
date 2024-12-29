@@ -113,12 +113,9 @@
 		<div class="authentification">
 			<h2>Authentification</h2>
 			{#if uiState.loggedIn}
-				<input
-					value={uiState.passwordInputValue}
-					disabled={true}
-					type="password"
-				/>
-				<button class="actionbtn" on:click={logout}>Log out</button>
+				<button style="margin-left: 0px;" class="actionbtn" on:click={logout}
+					>Log out</button
+				>
 			{:else}
 				<div>Enter server password to save and load graphs:</div>
 				<input
