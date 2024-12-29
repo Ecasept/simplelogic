@@ -38,6 +38,24 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 		this._uiState.viewBox.y -= this.toSvgY(movementY);
 		this.notifyAll();
 	}
+	zoom(factor: number, clientPos: XYPair) {
+		const point = this.clientToSVGCoords(clientPos);
+
+		// Update the viewBox
+		const newWidth = this._uiState.viewBox.width * factor;
+		const newHeight = this._uiState.viewBox.height * factor;
+
+		// Adjust the viewBox position to zoom towards/from the mouse position
+		this._uiState.viewBox.x =
+			point.x - (point.x - this._uiState.viewBox.x) * factor;
+		this._uiState.viewBox.y =
+			point.y - (point.y - this._uiState.viewBox.y) * factor;
+		this._uiState.viewBox.width = newWidth;
+		this._uiState.viewBox.height = newHeight;
+
+		this.notifyAll();
+	}
+
 	/** Scale client's x-coordinate to svg's x-coordinate */
 	toSvgX(val: number) {
 		return (val * this._uiState.viewBox.width) / (this.svg?.clientWidth ?? 1);

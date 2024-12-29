@@ -27,7 +27,16 @@
 	function endPan() {
 		canvasViewModel.endPan();
 	}
-	function zoom() {}
+	function zoom(event: WheelEvent) {
+		event.preventDefault();
+
+		const factor = event.deltaY > 0 ? 1.1 : 0.9;
+
+		canvasViewModel.zoom(factor, {
+			x: event.clientX,
+			y: event.clientY,
+		});
+	}
 </script>
 
 <div class="canvasWrapper">
