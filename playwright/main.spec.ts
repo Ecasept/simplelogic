@@ -141,7 +141,7 @@ test.describe("editor", () => {
 		const handle = page.locator("circle.handle").nth(2);
 		await page.mouse.move(300, 300, { steps: 10 });
 		await expectPosToBe(handle, 300, 300);
-		await expect(page.locator("path:not(.hitbox)").first()).toBeVisible();
+		await expect(page.locator(".wire").first()).toBeVisible();
 
 		// Move handle
 		await page.mouse.move(400, 400, { steps: 10 });
@@ -184,12 +184,12 @@ test.describe("editor", () => {
 		await page.mouse.move(100, 100);
 		await page.mouse.up();
 
-		const d1 = await page.locator("path:not(.hitbox)").getAttribute("d");
+		const d1 = await page.locator(".wire").getAttribute("d");
 		await page.locator("rect").nth(1).hover();
 		await page.mouse.down();
 		await page.mouse.move(200, 300);
 		await page.mouse.up();
-		const d2 = await page.locator("path:not(.hitbox)").getAttribute("d");
+		const d2 = await page.locator(".wire").getAttribute("d");
 		expect(d1).not.toBe(d2);
 	});
 	test("undo", async ({ page }) => {
@@ -258,7 +258,7 @@ test.describe("editor", () => {
 		await drag(sourceHandle, 500, 500, page, { expect: false });
 
 		// 1. Drag and release
-		const wire = page.locator("path:not(.hitbox)");
+		const wire = page.locator(".wire");
 		const handle = page.locator("circle.handle").nth(2);
 		await drag(handle, 400, 400, page);
 
@@ -295,6 +295,6 @@ test.describe("editor", () => {
 		// 7. Undo twice (should remove the wire)
 		await page.getByRole("button", { name: "Undo" }).click();
 		await page.getByRole("button", { name: "Undo" }).click();
-		expect(await page.locator("path:not(.hitbox)").count()).toBe(0);
+		expect(await page.locator(".wire").count()).toBe(0);
 	});
 });

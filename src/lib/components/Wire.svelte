@@ -88,6 +88,7 @@
 </script>
 
 <path
+	class="wire"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke={otherFill}
 	style="pointer-events: {editingThis ? 'none' : 'all'};"

@@ -27,7 +27,9 @@
 					<Save size="32"></Save>
 					<h2>Save your circuit</h2>
 				</div>
-				<button class="close-button" on:click={close}><X></X></button>
+				<button title="Close" class="close-button" on:click={close}
+					><X></X></button
+				>
 			</div>
 			<div id="entry">
 				<input
@@ -49,7 +51,9 @@
 					<Download size="32"></Download>
 					<h2>Select a saved circuit</h2>
 				</div>
-				<button class="close-button" on:click={close}><X></X></button>
+				<button title="Close" class="close-button" on:click={close}
+					><X></X></button
+				>
 			</div>
 			<div class="list-container">
 				{#if uiState.listRequestData !== null}
