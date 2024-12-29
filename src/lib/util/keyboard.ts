@@ -28,6 +28,12 @@ const shortcuts = [
 		},
 	},
 	{
+		key: "d",
+		mod: null,
+		env: "editor",
+		action: EditorAction.toggleDelete,
+	},
+	{
 		key: "o",
 		mod: null,
 		env: "editor",

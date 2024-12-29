@@ -17,15 +17,22 @@
 	export let data;
 
 	function onMouseMove(e: MouseEvent) {
+		console.log(editorViewModel.uiState.editType);
 		const pos = { x: e.clientX, y: e.clientY };
 		setMousePosition(pos);
-		if (editorViewModel.uiState.editType === null) {
+		if (
+			editorViewModel.uiState.editType === null ||
+			editorViewModel.uiState.editType === "delete"
+		) {
 			return;
 		}
 		EditorAction.move(pos, editorViewModel.uiState.editedId);
 	}
 	function onMouseUp(e: MouseEvent) {
-		if (editorViewModel.uiState.editType === null) {
+		if (
+			editorViewModel.uiState.editType === null ||
+			editorViewModel.uiState.editType === "delete"
+		) {
 			return;
 		}
 		if (editorViewModel.uiState.editType === "add" && isClickOverSidebar(e)) {

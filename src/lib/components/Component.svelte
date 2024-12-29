@@ -32,8 +32,7 @@
 		if (editingThis) {
 			if (uiState.editType === "add") {
 				cursor = "default";
-			} else {
-				// uiState = "move"
+			} else if (uiState.editType === "move") {
 				cursor = "grabbing";
 			}
 		} else {
@@ -53,6 +52,9 @@
 		e: MouseEvent,
 	) {
 		if (uiState.isModalOpen || editing) {
+			return;
+		}
+		if (uiState.editType == "delete") {
 			return;
 		}
 		e.preventDefault();
@@ -75,6 +77,10 @@
 	}
 
 	function onMouseDown(e: MouseEvent) {
+		if (uiState.editType == "delete") {
+			EditorAction.deleteComponent(id);
+			return;
+		}
 		if (uiState.isModalOpen || editing) {
 			return;
 		}
@@ -90,24 +96,33 @@
 	}
 
 	function onHandleEnter(identifier: string) {
+		if (uiState.editType == "delete") {
+			return;
+		}
 		editorViewModel.setHoveredHandle({ handleId: identifier, id: id });
 	}
 
 	function onHandleLeave() {
+		if (uiState.editType == "delete") {
+			return;
+		}
 		editorViewModel.removeHoveredHandle();
 	}
 
 	let hoverR = 5;
 	let hoveredHandle: string | null = null;
+	let handleFill = "black";
 	$: {
 		if (editing && !uiState.outputConnectedToWire) {
 			// Adding/moving something else
-			hoverR = 20;
+			handleFill = "purple";
 		} else if (!uiState.outputConnectedToWire) {
 			// Not adding/moving anything
 			hoverR = 10;
+			handleFill = "black";
 		} else {
 			hoverR = 5;
+			handleFill = "black";
 		}
 		if (
 			uiState.hoveredHandle !== null &&
@@ -117,6 +132,15 @@
 			hoveredHandle = uiState.hoveredHandle.handleId;
 		} else {
 			hoveredHandle = null;
+		}
+	}
+
+	let fill = "green";
+	$: {
+		if (uiState.editType == "delete" && editingThis) {
+			fill = "red";
+		} else {
+			fill = "green";
 		}
 	}
 </script>
@@ -131,7 +155,13 @@
 	height={size.y * GRID_SIZE}
 	style="cursor: {cursor}"
 	on:mousedown={onMouseDown}
-	fill="green"
+	on:mouseenter={() => {
+		editorViewModel.setForDeletion(id);
+	}}
+	on:mouseleave={() => {
+		editorViewModel.removeForDeletion();
+	}}
+	{fill}
 	stroke="black"
 	fill-opacity="70%"
 >
@@ -152,6 +182,7 @@
 				cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
 				cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
 				r={hoveredHandle === identifier ? hoverR : 5}
+				fill={hoveredHandle === identifier ? handleFill : "black"}
 				on:mousedown={(e) =>
 					onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 			></circle>

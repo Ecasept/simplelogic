@@ -2,6 +2,8 @@ import {
 	ConnectCommand,
 	CreateComponentCommand,
 	CreateWireCommand,
+	DeleteComponentCommand,
+	DeleteWireCommand,
 	MoveWireConnectionCommand,
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global";
@@ -36,6 +38,28 @@ export class ChangesAction {
 }
 
 export class EditorAction {
+	static toggleDelete() {
+		const prevMode = editorViewModel.uiState.editType;
+		ChangesAction.discardChanges();
+		editorViewModel.toggleDelete(prevMode === "delete" ? null : "delete");
+	}
+
+	static deleteComponent(id: number) {
+		console.log("delete component", id);
+		const cmd = new DeleteComponentCommand(id);
+		graphManager.executeCommand(cmd);
+		graphManager.commitChanges();
+		graphManager.notifyAll();
+	}
+
+	static deleteWire(id: number) {
+		ChangesAction.discardChanges();
+		const cmd = new DeleteWireCommand(id);
+		graphManager.executeCommand(cmd);
+		graphManager.commitChanges();
+		graphManager.notifyAll();
+	}
+
 	static addComponent(label: string, type: string, pos: XYPair) {
 		ChangesAction.discardChanges();
 		const cmpData = constructComponent(label, type, pos);

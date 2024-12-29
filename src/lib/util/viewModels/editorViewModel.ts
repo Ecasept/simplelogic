@@ -23,6 +23,16 @@ type EditWire = {
 
 	clickOffset: null;
 };
+
+type DeletionState = {
+	editType: "delete";
+	editedId: number | null;
+
+	draggedHandle: null;
+	clickOffset: null;
+	outputConnectedToWire: false;
+};
+
 type DefaultState = {
 	editType: null;
 	editedId: null;
@@ -31,7 +41,12 @@ type DefaultState = {
 	outputConnectedToWire: false;
 };
 
-export type EditorUiState = (EditComponent | EditWire | DefaultState) & {
+export type EditorUiState = (
+	| EditComponent
+	| EditWire
+	| DefaultState
+	| DeletionState
+) & {
 	isModalOpen: boolean;
 	hoveredHandle: WireConnection | ComponentConnection | null;
 };
@@ -64,9 +79,28 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		this.notifyAll();
 	}
 
+	toggleDelete(mode: "delete" | null) {
+		this._uiState.editType = mode;
+		this.notifyAll();
+	}
+
 	setModalOpen(val: boolean) {
 		this._uiState.isModalOpen = val;
 		this.notifyAll();
+	}
+
+	setForDeletion(id: number) {
+		if (this._uiState.editType == "delete") {
+			this._uiState.editedId = id;
+			this.notifyAll();
+		}
+	}
+
+	removeForDeletion() {
+		if (this._uiState.editType == "delete") {
+			this._uiState.editedId = null;
+			this.notifyAll();
+		}
 	}
 
 	startMoveComponent(id: number, clickOffset: XYPair) {

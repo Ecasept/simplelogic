@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
-	import { editorViewModel } from "$lib/util/actions";
+	import { EditorAction, editorViewModel } from "$lib/util/actions";
 
 	export let id: number;
 	export let label: string;
@@ -14,9 +14,13 @@
 	$: editing = uiState.editType !== null;
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
-		if (editorViewModel.uiState.isModalOpen) {
+		if (uiState.isModalOpen) {
 			return;
 		}
+		if (uiState.editType == "delete") {
+			return;
+		}
+
 		let outputConnectedToWire = false;
 		if (clickedHandle === "output") {
 			if (output.connection !== null && "handleType" in output.connection) {
@@ -32,46 +36,90 @@
 	}
 
 	function onHandleEnter(handleType: HandleType) {
-		if (editorViewModel.uiState.isModalOpen) {
+		if (uiState.isModalOpen) {
 			return;
 		}
+
+		if (uiState.editType == "delete") {
+			return;
+		}
+
 		editorViewModel.setHoveredHandle({ handleType: handleType, id: id });
 	}
 
 	function onHandleLeave() {
+		if (uiState.editType == "delete") {
+			return;
+		}
 		editorViewModel.removeHoveredHandle();
 	}
 
+	$: deletingThis = uiState.editType == "delete" && editingThis;
+
 	let hoverR = 5;
+	let fill = "black";
 	let hoveredHandle: string | null = null;
 	$: {
 		if (editing && !uiState.outputConnectedToWire) {
 			// Adding/moving something else
-			hoverR = 20;
+			hoverR = 10;
+			fill = "purple";
 		} else if (!uiState.outputConnectedToWire) {
 			// Not adding/moving anything
 			hoverR = 10;
+			fill = "black";
 		} else {
 			hoverR = 5;
+			fill = deletingThis ? "red" : "black";
 		}
+
+		console.log(deletingThis);
+
 		if (
 			uiState.hoveredHandle !== null &&
 			id === uiState.hoveredHandle.id &&
 			"handleType" in uiState.hoveredHandle
 		) {
+			console.log("hoveredHandle", uiState.hoveredHandle);
 			hoveredHandle = uiState.hoveredHandle.handleType;
 		} else {
 			hoveredHandle = null;
 		}
 	}
+
+	$: otherFill = deletingThis ? "red" : "black";
 </script>
 
 <path
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
-	stroke="black"
-	fill="none"
+	stroke={otherFill}
 	style="pointer-events: {editingThis ? 'none' : 'all'};"
 ></path>
+
+<!-- hitbox -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<path
+	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
+	stroke="transparent"
+	style="pointer-events: {editingThis && !deletingThis ? 'none' : 'all'};"
+	stroke-width="10"
+	on:mouseenter={() => {
+		if (uiState.isModalOpen) {
+			return;
+		}
+		editorViewModel.setForDeletion(id);
+	}}
+	on:mouseleave={() => {
+		editorViewModel.removeForDeletion();
+	}}
+	on:mousedown={() => {
+		if (uiState.isModalOpen || !deletingThis) {
+			return;
+		}
+		EditorAction.deleteWire(id);
+	}}
+></path>
+
 {#if input.connection === null}
 	<!-- Hide connected inputs -->
 	{#if !(uiState.draggedHandle === "input" && !editingThis)}
@@ -86,6 +134,7 @@
 			cx={input.x}
 			cy={input.y}
 			r={hoveredHandle === "input" ? hoverR : 5}
+			fill={hoveredHandle === "input" ? fill : otherFill}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			on:mousedown={(e) => onHandleDown("input", e)}
 		></circle>
@@ -105,6 +154,7 @@
 			cx={output.x}
 			cy={output.y}
 			r={hoveredHandle === "output" ? hoverR : 5}
+			fill={hoveredHandle === "output" ? fill : otherFill}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			on:mousedown={(e) => onHandleDown("output", e)}
 		></circle>

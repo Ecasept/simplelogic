@@ -13,7 +13,6 @@
 	export let uiState: SidebarUiState;
 	export let loggedIn;
 	$: sidebarViewModel.setLoggedInState(loggedIn);
-
 	function addComponent(label: string, type: string, e: MouseEvent) {
 		if (editorViewModel.uiState.isModalOpen) {
 			return;
@@ -52,6 +51,7 @@
 	function logout() {
 		sidebarViewModel.logout();
 	}
+
 	function onKeyPress(e: KeyboardEvent) {
 		if (e.key === "Enter") {
 			login();
@@ -75,6 +75,7 @@
 			<button on:click={saveGraph}>Save</button>
 			<button on:click={loadGraph}>Load</button>
 			<button on:click={handleUndo}>Undo</button>
+			<button on:click={EditorAction.toggleDelete}>Delete</button>
 		</div>
 		<div class="authentification">
 			Authentification

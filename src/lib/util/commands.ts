@@ -176,3 +176,111 @@ export class CreateComponentCommand implements Command {
 		this.oldNextId = null;
 	}
 }
+
+export class DeleteComponentCommand implements Command {
+	deletedComponent: ComponentData | null = null;
+	changedWires: { [id: number]: WireData } = {};
+	changedHandles: { [id: number]: ComponentData } = {};
+
+	constructor(private componentId: number) {}
+	execute(graphData: GraphData) {
+		this.deletedComponent = graphData.components[this.componentId];
+		delete graphData.components[this.componentId];
+
+		for (const wireId in graphData.wires) {
+			const wire = graphData.wires[wireId];
+			for (const handleType of [wire.input, wire.output]) {
+				if (handleType.connection?.id === this.componentId) {
+					this.changedWires[wire.id] = structuredClone(wire);
+					handleType.connection = null;
+				}
+			}
+		}
+		for (const componentId in graphData.components) {
+			const component = graphData.components[componentId];
+			for (const handleName in component.handles) {
+				const handle = component.handles[handleName];
+				if (handle.connection?.id === this.componentId) {
+					this.changedHandles[component.id] = structuredClone(component);
+					handle.connection = null;
+				}
+			}
+		}
+	}
+
+	undo(graphData: GraphData) {
+		if (this.deletedComponent === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+
+		graphData.components[this.componentId] = this.deletedComponent;
+
+		for (const [wireId, wireData] of Object.entries(this.changedWires)) {
+			graphData.wires[Number(wireId)] = wireData;
+		}
+		for (const [componentId, componentData] of Object.entries(
+			this.changedHandles,
+		)) {
+			graphData.components[Number(componentId)] = componentData;
+		}
+
+		this.deletedComponent = null;
+		this.changedWires = {};
+		this.changedHandles = {};
+	}
+}
+
+export class DeleteWireCommand implements Command {
+	deletedWire: WireData | null = null;
+	changedWires: { [id: number]: WireData } = {};
+	changedHandles: { [id: number]: ComponentData } = {};
+
+	constructor(private wireId: number) {}
+	execute(graphData: GraphData) {
+		this.deletedWire = graphData.wires[this.wireId];
+		delete graphData.wires[this.wireId];
+
+		for (const wireId in graphData.wires) {
+			const wire = graphData.wires[wireId];
+			for (const handleType of [wire.input, wire.output]) {
+				if (handleType.connection?.id === this.wireId) {
+					this.changedWires[wire.id] = structuredClone(wire);
+					handleType.connection = null;
+				}
+			}
+		}
+		for (const componentId in graphData.components) {
+			const component = graphData.components[componentId];
+			for (const handleName in component.handles) {
+				const handle = component.handles[handleName];
+				if (handle.connection?.id === this.wireId) {
+					this.changedHandles[component.id] = structuredClone(component);
+					handle.connection = null;
+				}
+			}
+		}
+	}
+
+	undo(graphData: GraphData) {
+		if (this.deletedWire === null) {
+			console.error(`Tried to undo command that has not been executed`);
+			return;
+		}
+
+		graphData.wires[this.wireId] = this.deletedWire;
+
+		for (const [wireId, wireData] of Object.entries(this.changedWires)) {
+			graphData.wires[Number(wireId)] = wireData;
+		}
+		for (const [componentId, componentData] of Object.entries(
+			this.changedHandles,
+		)) {
+			graphData.components[Number(componentId)] = componentData;
+		}
+
+		this.deletedWire = null;
+		this.changedWires = {};
+		this.changedHandles = {};
+	}
+}
