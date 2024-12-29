@@ -9,6 +9,7 @@
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
 	import type { FormEventHandler } from "svelte/elements";
+	import { Save, Download, Undo } from "lucide-svelte";
 
 	export let uiState: SidebarUiState;
 	export let editType: string | null;
@@ -85,9 +86,15 @@
 		<hr />
 
 		<div class="actions">
-			<button class="actionbtn" on:click={saveGraph}>Save</button>
-			<button class="actionbtn" on:click={loadGraph}>Load</button>
-			<button class="actionbtn" on:click={handleUndo}>Undo</button>
+			<button class="actionbtn icon" on:click={saveGraph}
+				><Save></Save>Save</button
+			>
+			<button class="actionbtn icon" on:click={loadGraph}
+				><Download></Download>Load</button
+			>
+			<button class="actionbtn icon" on:click={handleUndo}
+				><Undo></Undo>Undo</button
+			>
 		</div>
 
 		<hr />
@@ -225,6 +232,13 @@
 
 			&:hover {
 				background-color: var(--light-darker-color);
+			}
+
+			&.icon {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
 			}
 		}
 

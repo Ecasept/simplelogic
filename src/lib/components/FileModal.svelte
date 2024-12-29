@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
 	import { fileModalViewModel, PersistenceAction } from "$lib/util/actions";
-	import { X } from "lucide-svelte";
+	import { X, Save, Download } from "lucide-svelte";
 
 	let name = "";
 
@@ -23,7 +23,10 @@
 	<div class="modal-bg">
 		{#if uiState.mode === "save"}
 			<div id="modal-header">
-				<h2>Save your circuit</h2>
+				<div id="title-container">
+					<Save size="32"></Save>
+					<h2>Save your circuit</h2>
+				</div>
 				<button class="close-button" on:click={close}><X></X></button>
 			</div>
 			<div id="entry">
@@ -42,7 +45,10 @@
 
 		{#if uiState.mode === "load"}
 			<div id="modal-header">
-				<h2>Select a saved circuit</h2>
+				<div id="title-container">
+					<Download size="32"></Download>
+					<h2>Select a saved circuit</h2>
+				</div>
 				<button class="close-button" on:click={close}><X></X></button>
 			</div>
 			<div class="list-container">
@@ -68,6 +74,15 @@
 </div>
 
 <style lang="scss">
+	#title-container {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 20px;
+		h2 {
+			margin: 0;
+		}
+	}
 	#entry {
 		display: flex;
 	}
@@ -98,10 +113,7 @@
 		justify-content: space-between;
 		align-items: center;
 	}
-	#modal-header h2 {
-		margin: 0;
-		margin-bottom: 20px;
-	}
+
 	#modal-header .close-button {
 		background-color: transparent;
 		border: none;
