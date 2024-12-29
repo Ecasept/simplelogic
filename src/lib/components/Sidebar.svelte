@@ -143,7 +143,7 @@
 		height: 100vh;
 		right: 0;
 		top: 0;
-		background-color: rgb(126, 190, 113);
+		background-color: var(--bg-color);
 		transition: left 0.3s ease-in-out;
 		left: 80vw;
 		display: flex;
@@ -189,7 +189,7 @@
 		}
 
 		.addbtn {
-			background-color: #c1dfbf;
+			background-color: var(--light-color);
 			color: black;
 			border: 1px solid black;
 			cursor: pointer;
@@ -199,7 +199,7 @@
 			margin: 5px;
 
 			&:hover {
-				background-color: #a1bf9f;
+				background-color: var(--light-darker-color);
 			}
 		}
 
@@ -215,7 +215,7 @@
 		}
 
 		.actionbtn {
-			background-color: #c1dfbf;
+			background-color: var(--light-color);
 			color: black;
 			border: 1px solid black;
 			cursor: pointer;
@@ -224,7 +224,7 @@
 			padding: 8px;
 
 			&:hover {
-				background-color: #a1bf9f;
+				background-color: var(--light-darker-color);
 			}
 		}
 
@@ -240,7 +240,7 @@
 				width: 60%;
 				padding: 8px;
 
-				background-color: #c1dfbf;
+				background-color: var(--light-color);
 				border: 1px solid black;
 				border-radius: 8px;
 			}

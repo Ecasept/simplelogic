@@ -11,12 +11,12 @@ test.describe("modal", async () => {
 		// Can't save without being logged in
 		await page.getByRole("button", { name: "Save" }).click();
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
-		await expect(page.getByText("Not logged in")).toBeVisible();
+		await expect(page.getByText("Please login")).toBeVisible();
 		await page.getByRole("button", { name: "x", exact: true }).click();
 
 		// Can't load without being logged in
 		await page.getByRole("button", { name: "Load" }).click();
-		await expect(page.getByText("Not logged in")).toBeVisible();
+		await expect(page.getByText("Please login")).toBeVisible();
 		await page.getByRole("button", { name: "x", exact: true }).click();
 
 		// Sending no password

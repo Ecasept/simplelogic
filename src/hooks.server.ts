@@ -9,14 +9,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (event.url.pathname.startsWith("/api/graphs")) {
 		const token = event.cookies.get("auth");
 		if (typeof token !== "string") {
-			return json({ success: false, error: "Not logged in" });
+			return json({ success: false, error: "Please login" });
 		}
 		try {
 			let loggedIn = true;
 			const secret = new TextEncoder().encode(env.SECRET_KEY);
 			await jwtVerify(token, secret);
 		} catch (e) {
-			return json({ success: false, error: "Not logged in" });
+			return json({ success: false, error: "Please login" });
 		}
 	}
 

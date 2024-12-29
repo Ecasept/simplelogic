@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
 	import { fileModalViewModel, PersistenceAction } from "$lib/util/actions";
+	import { X } from "lucide-svelte";
 
 	let name = "";
 
@@ -21,14 +22,29 @@
 <div class="background">
 	<div class="modal-bg">
 		{#if uiState.mode === "save"}
-			<input type="text" bind:value={name} />
-			<button on:click={saveGraph}>Save</button>
+			<div id="modal-header">
+				<h2>Save your circuit</h2>
+				<button class="close-button" on:click={close}><X></X></button>
+			</div>
+			<div id="entry">
+				<input
+					id="name-input"
+					placeholder="Name"
+					type="text"
+					bind:value={name}
+				/>
+				<button id="save-btn" on:click={saveGraph}>Save</button>
+			</div>
 			{#if uiState.errorMessage !== null}
-				<span>{uiState.errorMessage}</span>
+				<span id="error-msg">{uiState.errorMessage}</span>
 			{/if}
 		{/if}
+
 		{#if uiState.mode === "load"}
-			Select a saved graph
+			<div id="modal-header">
+				<h2>Select a saved circuit</h2>
+				<button class="close-button" on:click={close}><X></X></button>
+			</div>
 			<div class="list-container">
 				{#if uiState.listRequestData !== null}
 					{#each uiState.listRequestData.graphs as graphInfo (graphInfo.id)}
@@ -41,18 +57,57 @@
 						</div>
 					{/each}
 				{:else}
-					Loading...
+					<span id="loading-span">Loading...</span>
 				{/if}
 			</div>
 			{#if uiState.errorMessage !== null}
-				<span>{uiState.errorMessage}</span>
+				<span id="error-msg">{uiState.errorMessage}</span>
 			{/if}
 		{/if}
-		<button class="close-button" on:click={close}>x</button>
 	</div>
 </div>
 
 <style lang="scss">
+	#entry {
+		display: flex;
+	}
+	#name-input {
+		display: inline;
+
+		width: 100%;
+
+		padding: 10px;
+
+		background-color: var(--light-color);
+		border: 1px solid black;
+		border-radius: 8px;
+	}
+	#save-btn {
+		display: inline;
+		background-color: var(--light-color);
+		color: black;
+		border: 1px solid black;
+		cursor: pointer;
+		border-radius: 12px;
+		margin: 0px 5px;
+		padding: 8px;
+	}
+
+	#modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	#modal-header h2 {
+		margin: 0;
+		margin-bottom: 20px;
+	}
+	#modal-header .close-button {
+		background-color: transparent;
+		border: none;
+		cursor: pointer;
+		align-self: flex-start;
+	}
 	.background {
 		width: 100%;
 		height: 100%;
@@ -67,26 +122,45 @@
 	.modal-bg {
 		width: 50%;
 		margin: auto;
-		background-color: white;
-		border-radius: 50px;
-		padding: 50px;
-		max-height: 50%;
+		background-color: var(--bg-color);
+		border-radius: 32px;
+		padding: 30px;
+		max-height: 50vh;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.list-container {
+		flex: 1;
+		overflow-y: auto;
+		margin: auto;
 		width: 80%;
-		max-height: 80%;
-		border: 2px solid gray;
+		border: 2px solid black;
 		border-radius: 25px;
 		overflow-x: hidden;
-		overflow-y: scroll;
+		overflow-y: auto;
+
+		display: flex;
+		flex-direction: column;
+
+		background-color: var(--light-color);
 	}
 
 	.graph-item {
 		padding: 10px;
-		width: 100%;
+		width: calc(100% - 20px);
 		&:hover {
-			background-color: gray;
+			background-color: #00000020;
+			cursor: pointer;
 		}
+	}
+
+	#loading-span {
+		margin: 10px auto;
+	}
+
+	#error-msg {
+		margin: 10px auto 0 auto;
+		color: red;
 	}
 </style>
