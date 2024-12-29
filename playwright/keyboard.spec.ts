@@ -8,7 +8,7 @@ async function expectPosToBe(component: Locator, x: number, y: number) {
 	const centerX = boundingBox.x + boundingBox.width / 2;
 	const centerY = boundingBox.y + boundingBox.height / 2;
 
-	// 31 because of snapping + 5 for other inaccuracies
+	// 3 because of snapping + 5 for other inaccuracies
 	expect(Math.abs(centerX - x)).toBeLessThan(35);
 	expect(Math.abs(centerY - y)).toBeLessThan(35);
 }
@@ -69,7 +69,7 @@ test.describe("editor shortcuts", () => {
 		page,
 	}) => {
 		// Add initial component
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(100, 100);
 
 		// Start moving component
@@ -93,7 +93,7 @@ test.describe("editor shortcuts", () => {
 
 	test("ctrl+z undoes last action", async ({ page }) => {
 		// Add a component
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(100, 100);
 
 		expect(await page.locator("rect").count()).toBe(2); // Including background rect

@@ -96,9 +96,9 @@
 	style="pointer-events: {editingThis ? 'none' : 'all'};"
 ></path>
 
-<!-- hitbox -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <path
+	class="hitbox"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke="transparent"
 	style="pointer-events: {editingThis && !deletingThis ? 'none' : 'all'};"

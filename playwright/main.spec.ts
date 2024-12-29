@@ -45,7 +45,7 @@ test.describe("editor", () => {
 	});
 
 	test("adds component at correct position", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 
 		await page.mouse.click(100, 200);
 
@@ -55,14 +55,14 @@ test.describe("editor", () => {
 		await expectPosToBe(component, 100, 200);
 	});
 	test("adds component and discards", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 
 		await page.keyboard.press("Escape");
 		expect(await page.locator("rect").count()).toBe(1);
 	});
 	test("adds multiple components", async ({ page }) => {
-		const andBtn = page.getByRole("button", { name: "Add AND" });
-		const orBtn = page.getByRole("button", { name: "Add OR" });
+		const andBtn = page.getByRole("button", { name: "AND" });
+		const orBtn = page.getByRole("button", { name: "OR", exact: true });
 
 		await andBtn.click();
 		await page.mouse.click(100, 100);
@@ -90,7 +90,7 @@ test.describe("editor", () => {
 	});
 
 	test("moves components correctly", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(100, 200);
 
 		await page.mouse.down();
@@ -104,7 +104,7 @@ test.describe("editor", () => {
 		await expectPosToBe(page.locator("rect").nth(1), 400, 300);
 	});
 	test("moves component and discards", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(100, 200);
 
 		const component = page.locator("rect").nth(1);
@@ -118,7 +118,7 @@ test.describe("editor", () => {
 		expect(y1).toBe(y2);
 	});
 	test("snaps", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(100, 200);
 		await page.mouse.down();
 		await page.mouse.move(0, 0, { steps: 10 });
@@ -128,7 +128,7 @@ test.describe("editor", () => {
 		expect(boundingBox1).toStrictEqual(boundingBox2);
 	});
 	test("drags and moves new wires", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 
 		// Click handle
 		await page.mouse.click(100, 200);
@@ -141,7 +141,7 @@ test.describe("editor", () => {
 		const handle = page.locator("circle.handle").nth(2);
 		await page.mouse.move(300, 300, { steps: 10 });
 		await expectPosToBe(handle, 300, 300);
-		await expect(page.locator("path").first()).toBeVisible();
+		await expect(page.locator("path:not(.hitbox)").first()).toBeVisible();
 
 		// Move handle
 		await page.mouse.move(400, 400, { steps: 10 });
@@ -154,7 +154,7 @@ test.describe("editor", () => {
 		expect(await page.locator("circle.handle").count()).toBe(4);
 	});
 	test("drags new wire and discards", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(100, 200);
 
 		const handle = page.locator("circle").nth(2);
@@ -174,7 +174,7 @@ test.describe("editor", () => {
 		expect(y1).toBe(y2);
 	});
 	test("drags wires with components", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 
 		await page.mouse.click(500, 500);
 
@@ -184,19 +184,19 @@ test.describe("editor", () => {
 		await page.mouse.move(100, 100);
 		await page.mouse.up();
 
-		const d1 = await page.locator("path").getAttribute("d");
+		const d1 = await page.locator("path:not(.hitbox)").getAttribute("d");
 		await page.locator("rect").nth(1).hover();
 		await page.mouse.down();
 		await page.mouse.move(200, 300);
 		await page.mouse.up();
-		const d2 = await page.locator("path").getAttribute("d");
+		const d2 = await page.locator("path:not(.hitbox)").getAttribute("d");
 		expect(d1).not.toBe(d2);
 	});
 	test("undo", async ({ page }) => {
 		// Add components
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(300, 300);
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(500, 500);
 
 		// Move Component
@@ -241,7 +241,7 @@ test.describe("editor", () => {
 		expect(innerHTML1).toBe(innerHTML2);
 
 		// Add component without committing
-		await page.getByRole("button", { name: "Add OR" }).click();
+		await page.getByRole("button", { name: "OR", exact: true }).click();
 		await page.mouse.move(500, 500);
 
 		// Press undo
@@ -250,7 +250,7 @@ test.describe("editor", () => {
 	});
 	test("drags existing wires flow", async ({ page }) => {
 		// Setup: Add two components and connect them
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(100, 100);
 
 		// Setup: Drag wire
@@ -258,7 +258,7 @@ test.describe("editor", () => {
 		await drag(sourceHandle, 500, 500, page, { expect: false });
 
 		// 1. Drag and release
-		const wire = page.locator("path");
+		const wire = page.locator("path:not(.hitbox)");
 		const handle = page.locator("circle.handle").nth(2);
 		await drag(handle, 400, 400, page);
 
@@ -295,6 +295,6 @@ test.describe("editor", () => {
 		// 7. Undo twice (should remove the wire)
 		await page.getByRole("button", { name: "Undo" }).click();
 		await page.getByRole("button", { name: "Undo" }).click();
-		expect(await page.locator("path").count()).toBe(0);
+		expect(await page.locator("path:not(.hitbox)").count()).toBe(0);
 	});
 });

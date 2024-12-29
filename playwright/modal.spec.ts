@@ -12,12 +12,12 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).click();
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("Not logged in")).toBeVisible();
-		await page.getByRole("button", { name: "x" }).click();
+		await page.getByRole("button", { name: "x", exact: true }).click();
 
 		// Can't load without being logged in
 		await page.getByRole("button", { name: "Load" }).click();
 		await expect(page.getByText("Not logged in")).toBeVisible();
-		await page.getByRole("button", { name: "x" }).click();
+		await page.getByRole("button", { name: "x", exact: true }).click();
 
 		// Sending no password
 		await page.getByRole("button", { name: "Login" }).click();
@@ -83,9 +83,9 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("No data to save - please")).toBeVisible();
 		// Close modal and add data
-		await page.getByRole("button", { name: "x" }).click();
+		await page.getByRole("button", { name: "x", exact: true }).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.mouse.click(100, 200);
 
 		// Open modal
@@ -109,7 +109,7 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("Name already exists")).toBeVisible();
 		// Close modal
-		await page.getByRole("button", { name: "x" }).click();
+		await page.getByRole("button", { name: "x", exact: true }).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Reload page
@@ -125,7 +125,7 @@ test.describe("modal", async () => {
 		expect(await page.locator("rect").count()).toBe(2);
 	});
 	test("discards changes", async ({ page }) => {
-		await page.getByRole("button", { name: "Add AND" }).click();
+		await page.getByRole("button", { name: "AND" }).click();
 		await page.getByRole("button", { name: "Save" }).click();
 		expect(await page.locator("rect").count()).toBe(1);
 	});
