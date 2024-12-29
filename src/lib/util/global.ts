@@ -1,8 +1,4 @@
-import type {
-	ComponentHandleList,
-	HandleEdge,
-	XYPair,
-} from "./types";
+import type { ComponentHandleList, HandleEdge, XYPair } from "./types";
 import { canvasViewModel } from "./actions";
 
 export let mousePosition = { x: 0, y: 0 };
@@ -34,12 +30,52 @@ export const COMPONENT_IO_MAPPING: {
 	},
 	OR: {
 		connections: {
-			in1: { edge: "top", pos: 1, type: "input", connection: null },
-			in2: { edge: "top", pos: 3, type: "input", connection: null },
-			out: { edge: "bottom", pos: 2, type: "output", connection: null },
+			in1: { edge: "left", pos: 1, type: "input", connection: null },
+			in2: { edge: "left", pos: 3, type: "input", connection: null },
+			out: { edge: "right", pos: 2, type: "output", connection: null },
 		},
 		height: 4,
 		width: 4,
+	},
+	NOT: {
+		connections: {
+			in: { edge: "left", pos: 2, type: "input", connection: null },
+			out: { edge: "right", pos: 2, type: "output", connection: null },
+		},
+		height: 4,
+		width: 4,
+	},
+	XOR: {
+		connections: {
+			in1: { edge: "left", pos: 1, type: "input", connection: null },
+			in2: { edge: "left", pos: 3, type: "input", connection: null },
+			out: { edge: "right", pos: 2, type: "output", connection: null },
+		},
+		height: 4,
+		width: 4,
+	},
+	DUPLICATE: {
+		connections: {
+			in: { edge: "left", pos: 2, type: "input", connection: null },
+			out1: { edge: "right", pos: 1, type: "output", connection: null },
+			out2: { edge: "right", pos: 3, type: "output", connection: null },
+		},
+		height: 4,
+		width: 4,
+	},
+	INPUT: {
+		connections: {
+			out: { edge: "right", pos: 1, type: "output", connection: null },
+		},
+		height: 2,
+		width: 2,
+	},
+	LED: {
+		connections: {
+			in: { edge: "left", pos: 1, type: "input", connection: null },
+		},
+		height: 2,
+		width: 2,
 	},
 };
 

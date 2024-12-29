@@ -63,7 +63,11 @@
 
 <div class="wrapper">
 	<Canvas uiState={$canvasViewModel}></Canvas>
-	<Sidebar loggedIn={data.loggedIn} uiState={$sidebarViewModel}></Sidebar>
+	<Sidebar
+		editType={$editorViewModel.editType}
+		loggedIn={data.loggedIn}
+		uiState={$sidebarViewModel}
+	></Sidebar>
 	{#if $fileModalViewModel.mode !== null}
 		<FileModal uiState={$fileModalViewModel}></FileModal>
 	{/if}
