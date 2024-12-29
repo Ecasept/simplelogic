@@ -73,14 +73,11 @@
 			fill = deletingThis ? "red" : "black";
 		}
 
-		console.log(deletingThis);
-
 		if (
 			uiState.hoveredHandle !== null &&
 			id === uiState.hoveredHandle.id &&
 			"handleType" in uiState.hoveredHandle
 		) {
-			console.log("hoveredHandle", uiState.hoveredHandle);
 			hoveredHandle = uiState.hoveredHandle.handleType;
 		} else {
 			hoveredHandle = null;

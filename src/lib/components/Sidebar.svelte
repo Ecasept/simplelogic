@@ -10,6 +10,7 @@
 	} from "$lib/util/viewModels/sidebarViewModel";
 	import type { FormEventHandler } from "svelte/elements";
 	import { Save, Download, Undo } from "lucide-svelte";
+	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
 
 	export let uiState: SidebarUiState;
 	export let editType: string | null;
@@ -77,7 +78,11 @@
 			{#each ["AND", "OR", "NOT", "XOR", ["INPUT", "IN"], "LED", ["DUPLICATE", "DBL"]] as type}
 				{@const t = Array.isArray(type) ? type[0] : type}
 				{@const name = Array.isArray(type) ? type[1] : type}
-				<button class="addbtn" on:click={(e) => addComponent("none", t, e)}>
+				<button
+					title={COMPONENT_IO_MAPPING[t].description}
+					class="addbtn"
+					on:click={(e) => addComponent("none", t, e)}
+				>
 					{name}
 				</button>
 			{/each}

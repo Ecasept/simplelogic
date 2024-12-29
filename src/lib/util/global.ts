@@ -17,6 +17,7 @@ export const COMPONENT_IO_MAPPING: {
 		connections: ComponentHandleList;
 		height: number;
 		width: number;
+		description: string;
 	};
 } = {
 	AND: {
@@ -27,6 +28,7 @@ export const COMPONENT_IO_MAPPING: {
 		},
 		height: 4,
 		width: 4,
+		description: "Outputs true if both inputs are true",
 	},
 	OR: {
 		connections: {
@@ -36,6 +38,7 @@ export const COMPONENT_IO_MAPPING: {
 		},
 		height: 4,
 		width: 4,
+		description: "Outputs true if either input is true",
 	},
 	NOT: {
 		connections: {
@@ -44,6 +47,7 @@ export const COMPONENT_IO_MAPPING: {
 		},
 		height: 4,
 		width: 4,
+		description: "Outputs the opposite of the input",
 	},
 	XOR: {
 		connections: {
@@ -53,6 +57,7 @@ export const COMPONENT_IO_MAPPING: {
 		},
 		height: 4,
 		width: 4,
+		description: "Outputs true if only one input is true",
 	},
 	DUPLICATE: {
 		connections: {
@@ -62,6 +67,7 @@ export const COMPONENT_IO_MAPPING: {
 		},
 		height: 4,
 		width: 4,
+		description: "Outputs the input to two outputs",
 	},
 	INPUT: {
 		connections: {
@@ -69,6 +75,7 @@ export const COMPONENT_IO_MAPPING: {
 		},
 		height: 2,
 		width: 2,
+		description: "Toggleable power source",
 	},
 	LED: {
 		connections: {
@@ -76,6 +83,7 @@ export const COMPONENT_IO_MAPPING: {
 		},
 		height: 2,
 		width: 2,
+		description: "Displays the input as a light",
 	},
 };
 

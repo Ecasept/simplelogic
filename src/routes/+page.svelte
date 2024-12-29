@@ -17,7 +17,6 @@
 	export let data;
 
 	function onMouseMove(e: MouseEvent) {
-		console.log(editorViewModel.uiState.editType);
 		const pos = { x: e.clientX, y: e.clientY };
 		setMousePosition(pos);
 		if (

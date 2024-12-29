@@ -45,7 +45,6 @@ export class EditorAction {
 	}
 
 	static deleteComponent(id: number) {
-		console.log("delete component", id);
 		const cmd = new DeleteComponentCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
