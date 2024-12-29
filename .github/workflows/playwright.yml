@@ -27,10 +27,13 @@ jobs:
       - name: "Create .dev.vars file"
         run: |
           touch .dev.vars
-          echo PASSWORD="testpassword" >> .dev.vars
-          echo SECRET_KEY="testkey" >> .dev.vars
+          echo PASSWORD=${{ secrets.PASSWORD }} >> .dev.vars
+          echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .dev.vars
       - name: Run Playwright tests
         run: npx playwright test
+        env:
+          PASSWORD: ${{ secrets.PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
