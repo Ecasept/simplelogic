@@ -106,6 +106,10 @@
 		border-radius: 12px;
 		margin: 0px 5px;
 		padding: 8px;
+
+		&:hover {
+			background-color: var(--light-darker-color);
+		}
 	}
 
 	#modal-header {
