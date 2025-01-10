@@ -24,7 +24,7 @@ const shortcuts = [
 		mod: null,
 		env: "editor",
 		action: () => {
-			EditorAction.addComponent("test", "AND", mousePosition);
+			EditorAction.addComponent("AND", mousePosition);
 		},
 	},
 	{
@@ -38,7 +38,7 @@ const shortcuts = [
 		mod: null,
 		env: "editor",
 		action: () => {
-			EditorAction.addComponent("test", "OR", mousePosition);
+			EditorAction.addComponent("OR", mousePosition);
 		},
 	},
 	{
@@ -95,4 +95,12 @@ export function handleKeyDown(e: KeyboardEvent) {
 		e.preventDefault();
 		matchingShortcut.action();
 	}
+}
+
+export function onEnter(f: (e: KeyboardEvent) => void) {
+	return (e: KeyboardEvent) => {
+		if (e.key === "Enter") {
+			f(e);
+		}
+	};
 }

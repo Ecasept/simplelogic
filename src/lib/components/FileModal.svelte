@@ -2,13 +2,14 @@
 	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
 	import { fileModalViewModel, PersistenceAction } from "$lib/util/actions";
 	import { X, Save, Download } from "lucide-svelte";
+	import { onEnter } from "$lib/util/keyboard";
 
-	let name = "";
+	let enteredName = $state("");
 
-	export let uiState: FileModalUiState;
+	let { uiState }: { uiState: FileModalUiState } = $props();
 
 	function saveGraph() {
-		fileModalViewModel.saveGraph(name);
+		fileModalViewModel.saveGraph(enteredName);
 	}
 
 	function close() {
@@ -27,7 +28,7 @@
 					<Save size="32"></Save>
 					<h2>Save your circuit</h2>
 				</div>
-				<button title="Close" class="close-button" on:click={close}
+				<button title="Close" class="close-button" onclick={close}
 					><X></X></button
 				>
 			</div>
@@ -36,9 +37,9 @@
 					id="name-input"
 					placeholder="Name"
 					type="text"
-					bind:value={name}
+					bind:value={enteredName}
 				/>
-				<button id="save-btn" on:click={saveGraph}>Save</button>
+				<button id="save-btn" onclick={saveGraph}>Save</button>
 			</div>
 			{#if uiState.errorMessage !== null}
 				<span id="error-msg">{uiState.errorMessage}</span>
@@ -51,16 +52,20 @@
 					<Download size="32"></Download>
 					<h2>Select a saved circuit</h2>
 				</div>
-				<button title="Close" class="close-button" on:click={close}
+				<button title="Close" class="close-button" onclick={close}
 					><X></X></button
 				>
 			</div>
 			<div class="list-container">
 				{#if uiState.listRequestData !== null}
 					{#each uiState.listRequestData.graphs as graphInfo (graphInfo.id)}
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<!-- svelte-ignore a11y-no-static-element-interactions -->
-						<div on:click={(e) => chooseGraph(graphInfo.id)} class="graph-item">
+						<div
+							role="menuitem"
+							tabindex="0"
+							onclick={(_) => chooseGraph(graphInfo.id)}
+							onkeypress={onEnter((_) => chooseGraph(graphInfo.id))}
+							class="graph-item"
+						>
 							{graphInfo.name}
 							<br />
 							<span style="color: brown;">id: {graphInfo.id}</span>

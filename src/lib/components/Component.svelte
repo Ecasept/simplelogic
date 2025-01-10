@@ -7,42 +7,38 @@
 		XYPair,
 	} from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
-	import {
-		ChangesAction,
-		EditorAction,
-		editorViewModel,
-	} from "$lib/util/actions";
+	import { EditorAction, editorViewModel } from "$lib/util/actions";
 
-	export let id: number;
-	export let label: string = "Component";
-	export let size: XYPair;
-	export let type: string;
-	export let position: XYPair;
-	export let connections: ComponentHandleList;
-
-	export let uiState: EditorUiState;
+	type Props = {
+		id: number;
+		size: XYPair;
+		type: string;
+		position: XYPair;
+		connections: ComponentHandleList;
+		uiState: EditorUiState;
+	};
+	let { id, size, type, position, connections, uiState }: Props = $props();
 
 	let rect: SVGRectElement;
 
-	$: editingThis = uiState.editedId === id;
-	$: editing = uiState.editType !== null;
+	let editingThis = $derived(uiState.editedId === id);
+	let editing = $derived(uiState.editType !== null);
 
-	let cursor = "default";
-	$: {
+	let cursor = $derived.by(() => {
 		if (editingThis) {
 			if (uiState.editType === "add") {
-				cursor = "default";
+				return "default";
 			} else if (uiState.editType === "move") {
-				cursor = "grabbing";
+				return "grabbing";
 			}
 		} else {
 			if (editing) {
-				cursor = "default";
+				return "default";
 			} else {
-				cursor = "grab";
+				return "grab";
 			}
 		}
-	}
+	});
 
 	function onHandleDown(
 		handleId: string,
@@ -51,10 +47,10 @@
 		handlePos: number,
 		e: MouseEvent,
 	) {
-		if (uiState.isModalOpen || editing) {
+		if (uiState.editType == "delete") {
 			return;
 		}
-		if (uiState.editType == "delete") {
+		if (e.button !== 0) {
 			return;
 		}
 		e.preventDefault();
@@ -65,15 +61,10 @@
 		// calculate position of handle
 		let handleOffset = calculateHandleOffset(handleEdge, handlePos, size);
 
-		EditorAction.addWire(
-			{
-				label: "test",
-			},
-			position,
-			handleOffset,
-			handleType,
-			{ id: id, handleId: handleId },
-		);
+		EditorAction.addWire(position, handleOffset, handleType, {
+			id: id,
+			handleId: handleId,
+		});
 	}
 
 	function onMouseDown(e: MouseEvent) {
@@ -81,7 +72,7 @@
 			EditorAction.deleteComponent(id);
 			return;
 		}
-		if (uiState.isModalOpen || editing) {
+		if (e.button !== 0) {
 			return;
 		}
 
@@ -109,10 +100,10 @@
 		editorViewModel.removeHoveredHandle();
 	}
 
-	let hoverR = 5;
-	let hoveredHandle: string | null = null;
-	let handleFill = "black";
-	$: {
+	let hoverR = $state(5);
+	let hoveredHandle: string | null = $state(null);
+	let handleFill = $state("black");
+	$effect(() => {
 		if (editing && !uiState.outputConnectedToWire) {
 			// Adding/moving something else
 			handleFill = "purple";
@@ -133,32 +124,33 @@
 		} else {
 			hoveredHandle = null;
 		}
-	}
+	});
 
-	let fill = "green";
-	$: {
+	let fill = $derived.by(() => {
 		if (uiState.editType == "delete" && editingThis) {
-			fill = "red";
+			return "red";
 		} else {
-			fill = "green";
+			return "green";
 		}
-	}
+	});
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
 <rect
 	bind:this={rect}
+	role="button"
+	tabindex="0"
+	aria-label={type}
 	class="component-body"
 	x={position.x}
 	y={position.y}
 	width={size.x * GRID_SIZE}
 	height={size.y * GRID_SIZE}
 	style="cursor: {cursor}"
-	on:mousedown={onMouseDown}
-	on:mouseenter={() => {
+	onmousedown={onMouseDown}
+	onmouseenter={() => {
 		editorViewModel.setForDeletion(id);
 	}}
-	on:mouseleave={() => {
+	onmouseleave={() => {
 		editorViewModel.removeForDeletion();
 	}}
 	{fill}
@@ -172,18 +164,19 @@
 		<!-- Hide connected inputs -->
 		{#if !(uiState.draggedHandle === handle.type)}
 			<!-- Hide handles of same type as dragged handle -->
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<circle
+				role="button"
+				tabindex="0"
 				class="handle {handle.edge}"
-				on:mouseenter={() => {
+				onmouseenter={() => {
 					onHandleEnter(identifier);
 				}}
-				on:mouseleave={onHandleLeave}
+				onmouseleave={onHandleLeave}
 				cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
 				cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
 				r={hoveredHandle === identifier ? hoverR : 5}
 				fill={hoveredHandle === identifier ? handleFill : "black"}
-				on:mousedown={(e) =>
+				onmousedown={(e) =>
 					onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 			></circle>
 		{/if}

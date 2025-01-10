@@ -118,7 +118,7 @@ export function calculateHandleOffset(
 	return pos;
 }
 
-export function constructComponent(label: string, type: string, pos: XYPair) {
+export function constructComponent(type: string, pos: XYPair) {
 	if (!(type in COMPONENT_IO_MAPPING)) {
 		console.error(`Tried to add non-existing type ${type}`);
 		return;
@@ -127,7 +127,6 @@ export function constructComponent(label: string, type: string, pos: XYPair) {
 	const svgPos = canvasViewModel.clientToSVGCoords(pos);
 	return {
 		type: type,
-		label: label,
 		size: { x: data.width, y: data.height },
 		position: {
 			x: svgPos.x - (data.width * GRID_SIZE) / 2,

@@ -3,21 +3,23 @@
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
 
-	export let id: number;
-	export let label: string;
-	export let input: WireHandle;
-	export let output: WireHandle;
+	type Props = {
+		id: number;
+		input: WireHandle;
+		output: WireHandle;
+		uiState: EditorUiState;
+	};
 
-	export let uiState: EditorUiState;
+	let { id, input, output, uiState }: Props = $props();
 
-	$: editingThis = uiState.editedId === id;
-	$: editing = uiState.editType !== null;
+	let editingThis = $derived(uiState.editedId === id);
+	let editing = $derived(uiState.editType !== null);
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
-		if (uiState.isModalOpen) {
+		if (uiState.editType == "delete") {
 			return;
 		}
-		if (uiState.editType == "delete") {
+		if (e.button !== 0) {
 			return;
 		}
 
@@ -36,10 +38,6 @@
 	}
 
 	function onHandleEnter(handleType: HandleType) {
-		if (uiState.isModalOpen) {
-			return;
-		}
-
 		if (uiState.editType == "delete") {
 			return;
 		}
@@ -54,12 +52,12 @@
 		editorViewModel.removeHoveredHandle();
 	}
 
-	$: deletingThis = uiState.editType == "delete" && editingThis;
+	let deletingThis = $derived(uiState.editType == "delete" && editingThis);
 
-	let hoverR = 5;
-	let fill = "black";
-	let hoveredHandle: string | null = null;
-	$: {
+	let hoverR = $state(5);
+	let fill = $state("black");
+	let hoveredHandle: string | null = $state(null);
+	$effect(() => {
 		if (editing && !uiState.outputConnectedToWire) {
 			// Adding/moving something else
 			hoverR = 10;
@@ -82,9 +80,9 @@
 		} else {
 			hoveredHandle = null;
 		}
-	}
+	});
 
-	$: otherFill = deletingThis ? "red" : "black";
+	let otherFill = $derived(deletingThis ? "red" : "black");
 </script>
 
 <path
@@ -94,24 +92,28 @@
 	style="pointer-events: {editingThis ? 'none' : 'all'};"
 ></path>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
 <path
+	role="button"
+	tabindex="0"
 	class="hitbox"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke="transparent"
 	style="pointer-events: {editingThis && !deletingThis ? 'none' : 'all'};"
 	stroke-width="10"
-	on:mouseenter={() => {
+	onmouseenter={() => {
 		if (uiState.isModalOpen) {
 			return;
 		}
 		editorViewModel.setForDeletion(id);
 	}}
-	on:mouseleave={() => {
+	onmouseleave={() => {
 		editorViewModel.removeForDeletion();
 	}}
-	on:mousedown={() => {
+	onmousedown={(e: MouseEvent) => {
 		if (uiState.isModalOpen || !deletingThis) {
+			return;
+		}
+		if (e.button !== 0) {
 			return;
 		}
 		EditorAction.deleteWire(id);
@@ -122,19 +124,20 @@
 	<!-- Hide connected inputs -->
 	{#if !(uiState.draggedHandle === "input" && !editingThis)}
 		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<circle
-			on:mouseenter={() => {
+			role="button"
+			tabindex="0"
+			onmouseenter={() => {
 				onHandleEnter("input");
 			}}
-			on:mouseleave={onHandleLeave}
+			onmouseleave={onHandleLeave}
 			class="handle"
 			cx={input.x}
 			cy={input.y}
 			r={hoveredHandle === "input" ? hoverR : 5}
 			fill={hoveredHandle === "input" ? fill : otherFill}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
-			on:mousedown={(e) => onHandleDown("input", e)}
+			onmousedown={(e) => onHandleDown("input", e)}
 		></circle>
 	{/if}
 {/if}
@@ -142,18 +145,19 @@
 	<!-- Hide outputs connected to components -->
 	{#if !(uiState.draggedHandle === "output" && !editingThis)}
 		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<circle
-			on:mouseenter={() => {
+			role="button"
+			tabindex="0"
+			onmouseenter={() => {
 				onHandleEnter("output");
 			}}
-			on:mouseleave={onHandleLeave}
+			onmouseleave={onHandleLeave}
 			class="handle"
 			cx={output.x}
 			cy={output.y}
 			r={hoveredHandle === "output" ? hoverR : 5}
 			fill={hoveredHandle === "output" ? fill : otherFill}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
-			on:mousedown={(e) => onHandleDown("output", e)}
+			onmousedown={(e) => onHandleDown("output", e)}
 		></circle>
 	{/if}{/if}

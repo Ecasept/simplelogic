@@ -11,41 +11,32 @@
 	import type { FormEventHandler } from "svelte/elements";
 	import { Save, Download, Undo } from "lucide-svelte";
 	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
+	import { onEnter } from "$lib/util/keyboard";
 
-	export let uiState: SidebarUiState;
-	export let editType: string | null;
-	export let loggedIn;
-	$: sidebarViewModel.setLoggedInState(loggedIn);
-	function addComponent(label: string, type: string, e: MouseEvent) {
-		if (editorViewModel.uiState.isModalOpen) {
-			return;
-		}
-		EditorAction.addComponent(label, type, e);
+	type Props = {
+		uiState: SidebarUiState;
+		editType: string | null;
+		cookieLoggedIn: boolean;
+	};
+	let { uiState, editType, cookieLoggedIn }: Props = $props();
+
+	sidebarViewModel.setLoggedInState(cookieLoggedIn);
+
+	function addComponent(type: string, e: MouseEvent) {
+		EditorAction.addComponent(type, e);
 	}
 
 	function handleUndo() {
-		if (editorViewModel.uiState.isModalOpen) {
-			return;
-		}
 		EditorAction.undo();
 	}
 
 	function saveGraph() {
-		if (editorViewModel.uiState.isModalOpen) {
-			return;
-		}
 		PersistenceAction.saveGraph();
 	}
 	function loadGraph() {
-		if (editorViewModel.uiState.isModalOpen) {
-			return;
-		}
 		PersistenceAction.loadGraph();
 	}
 	function toggleOpen() {
-		if (editorViewModel.uiState.isModalOpen) {
-			return;
-		}
 		sidebarViewModel.toggleOpen();
 	}
 	function login() {
@@ -55,22 +46,15 @@
 		sidebarViewModel.logout();
 	}
 
-	function onKeyPress(e: KeyboardEvent) {
-		if (e.key === "Enter") {
-			login();
-		}
-	}
 	const onInput: FormEventHandler<HTMLInputElement> = function (e) {
 		sidebarViewModel.setPasswordInputValue(
-			e.target !== null && (e.target as HTMLInputElement).value !== null
-				? (e.target as HTMLInputElement).value
-				: "",
+			(e.target as HTMLInputElement | null)?.value ?? "",
 		);
 	};
 </script>
 
 <div class="sidebarWrapper" class:open={uiState.open}>
-	<button class="collapse" on:click={toggleOpen}><span>▶</span></button>
+	<button class="collapse" onclick={toggleOpen}><span>▶</span></button>
 	<div class="content">
 		<h2>Tools</h2>
 
@@ -81,7 +65,7 @@
 				<button
 					title={COMPONENT_IO_MAPPING[t].description}
 					class="addbtn"
-					on:click={(e) => addComponent("none", t, e)}
+					onclick={(e) => addComponent(t, e)}
 				>
 					{name}
 				</button>
@@ -91,13 +75,13 @@
 		<hr />
 
 		<div class="actions">
-			<button class="actionbtn icon" on:click={saveGraph}
+			<button class="actionbtn icon" onclick={saveGraph}
 				><Save></Save>Save</button
 			>
-			<button class="actionbtn icon" on:click={loadGraph}
+			<button class="actionbtn icon" onclick={loadGraph}
 				><Download></Download>Load</button
 			>
-			<button class="actionbtn icon" on:click={handleUndo}
+			<button class="actionbtn icon" onclick={handleUndo}
 				><Undo></Undo>Undo</button
 			>
 		</div>
@@ -117,7 +101,7 @@
 					Normal
 				{/if}
 			</div>
-			<button class="actionbtn" on:click={EditorAction.toggleDelete}
+			<button class="actionbtn" onclick={EditorAction.toggleDelete}
 				>Toggle Delete</button
 			>
 		</div>
@@ -125,19 +109,19 @@
 		<div class="authentification">
 			<h2>Authentification</h2>
 			{#if uiState.loggedIn}
-				<button style="margin-left: 0px;" class="actionbtn" on:click={logout}
+				<button style="margin-left: 0px;" class="actionbtn" onclick={logout}
 					>Log out</button
 				>
 			{:else}
 				<div>Enter server password to save and load graphs:</div>
 				<input
 					value={uiState.passwordInputValue}
-					on:input={onInput}
+					oninput={onInput}
 					type="password"
 					placeholder="Password"
-					on:keypress={onKeyPress}
+					onkeypress={onEnter(() => login())}
 				/>
-				<button class="actionbtn" on:click={login}>Login</button>
+				<button class="actionbtn" onclick={login}>Login</button>
 			{/if}
 			{#if uiState.message !== null}
 				<br />

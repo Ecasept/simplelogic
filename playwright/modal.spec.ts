@@ -1,11 +1,11 @@
-import test, { expect } from "@playwright/test";
+import test, { expect, Page } from "@playwright/test";
 import { isContext } from "vm";
+import { addComponent, reload } from "./common";
 
 test.describe("modal", async () => {
 	test.beforeEach(async ({ page, context }) => {
 		await context.clearCookies();
-		await page.goto("/");
-		await page.waitForLoadState("networkidle");
+		await reload(page);
 	});
 	test("login flow", async ({ page }) => {
 		// Can't save without being logged in
@@ -37,8 +37,7 @@ test.describe("modal", async () => {
 		await expect(page.locator('input[type="password"]')).not.toBeVisible();
 
 		// Still logged in after reload
-		await page.reload();
-		await page.waitForLoadState("networkidle");
+		await reload(page);
 		await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
 		await expect(page.locator('input[type="password"]')).not.toBeVisible();
 
@@ -48,8 +47,7 @@ test.describe("modal", async () => {
 		await expect(page.locator('input[type="password"]')).toBeVisible();
 
 		// Still logged out after reload
-		await page.reload();
-		await page.waitForLoadState("networkidle");
+		await reload(page);
 		await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
 		await expect(page.locator('input[type="password"]')).toBeVisible();
 
@@ -85,8 +83,7 @@ test.describe("modal", async () => {
 		// Close modal and add data
 		await page.getByRole("button", { name: "Close" }).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
-		await page.getByRole("button", { name: "AND" }).click();
-		await page.mouse.click(100, 200);
+		await addComponent(page, "AND", 100, 200);
 
 		// Open modal
 		await page.getByRole("button", { name: "Save" }).click();
@@ -113,8 +110,7 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Reload page
-		await page.goto("/");
-		await page.waitForLoadState("networkidle");
+		await reload(page);
 		// Open modal
 		await page.getByRole("button", { name: "Load" }).click();
 		await expect(page.locator(".modal-bg")).toBeVisible();
@@ -122,29 +118,39 @@ test.describe("modal", async () => {
 		await expect(page.getByText(`${graphName} id:`)).toBeVisible();
 		await page.getByText(`${graphName} id:`).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
-		expect(await page.locator("rect").count()).toBe(2);
+		await expect(page.locator(".component-body")).toHaveCount(1);
 	});
 	test("discards changes", async ({ page }) => {
-		await page.getByRole("button", { name: "AND" }).click();
+		await page.getByText("AND", { exact: true }).click();
 		await page.getByRole("button", { name: "Save" }).click();
-		expect(await page.locator("rect").count()).toBe(1);
+		await expect(page.locator(".component-body")).toHaveCount(0);
+	});
+	test("enter selects circuit", async ({ page, browser }) => {
+		const graphName = `test_enter_${browser.browserType().name()}_${Date.now()}`;
+
+		// Login
+		await page
+			.locator('input[type="password"]')
+			.fill(process.env.PASSWORD ?? "");
+		await page.getByRole("button", { name: "Login" }).click();
+
+		// Create a circuit
+		await addComponent(page, "AND", 100, 200);
+
+		// Save the circuit
+		await page.getByRole("button", { name: "Save" }).click();
+		await page.locator('input[type="text"]').fill(graphName);
+		await page.getByRole("button", { name: "Save" }).nth(1).click();
+
+		// Reload page
+		await reload(page);
+
+		// Open load modal and select with Enter
+		await page.getByRole("button", { name: "Load" }).click();
+		await expect(page.getByText(`${graphName} id:`)).toBeVisible();
+		await page.getByText(`${graphName} id:`).click();
+		await page.keyboard.press("Enter");
+		await expect(page.locator(".modal-bg")).not.toBeVisible();
+		await expect(page.locator(".component-body")).toHaveCount(1);
 	});
 });
-
-/*
-{
-	"stack": "    at functionsWorker-0.896388872539319.js:6:9
-    at node_modules/safe-buffer/index.js (functionsWorker-0.896388872539319.js:296:18)
-    at __require22 (functionsWorker-0.896388872539319.js:27:50)
-    at node_modules/jws/lib/sign-stream.js (functionsWorker-0.896388872539319.js:813:19)
-    at __require22 (functionsWorker-0.896388872539319.js:27:50)
-    at node_modules/jws/index.js (functionsWorker-0.896388872539319.js:989:22)
-    at __require22 (functionsWorker-0.896388872539319.js:27:50)
-    at node_modules/jsonwebtoken/decode.js (functionsWorker-0.896388872539319.js:1020:15)
-    at __require22 (functionsWorker-0.896388872539319.js:27:50)
-    at node_modules/jsonwebtoken/index.js (functionsWorker-0.896388872539319.js:3896:15)",
-	"name": "Error",
-	"message": "Dynamic require of \"node:buffer\" is not supported",
-	"timestamp": 1724768954028
-  }
-	*/

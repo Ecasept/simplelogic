@@ -30,14 +30,12 @@ describe("Command Tests", () => {
 		it("should execute and undo multiple commands", () => {
 			const cmd1 = new CreateComponentCommand({
 				type: "test",
-				label: "test",
 				size: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
 				handles: {},
 			});
 			const cmd2 = new CreateComponentCommand({
 				type: "test2",
-				label: "test2",
 				size: { x: 10, y: 10 },
 				position: { x: 20 * GRID_SIZE, y: 11 * GRID_SIZE },
 				handles: {},
@@ -59,7 +57,6 @@ describe("Command Tests", () => {
 			graphData.components[toId] = {
 				id: toId,
 				type: "test",
-				label: "test",
 				size: { x: 10, y: 10 },
 				position: { x: 2 * GRID_SIZE, y: 3 * GRID_SIZE },
 				handles: {
@@ -69,7 +66,6 @@ describe("Command Tests", () => {
 			graphData.components[fromId] = {
 				id: fromId,
 				type: "test",
-				label: "test",
 				size: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
 				handles: {
@@ -97,7 +93,6 @@ describe("Command Tests", () => {
 			graphData.components[fromId] = {
 				id: fromId,
 				type: "test",
-				label: "test",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -106,7 +101,6 @@ describe("Command Tests", () => {
 			};
 			graphData.wires[toId] = {
 				id: toId,
-				label: "test",
 				input: { x: 100 * GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
 				output: { x: 0, y: GRID_SIZE, connection: null },
 			};
@@ -130,13 +124,11 @@ describe("Command Tests", () => {
 			const toId = 4000;
 			graphData.wires[fromId] = {
 				id: fromId,
-				label: "test",
 				input: { x: 100 * GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
 				output: { x: 0, y: 4 * GRID_SIZE, connection: null },
 			};
 			graphData.wires[toId] = {
 				id: toId,
-				label: "test2",
 				input: { x: 101 * GRID_SIZE, y: 3 * GRID_SIZE, connection: null },
 				output: { x: GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
 			};
@@ -160,7 +152,6 @@ describe("Command Tests", () => {
 			const id = 32;
 			graphData.wires[id] = {
 				id: id,
-				label: "test",
 				input: { x: GRID_SIZE, y: 2000 * GRID_SIZE, connection: null },
 				output: { x: 0, y: 30 * GRID_SIZE, connection: null },
 			};
@@ -188,7 +179,6 @@ describe("Command Tests", () => {
 			graphData.components[3] = {
 				id: 3,
 				type: "test",
-				label: "test",
 				size: { x: 4, y: 1000 },
 				position: { x: GRID_SIZE, y: 45 * GRID_SIZE },
 				handles: {},
@@ -210,7 +200,6 @@ describe("Command Tests", () => {
 	describe("CreateWireCommand", () => {
 		it("should create and remove wire", () => {
 			const newWire = {
-				label: "testlabel",
 				input: { x: 5 * GRID_SIZE, y: 7 * GRID_SIZE, connection: null },
 				output: { x: 2 * GRID_SIZE, y: GRID_SIZE, connection: null },
 			};
@@ -231,7 +220,6 @@ describe("Command Tests", () => {
 		it("should create and remove component", () => {
 			const newComponent = {
 				type: "test",
-				label: "component",
 				size: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				position: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				handles: {},

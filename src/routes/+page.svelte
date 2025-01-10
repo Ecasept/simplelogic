@@ -13,35 +13,35 @@
 	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
 	import { handleKeyDown } from "$lib/util/keyboard";
 
-	/** @type {import('./$types').LayoutData} */
-	export let data;
+	let { data }: { data: import("./$types").LayoutData } = $props();
 
 	function onMouseMove(e: MouseEvent) {
 		const pos = { x: e.clientX, y: e.clientY };
 		setMousePosition(pos);
-		if (
-			editorViewModel.uiState.editType === null ||
-			editorViewModel.uiState.editType === "delete"
-		) {
-			return;
+
+		const editType = editorViewModel.uiState.editType;
+		if (editType === "move" || editType === "add") {
+			EditorAction.move(pos, editorViewModel.uiState.editedId);
 		}
-		EditorAction.move(pos, editorViewModel.uiState.editedId);
 	}
 	function onMouseUp(e: MouseEvent) {
-		if (
-			editorViewModel.uiState.editType === null ||
-			editorViewModel.uiState.editType === "delete"
-		) {
+		const uiState = editorViewModel.uiState;
+		const editType = uiState.editType;
+
+		if (!(editType === "move" || editType === "add")) {
+			// don't do anything if nothing is being edited
 			return;
 		}
-		if (editorViewModel.uiState.editType === "add" && isClickOverSidebar(e)) {
+		if (editType === "add" && isClickOverSidebar(e)) {
 			return;
 		}
+
 		if (
 			editorViewModel.uiState.draggedHandle !== null &&
 			editorViewModel.uiState.hoveredHandle !== null &&
 			!editorViewModel.uiState.outputConnectedToWire
 		) {
+			// this means that a wire is being connected
 			EditorAction.connect(
 				{
 					id: editorViewModel.uiState.editedId,
@@ -50,21 +50,23 @@
 				editorViewModel.uiState.hoveredHandle,
 			);
 		}
+
+		// commit the changes that were made while dragging
 		ChangesAction.commitChanges();
 	}
 </script>
 
 <svelte:window
-	on:mousemove={onMouseMove}
-	on:mouseup={onMouseUp}
-	on:keydown={handleKeyDown}
+	onmousemove={onMouseMove}
+	onmouseup={onMouseUp}
+	onkeydown={handleKeyDown}
 />
 
 <div class="wrapper">
 	<Canvas uiState={$canvasViewModel}></Canvas>
 	<Sidebar
 		editType={$editorViewModel.editType}
-		loggedIn={data.loggedIn}
+		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
 	></Sidebar>
 	{#if $fileModalViewModel.mode !== null}

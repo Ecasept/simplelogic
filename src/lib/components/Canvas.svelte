@@ -9,11 +9,14 @@
 		graphManager,
 	} from "$lib/util/actions";
 
-	export let uiState: CanvasUiState;
+	let { uiState }: { uiState: CanvasUiState } = $props();
 
 	let svg: SVGSVGElement;
 
-	$: canvasViewModel.svg = svg; // TODO bad code
+	$effect(() => {
+		// update the svg element in the canvas view model
+		canvasViewModel.svg = svg;
+	});
 
 	function pan(e: MouseEvent) {
 		canvasViewModel.pan(e.movementX, e.movementY);
@@ -40,14 +43,15 @@
 </script>
 
 <div class="canvasWrapper">
-	<!-- svelte-ignore a11y-no-static-element-interactions -->
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<svg
 		bind:this={svg}
-		on:mousedown={startPan}
-		on:mousemove={pan}
-		on:mouseup={endPan}
-		on:mouseleave={endPan}
-		on:wheel={zoom}
+		role="application"
+		onmousedown={startPan}
+		onmousemove={pan}
+		onmouseup={endPan}
+		onmouseleave={endPan}
+		onwheel={zoom}
 		width="100vw"
 		height="100vh"
 		preserveAspectRatio="xMinYMin slice"
@@ -75,10 +79,9 @@
 			height={uiState.viewBox.height}
 			fill="url(#dot-pattern)"
 		/>
-		{#each Object.entries($graphManager.components) as [id_as_key, { id, label, size, position, type, handles: connections }] (id)}
+		{#each Object.entries($graphManager.components) as [_, { id, size, position, type, handles: connections }] (id)}
 			<Component
 				{id}
-				{label}
 				{size}
 				{position}
 				{type}
@@ -86,8 +89,8 @@
 				uiState={$editorViewModel}
 			></Component>
 		{/each}
-		{#each Object.entries($graphManager.wires) as [id_as_key, { id, label, input, output }]}
-			<Wire {label} {id} {input} {output} uiState={$editorViewModel}></Wire>
+		{#each Object.entries($graphManager.wires) as [_, { id, input, output }]}
+			<Wire {id} {input} {output} uiState={$editorViewModel}></Wire>
 		{/each}
 	</svg>
 </div>

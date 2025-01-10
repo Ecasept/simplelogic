@@ -47,14 +47,12 @@ export const ZCommand = z.object({
 // ==== Graph Types ====
 export const ZWireData = z.object({
 	id: z.number(),
-	label: z.string(),
 	input: ZWireHandle,
 	output: ZWireHandle,
 });
 
 export const ZComponentData = z.object({
 	id: z.number(),
-	label: z.string(),
 	type: z.string(),
 	size: ZXYPair,
 	position: ZXYPair,

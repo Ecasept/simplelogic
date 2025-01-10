@@ -18,7 +18,8 @@
 		"vitest:watch": "vitest",
 		"playwright": "playwright test",
 		"playwright:headed": "playwright test --headed",
-		"playwright:ui": "playwright test --ui"
+		"playwright:ui": "playwright test --ui",
+		"cleardb": "wrangler d1 execute MAIN_DB --command 'DELETE FROM Graph;'"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240815.0",

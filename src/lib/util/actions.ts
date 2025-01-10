@@ -59,9 +59,9 @@ export class EditorAction {
 		graphManager.notifyAll();
 	}
 
-	static addComponent(label: string, type: string, pos: XYPair) {
+	static addComponent(type: string, pos: XYPair) {
 		ChangesAction.discardChanges();
-		const cmpData = constructComponent(label, type, pos);
+		const cmpData = constructComponent(type, pos);
 
 		if (cmpData !== undefined) {
 			const clickOffset = {
@@ -78,14 +78,12 @@ export class EditorAction {
 	}
 
 	static addWire(
-		newWireData: Omit<WireData, "id" | "input" | "output">,
 		componentPosition: XYPair,
 		handleOffset: XYPair,
 		clickedHandle: HandleType,
 		componentConnection: ComponentConnection,
 	) {
 		const wireData = {
-			...newWireData,
 			input: {
 				x: componentPosition.x + handleOffset.x,
 				y: componentPosition.y + handleOffset.y,

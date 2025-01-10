@@ -1,29 +1,16 @@
 import test, { expect, Locator } from "@playwright/test";
-
-async function expectPosToBe(component: Locator, x: number, y: number) {
-	const boundingBox = (await component.boundingBox())!;
-
-	expect(boundingBox).not.toBeNull();
-
-	const centerX = boundingBox.x + boundingBox.width / 2;
-	const centerY = boundingBox.y + boundingBox.height / 2;
-
-	// 3 because of snapping + 5 for other inaccuracies
-	expect(Math.abs(centerX - x)).toBeLessThan(35);
-	expect(Math.abs(centerY - y)).toBeLessThan(35);
-}
+import { addComponent, expectPosToBe, reload } from "./common";
 
 test.describe("editor shortcuts", () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto("/");
-		await page.waitForLoadState("networkidle");
+		await reload(page);
 	});
 
 	test("a adds AND gate", async ({ page }) => {
 		await page.keyboard.press("A");
 		await page.mouse.click(100, 100);
 
-		const component = page.locator("rect").nth(1);
+		const component = page.locator(".component-body");
 		await expect(component).toBeVisible();
 		await expectPosToBe(component, 100, 100);
 	});
@@ -32,7 +19,7 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("O");
 		await page.mouse.click(200, 200);
 
-		const component = page.locator("rect").nth(1);
+		const component = page.locator(".component-body");
 		await expect(component).toBeVisible();
 		await expectPosToBe(component, 200, 200);
 	});
@@ -42,8 +29,8 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("O");
 		await page.mouse.click(300, 300);
 
-		expect(await page.locator("rect").count()).toBe(2);
-		const component = page.locator("rect").nth(1);
+		await expect(page.locator(".component-body")).toHaveCount(1);
+		const component = page.locator(".component-body");
 		await expect(component).toBeVisible();
 		await expectPosToBe(component, 300, 300);
 	});
@@ -69,11 +56,10 @@ test.describe("editor shortcuts", () => {
 		page,
 	}) => {
 		// Add initial component
-		await page.getByRole("button", { name: "AND" }).click();
-		await page.mouse.click(100, 100);
+		await addComponent(page, "AND", 100, 100);
 
 		// Start moving component
-		const component = page.locator("rect").nth(1);
+		const component = page.locator(".component-body").first();
 		await component.hover();
 		await page.mouse.down();
 		await page.mouse.move(200, 200);
@@ -86,21 +72,28 @@ test.describe("editor shortcuts", () => {
 
 		// Check that new AND gate is added at cursor position
 		await page.mouse.click(200, 200);
-		const newComponent = page.locator("rect").nth(2);
+		const newComponent = page.locator(".component-body").nth(1);
 		await expect(newComponent).toBeVisible();
 		await expectPosToBe(newComponent, 200, 200);
 	});
 
 	test("ctrl+z undoes last action", async ({ page }) => {
 		// Add a component
-		await page.getByRole("button", { name: "AND" }).click();
-		await page.mouse.click(100, 100);
+		await addComponent(page, "AND", 100, 100);
 
-		expect(await page.locator("rect").count()).toBe(2); // Including background rect
+		await expect(page.locator(".component-body")).toHaveCount(1);
 
 		// Undo
 		await page.keyboard.press("Control+Z");
 
-		expect(await page.locator("rect").count()).toBe(1); // Only background rect remains
+		await expect(page.locator(".component-body")).toHaveCount(0);
+	});
+
+	test("escape cancels delete mode", async ({ page }) => {
+		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
+		await page.keyboard.press("d");
+		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
+		await page.keyboard.press("Escape");
+		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
 	});
 });
