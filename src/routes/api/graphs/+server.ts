@@ -8,7 +8,12 @@ export async function POST({ request, locals: { prisma } }) {
 	const schema = z.object({ name: z.string(), data: ZGraphData });
 	const validationResult = schema.safeParse(await request.json());
 	if (!validationResult.success) {
-		return error(400, validationResult.error.message);
+		// Don't expose the valid schema in production
+		if (import.meta.env.DEV) {
+			return error(400, validationResult.error.message);
+		} else {
+			return error(400);
+		}
 	}
 	const { name, data } = validationResult.data;
 
@@ -41,12 +46,15 @@ export async function POST({ request, locals: { prisma } }) {
 		},
 	});
 
-	return json({ success: true, data: graph.id });
+	return json({ success: true, data: null });
 }
 
 export async function GET({ url, locals: { prisma } }) {
 	const page = parseInt(url.searchParams.get("page") ?? "1");
-	const perPage = Math.min(parseInt(url.searchParams.get("limit") ?? "10"), 10);
+	const perPage = Math.min(
+		parseInt(url.searchParams.get("perPage") ?? "10"),
+		10,
+	);
 
 	const offset = (page - 1) * perPage;
 
@@ -66,8 +74,8 @@ export async function GET({ url, locals: { prisma } }) {
 		success: true,
 		data: {
 			graphs: data,
-			hasNextPage: hasNextPage,
 			pagination: {
+				hasNextPage: hasNextPage,
 				page,
 				perPage,
 			},

@@ -28,7 +28,7 @@ type ListRequestData = {
 	graphs: { name: string; id: number }[];
 	pagination: {
 		page: number;
-		limit: number;
+		perPage: number;
 		hasNextPage: boolean;
 	};
 } | null;

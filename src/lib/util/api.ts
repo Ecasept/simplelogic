@@ -3,7 +3,7 @@ import { type GraphData, ZGraphData } from "./types";
 
 const PaginationSchema = z.object({
 	page: z.number(),
-	limit: z.number(),
+	perPage: z.number(),
 	hasNextPage: z.boolean(),
 });
 
@@ -47,13 +47,14 @@ export namespace API {
 		try {
 			const response = await fetch("/api/graphs", {
 				method: "POST",
-				body: JSON.stringify({ name, graphData: circuitData }),
+				body: JSON.stringify({ name, data: circuitData }),
 				headers: { "Content-type": "application/json" },
 			});
 			const validationResult = APIResponseSchema(z.null()).safeParse(
 				await response.json(),
 			);
 			if (!validationResult.success) {
+				console.error(validationResult.error);
 				return { success: false, error: "Invalid API response format" };
 			}
 			const data = validationResult.data;
@@ -62,6 +63,7 @@ export namespace API {
 				? { success: true, data: null }
 				: { success: false, error: data.error };
 		} catch (error) {
+			console.error(error);
 			return { success: false, error: "Network error" };
 		}
 	}
@@ -70,13 +72,14 @@ export namespace API {
 		page: number,
 	): Promise<APIResponse<ListRequestData>> {
 		try {
-			const response = await fetch(`/api/graphs?page=${page}&limit=10`, {
+			const response = await fetch(`/api/graphs?page=${page}&perPage=10`, {
 				method: "GET",
 			});
 			const validationResult = APIResponseSchema(
 				ListRequestDataSchema,
 			).safeParse(await response.json());
 			if (!validationResult.success) {
+				console.error(validationResult.error);
 				return { success: false, error: "Invalid API response format" };
 			}
 			const data = validationResult.data;
@@ -87,6 +90,7 @@ export namespace API {
 				return { success: false, error: data.error };
 			}
 		} catch (error) {
+			console.error(error);
 			return { success: false, error: "Network error" };
 		}
 	}
@@ -102,6 +106,7 @@ export namespace API {
 				await response.json(),
 			);
 			if (!validationResult.success) {
+				console.error(validationResult.error);
 				return { success: false, error: "Invalid API response format" };
 			}
 			const data = validationResult.data;
@@ -112,6 +117,7 @@ export namespace API {
 				return { success: false, error: data.error };
 			}
 		} catch (error) {
+			console.error(error);
 			return { success: false, error: "Network error" };
 		}
 	}
