@@ -9,14 +9,14 @@
 	let { uiState }: { uiState: FileModalUiState } = $props();
 
 	function saveGraph() {
-		fileModalViewModel.saveGraph(enteredName);
+		fileModalViewModel.saveCircuit(enteredName);
 	}
 
 	function close() {
 		PersistenceAction.closeModal();
 	}
 	function chooseGraph(id: number) {
-		fileModalViewModel.loadGraph(id);
+		fileModalViewModel.loadCircuit(id);
 	}
 </script>
 

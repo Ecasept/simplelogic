@@ -65,9 +65,6 @@ export const ZGraphData = z.object({
 	nextId: z.number(),
 });
 
-export type APIResponse<T> =
-	| { success: true; data: T }
-	| { success: false; error: string };
 export type HandleEdge = z.infer<typeof ZHandleEdge>;
 export type HandleType = z.infer<typeof ZHandleType>;
 export type ComponentConnection = z.infer<typeof ZComponentConnection>;

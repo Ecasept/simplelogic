@@ -1,7 +1,8 @@
-import type { APIResponse, GraphData } from "../types";
+import type { GraphData } from "../types";
 import { graph } from "../actions";
 import { ViewModel } from "./viewModel";
 import { set } from "zod";
+import { API } from "../api";
 
 export type FileModalUiState =
 	| {
@@ -49,36 +50,21 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		};
 	}
 
-	saveGraph(currentName: string) {
-		const data = graph.getData();
-		fetch("/api/graphs", {
-			method: "POST",
-			body: JSON.stringify({
-				name: currentName,
-				data: data,
-			}),
-			headers: {
-				"Content-type": "application/json; charset=UTF-8",
-			},
-		})
-			.then((response) => response.json())
-			.then((data: APIResponse<null>) => {
-				if (data.success) {
-					if (this._uiState.mode !== "save") {
-						return;
-					}
-					this._uiState.callback();
-				} else {
-					this.setError(data.error);
-				}
-			});
+	async saveCircuit(currentName: string) {
+		const graphData = graph.getData();
+		const data = await API.saveCircuit(currentName, graphData);
+		if (data.success) {
+			if (this._uiState.mode !== "save") {
+				return;
+			}
+			this._uiState.callback();
+		} else {
+			this.setError(data.error);
+		}
 	}
 
-	async loadGraphList(page: number) {
-		const response = await fetch(`/api/graphs?page=${page}&limit=10`, {
-			method: "GET",
-		});
-		const data: APIResponse<ListRequestData> = await response.json();
+	async loadCircuitList(page: number) {
+		const data = await API.loadCircuitList(page);
 		if (data.success) {
 			this._uiState.listRequestData = data.data;
 			this.setError(null);
@@ -88,21 +74,16 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		}
 	}
 
-	loadGraph(id: number) {
-		fetch(`/api/graphs/${id}`, {
-			method: "GET",
-		})
-			.then((response) => response.json())
-			.then((data: APIResponse<GraphData>) => {
-				if (data.success) {
-					if (this._uiState.mode !== "load") {
-						return;
-					}
-					this._uiState.callback(data.data);
-				} else {
-					this.setError(data.error);
-				}
-			});
+	async loadCircuit(id: number) {
+		const data = await API.loadCircuit(id);
+		if (data.success) {
+			if (this._uiState.mode !== "load") {
+				return;
+			}
+			this._uiState.callback(data.data);
+		} else {
+			this.setError(data.error);
+		}
 	}
 
 	open(
@@ -113,7 +94,7 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		this._uiState.callback = callback;
 		this.notifyAll();
 		if (mode === "load") {
-			this.loadGraphList(1);
+			this.loadCircuitList(1);
 		}
 	}
 
