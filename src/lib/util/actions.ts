@@ -63,9 +63,18 @@ export class EditorAction {
 		const cmpData = constructComponent(type, pos);
 
 		if (cmpData !== undefined) {
+			const offsetX = (cmpData.size.x * GRID_SIZE) / 2;
+			const offsetY = (cmpData.size.y * GRID_SIZE) / 2;
+
+			// transform to client coordinate system
+			const center = canvasViewModel.svgToClientCoords({
+				x: offsetX,
+				y: offsetY,
+			});
+			const origin = canvasViewModel.svgToClientCoords({ x: 0, y: 0 });
 			const clickOffset = {
-				x: canvasViewModel.toClientX(cmpData.size.x * GRID_SIZE) / 2,
-				y: canvasViewModel.toClientY(cmpData.size.y * GRID_SIZE) / 2,
+				x: center.x - origin.x,
+				y: center.y - origin.y,
 			};
 
 			const cmd = new CreateComponentCommand(cmpData);

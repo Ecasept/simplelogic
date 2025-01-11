@@ -75,4 +75,19 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 			return { x: 0, y: 0 };
 		}
 	}
+
+	/** Maps a point on the svg to a coordinate on the screen */
+	svgToClientCoords(svgPos: XYPair) {
+		const point = new DOMPoint(svgPos.x, svgPos.y);
+
+		// Get the current transformation matrix of the SVG
+		const ctm = this.svg?.getScreenCTM();
+		if (ctm) {
+			// Transform the point using the SVG's matrix
+			return point.matrixTransform(ctm);
+		} else {
+			console.error("Failed to get SVG transformation matrix");
+			return { x: 0, y: 0 };
+		}
+	}
 }
