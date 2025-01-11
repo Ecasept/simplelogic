@@ -1,15 +1,11 @@
 <script lang="ts">
-	import {
-		EditorAction,
-		editorViewModel,
-		PersistenceAction,
-	} from "$lib/util/actions";
+	import { EditorAction, PersistenceAction } from "$lib/util/actions";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
 	import type { FormEventHandler } from "svelte/elements";
-	import { Save, Download, Undo } from "lucide-svelte";
+	import { Save, Download, Undo, Play, Trash2 } from "lucide-svelte";
 	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
 	import { onEnter } from "$lib/util/keyboard";
 
@@ -21,6 +17,8 @@
 	let { uiState, editType, cookieLoggedIn }: Props = $props();
 
 	sidebarViewModel.setLoggedInState(cookieLoggedIn);
+
+	let simulating = $derived(editType === "simulate");
 
 	function addComponent(type: string, e: MouseEvent) {
 		EditorAction.addComponent(type, e);
@@ -63,6 +61,7 @@
 				{@const t = Array.isArray(type) ? type[0] : type}
 				{@const name = Array.isArray(type) ? type[1] : type}
 				<button
+					disabled={simulating}
 					title={COMPONENT_IO_MAPPING[t].description}
 					class="addbtn"
 					onclick={(e) => addComponent(t, e)}
@@ -75,13 +74,13 @@
 		<hr />
 
 		<div class="actions">
-			<button class="actionbtn icon" onclick={saveGraph}
+			<button disabled={simulating} class="actionbtn icon" onclick={saveGraph}
 				><Save></Save>Save</button
 			>
-			<button class="actionbtn icon" onclick={loadGraph}
+			<button disabled={simulating} class="actionbtn icon" onclick={loadGraph}
 				><Download></Download>Load</button
 			>
-			<button class="actionbtn icon" onclick={handleUndo}
+			<button disabled={simulating} class="actionbtn icon" onclick={handleUndo}
 				><Undo></Undo>Undo</button
 			>
 		</div>
@@ -97,12 +96,17 @@
 					Move
 				{:else if editType === "delete"}
 					Delete
+				{:else if editType === "simulate"}
+					Simulate
 				{:else}
 					Normal
 				{/if}
 			</div>
-			<button class="actionbtn" onclick={EditorAction.toggleDelete}
-				>Toggle Delete</button
+			<button class="actionbtn icon" onclick={EditorAction.toggleDelete}
+				><Trash2></Trash2>Toggle Delete</button
+			>
+			<button class="actionbtn icon" onclick={EditorAction.toggleSimulate}
+				><Play></Play>Toggle Simulate</button
 			>
 		</div>
 		<div id="space"></div>
@@ -247,6 +251,14 @@
 				border: 1px solid black;
 				border-radius: 8px;
 			}
+		}
+
+		.addbtn:disabled,
+		.actionbtn:disabled {
+			background-color: var(--light-color);
+			color: gray;
+			border: 1px solid gray;
+			cursor: default;
 		}
 	}
 </style>

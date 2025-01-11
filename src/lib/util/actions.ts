@@ -8,6 +8,7 @@ import {
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global";
 import { Graph, GraphManager } from "./graph";
+import { setupSimulation } from "./simulation.svelte";
 import type {
 	ComponentConnection,
 	GraphData,
@@ -41,7 +42,16 @@ export class EditorAction {
 	static toggleDelete() {
 		const prevMode = editorViewModel.uiState.editType;
 		ChangesAction.discardChanges();
-		editorViewModel.toggleDelete(prevMode === "delete" ? null : "delete");
+		editorViewModel.setDelete(prevMode === "delete" ? null : "delete");
+	}
+
+	static toggleSimulate() {
+		const prevMode = editorViewModel.uiState.editType;
+		ChangesAction.discardChanges();
+		if (prevMode === null) {
+			setupSimulation();
+		}
+		editorViewModel.setSimulate(prevMode === "simulate" ? null : "simulate");
 	}
 
 	static deleteComponent(id: number) {

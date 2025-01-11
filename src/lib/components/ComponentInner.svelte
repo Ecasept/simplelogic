@@ -7,15 +7,17 @@
 		width: number;
 		height: number;
 		type: string;
-	};
-	let { x, y, width, height, type }: Props = $props();
+		simulating: boolean;
+	}
+	let { x, y, width, height, type, simulating }: Props = $props();
+
+	let middleX = $derived(x + width / 2);
+	let middleY = $derived(y + height / 2);
 
 	function createSplitLine() {
 		// Calculate middle points
 		const startX = x;
-		const startY = y + height / 2;
-		const middleX = x + width / 2;
-		const middleY = startY;
+		const startY = middleY;
 		const endX = x + width;
 
 		// Create upper and lower paths
@@ -41,6 +43,14 @@
 {#if type === "DUPLICATE"}
 	<path d={upperPath} stroke="black" fill="none" />
 	<path d={lowerPath} stroke="black" fill="none" />
+{:else if type === "INPUT"}
+	<circle
+		class="input"
+		cx={middleX}
+		cy={middleY}
+		r="10"
+		style="pointer-events: {simulating ? 'all' : 'none'};"
+	/>
 {:else}
 	<text
 		x={x + width / 2}

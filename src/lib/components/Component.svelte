@@ -24,6 +24,7 @@
 
 	let editingThis = $derived(uiState.editedId === id);
 	let editing = $derived(uiState.editType !== null);
+	let simulating = $derived(uiState.editType === "simulate");
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
@@ -48,7 +49,7 @@
 		handlePos: number,
 		e: MouseEvent,
 	) {
-		if (uiState.editType == "delete") {
+		if (uiState.editType != null) {
 			return;
 		}
 		if (e.button !== 0) {
@@ -76,6 +77,9 @@
 		if (e.button !== 0) {
 			return;
 		}
+		if (uiState.editType != null) {
+			return;
+		}
 
 		e.preventDefault();
 		e.stopPropagation();
@@ -88,14 +92,14 @@
 	}
 
 	function onHandleEnter(identifier: string) {
-		if (uiState.editType == "delete") {
+		if (uiState.editType != null) {
 			return;
 		}
 		editorViewModel.setHoveredHandle({ handleId: identifier, id: id });
 	}
 
 	function onHandleLeave() {
-		if (uiState.editType == "delete") {
+		if (uiState.editType != null) {
 			return;
 		}
 		editorViewModel.removeHoveredHandle();
@@ -162,7 +166,14 @@
 	fill-opacity="70%"
 />
 
-<ComponentInner x={position.x} y={position.y} {width} {height} {type} />
+<ComponentInner
+	x={position.x}
+	y={position.y}
+	{width}
+	{height}
+	{type}
+	{simulating}
+/>
 
 {#each Object.entries(connections) as [identifier, handle]}
 	{#if !(handle.connection !== null && handle.type === "input")}

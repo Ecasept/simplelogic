@@ -22,9 +22,6 @@
 		canvasViewModel.pan(e.movementX, e.movementY);
 	}
 	function startPan() {
-		if (editorViewModel.uiState.isModalOpen) {
-			return;
-		}
 		canvasViewModel.startPan();
 	}
 	function endPan() {
@@ -79,6 +76,7 @@
 			height={uiState.viewBox.height}
 			fill="url(#dot-pattern)"
 		/>
+
 		{#each Object.entries($graphManager.components) as [_, { id, size, position, type, handles: connections }] (id)}
 			<Component
 				{id}

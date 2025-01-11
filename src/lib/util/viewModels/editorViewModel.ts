@@ -33,6 +33,15 @@ type DeletionState = {
 	outputConnectedToWire: false;
 };
 
+type SimulationState = {
+	editType: "simulate";
+
+	editedId: null;
+	draggedHandle: null;
+	clickOffset: null;
+	outputConnectedToWire: false;
+};
+
 type DefaultState = {
 	editType: null;
 	editedId: null;
@@ -46,6 +55,7 @@ export type EditorUiState = (
 	| EditWire
 	| DefaultState
 	| DeletionState
+	| SimulationState
 ) & {
 	isModalOpen: boolean;
 	hoveredHandle: WireConnection | ComponentConnection | null;
@@ -79,7 +89,12 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		this.notifyAll();
 	}
 
-	toggleDelete(mode: "delete" | null) {
+	setDelete(mode: "delete" | null) {
+		this._uiState.editType = mode;
+		this.notifyAll();
+	}
+
+	setSimulate(mode: "simulate" | null) {
 		this._uiState.editType = mode;
 		this.notifyAll();
 	}

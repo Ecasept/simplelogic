@@ -16,7 +16,7 @@
 	let editing = $derived(uiState.editType !== null);
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
-		if (uiState.editType == "delete") {
+		if (uiState.editType != null) {
 			return;
 		}
 		if (e.button !== 0) {
@@ -38,7 +38,7 @@
 	}
 
 	function onHandleEnter(handleType: HandleType) {
-		if (uiState.editType == "delete") {
+		if (uiState.editType != null) {
 			return;
 		}
 
@@ -46,7 +46,7 @@
 	}
 
 	function onHandleLeave() {
-		if (uiState.editType == "delete") {
+		if (uiState.editType != null) {
 			return;
 		}
 		editorViewModel.removeHoveredHandle();
@@ -101,12 +101,15 @@
 	style="pointer-events: {editingThis && !deletingThis ? 'none' : 'all'};"
 	stroke-width="10"
 	onmouseenter={() => {
-		if (uiState.isModalOpen) {
+		if (uiState.editType !== "delete") {
 			return;
 		}
 		editorViewModel.setForDeletion(id);
 	}}
 	onmouseleave={() => {
+		if (uiState.editType !== "delete") {
+			return;
+		}
 		editorViewModel.removeForDeletion();
 	}}
 	onmousedown={(e: MouseEvent) => {
