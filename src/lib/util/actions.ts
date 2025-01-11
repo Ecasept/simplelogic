@@ -52,7 +52,6 @@ export class EditorAction {
 	}
 
 	static deleteWire(id: number) {
-		ChangesAction.discardChanges();
 		const cmd = new DeleteWireCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
