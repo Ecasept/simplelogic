@@ -8,6 +8,7 @@
 	} from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
+	import ComponentInner from "./ComponentInner.svelte";
 
 	type Props = {
 		id: number;
@@ -133,6 +134,9 @@
 			return "green";
 		}
 	});
+
+	let width = $derived(size.x * GRID_SIZE);
+	let height = $derived(size.y * GRID_SIZE);
 </script>
 
 <rect
@@ -143,8 +147,8 @@
 	class="component-body"
 	x={position.x}
 	y={position.y}
-	width={size.x * GRID_SIZE}
-	height={size.y * GRID_SIZE}
+	{width}
+	{height}
 	style="cursor: {cursor}"
 	onmousedown={onMouseDown}
 	onmouseenter={() => {
@@ -156,8 +160,9 @@
 	{fill}
 	stroke="black"
 	fill-opacity="70%"
->
-</rect>
+/>
+
+<ComponentInner x={position.x} y={position.y} {width} {height} {type} />
 
 {#each Object.entries(connections) as [identifier, handle]}
 	{#if !(handle.connection !== null && handle.type === "input")}
