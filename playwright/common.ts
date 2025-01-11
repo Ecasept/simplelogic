@@ -45,6 +45,9 @@ export async function addComponent(
 	x: number,
 	y: number,
 ) {
-	await page.getByText(componentName, { exact: true }).click();
+	await page
+		.locator(".sidebarWrapper")
+		.getByText(componentName, { exact: true })
+		.click();
 	await page.mouse.click(x, y);
 }

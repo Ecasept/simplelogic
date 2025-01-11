@@ -25,8 +25,12 @@ test.describe("editor", () => {
 		await expect(page.locator(".component-body")).toHaveCount(0);
 	});
 	test("adds multiple components", async ({ page }) => {
-		const andBtn = page.getByText("AND", { exact: true });
-		const orBtn = page.getByText("OR", { exact: true });
+		const andBtn = page
+			.locator(".sidebarWrapper")
+			.getByText("AND", { exact: true });
+		const orBtn = page
+			.locator(".sidebarWrapper")
+			.getByText("OR", { exact: true });
 
 		await andBtn.click();
 		await page.mouse.click(100, 100);
