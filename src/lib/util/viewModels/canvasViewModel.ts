@@ -34,8 +34,13 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 			return;
 		}
 
-		this._uiState.viewBox.x -= this.toSvgX(movementX);
-		this._uiState.viewBox.y -= this.toSvgY(movementY);
+		let { x, y } = this.clientToSVGCoords({
+			x: -movementX,
+			y: -movementY,
+		});
+
+		this._uiState.viewBox.x = x;
+		this._uiState.viewBox.y = y;
 		this.notifyAll();
 	}
 	zoom(factor: number, clientPos: XYPair) {
@@ -56,23 +61,7 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 		this.notifyAll();
 	}
 
-	/** Scale client's x-coordinate to svg's x-coordinate */
-	toSvgX(val: number) {
-		return (val * this._uiState.viewBox.width) / (this.svg?.clientWidth ?? 1);
-	}
-	/** Scale client's y-coordinate to svg's y-coordinate */
-	toSvgY(val: number) {
-		return (val * this._uiState.viewBox.height) / (this.svg?.clientHeight ?? 1);
-	}
-	/** Scale svg's x-coordinate to client's x-coordinate */
-	toClientX(val: number) {
-		return (val * (this.svg?.clientWidth ?? 1)) / this._uiState.viewBox.width;
-	}
-	/** Scale svg's y-coordinate to client's y-coordinate */
-	toClientY(val: number) {
-		return (val * (this.svg?.clientHeight ?? 1)) / this._uiState.viewBox.height;
-	}
-
+	/** Maps a point on the screen to a coordinate on the svg */
 	clientToSVGCoords(clientPos: XYPair) {
 		const point = new DOMPoint(clientPos.x, clientPos.y);
 
