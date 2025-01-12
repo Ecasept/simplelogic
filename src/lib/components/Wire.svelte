@@ -38,7 +38,11 @@
 	}
 
 	function onHandleEnter(handleType: HandleType) {
-		if (uiState.editType != null) {
+		if (
+			uiState.editType != null &&
+			uiState.editType != "move" &&
+			uiState.editType != "add"
+		) {
 			return;
 		}
 
@@ -46,9 +50,6 @@
 	}
 
 	function onHandleLeave() {
-		if (uiState.editType != null) {
-			return;
-		}
 		editorViewModel.removeHoveredHandle();
 	}
 

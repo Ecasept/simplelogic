@@ -99,9 +99,6 @@
 	}
 
 	function onHandleLeave() {
-		if (uiState.editType != null) {
-			return;
-		}
 		editorViewModel.removeHoveredHandle();
 	}
 
