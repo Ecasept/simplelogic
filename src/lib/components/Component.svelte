@@ -92,7 +92,11 @@
 	}
 
 	function onHandleEnter(identifier: string) {
-		if (uiState.editType != null) {
+		if (
+			uiState.editType != null &&
+			uiState.editType != "move" &&
+			uiState.editType != "add"
+		) {
 			return;
 		}
 		editorViewModel.setHoveredHandle({ handleId: identifier, id: id });

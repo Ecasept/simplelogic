@@ -1,5 +1,5 @@
 import test, { expect, Locator, Page } from "@playwright/test";
-import { addComponent, drag, expectPosToBe, reload } from "./common";
+import { addComponent, drag, expectPosToBe, reload, undo } from "./common";
 
 test.describe("editor", () => {
 	test.beforeEach(async ({ page }) => {
@@ -208,11 +208,11 @@ test.describe("editor", () => {
 		await expect(page.locator(".component-body")).toHaveCount(0);
 	});
 	test("drags existing wires flow", async ({ page }) => {
-		// Setup: Add two components and connect them
+		// Setup: Add component
 		await addComponent(page, "AND", 100, 100);
 
 		// Setup: Drag wire
-		const sourceHandle = page.locator("circle.handle").first();
+		let sourceHandle = page.locator("circle.handle").first();
 		await drag(sourceHandle, 500, 500, page, { expect: false });
 
 		// 1. Drag and release
@@ -231,6 +231,30 @@ test.describe("editor", () => {
 		await page.mouse.up();
 		await expectPosToBe(handle, 400, 400);
 		expect(initialD).toBe(await wire.getAttribute("d"));
+
+		// 3.5 Drag and connect
+		await addComponent(page, "XOR", 300, 300);
+
+		sourceHandle = page.locator("circle.handle").nth(1);
+		const targetHandle = await page
+			.locator("circle.handle")
+			.nth(2)
+			.elementHandle();
+		expect(targetHandle).not.toBeNull();
+
+		await sourceHandle.hover();
+		await page.mouse.down();
+		await targetHandle!.hover();
+		await page.mouse.up();
+
+		targetHandle!.dispose();
+
+		expect(await page.locator(".wire").last().getAttribute("d")).toEqual(
+			"M121 81 L201 221",
+		);
+		await undo(page);
+		await undo(page);
+		await undo(page);
 
 		// 4. Drag
 		await drag(handle, 250, 250, page);
