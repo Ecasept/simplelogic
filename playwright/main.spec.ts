@@ -207,7 +207,7 @@ test.describe("editor", () => {
 		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(0);
 	});
-	test("drags existing wires flow", async ({ page }) => {
+	test("drags and connects wires flow", async ({ page }) => {
 		// Setup: Add component
 		await addComponent(page, "AND", 100, 100);
 
