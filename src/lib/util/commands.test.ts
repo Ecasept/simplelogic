@@ -53,7 +53,7 @@ describe("Command Tests", () => {
 	});
 
 	describe("ConnectCommand", () => {
-		it("should connect and disconnect components", () => {
+		it("should not allow connecting two components", () => {
 			const fromId = 1;
 			const toId = 30;
 			graphData.components[toId] = {
@@ -79,17 +79,7 @@ describe("Command Tests", () => {
 
 			const from: ComponentConnection = { id: fromId, handleId: "out" };
 			const to: ComponentConnection = { id: toId, handleId: "in" };
-			const cmd = new ConnectCommand(from, to);
-
-			cmd.execute(graphData);
-			expect(graphData.components[fromId].handles["out"].connection).toEqual(
-				to,
-			);
-			expect(graphData.components[toId].handles["in"].connection).toEqual(from);
-
-			cmd.undo(graphData);
-			expect(graphData.components[fromId].handles["out"].connection).toBeNull();
-			expect(graphData.components[toId].handles["in"].connection).toBeNull();
+			expect(() => new ConnectCommand(from, to)).toThrow();
 		});
 		it("should connect and disconnect wire and component", () => {
 			const fromId = 100;
