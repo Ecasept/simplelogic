@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { EditorAction, editorViewModel } from "$lib/util/actions";
+	import { isComponentConnection } from "$lib/util/global";
 	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
-	import { EditorAction, editorViewModel } from "$lib/util/actions";
 
 	type Props = {
 		id: number;
@@ -25,7 +26,10 @@
 
 		let outputConnectedToWire = false;
 		if (clickedHandle === "output") {
-			if (output.connection !== null && "handleType" in output.connection) {
+			if (
+				output.connection !== null &&
+				!isComponentConnection(output.connection)
+			) {
 				// if output is connected to wire
 				outputConnectedToWire = true;
 			}
@@ -75,7 +79,7 @@
 		if (
 			uiState.hoveredHandle !== null &&
 			id === uiState.hoveredHandle.id &&
-			"handleType" in uiState.hoveredHandle
+			!isComponentConnection(uiState.hoveredHandle)
 		) {
 			hoveredHandle = uiState.hoveredHandle.handleType;
 		} else {

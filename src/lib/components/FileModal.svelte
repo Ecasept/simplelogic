@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
 	import { fileModalViewModel, PersistenceAction } from "$lib/util/actions";
-	import { X, Save, Download } from "lucide-svelte";
 	import { onEnter } from "$lib/util/keyboard";
+	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
+	import { Download, Save, X } from "lucide-svelte";
 
 	let enteredName = $state("");
 

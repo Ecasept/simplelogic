@@ -1,5 +1,5 @@
 import type { D1Database } from "@cloudflare/workers-types";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 

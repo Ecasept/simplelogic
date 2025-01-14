@@ -1,10 +1,10 @@
-import type { Command, GraphData, HandleType, XYPair } from "./types";
-import { calculateHandleOffset } from "./global";
 import {
 	CommandGroup,
 	MoveComponentCommand,
 	MoveWireConnectionCommand,
 } from "./commands";
+import { calculateHandleOffset, isComponentConnection } from "./global";
+import type { Command, GraphData, HandleType, XYPair } from "./types";
 
 export class Graph {
 	private data: GraphData = { components: {}, wires: {}, nextId: 0 };
@@ -149,7 +149,7 @@ export class GraphManager {
 
 		const handle = wire[draggedHandle];
 		if (handle.connection !== null) {
-			if (!("handleType" in handle.connection)) {
+			if (isComponentConnection(handle.connection)) {
 				console.warn(
 					"Tried to move wire handle connected to component - should not exist",
 				);

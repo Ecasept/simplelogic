@@ -1,4 +1,4 @@
-import type { APIResponse } from "../types";
+import type { APIResponse } from "../api";
 import { ViewModel } from "./viewModel";
 
 export type SidebarUiState = {

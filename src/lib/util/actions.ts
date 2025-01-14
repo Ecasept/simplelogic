@@ -4,17 +4,16 @@ import {
 	CreateWireCommand,
 	DeleteComponentCommand,
 	DeleteWireCommand,
-	MoveWireConnectionCommand,
+	ToggleInputPowerStateCommand,
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global";
 import { Graph, GraphManager } from "./graph";
-import { setupSimulation } from "./simulation.svelte";
+import { simulation } from "./simulation.svelte";
 import type {
 	ComponentConnection,
 	GraphData,
 	HandleType,
 	WireConnection,
-	WireData,
 	XYPair,
 } from "./types";
 import { CanvasViewModel } from "./viewModels/canvasViewModel";
@@ -48,10 +47,10 @@ export class EditorAction {
 	static toggleSimulate() {
 		const prevMode = editorViewModel.uiState.editType;
 		ChangesAction.discardChanges();
-		if (prevMode === null) {
-			setupSimulation();
-		}
 		editorViewModel.setSimulate(prevMode === "simulate" ? null : "simulate");
+		if (prevMode === null) {
+			simulation.simulate();
+		}
 	}
 
 	static deleteComponent(id: number) {
@@ -68,9 +67,19 @@ export class EditorAction {
 		graphManager.notifyAll();
 	}
 
+	static togglePower(id: number) {
+		const cmd = new ToggleInputPowerStateCommand(id);
+		graphManager.executeCommand(cmd);
+		graphManager.commitChanges();
+		graphManager.notifyAll();
+	}
+
 	static addComponent(type: string, pos: XYPair) {
 		ChangesAction.discardChanges();
 		const cmpData = constructComponent(type, pos);
+		if (cmpData === undefined) {
+			return;
+		}
 
 		if (cmpData !== undefined) {
 			const offsetX = (cmpData.size.x * GRID_SIZE) / 2;

@@ -1,13 +1,14 @@
 <script lang="ts">
+	import { EditorAction, editorViewModel } from "$lib/util/actions";
 	import { calculateHandleOffset, GRID_SIZE } from "$lib/util/global";
+	import { simulation } from "$lib/util/simulation.svelte";
 	import type {
 		ComponentHandleList,
-		HandleType,
 		HandleEdge,
+		HandleType,
 		XYPair,
 	} from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
-	import { EditorAction, editorViewModel } from "$lib/util/actions";
 	import ComponentInner from "./ComponentInner.svelte";
 
 	type Props = {
@@ -16,15 +17,35 @@
 		type: string;
 		position: XYPair;
 		connections: ComponentHandleList;
+		isPoweredInitially: boolean;
 		uiState: EditorUiState;
 	};
-	let { id, size, type, position, connections, uiState }: Props = $props();
+	let {
+		id,
+		size,
+		type,
+		position,
+		connections,
+		uiState,
+		isPoweredInitially,
+	}: Props = $props();
 
 	let rect: SVGRectElement;
 
 	let editingThis = $derived(uiState.editedId === id);
 	let editing = $derived(uiState.editType !== null);
 	let simulating = $derived(uiState.editType === "simulate");
+	let simData = $derived.by(() => simulation.getDataForComponent(id));
+
+	let isPowered = $derived.by(() => {
+		if (simulating && simData?.isPowered) {
+			return true;
+		}
+		if (isPoweredInitially) {
+			return true;
+		}
+		return false;
+	});
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
@@ -142,6 +163,8 @@
 
 	let width = $derived(size.x * GRID_SIZE);
 	let height = $derived(size.y * GRID_SIZE);
+
+	let stroke = $derived(isPowered ? "red" : "black");
 </script>
 
 <rect
@@ -163,17 +186,19 @@
 		editorViewModel.removeForDeletion();
 	}}
 	{fill}
-	stroke="black"
+	{stroke}
 	fill-opacity="70%"
 />
 
 <ComponentInner
+	componentId={id}
 	x={position.x}
 	y={position.y}
 	{width}
 	{height}
 	{type}
-	{simulating}
+	{isPowered}
+	editType={uiState.editType}
 />
 
 {#each Object.entries(connections) as [identifier, handle]}

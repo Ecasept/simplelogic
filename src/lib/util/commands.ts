@@ -1,3 +1,4 @@
+import { isComponentConnection } from "./global";
 import type {
 	Command,
 	ComponentConnection,
@@ -23,6 +24,11 @@ export class CommandGroup implements Command {
 	}
 }
 
+type ValidConnectConnections =
+	| { from: WireConnection; to: WireConnection }
+	| { from: WireConnection; to: ComponentConnection }
+	| { from: ComponentConnection; to: WireConnection };
+
 export class ConnectCommand implements Command {
 	oldFrom: ComponentConnection | WireConnection | null = null;
 	oldTo: ComponentConnection | WireConnection | null = null;
@@ -30,23 +36,28 @@ export class ConnectCommand implements Command {
 	constructor(
 		private from: ComponentConnection | WireConnection,
 		private to: ComponentConnection | WireConnection,
-	) {}
+	) {
+		// disallow two components
+		if (isComponentConnection(from) && isComponentConnection(to)) {
+			throw new Error("Cannot connect two components");
+		}
+	}
 
 	execute(graphData: GraphData) {
-		if ("handleId" in this.from) {
+		if (isComponentConnection(this.from)) {
 			const handle =
 				graphData.components[this.from.id].handles[this.from.handleId];
 			this.oldFrom = handle.connection;
-			handle.connection = this.to;
+			handle.connection = this.to as WireConnection;
 		} else {
 			const handle = graphData.wires[this.from.id][this.from.handleType];
 			this.oldFrom = handle.connection;
 			handle.connection = this.to;
 		}
-		if ("handleId" in this.to) {
+		if (isComponentConnection(this.to)) {
 			const handle = graphData.components[this.to.id].handles[this.to.handleId];
 			this.oldTo = handle.connection;
-			handle.connection = this.from;
+			handle.connection = this.from as WireConnection;
 		} else {
 			const handle = graphData.wires[this.to.id][this.to.handleType];
 			this.oldTo = handle.connection;
@@ -54,17 +65,17 @@ export class ConnectCommand implements Command {
 		}
 	}
 	undo(graphData: GraphData) {
-		if ("handleId" in this.from) {
+		if (isComponentConnection(this.from)) {
 			const handle =
 				graphData.components[this.from.id].handles[this.from.handleId];
-			handle.connection = this.oldFrom;
+			handle.connection = this.oldFrom as WireConnection;
 		} else {
 			const handle = graphData.wires[this.from.id][this.from.handleType];
 			handle.connection = this.oldFrom;
 		}
-		if ("handleId" in this.to) {
+		if (isComponentConnection(this.to)) {
 			const handle = graphData.components[this.to.id].handles[this.to.handleId];
-			handle.connection = this.oldTo;
+			handle.connection = this.oldTo as WireConnection;
 		} else {
 			const handle = graphData.wires[this.to.id][this.to.handleType];
 			handle.connection = this.oldTo;
@@ -282,5 +293,19 @@ export class DeleteWireCommand implements Command {
 		this.deletedWire = null;
 		this.changedWires = {};
 		this.changedHandles = {};
+	}
+}
+
+export class ToggleInputPowerStateCommand implements Command {
+	constructor(private componentId: number) {}
+
+	execute(graphData: GraphData) {
+		graphData.components[this.componentId].isPoweredInitially =
+			!graphData.components[this.componentId].isPoweredInitially;
+	}
+
+	undo(graphData: GraphData) {
+		graphData.components[this.componentId].isPoweredInitially =
+			!graphData.components[this.componentId].isPoweredInitially;
 	}
 }

@@ -57,6 +57,7 @@ export const ZComponentData = z.object({
 	size: ZXYPair,
 	position: ZXYPair,
 	handles: ZComponentHandleList,
+	isPoweredInitially: z.boolean(),
 });
 
 export const ZGraphData = z.object({

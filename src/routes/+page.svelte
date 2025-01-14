@@ -2,7 +2,6 @@
 	import Canvas from "$lib/components/Canvas.svelte";
 	import FileModal from "$lib/components/FileModal.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
-	import { isClickOverSidebar, setMousePosition } from "$lib/util/global";
 	import {
 		canvasViewModel,
 		ChangesAction,
@@ -10,8 +9,9 @@
 		editorViewModel,
 		fileModalViewModel,
 	} from "$lib/util/actions";
-	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
+	import { isClickOverSidebar, setMousePosition } from "$lib/util/global";
 	import { handleKeyDown } from "$lib/util/keyboard";
+	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
 
 	let { data }: { data: import("./$types").LayoutData } = $props();
 

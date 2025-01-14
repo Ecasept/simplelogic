@@ -1,10 +1,4 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type {
-	ComponentConnection,
-	GraphData,
-	WireConnection,
-	XYPair,
-} from "./types";
 import {
 	CommandGroup,
 	ConnectCommand,
@@ -14,6 +8,12 @@ import {
 	MoveWireConnectionCommand,
 } from "./commands";
 import { GRID_SIZE } from "./global";
+import type {
+	ComponentConnection,
+	GraphData,
+	WireConnection,
+	XYPair,
+} from "./types";
 
 describe("Command Tests", () => {
 	let graphData: GraphData;
@@ -33,12 +33,14 @@ describe("Command Tests", () => {
 				size: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
 				handles: {},
+				isPoweredInitially: false,
 			});
 			const cmd2 = new CreateComponentCommand({
 				type: "test2",
 				size: { x: 10, y: 10 },
 				position: { x: 20 * GRID_SIZE, y: 11 * GRID_SIZE },
 				handles: {},
+				isPoweredInitially: false,
 			});
 			const group = new CommandGroup([cmd1, cmd2]);
 
@@ -62,6 +64,7 @@ describe("Command Tests", () => {
 				handles: {
 					in: { edge: "left", pos: 3, type: "input", connection: null },
 				},
+				isPoweredInitially: false,
 			};
 			graphData.components[fromId] = {
 				id: fromId,
@@ -71,6 +74,7 @@ describe("Command Tests", () => {
 				handles: {
 					out: { edge: "bottom", pos: 100, type: "output", connection: null },
 				},
+				isPoweredInitially: false,
 			};
 
 			const from: ComponentConnection = { id: fromId, handleId: "out" };
@@ -98,6 +102,7 @@ describe("Command Tests", () => {
 				handles: {
 					out: { edge: "left", pos: 3, type: "output", connection: null },
 				},
+				isPoweredInitially: false,
 			};
 			graphData.wires[toId] = {
 				id: toId,
@@ -182,6 +187,7 @@ describe("Command Tests", () => {
 				size: { x: 4, y: 1000 },
 				position: { x: GRID_SIZE, y: 45 * GRID_SIZE },
 				handles: {},
+				isPoweredInitially: false,
 			};
 			const newPosition: XYPair = { x: 8 * GRID_SIZE, y: 44 * GRID_SIZE };
 			const cmd = new MoveComponentCommand(newPosition, 3);
@@ -223,6 +229,7 @@ describe("Command Tests", () => {
 				size: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				position: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				handles: {},
+				isPoweredInitially: false,
 			};
 			const cmd = new CreateComponentCommand(newComponent);
 

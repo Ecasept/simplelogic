@@ -1,5 +1,12 @@
-import type { ComponentHandleList, HandleEdge, XYPair } from "./types";
 import { canvasViewModel } from "./actions";
+import type {
+	ComponentConnection,
+	ComponentData,
+	ComponentHandleList,
+	HandleEdge,
+	WireConnection,
+	XYPair,
+} from "./types";
 
 export let mousePosition = { x: 0, y: 0 };
 export function setMousePosition(pos: XYPair) {
@@ -118,7 +125,10 @@ export function calculateHandleOffset(
 	return pos;
 }
 
-export function constructComponent(type: string, pos: XYPair) {
+export function constructComponent(
+	type: string,
+	pos: XYPair,
+): Omit<ComponentData, "id"> | undefined {
 	if (!(type in COMPONENT_IO_MAPPING)) {
 		console.error(`Tried to add non-existing type ${type}`);
 		return;
@@ -133,5 +143,12 @@ export function constructComponent(type: string, pos: XYPair) {
 			y: svgPos.y - (data.height * GRID_SIZE) / 2,
 		},
 		handles: data.connections,
+		isPoweredInitially: false,
 	};
+}
+
+export function isComponentConnection(
+	connection: WireConnection | ComponentConnection,
+): connection is ComponentConnection {
+	return "handleId" in connection;
 }

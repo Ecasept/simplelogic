@@ -1,5 +1,5 @@
-import { json } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
+import { json } from "@sveltejs/kit";
 import { SignJWT } from "jose";
 
 export async function POST({ request, cookies }) {

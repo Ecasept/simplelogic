@@ -1,13 +1,13 @@
 <script lang="ts">
 	import Component from "$lib/components/Component.svelte";
 	import Wire from "$lib/components/Wire.svelte";
-	import { GRID_SIZE } from "$lib/util/global";
-	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 	import {
 		canvasViewModel,
 		editorViewModel,
 		graphManager,
 	} from "$lib/util/actions";
+	import { GRID_SIZE } from "$lib/util/global";
+	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 
 	let { uiState }: { uiState: CanvasUiState } = $props();
 
@@ -77,13 +77,14 @@
 			fill="url(#dot-pattern)"
 		/>
 
-		{#each Object.entries($graphManager.components) as [_, { id, size, position, type, handles: connections }] (id)}
+		{#each Object.entries($graphManager.components) as [_, { id, size, position, type, handles: connections, isPoweredInitially }] (id)}
 			<Component
 				{id}
 				{size}
 				{position}
 				{type}
 				{connections}
+				{isPoweredInitially}
 				uiState={$editorViewModel}
 			></Component>
 		{/each}

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { EditorAction, PersistenceAction } from "$lib/util/actions";
+	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
+	import { onEnter } from "$lib/util/keyboard";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
+	import { Download, Play, Save, Trash2, Undo } from "lucide-svelte";
 	import type { FormEventHandler } from "svelte/elements";
-	import { Save, Download, Undo, Play, Trash2 } from "lucide-svelte";
-	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
-	import { onEnter } from "$lib/util/keyboard";
 
 	type Props = {
 		uiState: SidebarUiState;
@@ -109,6 +109,7 @@
 				><Play></Play>Toggle Simulate</button
 			>
 		</div>
+
 		<div id="space"></div>
 		<div class="authentification">
 			<h2>Authentification</h2>

@@ -1,4 +1,3 @@
-import type { HandleClientError } from "@sveltejs/kit";
 import type {
 	ComponentConnection,
 	HandleType,

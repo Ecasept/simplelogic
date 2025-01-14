@@ -1,6 +1,3 @@
-import { z } from "zod";
-
-import { ZGraphData, type GraphData } from "$lib/util/types";
 import { error, json } from "@sveltejs/kit";
 
 /** @type {import("./$types").RequestHandler} */

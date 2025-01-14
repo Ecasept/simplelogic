@@ -1,8 +1,7 @@
-import type { GraphData } from "../types";
 import { graph } from "../actions";
-import { ViewModel } from "./viewModel";
-import { set } from "zod";
 import { API } from "../api";
+import type { GraphData } from "../types";
+import { ViewModel } from "./viewModel";
 
 export type FileModalUiState =
 	| {

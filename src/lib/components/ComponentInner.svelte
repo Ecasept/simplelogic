@@ -1,15 +1,20 @@
 <script lang="ts">
+	import { EditorAction } from "$lib/util/actions";
 	import { GRID_SIZE } from "$lib/util/global";
+	import { onEnter } from "$lib/util/keyboard";
 
 	type Props = {
+		componentId: number;
 		x: number;
 		y: number;
 		width: number;
 		height: number;
 		type: string;
-		simulating: boolean;
-	}
-	let { x, y, width, height, type, simulating }: Props = $props();
+		isPowered: boolean;
+		editType: string | null;
+	};
+	let { componentId, x, y, width, height, type, isPowered, editType }: Props =
+		$props();
 
 	let middleX = $derived(x + width / 2);
 	let middleY = $derived(y + height / 2);
@@ -45,11 +50,20 @@
 	<path d={lowerPath} stroke="black" fill="none" />
 {:else if type === "INPUT"}
 	<circle
+		role="button"
+		tabindex="0"
 		class="input"
 		cx={middleX}
 		cy={middleY}
 		r="10"
-		style="pointer-events: {simulating ? 'all' : 'none'};"
+		style="pointer-events: {editType === null ? 'all' : 'none'};"
+		fill={isPowered ? "red" : "black"}
+		onclick={() => {
+			EditorAction.togglePower(componentId);
+		}}
+		onkeypress={onEnter(() => {
+			EditorAction.togglePower(componentId);
+		})}
 	/>
 {:else}
 	<text
