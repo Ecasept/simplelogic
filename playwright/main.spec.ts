@@ -176,7 +176,7 @@ test.describe("editor", () => {
 		await page.mouse.up();
 
 		// Undo Wire
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
 		const x2 = await handle.getAttribute("cx");
 		const y2 = await handle.getAttribute("cy");
 		expect(x1).toBe(x2);
@@ -184,19 +184,19 @@ test.describe("editor", () => {
 
 		// Undo Move
 		await expectPosToBe(page.locator(".component-body").nth(1), 100, 100);
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
 		await expectPosToBe(page.locator(".component-body").nth(1), 500, 500);
 
 		// Undo Components
 		await expect(page.locator(".component-body")).toHaveCount(2);
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(1);
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(0);
 
 		// Undo nothing
 		const innerHTML1 = page.locator(".canvasWrapper").innerHTML;
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
 		const innerHTML2 = page.locator(".canvasWrapper").innerHTML;
 		expect(innerHTML1).toBe(innerHTML2);
 
@@ -204,7 +204,7 @@ test.describe("editor", () => {
 		await addComponent(page, "OR", 500, 500);
 
 		// Press undo
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(0);
 	});
 	test("drags existing wires flow", async ({ page }) => {
@@ -260,7 +260,7 @@ test.describe("editor", () => {
 		await drag(handle, 250, 250, page);
 
 		// 5. Undo
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
 		await expectPosToBe(handle, 400, 400);
 		expect(initialD).toBe(await wire.getAttribute("d"));
 
@@ -270,13 +270,13 @@ test.describe("editor", () => {
 		await expectPosToBe(handle, 400, 400);
 		expect(initialD).not.toBe(await wire.getAttribute("d"));
 		// Undo
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
 		await expectPosToBe(handle, 400, 400);
 		expect(initialD).toBe(await wire.getAttribute("d"));
 
 		// 7. Undo twice (should remove the wire)
-		await page.getByRole("button", { name: "Undo" }).click();
-		await page.getByRole("button", { name: "Undo" }).click();
+		await undo(page);
+		await undo(page);
 		await expect(page.locator(".wire")).toHaveCount(0);
 	});
 });
