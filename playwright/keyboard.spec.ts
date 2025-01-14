@@ -1,4 +1,4 @@
-import test, { expect, Locator } from "@playwright/test";
+import test, { expect } from "@playwright/test";
 import { addComponent, expectPosToBe, reload } from "./common";
 
 test.describe("editor shortcuts", () => {

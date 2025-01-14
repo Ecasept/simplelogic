@@ -1,5 +1,4 @@
-import test, { expect, Page } from "@playwright/test";
-import { isContext } from "vm";
+import test, { expect } from "@playwright/test";
 import { addComponent, reload } from "./common";
 
 test.describe("modal", async () => {
@@ -71,6 +70,7 @@ test.describe("modal", async () => {
 			.locator('input[type="password"]')
 			.fill(process.env.PASSWORD ?? "");
 		await page.getByRole("button", { name: "Login" }).click();
+		await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
 
 		// Open Modal
 		await page.getByRole("button", { name: "Save" }).click();

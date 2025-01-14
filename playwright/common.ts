@@ -51,3 +51,7 @@ export async function addComponent(
 		.click();
 	await page.mouse.click(x, y);
 }
+
+export async function undo(page: Page) {
+	await page.getByRole("button", { name: "Undo" }).click();
+}

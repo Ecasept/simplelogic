@@ -1,4 +1,4 @@
-import test, { expect, Locator, Page } from "@playwright/test";
+import test, { expect } from "@playwright/test";
 import { addComponent, drag, expectPosToBe, reload, undo } from "./common";
 
 test.describe("editor", () => {
@@ -252,7 +252,6 @@ test.describe("editor", () => {
 		expect(await page.locator(".wire").last().getAttribute("d")).toEqual(
 			"M121 81 L201 221",
 		);
-		await undo(page);
 		await undo(page);
 		await undo(page);
 
