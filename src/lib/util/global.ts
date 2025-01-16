@@ -66,7 +66,7 @@ export const COMPONENT_IO_MAPPING: {
 		width: 4,
 		description: "Outputs true if only one input is true",
 	},
-	DUPLICATE: {
+	DBL: {
 		connections: {
 			in: { edge: "left", pos: 2, type: "input", connection: null },
 			out1: { edge: "right", pos: 1, type: "output", connection: null },
@@ -76,7 +76,7 @@ export const COMPONENT_IO_MAPPING: {
 		width: 4,
 		description: "Outputs the input to two outputs",
 	},
-	INPUT: {
+	IN: {
 		connections: {
 			out: { edge: "right", pos: 1, type: "output", connection: null },
 		},

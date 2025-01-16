@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { EditorAction, PersistenceAction } from "$lib/util/actions";
-	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
-	import { onEnter } from "$lib/util/keyboard";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
 	import { Download, Play, Save, Trash2, Undo } from "lucide-svelte";
-	import type { FormEventHandler } from "svelte/elements";
+	import AuthentificationSection from "./AuthentificationSection.svelte";
+	import Button from "./Button.svelte";
+	import ComponentToolbar from "./ComponentToolbar.svelte";
 
 	type Props = {
 		uiState: SidebarUiState;
@@ -37,52 +37,26 @@
 	function toggleOpen() {
 		sidebarViewModel.toggleOpen();
 	}
-	function login() {
-		sidebarViewModel.login();
-	}
-	function logout() {
-		sidebarViewModel.logout();
-	}
-
-	const onInput: FormEventHandler<HTMLInputElement> = function (e) {
-		sidebarViewModel.setPasswordInputValue(
-			(e.target as HTMLInputElement | null)?.value ?? "",
-		);
-	};
 </script>
 
 <div class="sidebarWrapper" class:open={uiState.open}>
 	<button class="collapse" onclick={toggleOpen}><span>▶</span></button>
 	<div class="content">
 		<h2>Tools</h2>
-
-		<div class="addactions">
-			{#each ["AND", "OR", "NOT", "XOR", ["INPUT", "IN"], "LED", ["DUPLICATE", "DBL"]] as type}
-				{@const t = Array.isArray(type) ? type[0] : type}
-				{@const name = Array.isArray(type) ? type[1] : type}
-				<button
-					disabled={simulating}
-					title={COMPONENT_IO_MAPPING[t].description}
-					class="addbtn"
-					onclick={(e) => addComponent(t, e)}
-				>
-					{name}
-				</button>
-			{/each}
-		</div>
+		<ComponentToolbar {simulating} onClick={addComponent} />
 
 		<hr />
 
 		<div class="actions">
-			<button disabled={simulating} class="actionbtn icon" onclick={saveGraph}
-				><Save></Save>Save</button
-			>
-			<button disabled={simulating} class="actionbtn icon" onclick={loadGraph}
-				><Download></Download>Load</button
-			>
-			<button disabled={simulating} class="actionbtn icon" onclick={handleUndo}
-				><Undo></Undo>Undo</button
-			>
+			<Button disabled={simulating} text="Save" onClick={saveGraph}>
+				{#snippet icon()}<Save />{/snippet}
+			</Button>
+			<Button disabled={simulating} text="Load" onClick={loadGraph}>
+				{#snippet icon()}<Download />{/snippet}
+			</Button>
+			<Button disabled={simulating} text="Undo" onClick={handleUndo}>
+				{#snippet icon()}<Undo />{/snippet}
+			</Button>
 		</div>
 
 		<hr />
@@ -102,37 +76,17 @@
 					Normal
 				{/if}
 			</div>
-			<button class="actionbtn icon" onclick={EditorAction.toggleDelete}
-				><Trash2></Trash2>Toggle Delete</button
-			>
-			<button class="actionbtn icon" onclick={EditorAction.toggleSimulate}
-				><Play></Play>Toggle Simulate</button
-			>
+			<Button text="Toggle Delete" onClick={EditorAction.toggleDelete}>
+				{#snippet icon()}<Trash2 />{/snippet}
+			</Button>
+			<Button text="Toggle Simulation" onClick={EditorAction.toggleSimulate}>
+				{#snippet icon()}<Play />{/snippet}
+			</Button>
 		</div>
 
 		<div id="space"></div>
-		<div class="authentification">
-			<h2>Authentification</h2>
-			{#if uiState.loggedIn}
-				<button style="margin-left: 0px;" class="actionbtn" onclick={logout}
-					>Log out</button
-				>
-			{:else}
-				<div>Enter server password to save and load graphs:</div>
-				<input
-					value={uiState.passwordInputValue}
-					oninput={onInput}
-					type="password"
-					placeholder="Password"
-					onkeypress={onEnter(() => login())}
-				/>
-				<button class="actionbtn" onclick={login}>Login</button>
-			{/if}
-			{#if uiState.message !== null}
-				<br />
-				{uiState.message}
-			{/if}
-		</div>
+
+		<AuthentificationSection {uiState} />
 	</div>
 </div>
 
@@ -182,28 +136,6 @@
 			flex-grow: 1;
 		}
 
-		.addactions {
-			display: flex;
-			flex-wrap: wrap;
-			justify-content: space-around;
-			justify-content: flex-start;
-		}
-
-		.addbtn {
-			background-color: var(--light-color);
-			color: black;
-			border: 1px solid black;
-			cursor: pointer;
-			height: 50px;
-			width: 50px;
-			border-radius: 16px;
-			margin: 5px;
-
-			&:hover {
-				background-color: var(--light-darker-color);
-			}
-		}
-
 		hr {
 			border: 1px solid black;
 			margin: 20px 0;
@@ -215,51 +147,8 @@
 			flex-wrap: wrap;
 		}
 
-		.actionbtn {
-			background-color: var(--light-color);
-			color: black;
-			border: 1px solid black;
-			cursor: pointer;
-			border-radius: 12px;
-			margin: 5px;
-			padding: 8px;
-
-			&:hover {
-				background-color: var(--light-darker-color);
-			}
-
-			&.icon {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				gap: 5px;
-			}
-		}
-
 		.editingmode {
-			margin: 10px;
-		}
-
-		.authentification {
-			// margin: 10px;
-
-			input {
-				box-sizing: border-box;
-				width: 60%;
-				padding: 8px;
-
-				background-color: var(--light-color);
-				border: 1px solid black;
-				border-radius: 8px;
-			}
-		}
-
-		.addbtn:disabled,
-		.actionbtn:disabled {
-			background-color: var(--light-color);
-			color: gray;
-			border: 1px solid gray;
-			cursor: default;
+			margin: 5px;
 		}
 	}
 </style>

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { fileModalViewModel, PersistenceAction } from "$lib/util/actions";
-	import { onEnter } from "$lib/util/keyboard";
 	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
 	import { Download, Save, X } from "lucide-svelte";
+	import Button from "./Button.svelte";
+	import CircuitList from "./CircuitList.svelte";
 
 	let enteredName = $state("");
 
@@ -25,12 +26,12 @@
 		{#if uiState.mode === "save"}
 			<div id="modal-header">
 				<div id="title-container">
-					<Save size="32"></Save>
+					<Save size="32" />
 					<h2>Save your circuit</h2>
 				</div>
-				<button title="Close" class="close-button" onclick={close}
-					><X></X></button
-				>
+				<button title="Close" class="close-button" onclick={close}>
+					<X />
+				</button>
 			</div>
 			<div id="entry">
 				<input
@@ -39,7 +40,7 @@
 					type="text"
 					bind:value={enteredName}
 				/>
-				<button id="save-btn" onclick={saveGraph}>Save</button>
+				<Button text="Save" onClick={saveGraph} margin="0px" height="2.5em" />
 			</div>
 			{#if uiState.errorMessage !== null}
 				<span id="error-msg">{uiState.errorMessage}</span>
@@ -49,32 +50,14 @@
 		{#if uiState.mode === "load"}
 			<div id="modal-header">
 				<div id="title-container">
-					<Download size="32"></Download>
+					<Download size="32" />
 					<h2>Select a saved circuit</h2>
 				</div>
-				<button title="Close" class="close-button" onclick={close}
-					><X></X></button
-				>
+				<button title="Close" class="close-button" onclick={close}>
+					<X></X>
+				</button>
 			</div>
-			<div class="list-container">
-				{#if uiState.listRequestData !== null}
-					{#each uiState.listRequestData.graphs as graphInfo (graphInfo.id)}
-						<div
-							role="menuitem"
-							tabindex="0"
-							onclick={(_) => chooseGraph(graphInfo.id)}
-							onkeypress={onEnter((_) => chooseGraph(graphInfo.id))}
-							class="graph-item"
-						>
-							{graphInfo.name}
-							<br />
-							<span style="color: brown;">id: {graphInfo.id}</span>
-						</div>
-					{/each}
-				{:else}
-					<span id="loading-span">Loading...</span>
-				{/if}
-			</div>
+			<CircuitList listData={uiState.listRequestData} onSelect={chooseGraph} />
 			{#if uiState.errorMessage !== null}
 				<span id="error-msg">{uiState.errorMessage}</span>
 			{/if}
@@ -94,6 +77,8 @@
 	}
 	#entry {
 		display: flex;
+		gap: 10px;
+		align-items: center;
 	}
 	#name-input {
 		display: inline;
@@ -153,35 +138,6 @@
 		max-height: 50vh;
 		display: flex;
 		flex-direction: column;
-	}
-
-	.list-container {
-		flex: 1;
-		overflow-y: auto;
-		margin: auto;
-		width: 80%;
-		border: 2px solid black;
-		border-radius: 25px;
-		overflow-x: hidden;
-		overflow-y: auto;
-
-		display: flex;
-		flex-direction: column;
-
-		background-color: var(--light-color);
-	}
-
-	.graph-item {
-		padding: 10px;
-		width: calc(100% - 20px);
-		&:hover {
-			background-color: #00000020;
-			cursor: pointer;
-		}
-	}
-
-	#loading-span {
-		margin: 10px auto;
 	}
 
 	#error-msg {
