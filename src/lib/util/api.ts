@@ -18,107 +18,97 @@ const ListRequestDataSchema = z.object({
 });
 
 const APIResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
-	z.discriminatedUnion("success", [
-		z.object({
+	z
+		.object({
 			success: z.literal(true),
 			data: dataSchema,
-		}),
-		z.object({
-			success: z.literal(false),
-			error: z.string(),
-		}),
-	]);
+		})
+		.or(
+			z.object({
+				success: z.literal(false),
+				error: z.string(),
+			}),
+		);
 
 export type ListRequestData = z.infer<typeof ListRequestDataSchema>;
 
-// Zod can't correctly infer this type, so we have to define it manually
-// export type APIResponse<T> = z.infer<
-// 	ReturnType<typeof APIResponseSchema<z.ZodType<T>>>
-// >;
-export type APIResponse<T> =
-	| { success: true; data: T }
-	| { success: false; error: string };
-
+export type APIResponse<T> = z.infer<
+	ReturnType<typeof APIResponseSchema<z.ZodType<T>>>
+>;
 export namespace API {
-	export async function saveCircuit(
+	interface FetchOptions {
+		method: "GET" | "POST";
+		body?: any;
+		headers?: HeadersInit;
+	}
+
+	async function makeAPIRequest<T>(
+		url: string,
+		schema: z.ZodType<T>,
+		options: FetchOptions,
+	): Promise<APIResponse<T>> {
+		try {
+			const fetchOptions: RequestInit = {
+				method: options.method,
+				headers: {
+					"Content-Type": "application/json",
+					...options.headers,
+				},
+			};
+
+			if (options.body) {
+				fetchOptions.body = JSON.stringify(options.body);
+			}
+
+			const response = await fetch(url, fetchOptions);
+			const validationResult = APIResponseSchema(schema).safeParse(
+				await response.json(),
+			);
+
+			if (!validationResult.success) {
+				console.error(validationResult.error);
+				return { success: false, error: "Invalid API response format" };
+			}
+
+			return validationResult.data;
+		} catch (error) {
+			console.error(error);
+			return { success: false, error: "Network error" };
+		}
+	}
+
+	export function saveCircuit(
 		name: string,
 		circuitData: GraphData,
 	): Promise<APIResponse<null>> {
-		try {
-			const response = await fetch("/api/graphs", {
-				method: "POST",
-				body: JSON.stringify({ name, data: circuitData }),
-				headers: { "Content-type": "application/json" },
-			});
-			const validationResult = APIResponseSchema(z.null()).safeParse(
-				await response.json(),
-			);
-			if (!validationResult.success) {
-				console.error(validationResult.error);
-				return { success: false, error: "Invalid API response format" };
-			}
-			const data = validationResult.data;
-
-			return data.success
-				? { success: true, data: null }
-				: { success: false, error: data.error };
-		} catch (error) {
-			console.error(error);
-			return { success: false, error: "Network error" };
-		}
+		return makeAPIRequest("/api/graphs", z.null(), {
+			method: "POST",
+			body: { name, data: circuitData },
+		});
 	}
 
-	export async function loadCircuitList(
+	export function loadCircuitList(
 		page: number,
 	): Promise<APIResponse<ListRequestData>> {
-		try {
-			const response = await fetch(`/api/graphs?page=${page}&perPage=10`, {
-				method: "GET",
-			});
-			const validationResult = APIResponseSchema(
-				ListRequestDataSchema,
-			).safeParse(await response.json());
-			if (!validationResult.success) {
-				console.error(validationResult.error);
-				return { success: false, error: "Invalid API response format" };
-			}
-			const data = validationResult.data;
-
-			if (data.success) {
-				return { success: true, data: data.data };
-			} else {
-				return { success: false, error: data.error };
-			}
-		} catch (error) {
-			console.error(error);
-			return { success: false, error: "Network error" };
-		}
+		return makeAPIRequest(
+			`/api/graphs?page=${page}&perPage=10`,
+			ListRequestDataSchema,
+			{ method: "GET" },
+		);
 	}
 
-	export async function loadCircuit(
-		id: number,
-	): Promise<APIResponse<GraphData>> {
-		try {
-			const response = await fetch(`/api/graphs/${id}`, {
-				method: "GET",
-			});
-			const validationResult = APIResponseSchema(ZGraphData).safeParse(
-				await response.json(),
-			);
-			if (!validationResult.success) {
-				console.error(validationResult.error);
-				return { success: false, error: "Invalid API response format" };
-			}
-			const data = validationResult.data;
+	export function loadCircuit(id: number): Promise<APIResponse<GraphData>> {
+		return makeAPIRequest(`/api/graphs/${id}`, ZGraphData, { method: "GET" });
+	}
 
-			if (data.success) {
-				return { success: true, data: data.data };
-			} else {
-				return { success: false, error: data.error };
-			}
-		} catch (error) {
-			console.error(error);
-			return { success: false, error: "Network error" };
-		}
+	export function login(password: string): Promise<APIResponse<null>> {
+		return makeAPIRequest("/api/auth/login", z.null(), {
+			method: "POST",
+			body: { password },
+		});
+	}
+
+	export function logout(): Promise<APIResponse<null>> {
+		return makeAPIRequest("/api/auth/logout", z.null(), { method: "POST" });
 	}
 }

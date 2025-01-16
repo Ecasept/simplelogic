@@ -1,4 +1,4 @@
-import type { APIResponse } from "../api";
+import { API } from "../api";
 import { ViewModel } from "./viewModel";
 
 export type SidebarUiState = {
@@ -40,16 +40,7 @@ export class _SidebarViewModel extends ViewModel<SidebarUiState> {
 	async login() {
 		this._uiState.message = "Logging in...";
 		this.notifyAll();
-		const response = await fetch("/api/auth/login", {
-			method: "POST",
-			body: JSON.stringify({
-				password: this._uiState.passwordInputValue,
-			}),
-			headers: {
-				"Content-type": "application/json; charset=UTF-8",
-			},
-		});
-		const data: APIResponse<null> = await response.json();
+		const data = await API.login(this._uiState.passwordInputValue);
 		if (data.success) {
 			this._uiState.message = null;
 			this._uiState.loggedIn = true;
@@ -63,10 +54,7 @@ export class _SidebarViewModel extends ViewModel<SidebarUiState> {
 	async logout() {
 		this._uiState.message = "Logging out...";
 		this.notifyAll();
-		const response = await fetch("/api/auth/logout", {
-			method: "POST",
-		});
-		const data: APIResponse<null> = await response.json();
+		const data = await API.logout();
 		if (data.success) {
 			this._uiState.message = null;
 			this._uiState.loggedIn = false;
