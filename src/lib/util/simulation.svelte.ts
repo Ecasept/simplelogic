@@ -77,15 +77,17 @@ export namespace simulation {
 		stepComponent(id: number) {
 			const component = graphManager.getComponentData(id);
 			for (const handle of Object.values(component.handles)) {
-				if (handle.type !== "output" || handle.connection === null) {
+				if (handle.type !== "output") {
 					continue;
 				}
-				const targetId = handle.connection.id;
-				this._uiState[targetId].isPowered = true;
-				this.queue.push({
-					id: targetId,
-					isComponent: isComponentConnection(handle.connection),
-				});
+				for (const connection of handle.connections) {
+					const targetId = connection.id;
+					this._uiState[targetId].isPowered = true;
+					this.queue.push({
+						id: targetId,
+						isComponent: isComponentConnection(connection),
+					});
+				}
 			}
 		}
 

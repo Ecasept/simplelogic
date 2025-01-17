@@ -1,4 +1,8 @@
-import { isComponentConnection } from "./global";
+import {
+	includesByValue,
+	indexOfByValue,
+	isComponentConnection,
+} from "./global";
 import type {
 	Command,
 	ComponentConnection,
@@ -30,9 +34,6 @@ type ValidConnectConnections =
 	| { from: ComponentConnection; to: WireConnection };
 
 export class ConnectCommand implements Command {
-	oldFrom: ComponentConnection | WireConnection | null = null;
-	oldTo: ComponentConnection | WireConnection | null = null;
-
 	constructor(
 		private from: ComponentConnection | WireConnection,
 		private to: ComponentConnection | WireConnection,
@@ -47,20 +48,44 @@ export class ConnectCommand implements Command {
 		if (isComponentConnection(this.from)) {
 			const handle =
 				graphData.components[this.from.id].handles[this.from.handleId];
-			this.oldFrom = handle.connection;
-			handle.connection = this.to as WireConnection;
+			if (includesByValue(handle.connections, this.to as WireConnection)) {
+				throw new Error("Connection already exists");
+			}
+			if (handle.type === "input" && handle.connections.length > 0) {
+				throw new Error("Input may only have one connection");
+			}
+			if (handle.type === (this.to as WireConnection).handleType) {
+				throw new Error("Cannot connect two inputs or two outputs");
+			}
+			handle.connections.push(this.to as WireConnection);
 		} else {
 			const handle = graphData.wires[this.from.id][this.from.handleType];
-			this.oldFrom = handle.connection;
+			if (handle.connection !== null) {
+				throw new Error("Connection already exists");
+			}
+			// Can't check if the connections are the same type
+			// because if this.to is a component connection, it doesn't have a handleType (only an id)
 			handle.connection = this.to;
 		}
 		if (isComponentConnection(this.to)) {
 			const handle = graphData.components[this.to.id].handles[this.to.handleId];
-			this.oldTo = handle.connection;
-			handle.connection = this.from as WireConnection;
+			if (includesByValue(handle.connections, this.from as WireConnection)) {
+				throw new Error("Connection already exists");
+			}
+			if (handle.type === "input" && handle.connections.length > 0) {
+				throw new Error("Input may only have one connection");
+			}
+			if (handle.type === (this.from as WireConnection).handleType) {
+				throw new Error("Cannot connect two inputs or two outputs");
+			}
+			handle.connections.push(this.from as WireConnection);
 		} else {
 			const handle = graphData.wires[this.to.id][this.to.handleType];
-			this.oldTo = handle.connection;
+			if (handle.connection !== null) {
+				throw new Error("Connection already exists");
+			}
+			// Can't check if the connections are the same type
+			// because if this.to is a component connection, it doesn't have a handleType (only an id)
 			handle.connection = this.from;
 		}
 	}
@@ -68,17 +93,31 @@ export class ConnectCommand implements Command {
 		if (isComponentConnection(this.from)) {
 			const handle =
 				graphData.components[this.from.id].handles[this.from.handleId];
-			handle.connection = this.oldFrom as WireConnection;
+			const index = indexOfByValue(
+				handle.connections,
+				this.to as WireConnection,
+			);
+			if (index === -1) {
+				throw new Error("Connection does not exist");
+			}
+			handle.connections.splice(index, 1);
 		} else {
 			const handle = graphData.wires[this.from.id][this.from.handleType];
-			handle.connection = this.oldFrom;
+			handle.connection = null;
 		}
 		if (isComponentConnection(this.to)) {
 			const handle = graphData.components[this.to.id].handles[this.to.handleId];
-			handle.connection = this.oldTo as WireConnection;
+			const index = indexOfByValue(
+				handle.connections,
+				this.from as WireConnection,
+			);
+			if (index === -1) {
+				throw new Error("Connection does not exist");
+			}
+			handle.connections.splice(index, 1);
 		} else {
 			const handle = graphData.wires[this.to.id][this.to.handleType];
-			handle.connection = this.oldTo;
+			handle.connection = null;
 		}
 	}
 }
@@ -191,30 +230,19 @@ export class CreateComponentCommand implements Command {
 export class DeleteComponentCommand implements Command {
 	deletedComponent: ComponentData | null = null;
 	changedWires: { [id: number]: WireData } = {};
-	changedHandles: { [id: number]: ComponentData } = {};
+	changedComponents: { [id: number]: ComponentData } = {};
 
 	constructor(private componentId: number) {}
 	execute(graphData: GraphData) {
-		this.deletedComponent = graphData.components[this.componentId];
+		const component = graphData.components[this.componentId];
+		this.deletedComponent = component;
 		delete graphData.components[this.componentId];
 
-		for (const wireId in graphData.wires) {
-			const wire = graphData.wires[wireId];
-			for (const handleType of [wire.input, wire.output]) {
-				if (handleType.connection?.id === this.componentId) {
-					this.changedWires[wire.id] = structuredClone(wire);
-					handleType.connection = null;
-				}
-			}
-		}
-		for (const componentId in graphData.components) {
-			const component = graphData.components[componentId];
-			for (const handleName in component.handles) {
-				const handle = component.handles[handleName];
-				if (handle.connection?.id === this.componentId) {
-					this.changedHandles[component.id] = structuredClone(component);
-					handle.connection = null;
-				}
+		for (const [id, handle] of Object.entries(component.handles)) {
+			for (const connection of handle.connections) {
+				const wire = graphData.wires[connection.id];
+				this.changedWires[connection.id] = structuredClone(wire);
+				wire[connection.handleType].connection = null;
 			}
 		}
 	}
@@ -231,44 +259,46 @@ export class DeleteComponentCommand implements Command {
 			graphData.wires[Number(wireId)] = wireData;
 		}
 		for (const [componentId, componentData] of Object.entries(
-			this.changedHandles,
+			this.changedComponents,
 		)) {
 			graphData.components[Number(componentId)] = componentData;
 		}
 
 		this.deletedComponent = null;
 		this.changedWires = {};
-		this.changedHandles = {};
+		this.changedComponents = {};
 	}
 }
 
 export class DeleteWireCommand implements Command {
 	deletedWire: WireData | null = null;
 	changedWires: { [id: number]: WireData } = {};
-	changedHandles: { [id: number]: ComponentData } = {};
+	changedComponents: { [id: number]: ComponentData } = {};
 
 	constructor(private wireId: number) {}
 	execute(graphData: GraphData) {
-		this.deletedWire = graphData.wires[this.wireId];
+		const wire = graphData.wires[this.wireId];
+		this.deletedWire = wire;
 		delete graphData.wires[this.wireId];
 
-		for (const wireId in graphData.wires) {
-			const wire = graphData.wires[wireId];
-			for (const handleType of [wire.input, wire.output]) {
-				if (handleType.connection?.id === this.wireId) {
-					this.changedWires[wire.id] = structuredClone(wire);
-					handleType.connection = null;
-				}
+		const HANDLE_TYPES: HandleType[] = ["input", "output"];
+		for (const type of HANDLE_TYPES) {
+			const connection = wire[type].connection;
+			if (connection == null) {
+				continue;
 			}
-		}
-		for (const componentId in graphData.components) {
-			const component = graphData.components[componentId];
-			for (const handleName in component.handles) {
-				const handle = component.handles[handleName];
-				if (handle.connection?.id === this.wireId) {
-					this.changedHandles[component.id] = structuredClone(component);
-					handle.connection = null;
-				}
+			if (isComponentConnection(connection)) {
+				const component = graphData.components[connection.id];
+				this.changedComponents[connection.id] = structuredClone(component);
+
+				const handle = component.handles[connection.handleId];
+				handle.connections = handle.connections.filter(
+					(c) => !(c.id == this.wireId && c.handleType == type),
+				);
+			} else {
+				const otherWire = graphData.wires[connection.id];
+				this.changedWires[connection.id] = structuredClone(otherWire);
+				otherWire[connection.handleType].connection = null;
 			}
 		}
 	}
@@ -285,14 +315,14 @@ export class DeleteWireCommand implements Command {
 			graphData.wires[Number(wireId)] = wireData;
 		}
 		for (const [componentId, componentData] of Object.entries(
-			this.changedHandles,
+			this.changedComponents,
 		)) {
 			graphData.components[Number(componentId)] = componentData;
 		}
 
 		this.deletedWire = null;
 		this.changedWires = {};
-		this.changedHandles = {};
+		this.changedComponents = {};
 	}
 }
 

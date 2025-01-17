@@ -111,7 +111,7 @@ export class GraphManager {
 		const cmp = this.getComponentData(componentId);
 
 		for (const [id, handle] of Object.entries(cmp.handles)) {
-			if (handle.connection !== null) {
+			for (const connection of handle.connections) {
 				const handleOffset = calculateHandleOffset(
 					handle.edge,
 					handle.pos,
@@ -122,8 +122,8 @@ export class GraphManager {
 						x: newComponentPos.x + handleOffset.x,
 						y: newComponentPos.y + handleOffset.y,
 					},
-					handle.connection.handleType,
-					handle.connection.id,
+					connection.handleType,
+					connection.id,
 				);
 				cmds.push(moveWireCmd);
 			}

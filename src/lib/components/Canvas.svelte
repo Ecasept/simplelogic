@@ -77,13 +77,13 @@
 			fill="url(#dot-pattern)"
 		/>
 
-		{#each Object.entries($graphManager.components) as [_, { id, size, position, type, handles: connections, isPoweredInitially }] (id)}
+		{#each Object.entries($graphManager.components) as [_, { id, size, position, type, handles, isPoweredInitially }] (id)}
 			<Component
 				{id}
 				{size}
 				{position}
 				{type}
-				{connections}
+				{handles}
 				{isPoweredInitially}
 				uiState={$editorViewModel}
 			></Component>

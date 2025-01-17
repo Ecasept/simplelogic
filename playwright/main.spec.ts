@@ -154,6 +154,27 @@ test.describe("editor", () => {
 		const d2 = await page.locator(".wire").getAttribute("d");
 		expect(d1).not.toBe(d2);
 	});
+	test("can connect multiple wires from component output", async ({ page }) => {
+		await addComponent(page, "AND", 100, 300);
+
+		const handle = page.locator("circle.handle").nth(2);
+		await drag(handle, 300, 100, page, { expect: false });
+		await drag(handle, 300, 500, page, { expect: false });
+
+		await expect(page.locator(".wire")).toHaveCount(2);
+
+		// Move component and check if wires move too
+		const d1 = await page.locator(".wire").nth(0).getAttribute("d");
+		const d2 = await page.locator(".wire").nth(1).getAttribute("d");
+
+		await drag(page.locator(".component-body"), 100, 100, page);
+
+		const d3 = await page.locator(".wire").nth(0).getAttribute("d");
+		const d4 = await page.locator(".wire").nth(1).getAttribute("d");
+
+		expect(d1).not.toBe(d3);
+		expect(d2).not.toBe(d4);
+	});
 	test("undo", async ({ page }) => {
 		// Add components
 		await addComponent(page, "AND", 300, 300);

@@ -17,7 +17,7 @@ export const ZComponentHandle = z.object({
 	edge: ZHandleEdge,
 	pos: z.number(),
 	type: ZHandleType,
-	connection: ZWireConnection.nullable(),
+	connections: z.array(ZWireConnection),
 });
 
 export const ZComponentHandleList = z.record(z.string(), ZComponentHandle);
@@ -72,6 +72,7 @@ export type ComponentConnection = z.infer<typeof ZComponentConnection>;
 export type WireConnection = z.infer<typeof ZWireConnection>;
 export type ComponentHandleList = z.infer<typeof ZComponentHandleList>;
 export type WireHandle = z.infer<typeof ZWireHandle>;
+export type ComponentHandle = z.infer<typeof ZComponentHandle>;
 export type XYPair = z.infer<typeof ZXYPair>;
 export type Command = z.infer<typeof ZCommand>;
 export type WireData = z.infer<typeof ZWireData>;

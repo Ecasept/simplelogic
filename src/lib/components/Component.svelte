@@ -16,7 +16,7 @@
 		size: XYPair;
 		type: string;
 		position: XYPair;
-		connections: ComponentHandleList;
+		handles: ComponentHandleList;
 		isPoweredInitially: boolean;
 		uiState: EditorUiState;
 	};
@@ -25,7 +25,7 @@
 		size,
 		type,
 		position,
-		connections,
+		handles,
 		uiState,
 		isPoweredInitially,
 	}: Props = $props();
@@ -201,8 +201,8 @@
 	editType={uiState.editType}
 />
 
-{#each Object.entries(connections) as [identifier, handle]}
-	{#if !(handle.connection !== null && handle.type === "input")}
+{#each Object.entries(handles) as [identifier, handle]}
+	{#if !(handle.connections.length !== 0 && handle.type === "input")}
 		<!-- Hide connected inputs -->
 		{#if !(uiState.draggedHandle === handle.type)}
 			<!-- Hide handles of same type as dragged handle -->

@@ -21,72 +21,72 @@ export function gridSnap(val: number) {
 
 export const COMPONENT_IO_MAPPING: {
 	[key: string]: {
-		connections: ComponentHandleList;
+		handles: ComponentHandleList;
 		height: number;
 		width: number;
 		description: string;
 	};
 } = {
 	AND: {
-		connections: {
-			in1: { edge: "left", pos: 1, type: "input", connection: null },
-			in2: { edge: "left", pos: 3, type: "input", connection: null },
-			out: { edge: "right", pos: 2, type: "output", connection: null },
+		handles: {
+			in1: { edge: "left", pos: 1, type: "input", connections: [] },
+			in2: { edge: "left", pos: 3, type: "input", connections: [] },
+			out: { edge: "right", pos: 2, type: "output", connections: [] },
 		},
 		height: 4,
 		width: 4,
 		description: "Outputs true if both inputs are true",
 	},
 	OR: {
-		connections: {
-			in1: { edge: "left", pos: 1, type: "input", connection: null },
-			in2: { edge: "left", pos: 3, type: "input", connection: null },
-			out: { edge: "right", pos: 2, type: "output", connection: null },
+		handles: {
+			in1: { edge: "left", pos: 1, type: "input", connections: [] },
+			in2: { edge: "left", pos: 3, type: "input", connections: [] },
+			out: { edge: "right", pos: 2, type: "output", connections: [] },
 		},
 		height: 4,
 		width: 4,
 		description: "Outputs true if either input is true",
 	},
 	NOT: {
-		connections: {
-			in: { edge: "left", pos: 2, type: "input", connection: null },
-			out: { edge: "right", pos: 2, type: "output", connection: null },
+		handles: {
+			in: { edge: "left", pos: 2, type: "input", connections: [] },
+			out: { edge: "right", pos: 2, type: "output", connections: [] },
 		},
 		height: 4,
 		width: 4,
 		description: "Outputs the opposite of the input",
 	},
 	XOR: {
-		connections: {
-			in1: { edge: "left", pos: 1, type: "input", connection: null },
-			in2: { edge: "left", pos: 3, type: "input", connection: null },
-			out: { edge: "right", pos: 2, type: "output", connection: null },
+		handles: {
+			in1: { edge: "left", pos: 1, type: "input", connections: [] },
+			in2: { edge: "left", pos: 3, type: "input", connections: [] },
+			out: { edge: "right", pos: 2, type: "output", connections: [] },
 		},
 		height: 4,
 		width: 4,
 		description: "Outputs true if only one input is true",
 	},
 	DBL: {
-		connections: {
-			in: { edge: "left", pos: 2, type: "input", connection: null },
-			out1: { edge: "right", pos: 1, type: "output", connection: null },
-			out2: { edge: "right", pos: 3, type: "output", connection: null },
+		handles: {
+			in: { edge: "left", pos: 2, type: "input", connections: [] },
+			out1: { edge: "right", pos: 1, type: "output", connections: [] },
+			out2: { edge: "right", pos: 3, type: "output", connections: [] },
 		},
 		height: 4,
 		width: 4,
 		description: "Outputs the input to two outputs",
 	},
 	IN: {
-		connections: {
-			out: { edge: "right", pos: 1, type: "output", connection: null },
+		handles: {
+			out: { edge: "right", pos: 1, type: "output", connections: [] },
 		},
 		height: 2,
 		width: 2,
 		description: "Toggleable power source",
 	},
 	LED: {
-		connections: {
-			in: { edge: "left", pos: 1, type: "input", connection: null },
+		handles: {
+			in: { edge: "left", pos: 1, type: "input", connections: [] },
 		},
 		height: 2,
 		width: 2,
@@ -142,7 +142,7 @@ export function constructComponent(
 			x: svgPos.x - (data.width * GRID_SIZE) / 2,
 			y: svgPos.y - (data.height * GRID_SIZE) / 2,
 		},
-		handles: data.connections,
+		handles: data.handles,
 		isPoweredInitially: false,
 	};
 }
@@ -151,4 +151,17 @@ export function isComponentConnection(
 	connection: WireConnection | ComponentConnection,
 ): connection is ComponentConnection {
 	return "handleId" in connection;
+}
+
+export function indexOfByValue(arr: WireConnection[], value: WireConnection) {
+	for (let i = 0; i < arr.length; i++) {
+		if (arr[i].id === value.id && arr[i].handleType === value.handleType) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+export function includesByValue(arr: WireConnection[], value: WireConnection) {
+	return indexOfByValue(arr, value) !== -1;
 }
