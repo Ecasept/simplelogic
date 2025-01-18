@@ -9,8 +9,8 @@ env:
   SECRET_KEY: fake_key
 jobs:
   playwright:
-    name: "Playwright"
-    timeout-minutes: 60
+    name: Playwright
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,6 +23,7 @@ jobs:
       - name: Build Application
         run: npx vite build
 
+      # Cache Playwright binaries
       - name: Get installed Playwright version
         run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package-lock.json').packages['node_modules/@playwright/test'].version)")" >> $GITHUB_ENV
       - name: Cache playwright binaries
@@ -51,9 +52,10 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
   vitest:
-    name: "Vitest"
-    timeout-minutes: 60
+    name: Vitest
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -74,3 +76,31 @@ jobs:
           name: vitest-report
           path: coverage/
           retention-days: 7
+
+  deploy:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    timeout-minutes: 10
+    needs: [playwright, vitest] # Only deploy if tests pass
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Application
+        run: npx vite build
+
+      - name: Publish
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: simplelogic
+          directory: ".svelte-kit/cloudflare"
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
