@@ -1,10 +1,17 @@
 import test, { expect } from "@playwright/test";
+import { exec } from "child_process";
+import { promisify } from "util";
 import { addComponent, reload } from "./common";
+const execAsync = promisify(exec);
 
 test.describe("modal", async () => {
 	test.beforeEach(async ({ page, context }) => {
 		await context.clearCookies();
 		await reload(page);
+	});
+	test.beforeAll(async () => {
+		// Clear database to prevent circuit list from being too long and needing multiple pages
+		await execAsync("npm run cleardb");
 	});
 	test("login flow", async ({ page }) => {
 		// Can't save without being logged in
