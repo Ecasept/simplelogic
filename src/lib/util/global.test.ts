@@ -99,6 +99,4 @@ describe("Global Tests", () => {
 			expect(result).toEqual({ x: 100 * GRID_SIZE, y: 100 * GRID_SIZE });
 		});
 	});
-
-	
 });
