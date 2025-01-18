@@ -344,7 +344,7 @@ test.describe("editor", () => {
 		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(2);
 		expect(
-			await page.locator("component-body").getAttribute("fill"),
+			await page.locator(".component-body").nth(1).getAttribute("fill"),
 		).not.toEqual("red");
 
 		// Undo wire deletion and confirm
