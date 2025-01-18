@@ -54,6 +54,7 @@ export class EditorAction {
 	}
 
 	static deleteComponent(id: number) {
+		editorViewModel.removeForDeletion();
 		const cmd = new DeleteComponentCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
@@ -61,6 +62,7 @@ export class EditorAction {
 	}
 
 	static deleteWire(id: number) {
+		editorViewModel.removeForDeletion();
 		const cmd = new DeleteWireCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
