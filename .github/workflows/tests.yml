@@ -23,8 +23,19 @@ jobs:
       - name: Build Application
         run: npx vite build
 
+      - name: Get installed Playwright version
+        run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package-lock.json').dependencies['@playwright/test'].version)")" >> $GITHUB_ENV
+      - name: Cache playwright binaries
+        uses: actions/cache@v3
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
       - name: Install Playwright Browsers
+        if: ${{ steps.playwright-cache.outputs.cache-hit != 'true' }}
         run: npx playwright install --with-deps
+
       - name: Setup Database
         run: npx wrangler d1 migrations apply MAIN_DB --local
       - name: "Create .dev.vars file"
