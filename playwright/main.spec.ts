@@ -299,4 +299,99 @@ test.describe("editor", () => {
 		await undo(page);
 		await expect(page.locator(".wire")).toHaveCount(0);
 	});
+	test("delete flow", async ({ page }) => {
+		// Create first component
+		await addComponent(page, "AND", 100, 100);
+
+		// Drag wire from first component
+		const sourceHandle = page.locator("circle.handle").nth(2); // Output handle
+		await drag(sourceHandle, 300, 300, page, { expect: false });
+		await expect(page.locator(".wire")).toHaveCount(1);
+
+		// Create second component
+		await addComponent(page, "OR", 400, 400);
+		await expect(page.locator(".component-body")).toHaveCount(2);
+
+		// Connect wire from second to first component
+		const secondSourceHandle = page.locator("circle.handle").nth(3); // Second component input
+		const targetHandle = page.locator("circle.handle").nth(2); // First wire output (after other inputs have disappeared)
+		await secondSourceHandle.hover();
+		await page.mouse.down();
+		await targetHandle.hover();
+		await page.mouse.up();
+		await expect(page.locator(".wire")).toHaveCount(2);
+
+		// Switch to delete mode
+		await page.getByRole("button", { name: "Toggle Delete" }).click();
+		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
+
+		// Delete first wire and confirm
+		const firstWire = page.locator(".wire").first();
+		await firstWire.hover({ force: true }); // has pointer-events: none
+		expect(await firstWire.getAttribute("stroke")).toEqual("red");
+		await firstWire.click({ force: true });
+		await expect(page.locator(".wire")).toHaveCount(1);
+
+		// Delete second component and confirm
+		const secondComponent = page.locator(".component-body").nth(1);
+		await secondComponent.hover();
+		expect(await secondComponent.getAttribute("fill")).toEqual("red");
+		await secondComponent.click();
+		await expect(page.locator(".component-body")).toHaveCount(1);
+		await expect(page.locator("circle.handle")).toHaveCount(5); // 3 for first component, 2 for second wire
+
+		// Undo component deletion and confirm
+		await undo(page);
+		await expect(page.locator(".component-body")).toHaveCount(2);
+		expect(
+			await page.locator("component-body").getAttribute("fill"),
+		).not.toEqual("red");
+
+		// Undo wire deletion and confirm
+		await undo(page);
+		await expect(page.locator(".wire")).toHaveCount(2);
+		expect(
+			await page.locator(".wire").first().getAttribute("stroke"),
+		).not.toEqual("red");
+	});
+	test("disable same handles", async ({ page }) => {
+		// Create components
+		await addComponent(page, "AND", 200, 200);
+		await addComponent(page, "OR", 600, 600);
+
+		// drag two wires from output
+		const outputHandle = page.locator("circle.handle").nth(2);
+		await drag(outputHandle, 400, 100, page, { expect: false });
+		await drag(outputHandle, 400, 300, page, { expect: false });
+		await expect(page.locator("circle.handle")).toHaveCount(8); // 2 inputs + 1 output + 2 wire endpoints, + 3 from second component
+
+		// click on output handle
+		const thirdHandle = page.locator("circle.handle").nth(5);
+		await thirdHandle.hover();
+		await page.mouse.down();
+
+		// verify that other outputs have disappeared
+		await expect(page.locator("circle.handle")).toHaveCount(5);
+
+		// escape
+		await page.keyboard.press("Escape");
+		await page.mouse.up();
+
+		// verify that outputs are back
+		await expect(page.locator("circle.handle")).toHaveCount(8);
+
+		// click on input handle (n = 0)
+		const inputHandle = page.locator("circle.handle").first();
+		await inputHandle.hover();
+		await page.mouse.down();
+
+		// verify that other inputs have disappeared
+		await expect(page.locator("circle.handle")).toHaveCount(5);
+
+		// release
+		await page.mouse.up();
+
+		// verify that inputs are back
+		await expect(page.locator("circle.handle")).toHaveCount(8);
+	});
 });

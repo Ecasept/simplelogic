@@ -96,4 +96,27 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("Escape");
 		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
 	});
+	test("d toggles delete mode", async ({ page }) => {
+		// add component
+		await addComponent(page, "AND", 200, 200);
+		await expect(page.locator(".component-body")).toHaveCount(1);
+
+		// press d
+		await page.keyboard.press("d");
+
+		// verify delete mode
+		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
+
+		// delete component
+		await page.locator(".component-body").click();
+
+		// verify component is deleted
+		await expect(page.locator(".component-body")).toHaveCount(0);
+
+		// press d
+		await page.keyboard.press("d");
+
+		// verify not in delete mode
+		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
+	});
 });
