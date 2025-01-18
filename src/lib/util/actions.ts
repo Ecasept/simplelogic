@@ -125,34 +125,23 @@ export class EditorAction {
 			},
 		};
 
-		const createWireCmd = new CreateWireCommand(wireData);
-		const wireId = graphManager.executeCommand(createWireCmd);
-		const connectCmd = new ConnectCommand(
-			{
-				id: wireId,
-				handleType: clickedHandle === "input" ? "output" : "input",
-			},
-			componentConnection,
+		const wireId = graphManager.executeCommand(new CreateWireCommand(wireData));
+
+		const connectedHandle: WireConnection = {
+			id: wireId,
+			handleType: clickedHandle === "input" ? "output" : "input",
+		};
+		const draggedHandle = { id: wireId, handleType: clickedHandle };
+
+		graphManager.executeCommand(
+			new ConnectCommand(connectedHandle, componentConnection),
 		);
-		graphManager.executeCommand(connectCmd);
 		graphManager.notifyAll();
 
-		editorViewModel.startAddWire(wireId, clickedHandle);
+		editorViewModel.startAddWire(draggedHandle);
 	}
 
 	// ==== Movement ====
-
-	static move(newClientPos: XYPair, id: number) {
-		if (editorViewModel.uiState.draggedHandle === null) {
-			this.moveComponentReplaceable(newClientPos, id);
-		} else {
-			this.moveWireConnectionReplaceable(
-				newClientPos,
-				id,
-				editorViewModel.uiState.draggedHandle,
-			);
-		}
-	}
 
 	static moveComponentReplaceable(newClientPos: XYPair, id: number) {
 		// transform to svg coordinate system

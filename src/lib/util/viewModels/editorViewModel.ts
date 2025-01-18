@@ -1,9 +1,4 @@
-import type {
-	ComponentConnection,
-	HandleType,
-	WireConnection,
-	XYPair,
-} from "../types";
+import type { ComponentConnection, WireConnection, XYPair } from "../types";
 import { ViewModel } from "./viewModel";
 
 type EditComponent = {
@@ -11,15 +6,15 @@ type EditComponent = {
 	editedId: number;
 	clickOffset: XYPair;
 
-	outputConnectedToWire: false;
-	draggedHandle: null;
+	draggedWire: null;
+	hoveredHandle: null;
 };
 type EditWire = {
 	editType: "add" | "move";
-	editedId: number;
-	draggedHandle: HandleType;
-	outputConnectedToWire: boolean;
+	draggedWire: WireConnection;
+	hoveredHandle: WireConnection | ComponentConnection | null;
 
+	editedId: null;
 	clickOffset: null;
 };
 
@@ -27,26 +22,26 @@ type DeletionState = {
 	editType: "delete";
 	editedId: number | null;
 
-	draggedHandle: null;
 	clickOffset: null;
-	outputConnectedToWire: false;
+	draggedWire: null;
+	hoveredHandle: null;
 };
 
 type SimulationState = {
 	editType: "simulate";
 
 	editedId: null;
-	draggedHandle: null;
 	clickOffset: null;
-	outputConnectedToWire: false;
+	draggedWire: null;
+	hoveredHandle: null;
 };
 
 type DefaultState = {
 	editType: null;
 	editedId: null;
-	draggedHandle: null;
 	clickOffset: null;
-	outputConnectedToWire: false;
+	draggedWire: null;
+	hoveredHandle: WireConnection | ComponentConnection | null;
 };
 
 export type EditorUiState = (
@@ -66,9 +61,8 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		isModalOpen: false,
 		hoveredHandle: null,
 		clickOffset: null,
-		draggedHandle: null,
 		editedId: null,
-		outputConnectedToWire: false,
+		draggedWire: null,
 	};
 
 	protected resetUiState() {
@@ -77,9 +71,8 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			isModalOpen: false,
 			hoveredHandle: null,
 			clickOffset: null,
-			draggedHandle: null,
 			editedId: null,
-			outputConnectedToWire: false,
+			draggedWire: null,
 		};
 	}
 
@@ -124,22 +117,16 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			clickOffset: clickOffset,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredHandle: null,
-			draggedHandle: null,
-			outputConnectedToWire: false,
+			draggedWire: null,
 		};
 		this.notifyAll();
 	}
-	startMoveWire(
-		id: number,
-		outputConnectedToWire: boolean,
-		draggedHandle: HandleType,
-	) {
+	startMoveWire(wire: WireConnection) {
 		this._uiState = {
 			editType: "move",
-			editedId: id,
-			draggedHandle: draggedHandle,
+			editedId: null,
+			draggedWire: wire,
 			isModalOpen: this._uiState.isModalOpen,
-			outputConnectedToWire: outputConnectedToWire,
 			hoveredHandle: null,
 			clickOffset: null,
 		};
@@ -152,20 +139,18 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			clickOffset: clickOffset,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredHandle: null,
-			draggedHandle: null,
-			outputConnectedToWire: false,
+			draggedWire: null,
 		};
 		this.notifyAll();
 	}
-	startAddWire(id: number, draggedHandle: HandleType) {
+	startAddWire(wire: WireConnection) {
 		this._uiState = {
 			editType: "add",
-			editedId: id,
-			draggedHandle: draggedHandle,
+			editedId: null,
+			draggedWire: wire,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredHandle: null,
 			clickOffset: null,
-			outputConnectedToWire: false,
 		};
 		this.notifyAll();
 	}

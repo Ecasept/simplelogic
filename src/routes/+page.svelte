@@ -19,9 +19,18 @@
 		const pos = { x: e.clientX, y: e.clientY };
 		setMousePosition(pos);
 
-		const editType = editorViewModel.uiState.editType;
+		const uiState = editorViewModel.uiState;
+		const editType = uiState.editType;
 		if (editType === "move" || editType === "add") {
-			EditorAction.move(pos, editorViewModel.uiState.editedId);
+			if (uiState.draggedWire === null) {
+				EditorAction.moveComponentReplaceable(pos, uiState.editedId);
+			} else {
+				EditorAction.moveWireConnectionReplaceable(
+					pos,
+					uiState.draggedWire.id,
+					uiState.draggedWire.handleType,
+				);
+			}
 		}
 	}
 	function onMouseUp(e: MouseEvent) {
@@ -36,18 +45,14 @@
 			return;
 		}
 
-		if (
-			editorViewModel.uiState.draggedHandle !== null &&
-			editorViewModel.uiState.hoveredHandle !== null &&
-			!editorViewModel.uiState.outputConnectedToWire
-		) {
-			// this means that a wire is being connected
+		if (uiState.draggedWire != null && uiState.hoveredHandle != null) {
+			// wire is being connected
 			EditorAction.connect(
 				{
-					id: editorViewModel.uiState.editedId,
-					handleType: editorViewModel.uiState.draggedHandle,
+					id: uiState.draggedWire.id,
+					handleType: uiState.draggedWire.handleType,
 				},
-				editorViewModel.uiState.hoveredHandle,
+				uiState.hoveredHandle,
 			);
 		}
 

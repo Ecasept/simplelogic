@@ -91,20 +91,6 @@
 		border: 1px solid black;
 		border-radius: 8px;
 	}
-	#save-btn {
-		display: inline;
-		background-color: var(--light-color);
-		color: black;
-		border: 1px solid black;
-		cursor: pointer;
-		border-radius: 12px;
-		margin: 0px 5px;
-		padding: 8px;
-
-		&:hover {
-			background-color: var(--light-darker-color);
-		}
-	}
 
 	#modal-header {
 		display: flex;

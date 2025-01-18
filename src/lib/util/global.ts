@@ -148,9 +148,15 @@ export function constructComponent(
 }
 
 export function isComponentConnection(
-	connection: WireConnection | ComponentConnection,
+	connection: WireConnection | ComponentConnection | null,
 ): connection is ComponentConnection {
-	return "handleId" in connection;
+	return connection !== null && "handleId" in connection;
+}
+
+export function isWireConnection(
+	connection: WireConnection | ComponentConnection | null,
+): connection is WireConnection {
+	return connection !== null && "handleType" in connection;
 }
 
 export function indexOfByValue(arr: WireConnection[], value: WireConnection) {

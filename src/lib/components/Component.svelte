@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
-	import { calculateHandleOffset, GRID_SIZE } from "$lib/util/global";
+	import {
+		calculateHandleOffset,
+		GRID_SIZE,
+		isComponentConnection,
+	} from "$lib/util/global";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type {
 		ComponentHandleList,
@@ -33,7 +37,8 @@
 	let rect: SVGRectElement;
 
 	let editingThis = $derived(uiState.editedId === id);
-	let editing = $derived(uiState.editType !== null);
+	let editingOtherWire = $derived(uiState.draggedWire?.id != null);
+
 	let simulating = $derived(uiState.editType === "simulate");
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
@@ -49,16 +54,16 @@
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
-			if (uiState.editType === "add") {
-				return "default";
-			} else if (uiState.editType === "move") {
+			if (uiState.editType === "move") {
 				return "grabbing";
+			} else {
+				return "default";
 			}
 		} else {
-			if (editing) {
-				return "default";
-			} else {
+			if (uiState.editType === null) {
 				return "grab";
+			} else {
+				return "default";
 			}
 		}
 	});
@@ -127,32 +132,6 @@
 		editorViewModel.removeHoveredHandle();
 	}
 
-	let hoverR = $state(5);
-	let hoveredHandle: string | null = $state(null);
-	let handleFill = $state("black");
-	$effect(() => {
-		if (editing && !uiState.outputConnectedToWire) {
-			// Adding/moving something else
-			handleFill = "purple";
-		} else if (!uiState.outputConnectedToWire) {
-			// Not adding/moving anything
-			hoverR = 10;
-			handleFill = "black";
-		} else {
-			hoverR = 5;
-			handleFill = "black";
-		}
-		if (
-			uiState.hoveredHandle !== null &&
-			id === uiState.hoveredHandle.id &&
-			"handleId" in uiState.hoveredHandle
-		) {
-			hoveredHandle = uiState.hoveredHandle.handleId;
-		} else {
-			hoveredHandle = null;
-		}
-	});
-
 	let fill = $derived.by(() => {
 		if (uiState.editType == "delete" && editingThis) {
 			return "red";
@@ -202,10 +181,14 @@
 />
 
 {#each Object.entries(handles) as [identifier, handle]}
+	<!-- Hide connected inputs -->
 	{#if !(handle.connections.length !== 0 && handle.type === "input")}
-		<!-- Hide connected inputs -->
-		{#if !(uiState.draggedHandle === handle.type)}
-			<!-- Hide handles of same type as dragged handle -->
+		<!-- Hide handles of same type as dragged handle -->
+		{#if !(uiState.draggedWire?.handleType === handle.type)}
+			{@const isHoveredHandle =
+				isComponentConnection(uiState.hoveredHandle) &&
+				uiState.hoveredHandle.id == id &&
+				uiState.hoveredHandle.handleId == identifier}
 			<circle
 				role="button"
 				tabindex="0"
@@ -216,8 +199,8 @@
 				onmouseleave={onHandleLeave}
 				cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
 				cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
-				r={hoveredHandle === identifier ? hoverR : 5}
-				fill={hoveredHandle === identifier ? handleFill : "black"}
+				r={isHoveredHandle ? 10 : 5}
+				fill={isHoveredHandle && editingOtherWire ? "purple" : "black"}
 				onmousedown={(e) =>
 					onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 			></circle>

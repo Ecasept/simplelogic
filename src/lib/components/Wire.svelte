@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
-	import { isComponentConnection } from "$lib/util/global";
+	import { isWireConnection } from "$lib/util/global";
 	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
 
@@ -13,8 +13,10 @@
 
 	let { id, input, output, uiState }: Props = $props();
 
-	let editingThis = $derived(uiState.editedId === id);
-	let editing = $derived(uiState.editType !== null);
+	let editingThis = $derived(uiState.draggedWire?.id === id);
+	let editingOtherWire = $derived(
+		uiState.draggedWire?.id != null && !editingThis,
+	);
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
 		if (uiState.editType != null) {
@@ -24,21 +26,10 @@
 			return;
 		}
 
-		let outputConnectedToWire = false;
-		if (clickedHandle === "output") {
-			if (
-				output.connection !== null &&
-				!isComponentConnection(output.connection)
-			) {
-				// if output is connected to wire
-				outputConnectedToWire = true;
-			}
-		}
-
 		editorViewModel.removeHoveredHandle();
 		e.preventDefault();
 		e.stopPropagation();
-		editorViewModel.startMoveWire(id, outputConnectedToWire, clickedHandle);
+		editorViewModel.startMoveWire({ id: id, handleType: clickedHandle });
 	}
 
 	function onHandleEnter(handleType: HandleType) {
@@ -57,44 +48,18 @@
 		editorViewModel.removeHoveredHandle();
 	}
 
-	let deletingThis = $derived(uiState.editType == "delete" && editingThis);
+	let deletingThis = $derived(
+		uiState.editType == "delete" && uiState.editedId === id,
+	);
 
-	let hoverR = $state(5);
-	let fill = $state("black");
-	let hoveredHandle: string | null = $state(null);
-	$effect(() => {
-		if (editing && !uiState.outputConnectedToWire) {
-			// Adding/moving something else
-			hoverR = 10;
-			fill = "purple";
-		} else if (!uiState.outputConnectedToWire) {
-			// Not adding/moving anything
-			hoverR = 10;
-			fill = "black";
-		} else {
-			hoverR = 5;
-			fill = deletingThis ? "red" : "black";
-		}
-
-		if (
-			uiState.hoveredHandle !== null &&
-			id === uiState.hoveredHandle.id &&
-			!isComponentConnection(uiState.hoveredHandle)
-		) {
-			hoveredHandle = uiState.hoveredHandle.handleType;
-		} else {
-			hoveredHandle = null;
-		}
-	});
-
-	let otherFill = $derived(deletingThis ? "red" : "black");
+	let stroke = $derived(deletingThis ? "red" : "black");
 </script>
 
 <path
 	class="wire"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
-	stroke={otherFill}
-	style="pointer-events: {editingThis ? 'none' : 'all'};"
+	{stroke}
+	style="pointer-events: none;"
 ></path>
 
 <path
@@ -103,7 +68,7 @@
 	class="hitbox"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke="transparent"
-	style="pointer-events: {editingThis && !deletingThis ? 'none' : 'all'};"
+	style="pointer-events: {uiState.editType === 'delete' ? 'all' : 'none'};"
 	stroke-width="10"
 	onmouseenter={() => {
 		if (uiState.editType !== "delete") {
@@ -128,10 +93,20 @@
 	}}
 ></path>
 
+<!-- Hide connected inputs -->
 {#if input.connection === null}
-	<!-- Hide connected inputs -->
-	{#if !(uiState.draggedHandle === "input" && !editingThis)}
-		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
+	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
+	{#if !(!editingThis && uiState.draggedWire?.handleType === "input")}
+		{@const isHoveredHandle =
+			isWireConnection(uiState.hoveredHandle) &&
+			uiState.hoveredHandle.id == id &&
+			uiState.hoveredHandle.handleType == "input"}
+		{@const hoveringOtherWire =
+			!isHoveredHandle && uiState.hoveredHandle !== null}
+
+		<!-- Highlight both handles when connecting two handles-->
+		{@const draggingOtherOnToThis = isHoveredHandle && editingOtherWire}
+		{@const draggingThisOnToOther = hoveringOtherWire && editingThis}
 		<circle
 			role="button"
 			tabindex="0"
@@ -142,17 +117,27 @@
 			class="handle"
 			cx={input.x}
 			cy={input.y}
-			r={hoveredHandle === "input" ? hoverR : 5}
-			fill={hoveredHandle === "input" ? fill : otherFill}
+			r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
+			fill={draggingOtherOnToThis || draggingThisOnToOther ? "purple" : "black"}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			onmousedown={(e) => onHandleDown("input", e)}
 		></circle>
 	{/if}
 {/if}
+<!-- Hide outputs connected to components -->
 {#if !(output.connection !== null && "handleId" in output.connection)}
-	<!-- Hide outputs connected to components -->
-	{#if !(uiState.draggedHandle === "output" && !editingThis)}
-		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
+	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
+	{#if !(!editingThis && uiState.draggedWire?.handleType === "output")}
+		{@const isHoveredHandle =
+			isWireConnection(uiState.hoveredHandle) &&
+			uiState.hoveredHandle.id == id &&
+			uiState.hoveredHandle.handleType == "output"}
+		{@const hoveringOtherWire =
+			!isHoveredHandle && uiState.hoveredHandle !== null}
+
+		<!-- Highlight both handles when connecting two handles-->
+		{@const draggingOtherOnToThis = isHoveredHandle && editingOtherWire}
+		{@const draggingThisOnToOther = hoveringOtherWire && editingThis}
 		<circle
 			role="button"
 			tabindex="0"
@@ -163,8 +148,8 @@
 			class="handle"
 			cx={output.x}
 			cy={output.y}
-			r={hoveredHandle === "output" ? hoverR : 5}
-			fill={hoveredHandle === "output" ? fill : otherFill}
+			r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
+			fill={draggingOtherOnToThis || draggingThisOnToOther ? "purple" : "black"}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			onmousedown={(e) => onHandleDown("output", e)}
 		></circle>
