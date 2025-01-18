@@ -12,7 +12,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 			return json({ success: false, error: "Please login" });
 		}
 		try {
-			let loggedIn = true;
 			const secret = new TextEncoder().encode(env.SECRET_KEY);
 			await jwtVerify(token, secret);
 		} catch (e) {
