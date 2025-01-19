@@ -171,7 +171,11 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await expect(page.locator(".component-body")).toHaveCount(1);
 	});
-	test("copy and paste", async ({ page }) => {
+	test("copy and paste", async ({ page, browserName }) => {
+		test.skip(
+			browserName === "webkit",
+			"Playwright doesn't support clipboard for webkit",
+		);
 		// Create 2 components connected by a wire
 		await addComponent(page, "AND", 100, 200);
 		await addComponent(page, "OR", 200, 300);

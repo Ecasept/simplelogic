@@ -52,10 +52,7 @@ export default defineConfig({
 
 		{
 			name: "webkit",
-			use: {
-				contextOptions: { permissions: ["clipboard-read", "clipboard-write"] },
-				...devices["Desktop Safari"],
-			},
+			use: { ...devices["Desktop Safari"] },
 		},
 
 		/* Test against mobile viewports. */
