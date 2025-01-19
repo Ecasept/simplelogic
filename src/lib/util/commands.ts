@@ -92,7 +92,12 @@ export class ConnectCommand implements Command {
 
 	execute(graphData: GraphData) {
 		this.connect(graphData, this.from, this.to);
-		this.connect(graphData, this.to, this.from);
+		try {
+			this.connect(graphData, this.to, this.from);
+		} catch (e) {
+			this.disconnect(graphData, this.from, this.to);
+			throw e;
+		}
 	}
 
 	private disconnect(
@@ -119,7 +124,12 @@ export class ConnectCommand implements Command {
 
 	undo(graphData: GraphData) {
 		this.disconnect(graphData, this.from, this.to);
-		this.disconnect(graphData, this.to, this.from);
+		try {
+			this.disconnect(graphData, this.to, this.from);
+		} catch (e) {
+			this.connect(graphData, this.from, this.to);
+			throw e;
+		}
 	}
 }
 
