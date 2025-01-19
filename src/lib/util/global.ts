@@ -80,18 +80,6 @@ export const COMPONENT_IO_MAPPING: {
 		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
 			inputs.in1 != inputs.in2,
 	},
-	DBL: {
-		handles: {
-			in: { edge: "left", pos: 2, type: "input", connections: [] },
-			out1: { edge: "right", pos: 1, type: "output", connections: [] },
-			out2: { edge: "right", pos: 3, type: "output", connections: [] },
-		},
-		height: 4,
-		width: 4,
-		description: "Outputs the input to two outputs",
-		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
-			inputs.in,
-	},
 	IN: {
 		handles: {
 			out: { edge: "right", pos: 1, type: "output", connections: [] },
