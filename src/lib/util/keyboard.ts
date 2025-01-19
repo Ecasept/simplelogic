@@ -28,10 +28,48 @@ const shortcuts = [
 		},
 	},
 	{
+		key: "i",
+		mod: null,
+		env: "editor",
+		action: () => {
+			EditorAction.addComponent("IN", mousePosition);
+		},
+	},
+	{
+		key: "l",
+		mod: null,
+		env: "editor",
+		action: () => {
+			EditorAction.addComponent("LED", mousePosition);
+		},
+	},
+	{
+		key: "n",
+		mod: null,
+		env: "editor",
+		action: () => {
+			EditorAction.addComponent("NOT", mousePosition);
+		},
+	},
+	{
+		key: "x",
+		mod: null,
+		env: "editor",
+		action: () => {
+			EditorAction.addComponent("XOR", mousePosition);
+		},
+	},
+	{
 		key: "d",
 		mod: null,
 		env: "editor",
 		action: EditorAction.toggleDelete,
+	},
+	{
+		key: "s",
+		mod: null,
+		env: "editor",
+		action: EditorAction.toggleSimulate,
 	},
 	{
 		key: "o",
