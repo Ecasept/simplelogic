@@ -135,29 +135,27 @@ test.describe("shortcut interactions", () => {
 		await page.keyboard.press("d");
 
 		// verify highlighting
-		expect(await page.locator(".component-body").getAttribute("fill")).toEqual(
-			"red",
-		);
+		await expect(page.locator(".component-body")).toHaveAttribute("fill", "red");
 
 		await page.keyboard.press("s");
 
 		// verify highlighting gone
-		expect(
-			await page.locator(".component-body").getAttribute("fill"),
-		).not.toEqual("red");
+		await expect(page.locator(".component-body")).not.toHaveAttribute("fill", "red");
 
 		await page.keyboard.press("d");
 
 		// verify highlighting
-		expect(await page.locator(".component-body").getAttribute("fill")).toEqual(
+		await expect(page.locator(".component-body")).toHaveAttribute(
+			"fill",
 			"red",
 		);
 
 		await page.keyboard.press("Escape");
 
 		// verify highlighting gone
-		expect(
-			await page.locator(".component-body").getAttribute("fill"),
-		).not.toEqual("red");
+		await expect(page.locator(".component-body")).not.toHaveAttribute(
+			"fill",
+			"red",
+		);
 	});
 });

@@ -1,17 +1,18 @@
 import test, { expect } from "@playwright/test";
 import { spawn } from "child_process";
-import { addComponent, drag, dragHandle, reload } from "./common";
+import { addComponent, drag, dragHandle, getAttr, reload } from "./common";
 
 test.describe("modal", async () => {
 	test.beforeEach(async ({ page, context }) => {
 		await context.clearCookies();
 		await reload(page);
 	});
-	test.beforeAll(async () => {
+	test.beforeAll(async ({ browser }) => {
 		// Clear database to prevent circuit list from being too long and needing multiple pages
-		const cmd = spawn("npm", ["run", "cleardb"]);
-		cmd.stdout.pipe(process.stdout);
-		cmd.stderr.pipe(process.stderr);
+		const cmd = spawn("npm", ["run", "cleardb"], {
+			stdio: "inherit",
+		});
+
 		await new Promise<void>((resolve, reject) => {
 			cmd.on("close", (code) => {
 				if (code === 0) resolve();
@@ -170,7 +171,7 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await expect(page.locator(".component-body")).toHaveCount(1);
 	});
-	test("copy and paste", async ({ page, context }) => {
+	test("copy and paste", async ({ page }) => {
 		// Create 2 components connected by a wire
 		await addComponent(page, "AND", 100, 200);
 		await addComponent(page, "OR", 200, 300);
@@ -196,10 +197,12 @@ test.describe("modal", async () => {
 		await expect(page.locator(".wire")).toHaveCount(1);
 
 		// Check that components are correctly connected
-		const initialD = await page.locator(".wire").first().getAttribute("d");
+		const initialD = await getAttr(page.locator(".wire").first(), "d");
 		const component = page.locator(".component-body").first();
 		await drag(component, 50, 50, page);
-		const newD = await page.locator(".wire").first().getAttribute("d");
-		expect(newD).not.toBe(initialD);
+		await expect(page.locator(".wire").first()).not.toHaveAttribute(
+			"d",
+			initialD,
+		);
 	});
 });

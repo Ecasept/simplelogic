@@ -1,5 +1,14 @@
 import test, { expect } from "@playwright/test";
-import { addComponent, drag, dragHandle, expectPosToBe, reload, undo } from "./common";
+import {
+	addComponent,
+	drag,
+	dragHandle,
+	expectPosToBe,
+	getAttr,
+	getAttrs,
+	reload,
+	undo,
+} from "./common";
 
 test.describe("editor", () => {
 	test.beforeEach(async ({ page }) => {
@@ -72,16 +81,14 @@ test.describe("editor", () => {
 	});
 	test("moves component and discards", async ({ page }) => {
 		await addComponent(page, "AND", 100, 200);
+		await expect(page.locator(".component-body")).toBeVisible();
 
 		const component = page.locator(".component-body");
-		const x1 = await component.getAttribute("x");
-		const y1 = await component.getAttribute("y");
+		const [x1, y1] = await getAttrs(component, "x", "y");
 		await page.keyboard.press("Escape");
 
-		const x2 = await component.getAttribute("x");
-		const y2 = await component.getAttribute("y");
-		expect(x1).toBe(x2);
-		expect(y1).toBe(y2);
+		await expect(component).toHaveAttribute("x", x1);
+		await expect(component).toHaveAttribute("y", y1);
 	});
 	test("snaps", async ({ page }) => {
 		await addComponent(page, "AND", 100, 200);
@@ -99,7 +106,7 @@ test.describe("editor", () => {
 		// Click handle
 		const originalHandle = page.locator("circle.handle").nth(2);
 		await originalHandle.hover();
-		expect(await originalHandle.getAttribute("r")).toBe("10");
+		await expect(originalHandle).toHaveAttribute("r", "10");
 		await page.mouse.down();
 
 		// Move handle
@@ -120,10 +127,10 @@ test.describe("editor", () => {
 	});
 	test("drags new wire and discards", async ({ page }) => {
 		await addComponent(page, "AND", 100, 200);
+		await expect(page.locator(".component-body")).toBeVisible();
 
 		const handle = page.locator("circle").nth(2);
-		const x1 = await handle.getAttribute("cx");
-		const y1 = await handle.getAttribute("cy");
+		const [x1, y1] = await getAttrs(handle, "cx", "cy");
 
 		// Drag Wire
 		await handle.hover();
@@ -132,10 +139,8 @@ test.describe("editor", () => {
 
 		await page.keyboard.press("Escape");
 
-		const x2 = await handle.getAttribute("cx");
-		const y2 = await handle.getAttribute("cy");
-		expect(x1).toBe(x2);
-		expect(y1).toBe(y2);
+		await expect(handle).toHaveAttribute("cx", x1);
+		await expect(handle).toHaveAttribute("cy", y1);
 	});
 	test("drags wires with components", async ({ page }) => {
 		await addComponent(page, "AND", 500, 500);
@@ -146,13 +151,12 @@ test.describe("editor", () => {
 		await page.mouse.move(100, 100);
 		await page.mouse.up();
 
-		const d1 = await page.locator(".wire").getAttribute("d");
+		const d1 = await getAttr(page.locator(".wire"), "d");
 		await page.locator(".component-body").hover();
 		await page.mouse.down();
 		await page.mouse.move(200, 300);
 		await page.mouse.up();
-		const d2 = await page.locator(".wire").getAttribute("d");
-		expect(d1).not.toBe(d2);
+		await expect(page.locator(".wire")).not.toHaveAttribute("d", d1);
 	});
 	test("can connect multiple wires from component output", async ({ page }) => {
 		await addComponent(page, "AND", 100, 300);
@@ -164,16 +168,13 @@ test.describe("editor", () => {
 		await expect(page.locator(".wire")).toHaveCount(2);
 
 		// Move component and check if wires move too
-		const d1 = await page.locator(".wire").nth(0).getAttribute("d");
-		const d2 = await page.locator(".wire").nth(1).getAttribute("d");
+		const d1 = await getAttr(page.locator(".wire").nth(0), "d");
+		const d2 = await getAttr(page.locator(".wire").nth(1), "d");
 
 		await drag(page.locator(".component-body"), 100, 100, page);
 
-		const d3 = await page.locator(".wire").nth(0).getAttribute("d");
-		const d4 = await page.locator(".wire").nth(1).getAttribute("d");
-
-		expect(d1).not.toBe(d3);
-		expect(d2).not.toBe(d4);
+		await expect(page.locator(".wire").nth(0)).not.toHaveAttribute("d", d1);
+		await expect(page.locator(".wire").nth(1)).not.toHaveAttribute("d", d2);
 	});
 	test("undo", async ({ page }) => {
 		// Add components
@@ -187,8 +188,7 @@ test.describe("editor", () => {
 		await page.mouse.up();
 
 		const handle = page.locator("circle").nth(4);
-		const x1 = await handle.getAttribute("cx");
-		const y1 = await handle.getAttribute("cy");
+		const [x1, y1] = await getAttrs(handle, "cx", "cy");
 
 		// Drag Wire
 		await page.locator("circle").nth(4).hover();
@@ -198,10 +198,8 @@ test.describe("editor", () => {
 
 		// Undo Wire
 		await undo(page);
-		const x2 = await handle.getAttribute("cx");
-		const y2 = await handle.getAttribute("cy");
-		expect(x1).toBe(x2);
-		expect(y1).toBe(y2);
+		await expect(handle).toHaveAttribute("cx", x1);
+		await expect(handle).toHaveAttribute("cy", y1);
 
 		// Undo Move
 		await expectPosToBe(page.locator(".component-body").nth(1), 100, 100);
@@ -242,16 +240,16 @@ test.describe("editor", () => {
 		await drag(handle, 400, 400, page);
 
 		// 2. Drag but not release
-		const initialD = await wire.getAttribute("d");
+		const initialD = await getAttr(wire, "d");
 		await drag(handle, 150, 150, page, { mouseUp: false, expect: false });
 		await expectPosToBe(page.locator("circle.handle").nth(1), 150, 150);
-		expect(initialD).not.toBe(await wire.getAttribute("d"));
+		await expect(wire).not.toHaveAttribute("d", initialD);
 
 		// 3. Press escape
 		await page.keyboard.press("Escape");
 		await page.mouse.up();
 		await expectPosToBe(handle, 400, 400);
-		expect(initialD).toBe(await wire.getAttribute("d"));
+		await expect(wire).toHaveAttribute("d", initialD);
 
 		// 3.5 Drag and connect
 		await addComponent(page, "XOR", 300, 300);
@@ -267,7 +265,8 @@ test.describe("editor", () => {
 
 		targetHandle!.dispose();
 
-		expect(await page.locator(".wire").last().getAttribute("d")).toEqual(
+		await expect(page.locator(".wire").last()).toHaveAttribute(
+			"d",
 			"M121 81 L201 221",
 		);
 		await undo(page);
@@ -279,17 +278,18 @@ test.describe("editor", () => {
 		// 5. Undo
 		await undo(page);
 		await expectPosToBe(handle, 400, 400);
-		expect(initialD).toBe(await wire.getAttribute("d"));
+		await expect(wire).toHaveAttribute("d", initialD);
 
 		// 6. Move component
 		const component = page.locator(".component-body");
 		await drag(component, 50, 50, page);
 		await expectPosToBe(handle, 400, 400);
-		expect(initialD).not.toBe(await wire.getAttribute("d"));
+		await expect(wire).not.toHaveAttribute("d", initialD);
+
 		// Undo
 		await undo(page);
 		await expectPosToBe(handle, 400, 400);
-		expect(initialD).toBe(await wire.getAttribute("d"));
+		await expect(wire).toHaveAttribute("d", initialD);
 
 		// 7. Undo twice (should remove the wire)
 		await undo(page);
@@ -322,14 +322,14 @@ test.describe("editor", () => {
 		// Delete first wire and confirm
 		const firstWire = page.locator(".wire").first();
 		await firstWire.hover({ force: true }); // has pointer-events: none
-		expect(await firstWire.getAttribute("stroke")).toEqual("red");
+		await expect(firstWire).toHaveAttribute("stroke", "red");
 		await firstWire.click({ force: true });
 		await expect(page.locator(".wire")).toHaveCount(1);
 
 		// Delete second component and confirm
 		const secondComponent = page.locator(".component-body").nth(1);
 		await secondComponent.hover();
-		expect(await secondComponent.getAttribute("fill")).toEqual("red");
+		await expect(secondComponent).toHaveAttribute("fill", "red");
 		await secondComponent.click();
 		await expect(page.locator(".component-body")).toHaveCount(1);
 		await expect(page.locator("circle.handle")).toHaveCount(5); // 3 for first component, 2 for second wire
@@ -337,16 +337,18 @@ test.describe("editor", () => {
 		// Undo component deletion and confirm
 		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(2);
-		expect(
-			await page.locator(".component-body").nth(1).getAttribute("fill"),
-		).not.toEqual("red");
+		await expect(page.locator(".component-body").nth(1)).not.toHaveAttribute(
+			"fill",
+			"red",
+		);
 
 		// Undo wire deletion and confirm
 		await undo(page);
 		await expect(page.locator(".wire")).toHaveCount(2);
-		expect(
-			await page.locator(".wire").first().getAttribute("stroke"),
-		).not.toEqual("red");
+		await expect(page.locator(".wire").first()).not.toHaveAttribute(
+			"stroke",
+			"red",
+		);
 	});
 	test("disable same handles", async ({ page }) => {
 		// Create components

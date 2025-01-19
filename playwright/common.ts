@@ -66,3 +66,14 @@ export async function addComponent(
 export async function undo(page: Page) {
 	await page.getByRole("button", { name: "Undo" }).click();
 }
+
+export async function getAttr(locator: Locator, attr: string) {
+	const val = await locator.getAttribute(attr);
+	expect(val).not.toBeNull();
+	return val!;
+}
+
+export async function getAttrs(locator: Locator, ...attrs: string[]) {
+	const values = await Promise.all(attrs.map((attr) => getAttr(locator, attr)));
+	return values;
+}
