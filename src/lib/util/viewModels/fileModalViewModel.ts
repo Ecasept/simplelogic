@@ -9,18 +9,23 @@ export type FileModalUiState =
 			callback: null;
 			errorMessage: null;
 			listRequestData: null;
+			loadMode: null;
 	  }
 	| {
 			mode: "load";
 			errorMessage: string | null;
 			callback: (graphData: GraphData) => void;
 			listRequestData: ListRequestData | null;
+			isLoadingList: boolean;
+			loadMode: "select" | "list";
 	  }
 	| {
 			mode: "save";
 			errorMessage: string | null;
 			callback: () => void;
 			listRequestData: null;
+			isLoadingList: false;
+			loadMode: null;
 	  };
 
 type ListRequestData = {
@@ -38,6 +43,7 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		errorMessage: null,
 		callback: null,
 		listRequestData: null,
+		loadMode: null,
 	};
 
 	protected resetUiState() {
@@ -46,16 +52,41 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 			errorMessage: null,
 			callback: null,
 			listRequestData: null,
+			loadMode: null,
 		};
 	}
 
+	copyCircuitToClipboard() {
+		if (this._uiState.mode !== "save") {
+			throw new Error("Invalid mode");
+		}
+		const graphData = graph.getData();
+		const json = JSON.stringify(graphData);
+		navigator.clipboard.writeText(json);
+		this._uiState.callback();
+	}
+	async pasteCircuitFromClipboard() {
+		if (this._uiState.mode !== "load") {
+			throw new Error("Invalid mode");
+		}
+		const json = await navigator.clipboard.readText();
+		const graphData = JSON.parse(json);
+		// Validate data
+		const validationResult = graph.validateData(graphData);
+		if (!validationResult.success) {
+			this.setError(validationResult.error.message);
+			return;
+		}
+		this._uiState.callback(graphData);
+	}
+
 	async saveCircuit(currentName: string) {
+		if (this._uiState.mode !== "save") {
+			throw new Error("Invalid mode");
+		}
 		const graphData = graph.getData();
 		const data = await API.saveCircuit(currentName, graphData);
 		if (data.success) {
-			if (this._uiState.mode !== "save") {
-				return;
-			}
 			this._uiState.callback();
 		} else {
 			this.setError(data.error);
@@ -63,6 +94,7 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 	}
 
 	async loadCircuitList(page: number) {
+		this._uiState.loadMode = "list";
 		const data = await API.loadCircuitList(page);
 		if (data.success) {
 			this._uiState.listRequestData = data.data;
@@ -74,11 +106,11 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 	}
 
 	async loadCircuit(id: number) {
+		if (this._uiState.mode !== "load") {
+			throw new Error("Invalid mode");
+		}
 		const data = await API.loadCircuit(id);
 		if (data.success) {
-			if (this._uiState.mode !== "load") {
-				return;
-			}
 			this._uiState.callback(data.data);
 		} else {
 			this.setError(data.error);
@@ -91,10 +123,10 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 	) {
 		this._uiState.mode = mode;
 		this._uiState.callback = callback;
-		this.notifyAll();
 		if (mode === "load") {
-			this.loadCircuitList(1);
+			this._uiState.loadMode = "select";
 		}
+		this.notifyAll();
 	}
 
 	close() {

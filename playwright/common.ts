@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from "@playwright/test";
+import { ElementHandle, expect, Locator, Page } from "@playwright/test";
 
 export async function reload(page: Page) {
 	await page.goto("/");
@@ -16,6 +16,17 @@ export async function expectPosToBe(component: Locator, x: number, y: number) {
 	// 30 because of snapping + 5 for other inaccuracies
 	expect(Math.abs(centerX - x)).toBeLessThan(35);
 	expect(Math.abs(centerY - y)).toBeLessThan(35);
+}
+
+export async function dragHandle(
+	source: Locator | ElementHandle<SVGElement | HTMLElement>,
+	dest: Locator | ElementHandle<SVGElement | HTMLElement>,
+	page: Page,
+) {
+	await source.hover();
+	await page.mouse.down();
+	await dest.hover();
+	await page.mouse.up();
 }
 
 export async function drag(

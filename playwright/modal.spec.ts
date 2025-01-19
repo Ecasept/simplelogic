@@ -1,6 +1,6 @@
 import test, { expect } from "@playwright/test";
 import { spawn } from "child_process";
-import { addComponent, reload } from "./common";
+import { addComponent, drag, dragHandle, reload } from "./common";
 
 test.describe("modal", async () => {
 	test.beforeEach(async ({ page, context }) => {
@@ -28,6 +28,7 @@ test.describe("modal", async () => {
 
 		// Can't load without being logged in
 		await page.getByRole("button", { name: "Load" }).click();
+		await page.getByRole("button", { name: "Load from server" }).click();
 		await expect(page.getByText("Please login")).toBeVisible();
 		await page.getByRole("button", { name: "Close" }).click();
 
@@ -88,6 +89,7 @@ test.describe("modal", async () => {
 		// Open Modal
 		await page.getByRole("button", { name: "Save" }).click();
 		await expect(page.locator(".modal-bg")).toBeVisible();
+
 		// Save without data
 		await page.locator('input[type="text"]').click();
 		await page.locator('input[type="text"]').fill(graphName);
@@ -127,6 +129,7 @@ test.describe("modal", async () => {
 		// Open modal
 		await page.getByRole("button", { name: "Load" }).click();
 		await expect(page.locator(".modal-bg")).toBeVisible();
+		await page.getByRole("button", { name: "Load from server" }).click();
 		// Select graph
 		await expect(page.getByText(`${graphName} id:`)).toBeVisible();
 		await page.getByText(`${graphName} id:`).click();
@@ -160,10 +163,43 @@ test.describe("modal", async () => {
 
 		// Open load modal and select with Enter
 		await page.getByRole("button", { name: "Load" }).click();
+		await page.getByRole("button", { name: "Load from server" }).click();
 		await expect(page.getByText(`${graphName} id:`)).toBeVisible();
 		await page.getByText(`${graphName} id:`).click();
 		await page.keyboard.press("Enter");
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await expect(page.locator(".component-body")).toHaveCount(1);
+	});
+	test("copy and paste", async ({ page, context }) => {
+		// Create 2 components connected by a wire
+		await addComponent(page, "AND", 100, 200);
+		await addComponent(page, "OR", 200, 300);
+		const sourceHandle = page.locator("circle.handle").nth(2);
+		const targetHandle = page.locator("circle.handle").nth(3);
+		await dragHandle(sourceHandle, targetHandle, page);
+
+		// Copy to clipboard
+		await page.getByRole("button", { name: "Save" }).click();
+		await page.getByRole("button", { name: "Copy to clipboard" }).click();
+		await expect(page.locator(".modal-bg")).not.toBeVisible();
+
+		// Reload page
+		await reload(page);
+
+		// Paste from clipboard
+		await page.getByRole("button", { name: "Load" }).click();
+		await page.getByRole("button", { name: "Paste from clipboard" }).click();
+		await expect(page.locator(".modal-bg")).not.toBeVisible();
+
+		// Check that the components were copied
+		await expect(page.locator(".component-body")).toHaveCount(2);
+		await expect(page.locator(".wire")).toHaveCount(1);
+
+		// Check that components are correctly connected
+		const initialD = await page.locator(".wire").first().getAttribute("d");
+		const component = page.locator(".component-body").first();
+		await drag(component, 50, 50, page);
+		const newD = await page.locator(".wire").first().getAttribute("d");
+		expect(newD).not.toBe(initialD);
 	});
 });

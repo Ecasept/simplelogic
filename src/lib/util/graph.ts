@@ -4,7 +4,13 @@ import {
 	MoveWireConnectionCommand,
 } from "./commands";
 import { calculateHandleOffset, isComponentConnection } from "./global";
-import type { Command, GraphData, HandleType, XYPair } from "./types";
+import {
+	ZGraphData,
+	type Command,
+	type GraphData,
+	type HandleType,
+	type XYPair,
+} from "./types";
 
 export class Graph {
 	private data: GraphData = { components: {}, wires: {}, nextId: 0 };
@@ -16,6 +22,10 @@ export class Graph {
 	setData(newData: GraphData, invalidateHistory: boolean) {
 		this.data = newData;
 		this.notifyAll(invalidateHistory);
+	}
+
+	validateData(data: GraphData) {
+		return ZGraphData.safeParse(data);
 	}
 
 	// ==== Store Contract ====

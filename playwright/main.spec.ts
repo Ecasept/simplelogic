@@ -1,5 +1,5 @@
 import test, { expect } from "@playwright/test";
-import { addComponent, drag, expectPosToBe, reload, undo } from "./common";
+import { addComponent, drag, dragHandle, expectPosToBe, reload, undo } from "./common";
 
 test.describe("editor", () => {
 	test.beforeEach(async ({ page }) => {
@@ -263,10 +263,7 @@ test.describe("editor", () => {
 			.elementHandle();
 		expect(targetHandle).not.toBeNull();
 
-		await sourceHandle.hover();
-		await page.mouse.down();
-		await targetHandle!.hover();
-		await page.mouse.up();
+		await dragHandle(sourceHandle, targetHandle!, page);
 
 		targetHandle!.dispose();
 
@@ -315,10 +312,7 @@ test.describe("editor", () => {
 		// Connect wire from second to first component
 		const secondSourceHandle = page.locator("circle.handle").nth(3); // Second component input
 		const targetHandle = page.locator("circle.handle").nth(2); // First wire output (after other inputs have disappeared)
-		await secondSourceHandle.hover();
-		await page.mouse.down();
-		await targetHandle.hover();
-		await page.mouse.up();
+		await dragHandle(secondSourceHandle, targetHandle, page);
 		await expect(page.locator(".wire")).toHaveCount(2);
 
 		// Switch to delete mode

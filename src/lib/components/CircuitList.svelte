@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { fileModalViewModel } from "$lib/util/actions";
 	import type { ListRequestData } from "$lib/util/api";
 	import { onEnter } from "$lib/util/keyboard";
+	import Button from "./Button.svelte";
 
 	type Props = {
 		listData: ListRequestData | null;
@@ -8,6 +10,10 @@
 	};
 
 	let { listData, onSelect }: Props = $props();
+
+	function loadCircuitList() {
+		fileModalViewModel.loadCircuitList(1);
+	}
 </script>
 
 <div class="list-container">
@@ -26,7 +32,7 @@
 			</div>
 		{/each}
 	{:else}
-		<span id="loading-span">Loading...</span>
+			<div id="loading-span">Loading...</div>
 	{/if}
 </div>
 

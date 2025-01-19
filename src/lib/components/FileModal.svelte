@@ -4,6 +4,7 @@
 	import { Download, Save, X } from "lucide-svelte";
 	import Button from "./Button.svelte";
 	import CircuitList from "./CircuitList.svelte";
+	import HrText from "./HRText.svelte";
 
 	let enteredName = $state("");
 
@@ -12,7 +13,15 @@
 	function saveGraph() {
 		fileModalViewModel.saveCircuit(enteredName);
 	}
-
+	function copyCircuitToClipboard() {
+		fileModalViewModel.copyCircuitToClipboard();
+	}
+	function pasteCircuitFromClipboard() {
+		fileModalViewModel.pasteCircuitFromClipboard();
+	}
+	function loadCircuitList() {
+		fileModalViewModel.loadCircuitList(1);
+	}
 	function close() {
 		PersistenceAction.closeModal();
 	}
@@ -33,6 +42,13 @@
 					<X />
 				</button>
 			</div>
+			<Button
+				text="Copy to clipboard"
+				onClick={copyCircuitToClipboard}
+				margin="0px"
+				height="2.5em"
+			/>
+			<HrText text="or" margin="10px 5px" />
 			<div id="entry">
 				<input
 					id="name-input"
@@ -51,13 +67,31 @@
 			<div id="modal-header">
 				<div id="title-container">
 					<Download size="32" />
-					<h2>Select a saved circuit</h2>
+					<h2>
+						{#if uiState.loadMode === "select"}
+							Load a circuit
+						{:else}
+							Select a saved circuit
+						{/if}
+					</h2>
 				</div>
 				<button title="Close" class="close-button" onclick={close}>
 					<X></X>
 				</button>
 			</div>
-			<CircuitList listData={uiState.listRequestData} onSelect={chooseGraph} />
+			{#if uiState.loadMode === "select"}
+				<Button
+					text="Paste from clipboard"
+					onClick={pasteCircuitFromClipboard}
+				/>
+				<HrText text="or" margin="10px 5px" />
+				<Button text="Load from server" onClick={loadCircuitList} />
+			{:else}
+				<CircuitList
+					listData={uiState.listRequestData}
+					onSelect={chooseGraph}
+				/>
+			{/if}
 			{#if uiState.errorMessage !== null}
 				<span id="error-msg">{uiState.errorMessage}</span>
 			{/if}
