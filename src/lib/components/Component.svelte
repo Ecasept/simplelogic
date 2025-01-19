@@ -197,6 +197,10 @@
 				isComponentConnection(uiState.hoveredHandle) &&
 				uiState.hoveredHandle.id == id &&
 				uiState.hoveredHandle.handleId == identifier}
+			{@const isHandlePowered =
+				simData?.[handle.type === "input" ? "inputs" : "outputs"]?.[
+					identifier
+				] ?? false}
 			<circle
 				role="button"
 				tabindex="0"
@@ -208,7 +212,11 @@
 				cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
 				cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
 				r={isHoveredHandle ? 10 : 5}
-				fill={isHoveredHandle && editingOtherWire ? "purple" : "black"}
+				fill={isHoveredHandle && editingOtherWire
+					? "purple"
+					: simulating && isHandlePowered
+						? "red"
+						: "black"}
 				onmousedown={(e) =>
 					onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 			></circle>

@@ -116,6 +116,8 @@
 		<!-- Highlight both handles when connecting two handles-->
 		{@const draggingOtherOnToThis = isHoveredHandle && editingOtherWire}
 		{@const draggingThisOnToOther = hoveringOtherWire && editingThis}
+
+		{@const isHandlePowered = simData?.["inputs"]?.["input"] ?? false}
 		<circle
 			role="button"
 			tabindex="0"
@@ -127,7 +129,11 @@
 			cx={input.x}
 			cy={input.y}
 			r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
-			fill={draggingOtherOnToThis || draggingThisOnToOther ? "purple" : "black"}
+			fill={draggingOtherOnToThis || draggingThisOnToOther
+				? "purple"
+				: simulating && isHandlePowered
+					? "red"
+					: "black"}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			onmousedown={(e) => onHandleDown("input", e)}
 		></circle>
@@ -147,6 +153,8 @@
 		<!-- Highlight both handles when connecting two handles-->
 		{@const draggingOtherOnToThis = isHoveredHandle && editingOtherWire}
 		{@const draggingThisOnToOther = hoveringOtherWire && editingThis}
+
+		{@const isHandlePowered = simData?.["outputs"]?.["output"] ?? false}
 		<circle
 			role="button"
 			tabindex="0"
@@ -158,7 +166,11 @@
 			cx={output.x}
 			cy={output.y}
 			r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
-			fill={draggingOtherOnToThis || draggingThisOnToOther ? "purple" : "black"}
+			fill={draggingOtherOnToThis || draggingThisOnToOther
+				? "purple"
+				: simulating && isHandlePowered
+					? "red"
+					: "black"}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			onmousedown={(e) => onHandleDown("output", e)}
 		></circle>
