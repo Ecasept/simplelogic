@@ -188,18 +188,18 @@ export namespace simulation {
 			const outputPower = executeGate(data, "output");
 			const powerChanged = this._uiState[id].outputs["output"] !== outputPower;
 			this._uiState[id].outputs["output"] = outputPower;
-			
-			if (output.connection === null) {
-				return;
-			}
-			const targetId = output.connection.id;
-			const targetHandleId = isComponentConnection(output.connection)
-				? output.connection.handleId
-				: output.connection.handleType;
 
 			if (powerChanged || firstRun) {
-				this._uiState[targetId].inputs[targetHandleId] = outputPower;
-				this.queue.push(targetId);
+				for (const connection of output.connections) {
+					const targetId = connection.id;
+
+					const targetHandleId = isComponentConnection(connection)
+						? connection.handleId
+						: connection.handleType;
+
+					this._uiState[targetId].inputs[targetHandleId] = outputPower;
+					this.queue.push(targetId);
+				}
 			}
 		}
 	}

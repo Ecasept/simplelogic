@@ -100,8 +100,8 @@ describe("Command Tests", () => {
 			};
 			graphData.wires[toId] = {
 				id: toId,
-				input: { x: 100 * GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
-				output: { x: 0, y: GRID_SIZE, connection: null },
+				input: { x: 100 * GRID_SIZE, y: 2 * GRID_SIZE, connections: [] },
+				output: { x: 0, y: GRID_SIZE, connections: [] },
 			};
 
 			const from: ComponentConnection = { id: fromId, handleId: "out" };
@@ -112,26 +112,26 @@ describe("Command Tests", () => {
 			expect(graphData.components[fromId].handles["out"].connections).toEqual([
 				to,
 			]);
-			expect(graphData.wires[toId].input.connection).toEqual(from);
+			expect(graphData.wires[toId].input.connections).toEqual([from]);
 
 			cmd.undo(graphData);
 			expect(
 				graphData.components[fromId].handles["out"].connections,
 			).toHaveLength(0);
-			expect(graphData.wires[toId].input.connection).toBeNull();
+			expect(graphData.wires[toId].input.connections).toHaveLength(0);
 		});
 		it("should connect and disconnect wires", () => {
 			const fromId = 79;
 			const toId = 4000;
 			graphData.wires[fromId] = {
 				id: fromId,
-				input: { x: 100 * GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
-				output: { x: 0, y: 4 * GRID_SIZE, connection: null },
+				input: { x: 100 * GRID_SIZE, y: 2 * GRID_SIZE, connections: [] },
+				output: { x: 0, y: 4 * GRID_SIZE, connections: [] },
 			};
 			graphData.wires[toId] = {
 				id: toId,
-				input: { x: 101 * GRID_SIZE, y: 3 * GRID_SIZE, connection: null },
-				output: { x: GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
+				input: { x: 101 * GRID_SIZE, y: 3 * GRID_SIZE, connections: [] },
+				output: { x: GRID_SIZE, y: 2 * GRID_SIZE, connections: [] },
 			};
 
 			const from: WireConnection = { id: fromId, handleType: "output" };
@@ -139,12 +139,12 @@ describe("Command Tests", () => {
 			const cmd = new ConnectCommand(from, to);
 
 			cmd.execute(graphData);
-			expect(graphData.wires[fromId].output.connection).toEqual(to);
-			expect(graphData.wires[toId].input.connection).toEqual(from);
+			expect(graphData.wires[fromId].output.connections).toEqual([to]);
+			expect(graphData.wires[toId].input.connections).toEqual([from]);
 
 			cmd.undo(graphData);
-			expect(graphData.wires[fromId].output.connection).toBeNull();
-			expect(graphData.wires[toId].input.connection).toBeNull();
+			expect(graphData.wires[fromId].output.connections).toHaveLength(0);
+			expect(graphData.wires[toId].input.connections).toHaveLength(0);
 		});
 		it("should allow multiple wire connections from component output", () => {
 			const componentId = 1;
@@ -164,14 +164,14 @@ describe("Command Tests", () => {
 
 			graphData.wires[wire1Id] = {
 				id: wire1Id,
-				input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connection: null },
-				output: { x: 0, y: GRID_SIZE, connection: null },
+				input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connections: [] },
+				output: { x: 0, y: GRID_SIZE, connections: [] },
 			};
 
 			graphData.wires[wire2Id] = {
 				id: wire2Id,
-				input: { x: 2 * GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
-				output: { x: 0, y: 2 * GRID_SIZE, connection: null },
+				input: { x: 2 * GRID_SIZE, y: 2 * GRID_SIZE, connections: [] },
+				output: { x: 0, y: 2 * GRID_SIZE, connections: [] },
 			};
 
 			const from: ComponentConnection = { id: componentId, handleId: "out" };
@@ -207,8 +207,8 @@ describe("Command Tests", () => {
 
 			graphData.wires[wireId] = {
 				id: wireId,
-				input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connection: null },
-				output: { x: 0, y: GRID_SIZE, connection: null },
+				input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connections: [] },
+				output: { x: 0, y: GRID_SIZE, connections: [] },
 			};
 
 			graphData.components[otherComponentId] = {
@@ -253,14 +253,14 @@ describe("Command Tests", () => {
 
 			graphData.wires[wire1Id] = {
 				id: wire1Id,
-				input: { x: 0, y: GRID_SIZE, connection: null },
-				output: { x: 0, y: 2 * GRID_SIZE, connection: null },
+				input: { x: 0, y: GRID_SIZE, connections: [] },
+				output: { x: 0, y: 2 * GRID_SIZE, connections: [] },
 			};
 
 			graphData.wires[wire2Id] = {
 				id: wire2Id,
-				input: { x: 0, y: 3 * GRID_SIZE, connection: null },
-				output: { x: 0, y: 4 * GRID_SIZE, connection: null },
+				input: { x: 0, y: 3 * GRID_SIZE, connections: [] },
+				output: { x: 0, y: 4 * GRID_SIZE, connections: [] },
 			};
 
 			const to: ComponentConnection = { id: componentId, handleId: "in" };
@@ -291,14 +291,14 @@ describe("Command Tests", () => {
 
 			graphData.wires[wire1Id] = {
 				id: wire1Id,
-				input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connection: null },
-				output: { x: 0, y: GRID_SIZE, connection: null },
+				input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connections: [] },
+				output: { x: 0, y: GRID_SIZE, connections: [] },
 			};
 
 			graphData.wires[wire2Id] = {
 				id: wire2Id,
-				input: { x: 2 * GRID_SIZE, y: 2 * GRID_SIZE, connection: null },
-				output: { x: 0, y: 2 * GRID_SIZE, connection: null },
+				input: { x: 2 * GRID_SIZE, y: 2 * GRID_SIZE, connections: [] },
+				output: { x: 0, y: 2 * GRID_SIZE, connections: [] },
 			};
 
 			const from: ComponentConnection = { id: componentId, handleId: "out" };
@@ -315,24 +315,24 @@ describe("Command Tests", () => {
 			expect(
 				graphData.components[componentId].handles["out"].connections,
 			).toEqual([to1, to2]);
-			expect(graphData.wires[wire1Id].input.connection).toEqual(from);
-			expect(graphData.wires[wire2Id].input.connection).toEqual(from);
+			expect(graphData.wires[wire1Id].input.connections).toEqual([from]);
+			expect(graphData.wires[wire2Id].input.connections).toEqual([from]);
 
 			// Undo second connection
 			cmd2.undo(graphData);
 			expect(
 				graphData.components[componentId].handles["out"].connections,
 			).toEqual([to1]);
-			expect(graphData.wires[wire1Id].input.connection).toEqual(from);
-			expect(graphData.wires[wire2Id].input.connection).toBeNull();
+			expect(graphData.wires[wire1Id].input.connections).toEqual([from]);
+			expect(graphData.wires[wire2Id].input.connections).toHaveLength(0);
 
 			// Undo first connection
 			cmd1.undo(graphData);
 			expect(
 				graphData.components[componentId].handles["out"].connections,
 			).toHaveLength(0);
-			expect(graphData.wires[wire1Id].input.connection).toBeNull();
-			expect(graphData.wires[wire2Id].input.connection).toBeNull();
+			expect(graphData.wires[wire1Id].input.connections).toHaveLength(0);
+			expect(graphData.wires[wire2Id].input.connections).toHaveLength(0);
 		});
 		it("should error when connecting to a wire that already has a connection", () => {
 			const wire1Id = 1;
@@ -366,8 +366,8 @@ describe("Command Tests", () => {
 			// Set up wire
 			graphData.wires[wire1Id] = {
 				id: wire1Id,
-				input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connection: null },
-				output: { x: 0, y: GRID_SIZE, connection: null },
+				input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connections: [] },
+				output: { x: 0, y: GRID_SIZE, connections: [] },
 			};
 
 			// Create connections
@@ -384,7 +384,7 @@ describe("Command Tests", () => {
 			expect(() => cmd2.execute(graphData)).toThrow();
 
 			// Verify only the first connection remains
-			expect(graphData.wires[wire1Id].input.connection).toEqual(from1);
+			expect(graphData.wires[wire1Id].input.connections).toEqual([from1]);
 		});
 		it("should error when connecting to a component handle that already has the same connection", () => {
 			const componentId = 1;
@@ -405,8 +405,8 @@ describe("Command Tests", () => {
 			// Set up first wire
 			graphData.wires[wire1Id] = {
 				id: wire1Id,
-				input: { x: 0, y: GRID_SIZE, connection: null },
-				output: { x: 0, y: 2 * GRID_SIZE, connection: null },
+				input: { x: 0, y: GRID_SIZE, connections: [] },
+				output: { x: 0, y: 2 * GRID_SIZE, connections: [] },
 			};
 
 			// Create connections
@@ -434,8 +434,8 @@ describe("Command Tests", () => {
 			const id = 32;
 			graphData.wires[id] = {
 				id: id,
-				input: { x: GRID_SIZE, y: 2000 * GRID_SIZE, connection: null },
-				output: { x: 0, y: 30 * GRID_SIZE, connection: null },
+				input: { x: GRID_SIZE, y: 2000 * GRID_SIZE, connections: [] },
+				output: { x: 0, y: 30 * GRID_SIZE, connections: [] },
 			};
 			const newPosition: XYPair = { x: 1000 * GRID_SIZE, y: 999 * GRID_SIZE };
 			const cmd = new MoveWireConnectionCommand(newPosition, "input", id);
@@ -483,8 +483,8 @@ describe("Command Tests", () => {
 	describe("CreateWireCommand", () => {
 		it("should create and remove wire", () => {
 			const newWire = {
-				input: { x: 5 * GRID_SIZE, y: 7 * GRID_SIZE, connection: null },
-				output: { x: 2 * GRID_SIZE, y: GRID_SIZE, connection: null },
+				input: { x: 5 * GRID_SIZE, y: 7 * GRID_SIZE, connections: [] },
+				output: { x: 2 * GRID_SIZE, y: GRID_SIZE, connections: [] },
 			};
 			const cmd = new CreateWireCommand(newWire);
 
@@ -570,8 +570,8 @@ describe("Command Tests", () => {
 
 			// Verify all connections are removed
 			expect(graphData.components[componentId]).toBeUndefined();
-			expect(graphData.wires[wire3Id].input.connection).toBeNull();
-			expect(graphData.wires[wire4Id].input.connection).toBeNull();
+			expect(graphData.wires[wire3Id].input.connections).toHaveLength(0);
+			expect(graphData.wires[wire4Id].input.connections).toHaveLength(0);
 
 			// Undo component deletion
 			deleteComponent.undo(graphData);
@@ -587,8 +587,12 @@ describe("Command Tests", () => {
 			expect(
 				graphData.components[componentId].handles["out"].connections,
 			).toEqual([toWire3, toWire4]);
-			expect(graphData.wires[wire3Id].input.connection).toEqual(fromComponent);
-			expect(graphData.wires[wire4Id].input.connection).toEqual(fromComponent);
+			expect(graphData.wires[wire3Id].input.connections).toEqual([
+				fromComponent,
+			]);
+			expect(graphData.wires[wire4Id].input.connections).toEqual([
+				fromComponent,
+			]);
 		});
 		it("should only remove specific wire connection when deleting wire from multi-connected component output", () => {
 			const componentId = 1;
@@ -636,7 +640,9 @@ describe("Command Tests", () => {
 			expect(
 				graphData.components[componentId].handles["out"].connections,
 			).toEqual([toWire1, toWire2]);
-			expect(graphData.wires[wire1Id].input.connection).toEqual(fromComponent);
+			expect(graphData.wires[wire1Id].input.connections).toEqual([
+				fromComponent,
+			]);
 		});
 	});
 });
@@ -659,7 +665,7 @@ function createMockComponent(id: number): ComponentData {
 function createMockWire(id: number): WireData {
 	return {
 		id,
-		input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connection: null },
-		output: { x: 0, y: GRID_SIZE, connection: null },
+		input: { x: 2 * GRID_SIZE, y: GRID_SIZE, connections: [] },
+		output: { x: 0, y: GRID_SIZE, connections: [] },
 	};
 }

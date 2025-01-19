@@ -121,12 +121,12 @@ export class EditorAction {
 			input: {
 				x: componentPosition.x + handleOffset.x,
 				y: componentPosition.y + handleOffset.y,
-				connection: null,
+				connections: [],
 			},
 			output: {
 				x: componentPosition.x + handleOffset.x,
 				y: componentPosition.y + handleOffset.y,
-				connection: null,
+				connections: [],
 			},
 		};
 

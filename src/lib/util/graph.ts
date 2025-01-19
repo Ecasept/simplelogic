@@ -148,8 +148,8 @@ export class GraphManager {
 		const wire = this.getWireData(wireId);
 
 		const handle = wire[draggedHandle];
-		if (handle.connection !== null) {
-			if (isComponentConnection(handle.connection)) {
+		for (const connection of handle.connections) {
+			if (isComponentConnection(connection)) {
 				console.warn(
 					"Tried to move wire handle connected to component - should not exist",
 				);
@@ -160,8 +160,8 @@ export class GraphManager {
 					x: newWirePos.x,
 					y: newWirePos.y,
 				},
-				handle.connection.handleType,
-				handle.connection.id,
+				connection.handleType,
+				connection.id,
 			);
 			cmds.push(moveWireCmd);
 		}

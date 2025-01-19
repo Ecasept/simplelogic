@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
-	import { isWireConnection } from "$lib/util/global";
+	import { isComponentConnection, isWireConnection } from "$lib/util/global";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
@@ -103,7 +103,7 @@
 ></path>
 
 <!-- Hide connected inputs -->
-{#if input.connection === null}
+{#if input.connections.length === 0}
 	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
 	{#if !(!editingThis && uiState.draggedWire?.handleType === "input")}
 		{@const isHoveredHandle =
@@ -140,7 +140,7 @@
 	{/if}
 {/if}
 <!-- Hide outputs connected to components -->
-{#if !(output.connection !== null && "handleId" in output.connection)}
+{#if !isComponentConnection(output.connections[0] ?? null)}
 	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
 	{#if !(!editingThis && uiState.draggedWire?.handleType === "output")}
 		{@const isHoveredHandle =

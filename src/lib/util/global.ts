@@ -197,3 +197,31 @@ export function indexOfByValue(arr: WireConnection[], value: WireConnection) {
 export function includesByValue(arr: WireConnection[], value: WireConnection) {
 	return indexOfByValue(arr, value) !== -1;
 }
+
+export function indexOfByValueMulti(
+	arr: (WireConnection | ComponentConnection)[],
+	value: WireConnection | ComponentConnection,
+) {
+	for (let i = 0; i < arr.length; i++) {
+		if (arr[i].id === value.id) {
+			const val = arr[i];
+			if (isComponentConnection(val) && isComponentConnection(value)) {
+				if (val.id === value.id && val.handleId === value.handleId) {
+					return i;
+				}
+			} else if (isWireConnection(val) && isWireConnection(value)) {
+				if (val.id === value.id && val.handleType === value.handleType) {
+					return i;
+				}
+			}
+		}
+	}
+	return -1;
+}
+
+export function includesByValueMulti(
+	arr: (WireConnection | ComponentConnection)[],
+	value: WireConnection | ComponentConnection,
+) {
+	return indexOfByValueMulti(arr, value) !== -1;
+}

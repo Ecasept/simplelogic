@@ -35,7 +35,7 @@ export const ZComponentHandleList = z.record(z.string(), ZComponentHandle);
 export const ZWireHandle = z.object({
 	x: z.number(),
 	y: z.number(),
-	connection: z.union([ZWireConnection, ZComponentConnection, z.null()]),
+	connections: z.array(ZWireConnection.or(ZComponentConnection)),
 });
 
 export const ZXYPair = z.object({
