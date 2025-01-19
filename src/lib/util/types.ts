@@ -3,15 +3,7 @@ import { z } from "zod";
 export const ZHandleEdge = z.enum(["top", "bottom", "left", "right"]);
 export const ZHandleType = z.enum(["input", "output"]);
 
-export const ZComponentType = z.enum([
-	"AND",
-	"OR",
-	"NOT",
-	"XOR",
-	"DBL",
-	"IN",
-	"LED",
-]);
+export const ZComponentType = z.enum(["AND", "OR", "NOT", "XOR", "IN", "LED"]);
 
 export const ZComponentConnection = z.object({
 	id: z.number(),
