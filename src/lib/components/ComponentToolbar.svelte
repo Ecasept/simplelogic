@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
+	import { COMPONENT_DATA } from "$lib/util/global";
 	import type { ComponentType } from "$lib/util/types";
 
 	type Props = {
@@ -10,10 +10,10 @@
 </script>
 
 <div class="toolbar">
-	{#each Object.keys(COMPONENT_IO_MAPPING) as Array<keyof typeof COMPONENT_IO_MAPPING> as type}
+	{#each Object.keys(COMPONENT_DATA) as Array<keyof typeof COMPONENT_DATA> as type}
 		<button
 			disabled={simulating}
-			title={COMPONENT_IO_MAPPING[type].description}
+			title={COMPONENT_DATA[type].description}
 			onclick={(e) => onClick(type, e)}
 		>
 			{type}

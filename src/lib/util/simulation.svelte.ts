@@ -1,5 +1,5 @@
 import { graph, graphManager } from "./actions";
-import { COMPONENT_IO_MAPPING, isComponentConnection } from "./global";
+import { COMPONENT_DATA, isComponentConnection } from "./global";
 import type { ComponentData, ComponentType, WireData } from "./types";
 import { ViewModel } from "./viewModels/viewModel";
 
@@ -99,8 +99,7 @@ export namespace simulation {
 				.filter(([_, data]) =>
 					data.type === "wire"
 						? false
-						: COMPONENT_IO_MAPPING[data.type]
-								.canBePoweredWithoutAnyInputBeingPowered,
+						: COMPONENT_DATA[data.type].canBePoweredWithoutAnyInputBeingPowered,
 				)
 				.map(([id, _]) => parseInt(id));
 			await this.processQueue(true);
@@ -209,7 +208,7 @@ export namespace simulation {
 		if (simData.type === "wire") {
 			return simData.inputs.input;
 		}
-		return COMPONENT_IO_MAPPING[simData.type].execute(
+		return COMPONENT_DATA[simData.type].execute(
 			simData.inputs,
 			simData.isPoweredInitially,
 			outputId,

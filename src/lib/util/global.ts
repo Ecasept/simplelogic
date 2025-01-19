@@ -20,7 +20,7 @@ export function gridSnap(val: number) {
 	return Math.round(val / GRID_SIZE) * GRID_SIZE;
 }
 
-export const COMPONENT_IO_MAPPING: {
+export const COMPONENT_DATA: {
 	[T in ComponentType]: {
 		handles: ComponentHandleList;
 		height: number;
@@ -150,11 +150,11 @@ export function constructComponent(
 	type: ComponentType,
 	pos: XYPair,
 ): Omit<ComponentData, "id"> | undefined {
-	if (!(type in COMPONENT_IO_MAPPING)) {
+	if (!(type in COMPONENT_DATA)) {
 		console.error(`Tried to add non-existing type ${type}`);
 		return;
 	}
-	const data = COMPONENT_IO_MAPPING[type];
+	const data = COMPONENT_DATA[type];
 	const svgPos = canvasViewModel.clientToSVGCoords(pos);
 	return {
 		type: type,
