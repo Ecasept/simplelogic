@@ -1,8 +1,6 @@
 import test, { expect } from "@playwright/test";
-import { exec } from "child_process";
-import { promisify } from "util";
+import { spawn } from "child_process";
 import { addComponent, reload } from "./common";
-const execAsync = promisify(exec);
 
 test.describe("modal", async () => {
 	test.beforeEach(async ({ page, context }) => {
@@ -11,7 +9,15 @@ test.describe("modal", async () => {
 	});
 	test.beforeAll(async () => {
 		// Clear database to prevent circuit list from being too long and needing multiple pages
-		await execAsync("npm run cleardb");
+		const cmd = spawn("npm", ["run", "cleardb"]);
+		cmd.stdout.pipe(process.stdout);
+		cmd.stderr.pipe(process.stderr);
+		await new Promise<void>((resolve, reject) => {
+			cmd.on("close", (code) => {
+				if (code === 0) resolve();
+				else reject(new Error(`Process exited with code ${code}`));
+			});
+		});
 	});
 	test("login flow", async ({ page }) => {
 		// Can't save without being logged in
