@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { EditorAction, PersistenceAction } from "$lib/util/actions";
+	import { simulation } from "$lib/util/simulation.svelte";
+	import type { ComponentType } from "$lib/util/types";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,
@@ -8,7 +10,6 @@
 	import AuthentificationSection from "./AuthentificationSection.svelte";
 	import Button from "./Button.svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
-	import type { ComponentType } from "$lib/util/types";
 
 	type Props = {
 		uiState: SidebarUiState;

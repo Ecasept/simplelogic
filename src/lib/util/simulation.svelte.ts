@@ -89,6 +89,7 @@ export namespace simulation {
 		}
 
 		private queue: number[] = [];
+		private processed: number[] = [];
 		private isProcessing: boolean = false;
 
 		async run() {
@@ -96,7 +97,8 @@ export namespace simulation {
 			this.queue = Object.entries(this._uiState)
 				.filter(([_, data]) => data.type === "IN")
 				.map(([id, _]) => parseInt(id));
-			this.processQueue(true, finishedCallback, startCallback);
+			this.processed = [];
+			this.processQueue(true);
 		}
 
 		// Runs in the background and processes the queue
@@ -141,6 +143,9 @@ export namespace simulation {
 				// Queue is empty
 				return false;
 			}
+			if (!this.processed.includes(id)) {
+				this.processed.push(id);
+			}
 			const data = this._uiState[id];
 			const isComponent = data.type !== "wire";
 
@@ -165,7 +170,8 @@ export namespace simulation {
 					this._uiState[id].outputs[handleId] !== outputPower;
 				this._uiState[id].outputs[handleId] = outputPower;
 
-				if (powerChanged || firstRun) {
+				const isInitialUpdate = firstRun && !this.processed.includes(id);
+				if (powerChanged || isInitialUpdate) {
 					for (const connection of handle.connections) {
 						const targetId = connection.id;
 						this._uiState[targetId].inputs[connection.handleType] = outputPower;
@@ -183,7 +189,8 @@ export namespace simulation {
 			const powerChanged = this._uiState[id].outputs["output"] !== outputPower;
 			this._uiState[id].outputs["output"] = outputPower;
 
-			if (powerChanged || firstRun) {
+			const isInitialUpdate = firstRun && !this.processed.includes(id);
+			if (powerChanged || isInitialUpdate) {
 				for (const connection of output.connections) {
 					const targetId = connection.id;
 
