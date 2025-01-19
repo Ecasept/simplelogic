@@ -70,14 +70,24 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 			throw new Error("Invalid mode");
 		}
 		const json = await navigator.clipboard.readText();
-		const graphData = JSON.parse(json);
-		// Validate data
-		const validationResult = graph.validateData(graphData);
-		if (!validationResult.success) {
-			this.setError(validationResult.error.message);
-			return;
+		try {
+			const graphData = JSON.parse(json);
+
+			// Validate data
+			const validationResult = graph.validateData(graphData);
+			if (!validationResult.success) {
+				this.setError("Invalid data: " + validationResult.error.message);
+				return;
+			}
+			this._uiState.callback(graphData);
+		} catch (e: unknown) {
+			if (e instanceof Error) {
+				this.setError("Invalid data: " + e.message);
+			} else {
+				this.setError("Unknown error");
+				throw e;
+			}
 		}
-		this._uiState.callback(graphData);
 	}
 
 	async saveCircuit(currentName: string) {
