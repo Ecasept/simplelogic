@@ -77,8 +77,8 @@ test.describe("modal", async () => {
 		await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
 		await expect(page.locator('input[type="password"]')).toBeVisible();
 	});
-	test("save flow", async ({ page, browser }) => {
-		const graphName = `test_${browser.browserType().name()}_${Date.now()}`;
+	test("save flow", async ({ page, browserName }) => {
+		const graphName = `test_${browserName}_${Date.now()}`;
 
 		// Login
 		await page
@@ -142,8 +142,8 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).click();
 		await expect(page.locator(".component-body")).toHaveCount(0);
 	});
-	test("enter selects circuit", async ({ page, browser }) => {
-		const graphName = `test_enter_${browser.browserType().name()}_${Date.now()}`;
+	test("enter selects circuit", async ({ page, browserName }) => {
+		const graphName = `test_enter_${browserName}_${Date.now()}`;
 
 		// Login
 		await page
