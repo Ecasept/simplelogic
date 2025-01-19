@@ -52,31 +52,6 @@ test.describe("editor shortcuts", () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 	});
 
-	test("moving component then a resets component and adds AND gate", async ({
-		page,
-	}) => {
-		// Add initial component
-		await addComponent(page, "AND", 100, 100);
-
-		// Start moving component
-		const component = page.locator(".component-body").first();
-		await component.hover();
-		await page.mouse.down();
-		await page.mouse.move(200, 200);
-
-		// Press A
-		await page.keyboard.press("A");
-
-		// Check that original component is back at initial position
-		await expectPosToBe(component, 100, 100);
-
-		// Check that new AND gate is added at cursor position
-		await page.mouse.click(200, 200);
-		const newComponent = page.locator(".component-body").nth(1);
-		await expect(newComponent).toBeVisible();
-		await expectPosToBe(newComponent, 200, 200);
-	});
-
 	test("ctrl+z undoes last action", async ({ page }) => {
 		// Add a component
 		await addComponent(page, "AND", 100, 100);
@@ -118,5 +93,71 @@ test.describe("editor shortcuts", () => {
 
 		// verify not in delete mode
 		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
+	});
+});
+test.describe("shortcut interactions", () => {
+	test.beforeEach(async ({ page }) => {
+		await reload(page);
+	});
+	test("moving component then a resets component and adds AND gate", async ({
+		page,
+	}) => {
+		// Add initial component
+		await addComponent(page, "AND", 100, 100);
+
+		// Start moving component
+		const component = page.locator(".component-body").first();
+		await component.hover();
+		await page.mouse.down();
+		await page.mouse.move(200, 200);
+
+		// Press A
+		await page.keyboard.press("A");
+
+		// Check that original component is back at initial position
+		await expectPosToBe(component, 100, 100);
+
+		// Check that new AND gate is added at cursor position
+		await page.mouse.click(200, 200);
+		const newComponent = page.locator(".component-body").nth(1);
+		await expect(newComponent).toBeVisible();
+		await expectPosToBe(newComponent, 200, 200);
+	});
+	test("correct highlighting when switching modes while hovering", async ({
+		page,
+	}) => {
+		// add component
+		await addComponent(page, "AND", 200, 200);
+
+		// hover over component
+		await page.locator(".component-body").hover();
+
+		await page.keyboard.press("d");
+
+		// verify highlighting
+		expect(await page.locator(".component-body").getAttribute("fill")).toEqual(
+			"red",
+		);
+
+		await page.keyboard.press("s");
+
+		// verify highlighting gone
+		expect(
+			await page.locator(".component-body").getAttribute("fill"),
+		).not.toEqual("red");
+
+		await page.keyboard.press("d");
+
+		// verify highlighting
+		expect(await page.locator(".component-body").getAttribute("fill")).toEqual(
+			"red",
+		);
+
+		await page.keyboard.press("Escape");
+
+		// verify highlighting gone
+		expect(
+			await page.locator(".component-body").getAttribute("fill"),
+		).not.toEqual("red");
 	});
 });
