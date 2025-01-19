@@ -153,4 +153,13 @@
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			onmousedown={(e) => onHandleDown("output", e)}
 		></circle>
-	{/if}{/if}
+	{/if}
+{/if}
+
+<style lang="scss">
+	circle {
+		transition:
+			r 0.1s cubic-bezier(0.19, 1, 0.22, 1),
+			fill 0.1s cubic-bezier(0.19, 1, 0.22, 1);
+	}
+</style>
