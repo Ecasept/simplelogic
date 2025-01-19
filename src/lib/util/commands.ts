@@ -73,14 +73,18 @@ export class ConnectCommand implements Command {
 					);
 				}
 				// Can't check if the connections are the same type
-				// because if this.to is a component connection, it doesn't have a handleType (only an id)
+				// to is a componentConnection and doesn't have a handleType (only a handleId)
 				handle.connections.push(to);
 			} else {
 				if (includesByValueMulti(handle.connections, to)) {
 					throw new Error("Connection already exists");
 				}
-				// Can't check if the connections are the same type
-				// because if this.to is a component connection, it doesn't have a handleType (only an id)
+				if (from.handleType == to.handleType) {
+					throw new Error("Cannot connect two inputs or two outputs");
+				}
+				if (from.handleType === "input" && handle.connections.length > 0) {
+					throw new Error("Input may only have one connection");
+				}
 				handle.connections.push(to);
 			}
 		}
