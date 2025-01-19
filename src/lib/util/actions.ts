@@ -11,6 +11,7 @@ import { Graph, GraphManager } from "./graph";
 import { simulation } from "./simulation.svelte";
 import type {
 	ComponentConnection,
+	ComponentType,
 	GraphData,
 	HandleType,
 	WireConnection,
@@ -80,7 +81,7 @@ export class EditorAction {
 		}
 	}
 
-	static addComponent(type: string, pos: XYPair) {
+	static addComponent(type: ComponentType, pos: XYPair) {
 		ChangesAction.discardChanges();
 		const cmpData = constructComponent(type, pos);
 		if (cmpData === undefined) {
