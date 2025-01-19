@@ -272,6 +272,11 @@ describe("Command Tests", () => {
 
 			const cmd2 = new ConnectCommand(from2, to);
 			expect(() => cmd2.execute(graphData)).toThrow();
+
+			// Verify only the first connection remains
+			expect(
+				graphData.components[componentId].handles["in"].connections,
+			).toEqual([from1]);
 		});
 		it("should correctly undo multiple connections from output", () => {
 			const componentId = 1;
@@ -427,6 +432,159 @@ describe("Command Tests", () => {
 				graphData.components[componentId].handles["in"].connections,
 			).toEqual([from1]);
 		});
+		it("should error when connecting multiple components to a wire output", () => {
+			const wireId = 1;
+			const component1Id = 2;
+			const component2Id = 3;
+
+			graphData.wires[wireId] = createMockWire(wireId);
+			graphData.components[component1Id] = createMockComponent(component1Id);
+			graphData.components[component2Id] = createMockComponent(component2Id);
+
+			const from: WireConnection = { id: wireId, handleType: "output" };
+			const to1: ComponentConnection = { id: component1Id, handleId: "in1" };
+			const to2: ComponentConnection = { id: component2Id, handleId: "in1" };
+
+			const cmd1 = new ConnectCommand(from, to1);
+			cmd1.execute(graphData);
+
+			// Try to connect second component to the same wire output - should throw
+			const cmd2 = new ConnectCommand(from, to2);
+			expect(() => cmd2.execute(graphData)).toThrow();
+
+			// Verify only the first connection remains
+			expect(graphData.wires[wireId].output.connections).toEqual([to1]);
+			expect(
+				graphData.components[component1Id].handles.in1.connections,
+			).toEqual([from]);
+			expect(
+				graphData.components[component2Id].handles.in1.connections,
+			).toHaveLength(0);
+		});
+
+		it("should error when connecting a wire and component to a wire output", () => {
+			const sourceWireId = 1;
+			const targetWireId = 2;
+			const componentId = 3;
+
+			graphData.wires[sourceWireId] = createMockWire(sourceWireId);
+			graphData.wires[targetWireId] = createMockWire(targetWireId);
+			graphData.components[componentId] = createMockComponent(componentId);
+
+			const from: WireConnection = { id: sourceWireId, handleType: "output" };
+			const toWire: WireConnection = { id: targetWireId, handleType: "input" };
+			const toComponent: ComponentConnection = {
+				id: componentId,
+				handleId: "in1",
+			};
+
+			const cmd1 = new ConnectCommand(from, toWire);
+			cmd1.execute(graphData);
+
+			// Try to connect component to wire output that already has a wire connection
+			const cmd2 = new ConnectCommand(from, toComponent);
+			expect(() => cmd2.execute(graphData)).toThrow();
+
+			// Verify only the first connection remains
+			expect(graphData.wires[sourceWireId].output.connections).toEqual([
+				toWire,
+			]);
+			expect(graphData.wires[targetWireId].input.connections).toEqual([from]);
+			expect(
+				graphData.components[componentId].handles.in1.connections,
+			).toHaveLength(0);
+		});
+
+		it("should connect multiple wires to a wire output", () => {
+			const sourceWireId = 1;
+			const targetWire1Id = 2;
+			const targetWire2Id = 3;
+
+			graphData.wires[sourceWireId] = createMockWire(sourceWireId);
+			graphData.wires[targetWire1Id] = createMockWire(targetWire1Id);
+			graphData.wires[targetWire2Id] = createMockWire(targetWire2Id);
+
+			const from: WireConnection = { id: sourceWireId, handleType: "output" };
+			const to1: WireConnection = { id: targetWire1Id, handleType: "input" };
+			const to2: WireConnection = { id: targetWire2Id, handleType: "input" };
+
+			const cmd1 = new ConnectCommand(from, to1);
+			const cmd2 = new ConnectCommand(from, to2);
+
+			cmd1.execute(graphData);
+			cmd2.execute(graphData);
+
+			// Verify both connections are present
+			expect(graphData.wires[sourceWireId].output.connections).toEqual([
+				to1,
+				to2,
+			]);
+			expect(graphData.wires[targetWire1Id].input.connections).toEqual([from]);
+			expect(graphData.wires[targetWire2Id].input.connections).toEqual([from]);
+
+			// Test undo operations
+			cmd2.undo(graphData);
+			expect(graphData.wires[sourceWireId].output.connections).toEqual([to1]);
+			expect(graphData.wires[targetWire1Id].input.connections).toEqual([from]);
+			expect(graphData.wires[targetWire2Id].input.connections).toHaveLength(0);
+
+			cmd1.undo(graphData);
+			expect(graphData.wires[sourceWireId].output.connections).toHaveLength(0);
+			expect(graphData.wires[targetWire1Id].input.connections).toHaveLength(0);
+			expect(graphData.wires[targetWire2Id].input.connections).toHaveLength(0);
+		});
+		it("should error when connecting two wire inputs or outputs", () => {
+			const wire1Id = 1;
+			const wire2Id = 2;
+
+			graphData.wires[wire1Id] = createMockWire(wire1Id);
+			graphData.wires[wire2Id] = createMockWire(wire2Id);
+
+			// Try to connect input to input
+			const input1: WireConnection = { id: wire1Id, handleType: "input" };
+			const input2: WireConnection = { id: wire2Id, handleType: "input" };
+			const cmd1 = new ConnectCommand(input1, input2);
+			expect(() => cmd1.execute(graphData)).toThrow();
+
+			// Try to connect output to output
+			const output1: WireConnection = { id: wire1Id, handleType: "output" };
+			const output2: WireConnection = { id: wire2Id, handleType: "output" };
+			const cmd2 = new ConnectCommand(output1, output2);
+			expect(() => cmd2.execute(graphData)).toThrow();
+
+			// Verify no connections were made
+			expect(graphData.wires[wire1Id].input.connections).toHaveLength(0);
+			expect(graphData.wires[wire1Id].output.connections).toHaveLength(0);
+			expect(graphData.wires[wire2Id].input.connections).toHaveLength(0);
+			expect(graphData.wires[wire2Id].output.connections).toHaveLength(0);
+		});
+
+		it("should error when connecting multiple wires to wire input", () => {
+			const targetWireId = 1;
+			const sourceWire1Id = 2;
+			const sourceWire2Id = 3;
+
+			graphData.wires[targetWireId] = createMockWire(targetWireId);
+			graphData.wires[sourceWire1Id] = createMockWire(sourceWire1Id);
+			graphData.wires[sourceWire2Id] = createMockWire(sourceWire2Id);
+
+			const to: WireConnection = { id: targetWireId, handleType: "input" };
+			const from1: WireConnection = { id: sourceWire1Id, handleType: "output" };
+			const from2: WireConnection = { id: sourceWire2Id, handleType: "output" };
+
+			// Connect first wire
+			const cmd1 = new ConnectCommand(from1, to);
+			cmd1.execute(graphData);
+
+			// Try to connect second wire to same input - should throw
+			const cmd2 = new ConnectCommand(from2, to);
+			expect(() => cmd2.execute(graphData)).toThrow();
+
+			// Verify only first connection remains
+			expect(graphData.wires[targetWireId].input.connections).toEqual([from1]);
+			expect(graphData.wires[sourceWire1Id].output.connections).toEqual([to]);
+			expect(graphData.wires[sourceWire2Id].output.connections).toHaveLength(0);
+		});
 	});
 
 	describe("MoveWireConnectionCommand", () => {
@@ -519,7 +677,7 @@ describe("Command Tests", () => {
 			expect(graphData.nextId).toBe(0);
 		});
 	});
-	describe("Delete Commands with Connections", () => {
+	describe("Delete Commands", () => {
 		it("should handle deleting component with multiple connections", () => {
 			const componentId = 1;
 			const wire1Id = 2;
@@ -642,6 +800,64 @@ describe("Command Tests", () => {
 			).toEqual([toWire1, toWire2]);
 			expect(graphData.wires[wire1Id].input.connections).toEqual([
 				fromComponent,
+			]);
+		});
+		it("should only remove specific wire connection when deleting wire from multi-connected wire output", () => {
+			const sourceWireId = 1;
+			const targetWire1Id = 2;
+			const targetWire2Id = 3;
+
+			// Setup initial state
+			graphData.wires[sourceWireId] = createMockWire(sourceWireId);
+			graphData.wires[targetWire1Id] = createMockWire(targetWire1Id);
+			graphData.wires[targetWire2Id] = createMockWire(targetWire2Id);
+
+			// Connect both target wires to source wire output
+			const fromSourceWire: WireConnection = {
+				id: sourceWireId,
+				handleType: "output",
+			};
+			const toTargetWire1: WireConnection = {
+				id: targetWire1Id,
+				handleType: "input",
+			};
+			const toTargetWire2: WireConnection = {
+				id: targetWire2Id,
+				handleType: "input",
+			};
+
+			new ConnectCommand(fromSourceWire, toTargetWire1).execute(graphData);
+			new ConnectCommand(fromSourceWire, toTargetWire2).execute(graphData);
+
+			// Verify initial connections
+			expect(graphData.wires[sourceWireId].output.connections).toEqual([
+				toTargetWire1,
+				toTargetWire2,
+			]);
+
+			// Delete targetWire1
+			const deleteWire = new DeleteWireCommand(targetWire1Id);
+			deleteWire.execute(graphData);
+
+			// Verify targetWire1 is deleted
+			expect(graphData.wires[targetWire1Id]).toBeUndefined();
+
+			// Verify only targetWire1's connection is removed from source wire
+			expect(graphData.wires[sourceWireId].output.connections).toEqual([
+				toTargetWire2,
+			]);
+
+			// Undo deletion
+			deleteWire.undo(graphData);
+
+			// Verify targetWire1 and its connection are restored
+			expect(graphData.wires[targetWire1Id]).toBeDefined();
+			expect(graphData.wires[sourceWireId].output.connections).toEqual([
+				toTargetWire1,
+				toTargetWire2,
+			]);
+			expect(graphData.wires[targetWire1Id].input.connections).toEqual([
+				fromSourceWire,
 			]);
 		});
 	});
