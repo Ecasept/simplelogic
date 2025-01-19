@@ -8,6 +8,7 @@
 	import AuthentificationSection from "./AuthentificationSection.svelte";
 	import Button from "./Button.svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
+	import type { ComponentType } from "$lib/util/types";
 
 	type Props = {
 		uiState: SidebarUiState;
@@ -20,7 +21,7 @@
 
 	let simulating = $derived(editType === "simulate");
 
-	function addComponent(type: string, e: MouseEvent) {
+	function addComponent(type: ComponentType, e: MouseEvent) {
 		EditorAction.addComponent(type, e);
 	}
 

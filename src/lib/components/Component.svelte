@@ -8,6 +8,7 @@
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type {
 		ComponentHandleList,
+		ComponentType,
 		HandleEdge,
 		HandleType,
 		XYPair,
@@ -18,7 +19,7 @@
 	type Props = {
 		id: number;
 		size: XYPair;
-		type: string;
+		type: ComponentType;
 		position: XYPair;
 		handles: ComponentHandleList;
 		isPoweredInitially: boolean;
@@ -43,8 +44,17 @@
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
 	let isPowered = $derived.by(() => {
-		if (simulating && simData?.isPowered) {
-			return true;
+		const isAnyOutputPowered = Object.values(simData?.outputs ?? {}).some(
+			(v) => v,
+		);
+		if (simulating) {
+			if (isAnyOutputPowered) {
+				return true;
+			}
+			if (type === "LED" && simData?.inputs["in"]) {
+				// LED does not have output and is powered if input is true
+				return true;
+			}
 		}
 		if (isPoweredInitially) {
 			return true;

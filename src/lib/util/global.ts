@@ -3,6 +3,7 @@ import type {
 	ComponentConnection,
 	ComponentData,
 	ComponentHandleList,
+	ComponentType,
 	HandleEdge,
 	WireConnection,
 	XYPair,
@@ -20,11 +21,16 @@ export function gridSnap(val: number) {
 }
 
 export const COMPONENT_IO_MAPPING: {
-	[key: string]: {
+	[T in ComponentType]: {
 		handles: ComponentHandleList;
 		height: number;
 		width: number;
 		description: string;
+		execute: (
+			inputs: Record<string, boolean>,
+			isPoweredInitially: boolean,
+			output: string,
+		) => boolean;
 	};
 } = {
 	AND: {
@@ -36,6 +42,8 @@ export const COMPONENT_IO_MAPPING: {
 		height: 4,
 		width: 4,
 		description: "Outputs true if both inputs are true",
+		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
+			inputs.in1 && inputs.in2,
 	},
 	OR: {
 		handles: {
@@ -46,6 +54,8 @@ export const COMPONENT_IO_MAPPING: {
 		height: 4,
 		width: 4,
 		description: "Outputs true if either input is true",
+		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
+			inputs.in1 || inputs.in2,
 	},
 	NOT: {
 		handles: {
@@ -55,6 +65,8 @@ export const COMPONENT_IO_MAPPING: {
 		height: 4,
 		width: 4,
 		description: "Outputs the opposite of the input",
+		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
+			!inputs.in,
 	},
 	XOR: {
 		handles: {
@@ -65,6 +77,8 @@ export const COMPONENT_IO_MAPPING: {
 		height: 4,
 		width: 4,
 		description: "Outputs true if only one input is true",
+		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
+			inputs.in1 != inputs.in2,
 	},
 	DBL: {
 		handles: {
@@ -75,6 +89,8 @@ export const COMPONENT_IO_MAPPING: {
 		height: 4,
 		width: 4,
 		description: "Outputs the input to two outputs",
+		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
+			inputs.in,
 	},
 	IN: {
 		handles: {
@@ -83,6 +99,13 @@ export const COMPONENT_IO_MAPPING: {
 		height: 2,
 		width: 2,
 		description: "Toggleable power source",
+		execute: (
+			_: Record<string, boolean>,
+			isPoweredInitially: boolean,
+			__: string,
+		) => {
+			return isPoweredInitially;
+		},
 	},
 	LED: {
 		handles: {
@@ -91,6 +114,9 @@ export const COMPONENT_IO_MAPPING: {
 		height: 2,
 		width: 2,
 		description: "Displays the input as a light",
+		execute: (inputs: Record<string, boolean>, _: boolean, __: string) => {
+			throw new Error("Cannot execute LED");
+		},
 	},
 };
 
@@ -126,14 +152,14 @@ export function calculateHandleOffset(
 }
 
 export function constructComponent(
-	type: string,
+	type: ComponentType,
 	pos: XYPair,
 ): Omit<ComponentData, "id"> | undefined {
 	if (!(type in COMPONENT_IO_MAPPING)) {
 		console.error(`Tried to add non-existing type ${type}`);
 		return;
 	}
-	const data = structuredClone(COMPONENT_IO_MAPPING[type]);
+	const data = COMPONENT_IO_MAPPING[type];
 	const svgPos = canvasViewModel.clientToSVGCoords(pos);
 	return {
 		type: type,
@@ -142,7 +168,7 @@ export function constructComponent(
 			x: svgPos.x - (data.width * GRID_SIZE) / 2,
 			y: svgPos.y - (data.height * GRID_SIZE) / 2,
 		},
-		handles: data.handles,
+		handles: structuredClone(data.handles),
 		isPoweredInitially: false,
 	};
 }

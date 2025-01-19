@@ -33,14 +33,14 @@ describe("Command Tests", () => {
 	describe("CommandGroup", () => {
 		it("should execute and undo multiple commands", () => {
 			const cmd1 = new CreateComponentCommand({
-				type: "test",
+				type: "AND",
 				size: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
 				handles: {},
 				isPoweredInitially: false,
 			});
 			const cmd2 = new CreateComponentCommand({
-				type: "test2",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: 20 * GRID_SIZE, y: 11 * GRID_SIZE },
 				handles: {},
@@ -62,7 +62,7 @@ describe("Command Tests", () => {
 			const toId = 30;
 			graphData.components[toId] = {
 				id: toId,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: 2 * GRID_SIZE, y: 3 * GRID_SIZE },
 				handles: {
@@ -72,7 +72,7 @@ describe("Command Tests", () => {
 			};
 			graphData.components[fromId] = {
 				id: fromId,
-				type: "test",
+				type: "AND",
 				size: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
 				handles: {
@@ -90,7 +90,7 @@ describe("Command Tests", () => {
 			const toId = 1;
 			graphData.components[fromId] = {
 				id: fromId,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -153,7 +153,7 @@ describe("Command Tests", () => {
 
 			graphData.components[componentId] = {
 				id: componentId,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -196,7 +196,7 @@ describe("Command Tests", () => {
 
 			graphData.components[componentId] = {
 				id: componentId,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -213,7 +213,7 @@ describe("Command Tests", () => {
 
 			graphData.components[otherComponentId] = {
 				id: otherComponentId,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: 3 * GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -242,7 +242,7 @@ describe("Command Tests", () => {
 
 			graphData.components[componentId] = {
 				id: componentId,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -280,7 +280,7 @@ describe("Command Tests", () => {
 
 			graphData.components[componentId] = {
 				id: componentId,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -342,7 +342,7 @@ describe("Command Tests", () => {
 			// Set up first component
 			graphData.components[component1Id] = {
 				id: component1Id,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -354,7 +354,7 @@ describe("Command Tests", () => {
 			// Set up second component
 			graphData.components[component2Id] = {
 				id: component2Id,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: 3 * GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -393,7 +393,7 @@ describe("Command Tests", () => {
 			// Set up component
 			graphData.components[componentId] = {
 				id: componentId,
-				type: "test",
+				type: "AND",
 				size: { x: 10, y: 10 },
 				position: { x: GRID_SIZE, y: GRID_SIZE },
 				handles: {
@@ -460,7 +460,7 @@ describe("Command Tests", () => {
 		it("should move component", () => {
 			graphData.components[3] = {
 				id: 3,
-				type: "test",
+				type: "AND",
 				size: { x: 4, y: 1000 },
 				position: { x: GRID_SIZE, y: 45 * GRID_SIZE },
 				handles: {},
@@ -501,8 +501,8 @@ describe("Command Tests", () => {
 	describe("CreateComponentCommand", () => {
 		// TODO: rework
 		it("should create and remove component", () => {
-			const newComponent = {
-				type: "test",
+			const newComponent: Omit<ComponentData, "id"> = {
+				type: "AND",
 				size: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				position: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				handles: {},
@@ -644,7 +644,7 @@ describe("Command Tests", () => {
 function createMockComponent(id: number): ComponentData {
 	return {
 		id,
-		type: "test",
+		type: "AND",
 		size: { x: 10, y: 10 },
 		position: { x: GRID_SIZE, y: GRID_SIZE },
 		handles: {

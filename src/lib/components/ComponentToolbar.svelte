@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { COMPONENT_IO_MAPPING } from "$lib/util/global";
+	import type { ComponentType } from "$lib/util/types";
 
 	type Props = {
 		simulating: boolean;
-		onClick: (type: string, e: MouseEvent) => void;
+		onClick: (type: ComponentType, e: MouseEvent) => void;
 	};
 	let { simulating, onClick }: Props = $props();
 </script>
 
 <div class="toolbar">
-	{#each Object.keys(COMPONENT_IO_MAPPING) as type}
+	{#each Object.keys(COMPONENT_IO_MAPPING) as Array<keyof typeof COMPONENT_IO_MAPPING> as type}
 		<button
 			disabled={simulating}
 			title={COMPONENT_IO_MAPPING[type].description}

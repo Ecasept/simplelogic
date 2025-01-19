@@ -1,9 +1,13 @@
 import { graph, graphManager } from "./actions";
-import { isComponentConnection } from "./global";
+import { COMPONENT_IO_MAPPING, isComponentConnection } from "./global";
+import type { ComponentData, ComponentType, WireData } from "./types";
 import { ViewModel } from "./viewModels/viewModel";
 
 export type SimulationData = {
-	isPowered: boolean;
+	inputs: Record<string, boolean>;
+	outputs: Record<string, boolean>;
+	type: ComponentType | "wire";
+	isPoweredInitially: boolean;
 };
 export namespace simulation {
 	type SimulationState = Record<string, SimulationData>;
@@ -12,8 +16,12 @@ export namespace simulation {
 		return simulator.simData[id] ?? null;
 	}
 
-	export function simulate() {
+	export function startSimulation() {
 		simulator.run();
+	}
+
+	export function recomputeComponent(id: number) {
+		simulator.recomputeComponent(id);
 	}
 
 	class Simulator extends ViewModel<SimulationState> {
@@ -29,18 +37,45 @@ export namespace simulation {
 			});
 		}
 
+		private computeComponentData(id: string, component: ComponentData) {
+			const data: SimulationData = {
+				type: component.type,
+				inputs: Object.fromEntries(
+					Object.entries(component.handles)
+						.filter(([id, data]) => data.type == "input")
+						.map(([id, data]) => {
+							return [id, false];
+						}),
+				),
+				outputs: Object.fromEntries(
+					Object.entries(component.handles)
+						.filter(([id, data]) => data.type == "output")
+						.map(([id, data]) => {
+							return [id, false];
+						}),
+				),
+				isPoweredInitially: component.isPoweredInitially,
+			};
+			return data;
+		}
+		private computeWireData(id: string, wire: WireData) {
+			const data: SimulationData = {
+				type: "wire",
+				inputs: { input: false },
+				outputs: { output: false },
+				isPoweredInitially: false,
+			};
+			return data;
+		}
+
 		private setupSimData() {
 			const data = graph.getData();
 			this._uiState = {};
 			for (const [id, component] of Object.entries(data.components)) {
-				this._uiState[id] = {
-					isPowered: component.isPoweredInitially,
-				};
+				this._uiState[id] = this.computeComponentData(id, data.components[id]);
 			}
 			for (const [id, wire] of Object.entries(data.wires)) {
-				this._uiState[id] = {
-					isPowered: false,
-				};
+				this._uiState[id] = this.computeWireData(id, data.wires[id]);
 			}
 		}
 
@@ -48,62 +83,135 @@ export namespace simulation {
 			this.setupSimData();
 		}
 
-		private queue: { id: number; isComponent: boolean }[] = [];
+		private queue: number[] = [];
+		private isProcessing: boolean = false;
 
-		run() {
+		async run(finishedCallback?: () => void, startCallback?: () => void) {
 			this.setupSimData();
 			this.queue = Object.entries(this._uiState)
-				.filter(([_, data]) => data.isPowered)
-				.map(([id, _]) => ({ id: parseInt(id), isComponent: true }));
-			while (this.step()) {}
-			this.notifyAll();
+				.filter(([_, data]) => data.type === "IN")
+				.map(([id, _]) => parseInt(id));
+			this.processQueue(true, finishedCallback, startCallback);
 		}
 
-		step(): boolean {
-			const obj = this.queue.shift();
-			if (obj === undefined) {
+		// Runs in the background and processes the queue
+		private async processQueue(
+			firstRun: boolean = false,
+			finishedCallback?: () => void,
+			startCallback?: () => void,
+		) {
+			if (this.isProcessing) {
+				// another processQueue is already running
+				return;
+			}
+			this.isProcessing = true;
+
+			if (startCallback) {
+				startCallback();
+			}
+			while (true) {
+				const finished = !this.step(firstRun);
+				if (finished) {
+					break;
+				}
+
+				// Don't block the event loop
+				await new Promise((resolve) => setTimeout(resolve, 0));
+			}
+			if (finishedCallback) {
+				finishedCallback();
+			}
+			this.notifyAll();
+			this.isProcessing = false;
+		}
+
+		public recomputeComponent(id: number) {
+			const data = graphManager.getComponentData(id);
+			this._uiState[id].isPoweredInitially = data.isPoweredInitially;
+			this.addComponentToQueue(id);
+		}
+
+		private addComponentToQueue(id: number) {
+			this.queue.push(id);
+			if (!this.isProcessing) {
+				this.processQueue();
+			}
+		}
+
+		private step(firstRun: boolean): boolean {
+			// console.log("Step");
+			// console.log(this.queue);
+			// console.log(structuredClone(this._uiState));
+			const id = this.queue.shift();
+			if (id === undefined) {
 				// Queue is empty
 				return false;
 			}
-			if (obj.isComponent) {
-				this.stepComponent(obj.id);
+			const data = this._uiState[id];
+			const isComponent = data.type !== "wire";
+
+			if (isComponent) {
+				this.stepComponent(firstRun, id, data);
 			} else {
-				this.stepWire(obj.id);
+				this.stepWire(firstRun, id, data);
 			}
 			this.notifyAll();
 			return true;
 		}
 
-		stepComponent(id: number) {
+		private stepComponent(firstRun: boolean, id: number, data: SimulationData) {
 			const component = graphManager.getComponentData(id);
-			for (const handle of Object.values(component.handles)) {
+			for (const [handleId, handle] of Object.entries(component.handles)) {
 				if (handle.type !== "output") {
 					continue;
 				}
-				for (const connection of handle.connections) {
-					const targetId = connection.id;
-					this._uiState[targetId].isPowered = true;
-					this.queue.push({
-						id: targetId,
-						isComponent: isComponentConnection(connection),
-					});
+				const outputPower = executeGate(data, handle.type);
+				// Output of the component has changed since last run
+				const powerChanged =
+					this._uiState[id].outputs[handleId] !== outputPower;
+				this._uiState[id].outputs[handleId] = outputPower;
+
+				if (powerChanged || firstRun) {
+					for (const connection of handle.connections) {
+						const targetId = connection.id;
+						this._uiState[targetId].inputs[connection.handleType] = outputPower;
+						this.queue.push(targetId);
+					}
 				}
 			}
 		}
 
-		stepWire(id: number) {
+		private stepWire(firstRun: boolean, id: number, data: SimulationData) {
 			const wire = graphManager.getWireData(id);
 			const output = wire.output;
 			if (output.connection === null) {
 				return;
 			}
 			const targetId = output.connection.id;
-			this._uiState[targetId].isPowered = true;
-			this.queue.push({
-				id: targetId,
-				isComponent: isComponentConnection(output.connection),
-			});
+			const outputPower = executeGate(data, "output");
+			const powerChanged = this._uiState[id].outputs["output"] !== outputPower;
+			this._uiState[id].outputs["output"] = outputPower;
+
+			const targetHandleId = isComponentConnection(output.connection)
+				? output.connection.handleId
+				: output.connection.handleType;
+
+			if (powerChanged || firstRun) {
+				this._uiState[targetId].inputs[targetHandleId] = outputPower;
+				this.queue.push(targetId);
+			}
 		}
+	}
+
+	function executeGate(simData: SimulationData, outputId: string) {
+		if (simData.type === "wire") {
+			return simData.inputs.input;
+		}
+		return COMPONENT_IO_MAPPING[simData.type].execute(
+			simData.inputs,
+			simData.isPoweredInitially,
+			outputId,
+		);
 	}
 
 	const simulator = new Simulator();

@@ -3,6 +3,16 @@ import { z } from "zod";
 export const ZHandleEdge = z.enum(["top", "bottom", "left", "right"]);
 export const ZHandleType = z.enum(["input", "output"]);
 
+export const ZComponentType = z.enum([
+	"AND",
+	"OR",
+	"NOT",
+	"XOR",
+	"DBL",
+	"IN",
+	"LED",
+]);
+
 export const ZComponentConnection = z.object({
 	id: z.number(),
 	handleId: z.string(),
@@ -53,7 +63,7 @@ export const ZWireData = z.object({
 
 export const ZComponentData = z.object({
 	id: z.number(),
-	type: z.string(),
+	type: ZComponentType,
 	size: ZXYPair,
 	position: ZXYPair,
 	handles: ZComponentHandleList,
@@ -78,3 +88,4 @@ export type Command = z.infer<typeof ZCommand>;
 export type WireData = z.infer<typeof ZWireData>;
 export type ComponentData = z.infer<typeof ZComponentData>;
 export type GraphData = z.infer<typeof ZGraphData>;
+export type ComponentType = z.infer<typeof ZComponentType>;

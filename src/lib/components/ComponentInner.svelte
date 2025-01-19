@@ -2,6 +2,7 @@
 	import { EditorAction } from "$lib/util/actions";
 	import { GRID_SIZE } from "$lib/util/global";
 	import { onEnter } from "$lib/util/keyboard";
+	import type { ComponentType } from "$lib/util/types";
 
 	type Props = {
 		componentId: number;
@@ -9,7 +10,7 @@
 		y: number;
 		width: number;
 		height: number;
-		type: string;
+		type: ComponentType;
 		isPowered: boolean;
 		editType: string | null;
 	};
@@ -56,7 +57,9 @@
 		cx={middleX}
 		cy={middleY}
 		r="10"
-		style="pointer-events: {editType === null ? 'all' : 'none'};"
+		style="pointer-events: {editType === null || editType === 'simulate'
+			? 'all'
+			: 'none'};"
 		fill={isPowered ? "red" : "black"}
 		onclick={() => {
 			EditorAction.togglePower(componentId);
@@ -64,6 +67,15 @@
 		onkeypress={onEnter(() => {
 			EditorAction.togglePower(componentId);
 		})}
+	/>
+{:else if type === "LED"}
+	<circle
+		class="led"
+		cx={middleX}
+		cy={middleY}
+		r="10"
+		style="pointer-events: none;"
+		fill={isPowered ? "red" : "black"}
 	/>
 {:else}
 	<text

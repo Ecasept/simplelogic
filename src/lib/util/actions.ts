@@ -49,7 +49,7 @@ export class EditorAction {
 		ChangesAction.discardChanges();
 		editorViewModel.setSimulate(prevMode === "simulate" ? null : "simulate");
 		if (prevMode === null) {
-			simulation.simulate();
+			simulation.startSimulation();
 		}
 	}
 
@@ -74,6 +74,10 @@ export class EditorAction {
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
 		graphManager.notifyAll();
+
+		if (editorViewModel.uiState.editType === "simulate") {
+			simulation.recomputeComponent(id);
+		}
 	}
 
 	static addComponent(type: string, pos: XYPair) {

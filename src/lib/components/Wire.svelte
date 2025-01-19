@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
 	import { isWireConnection } from "$lib/util/global";
+	import { simulation } from "$lib/util/simulation.svelte";
 	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
 
@@ -17,6 +18,14 @@
 	let editingOtherWire = $derived(
 		uiState.draggedWire?.id != null && !editingThis,
 	);
+
+	let simulating = $derived(uiState.editType === "simulate");
+	let simData = $derived.by(() => simulation.getDataForComponent(id));
+
+	let isPowered = $derived.by(() => {
+		const isOutputPowered = simData?.outputs["output"] ?? false;
+		return simulating && isOutputPowered;
+	});
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
 		if (uiState.editType != null) {
@@ -52,7 +61,7 @@
 		uiState.editType == "delete" && uiState.editedId === id,
 	);
 
-	let stroke = $derived(deletingThis ? "red" : "black");
+	let stroke = $derived(deletingThis || isPowered ? "red" : "black");
 </script>
 
 <path
