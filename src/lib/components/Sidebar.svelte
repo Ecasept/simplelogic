@@ -38,6 +38,8 @@
 	function toggleOpen() {
 		sidebarViewModel.toggleOpen();
 	}
+
+	let isSimulationRunning = $derived(simulation.isSimulationRunning());
 </script>
 
 <div class="sidebarWrapper" class:open={uiState.open}>
@@ -75,6 +77,10 @@
 					Simulate
 				{:else}
 					Normal
+				{/if}
+				{#if editType === "simulate"}
+					<br />
+					Is simulation running: {isSimulationRunning}
 				{/if}
 			</div>
 			<Button text="Toggle Delete" onClick={EditorAction.toggleDelete}>

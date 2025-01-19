@@ -24,10 +24,15 @@ export namespace simulation {
 		simulator.recomputeComponent(id);
 	}
 
+	export function isSimulationRunning() {
+		return simulator.running;
+	}
+
 	class Simulator extends ViewModel<SimulationState> {
 		protected _uiState: SimulationState = {};
 
 		public simData: Readonly<SimulationState> = $state({});
+		public running: boolean = $state(false);
 
 		constructor() {
 			super();
@@ -86,7 +91,7 @@ export namespace simulation {
 		private queue: number[] = [];
 		private isProcessing: boolean = false;
 
-		async run(finishedCallback?: () => void, startCallback?: () => void) {
+		async run() {
 			this.setupSimData();
 			this.queue = Object.entries(this._uiState)
 				.filter(([_, data]) => data.type === "IN")
@@ -95,20 +100,14 @@ export namespace simulation {
 		}
 
 		// Runs in the background and processes the queue
-		private async processQueue(
-			firstRun: boolean = false,
-			finishedCallback?: () => void,
-			startCallback?: () => void,
-		) {
+		private async processQueue(firstRun: boolean = false) {
 			if (this.isProcessing) {
 				// another processQueue is already running
 				return;
 			}
 			this.isProcessing = true;
 
-			if (startCallback) {
-				startCallback();
-			}
+			this.running = true;
 			while (true) {
 				const finished = !this.step(firstRun);
 				if (finished) {
@@ -118,9 +117,7 @@ export namespace simulation {
 				// Don't block the event loop
 				await new Promise((resolve) => setTimeout(resolve, 0));
 			}
-			if (finishedCallback) {
-				finishedCallback();
-			}
+			this.running = false;
 			this.notifyAll();
 			this.isProcessing = false;
 		}
@@ -139,9 +136,6 @@ export namespace simulation {
 		}
 
 		private step(firstRun: boolean): boolean {
-			// console.log("Step");
-			// console.log(this.queue);
-			// console.log(structuredClone(this._uiState));
 			const id = this.queue.shift();
 			if (id === undefined) {
 				// Queue is empty
