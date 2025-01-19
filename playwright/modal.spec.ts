@@ -224,15 +224,16 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Load" }).click();
 		await page.getByRole("button", { name: "Paste from clipboard" }).click();
 		await expect(page.getByText("Invalid data")).toBeVisible();
+		await page.getByRole("button", { name: "Close" }).click();
 
 		// Test schema validation
 		const invalidData =
 			'{"components":{"0":{"type":"INVALID_TYPE","size":{"x":4,"y":4},"position":{"x":420,"y":260},"handles":{"in1":{"edge":"left","pos":1,"type":"input","connections":[]},"in2":{"edge":"left","pos":3,"type":"input","connections":[]},"out":{"edge":"right","pos":2,"type":"output","connections":[]}},"isPoweredInitially":false,"id":0}},"wires":{},"nextId":1}';
 
 		// Copy invalid data to clipboard
-		await page.evaluate(() => {
-			navigator.clipboard.writeText(invalidData);
-		});
+		await page.evaluate((data) => {
+			navigator.clipboard.writeText(data);
+		}, invalidData);
 
 		// Paste from clipboard
 		await page.getByRole("button", { name: "Load" }).click();
