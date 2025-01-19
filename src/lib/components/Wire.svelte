@@ -58,7 +58,7 @@
 	}
 
 	let deletingThis = $derived(
-		uiState.editType == "delete" && uiState.editedId === id,
+		uiState.editType == "delete" && uiState.hoveredElement === id,
 	);
 
 	let stroke = $derived(deletingThis || isPowered ? "red" : "black");
@@ -83,13 +83,13 @@
 		if (uiState.editType !== "delete") {
 			return;
 		}
-		editorViewModel.setForDeletion(id);
+		editorViewModel.setHovered(id);
 	}}
 	onmouseleave={() => {
 		if (uiState.editType !== "delete") {
 			return;
 		}
-		editorViewModel.removeForDeletion();
+		editorViewModel.removeHovered();
 	}}
 	onmousedown={(e: MouseEvent) => {
 		if (uiState.isModalOpen || !deletingThis) {

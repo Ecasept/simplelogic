@@ -142,13 +142,11 @@
 		editorViewModel.removeHoveredHandle();
 	}
 
-	let fill = $derived.by(() => {
-		if (uiState.editType == "delete" && editingThis) {
-			return "red";
-		} else {
-			return "green";
-		}
-	});
+	let deletingThis = $derived(
+		uiState.editType == "delete" && uiState.hoveredElement === id,
+	);
+
+	let fill = $derived(deletingThis ? "red" : "green");
 
 	let width = $derived(size.x * GRID_SIZE);
 	let height = $derived(size.y * GRID_SIZE);
@@ -169,10 +167,10 @@
 	style="cursor: {cursor}"
 	onmousedown={onMouseDown}
 	onmouseenter={() => {
-		editorViewModel.setForDeletion(id);
+		editorViewModel.setHovered(id);
 	}}
 	onmouseleave={() => {
-		editorViewModel.removeForDeletion();
+		editorViewModel.removeHovered();
 	}}
 	{fill}
 	{stroke}
