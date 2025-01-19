@@ -184,14 +184,15 @@ export namespace simulation {
 		private stepWire(firstRun: boolean, id: number, data: SimulationData) {
 			const wire = graphManager.getWireData(id);
 			const output = wire.output;
+
+			const outputPower = executeGate(data, "output");
+			const powerChanged = this._uiState[id].outputs["output"] !== outputPower;
+			this._uiState[id].outputs["output"] = outputPower;
+			
 			if (output.connection === null) {
 				return;
 			}
 			const targetId = output.connection.id;
-			const outputPower = executeGate(data, "output");
-			const powerChanged = this._uiState[id].outputs["output"] !== outputPower;
-			this._uiState[id].outputs["output"] = outputPower;
-
 			const targetHandleId = isComponentConnection(output.connection)
 				? output.connection.handleId
 				: output.connection.handleType;
