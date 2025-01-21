@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { EditorAction, PersistenceAction } from "$lib/util/actions";
+	import {
+		EditorAction,
+		graphManager,
+		PersistenceAction,
+	} from "$lib/util/actions";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type { ComponentType } from "$lib/util/types";
 	import {
@@ -43,6 +47,7 @@
 	}
 
 	let isSimulationRunning = $derived(simulation.isSimulationRunning());
+	let historyLength = $derived(graphManager.historyLength);
 </script>
 
 <div class="sidebarWrapper" class:open={uiState.open}>
@@ -60,7 +65,11 @@
 			<Button text="Load" onClick={loadGraph}>
 				{#snippet icon()}<Download />{/snippet}
 			</Button>
-			<Button disabled={simulating} text="Undo" onClick={handleUndo}>
+			<Button
+				disabled={simulating || historyLength < 1}
+				text="Undo"
+				onClick={handleUndo}
+			>
 				{#snippet icon()}<Undo />{/snippet}
 			</Button>
 			<Button text="Clear" onClick={handleClear}>

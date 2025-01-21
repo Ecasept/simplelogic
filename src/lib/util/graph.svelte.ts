@@ -60,6 +60,7 @@ export class GraphManager {
 		wires: {},
 		nextId: 0,
 	});
+	public historyLength: number = $state(0);
 
 	get hasChanges(): Readonly<boolean> {
 		return this.changes.length > 0;
@@ -199,5 +200,6 @@ export class GraphManager {
 
 	notifyAll() {
 		this.graphData = this._currentData;
+		this.historyLength = this.history.length;
 	}
 }

@@ -423,4 +423,11 @@ test.describe("editor", () => {
 		await expect(page.locator(".component-body")).toHaveCount(0);
 		await expect(page.getByText("Editing Mode: Simulate")).not.toBeVisible();
 	});
+	test("undo button is disabled when no actions to undo", async ({ page }) => {
+		await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled();
+		await addComponent(page, "AND", 100, 100);
+		await expect(page.getByRole("button", { name: "Undo" })).not.toBeDisabled();
+		await undo(page);
+		await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled();
+	});
 });
