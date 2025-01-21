@@ -91,7 +91,4 @@
 	text {
 		pointer-events: none;
 	}
-	path {
-		pointer-events: none;
-	}
 </style>
