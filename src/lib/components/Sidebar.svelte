@@ -122,16 +122,16 @@
 		color: var(--on-surface-color);
 		position: absolute;
 		width: 20vw;
-		height: 100vh;
+		height: 100%;
 		right: 0;
 		top: 0;
 		background-color: var(--surface-color);
-		transition: left 0.3s ease-in-out;
-		left: 80vw;
+		transition: translate 0.3s ease-in-out;
 		display: flex;
+		overflow-y: scroll;
 
 		&:not(.open) {
-			left: 99vw;
+			translate: 95%;
 
 			.collapse > span {
 				transform: rotate(180deg);
@@ -149,7 +149,7 @@
 		.collapse {
 			bottom: 0;
 			height: 100%;
-			width: 1vw;
+			width: 5%;
 			padding: 0;
 			border: unset;
 			background-color: var(--sidebar-collapse-color);
@@ -165,7 +165,8 @@
 			display: flex;
 			flex-direction: column;
 			padding: 10px;
-			width: 100%;
+			width: 95%;
+			box-sizing: border-box;
 		}
 		#space {
 			flex-grow: 1;
