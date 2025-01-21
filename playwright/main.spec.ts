@@ -217,9 +217,8 @@ test.describe("editor", () => {
 		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(0);
 
-		
 		addComponent(page, "AND", 100, 100);
-		
+
 		// Add component without committing
 		await page.keyboard.press("a");
 
