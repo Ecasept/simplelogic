@@ -47,7 +47,7 @@ const shortcuts: Shortcut[] = [
 		key: "a",
 		mod: null,
 		env: "editor",
-		mode: [null, "delete", "simulate", "add", "move"],
+		mode: [null, "delete", "add", "move"],
 		action: () => {
 			EditorAction.addComponent("AND", mousePosition);
 		},
@@ -56,7 +56,7 @@ const shortcuts: Shortcut[] = [
 		key: "i",
 		mod: null,
 		env: "editor",
-		mode: [null, "delete", "simulate", "add", "move"],
+		mode: [null, "delete", "add", "move"],
 		action: () => {
 			EditorAction.addComponent("IN", mousePosition);
 		},
@@ -65,7 +65,7 @@ const shortcuts: Shortcut[] = [
 		key: "l",
 		mod: null,
 		env: "editor",
-		mode: [null, "delete", "simulate", "add", "move"],
+		mode: [null, "delete", "add", "move"],
 		action: () => {
 			EditorAction.addComponent("LED", mousePosition);
 		},
@@ -74,7 +74,7 @@ const shortcuts: Shortcut[] = [
 		key: "n",
 		mod: null,
 		env: "editor",
-		mode: [null, "delete", "simulate", "add", "move"],
+		mode: [null, "delete", "add", "move"],
 		action: () => {
 			EditorAction.addComponent("NOT", mousePosition);
 		},
@@ -83,7 +83,7 @@ const shortcuts: Shortcut[] = [
 		key: "x",
 		mod: null,
 		env: "editor",
-		mode: [null, "delete", "simulate", "add", "move"],
+		mode: [null, "delete", "add", "move"],
 		action: () => {
 			EditorAction.addComponent("XOR", mousePosition);
 		},
@@ -92,7 +92,7 @@ const shortcuts: Shortcut[] = [
 		key: "o",
 		mod: null,
 		env: "editor",
-		mode: [null, "delete", "simulate", "add", "move"],
+		mode: [null, "delete", "add", "move"],
 		action: () => {
 			EditorAction.addComponent("OR", mousePosition);
 		},
