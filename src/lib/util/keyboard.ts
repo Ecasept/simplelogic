@@ -11,7 +11,10 @@ const shortcuts = [
 		key: "escape",
 		mod: null,
 		env: "editor",
-		action: ChangesAction.discardChanges,
+		action: () => {
+			ChangesAction.abortEditing();
+			editorViewModel.softReset(); // also exit edit mode
+		},
 	},
 	{
 		key: "escape",

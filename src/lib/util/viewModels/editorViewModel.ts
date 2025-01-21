@@ -61,7 +61,7 @@ export type EditorUiState = (
 };
 
 export class EditorViewModel extends ViewModel<EditorUiState> {
-	protected _uiState: EditorUiState = {
+	private initialUiState = {
 		editType: null,
 		isModalOpen: false,
 		hoveredHandle: null,
@@ -72,7 +72,15 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		draggedWireConnectionCount: null,
 	};
 
+	protected _uiState: EditorUiState = structuredClone(this.initialUiState);
+
 	protected resetUiState() {
+		throw new Error("Method not implemented.");
+	}
+
+	/** Aborts any editing (eg. moving or adding wires/components) currently in progress,
+	 * regardless of which mode you are in (includes eg. deleting or simulating) */
+	softReset() {
 		this._uiState = {
 			editType: null,
 			isModalOpen: this._uiState.isModalOpen,
@@ -83,11 +91,21 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			hoveredElement: this._uiState.hoveredElement,
 			draggedWireConnectionCount: null,
 		};
+		this.notifyAll();
 	}
 
-	reset() {
-		this.resetUiState();
+	/** Completely resets the editor, as if the page was loaded again */
+	hardReset() {
+		this._uiState = structuredClone(this.initialUiState);
 		this.notifyAll();
+	}
+
+	/** Aborts any editing (eg. moving or adding wires/components) currently in progress,
+	 * but preserves eg. if you are in delete/simulate mode */
+	abortEditing() {
+		if (this._uiState.editType === "add" || this._uiState.editType === "move") {
+			this.softReset();
+		}
 	}
 
 	setDelete(mode: "delete" | null) {

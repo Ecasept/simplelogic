@@ -30,26 +30,27 @@ export const fileModalViewModel = new FileModalViewModel();
 export class ChangesAction {
 	static commitChanges() {
 		graphManager.commitChanges();
-		editorViewModel.reset();
+		editorViewModel.abortEditing();
 	}
-	static discardChanges() {
+	static abortEditing() {
 		graphManager.discardChanges();
-		editorViewModel.reset();
+		editorViewModel.abortEditing();
 	}
 }
 
 export class EditorAction {
 	static toggleDelete() {
-		const prevMode = editorViewModel.uiState.editType;
-		ChangesAction.discardChanges();
-		editorViewModel.setDelete(prevMode === "delete" ? null : "delete");
+		ChangesAction.abortEditing();
+		const editMode = editorViewModel.uiState.editType;
+		editorViewModel.setDelete(editMode === "delete" ? null : "delete");
 	}
 
 	static toggleSimulate() {
-		const prevMode = editorViewModel.uiState.editType;
-		ChangesAction.discardChanges();
-		editorViewModel.setSimulate(prevMode === "simulate" ? null : "simulate");
-		if (prevMode === null) {
+		ChangesAction.abortEditing();
+		const editMode = editorViewModel.uiState.editType;
+		editorViewModel.setSimulate(editMode === "simulate" ? null : "simulate");
+		if (editMode === null) {
+			// Start simulation if we just entered simulation mode
 			simulation.startSimulation();
 		}
 	}
@@ -82,7 +83,7 @@ export class EditorAction {
 	}
 
 	static addComponent(type: ComponentType, pos: XYPair) {
-		ChangesAction.discardChanges();
+		ChangesAction.abortEditing();
 		const cmpData = constructComponent(type, pos);
 		if (cmpData === undefined) {
 			return;
@@ -205,7 +206,7 @@ export class EditorAction {
 
 export class PersistenceAction {
 	static saveGraph() {
-		ChangesAction.discardChanges();
+		ChangesAction.abortEditing();
 		canvasViewModel.endPan();
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.open("save", () => {
@@ -213,7 +214,7 @@ export class PersistenceAction {
 		});
 	}
 	static loadGraph() {
-		ChangesAction.discardChanges();
+		ChangesAction.abortEditing();
 		canvasViewModel.endPan();
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.open("load", (newGraphData: GraphData) => {
@@ -227,5 +228,6 @@ export class PersistenceAction {
 	}
 	static setNewGraph(newGraphData: GraphData) {
 		graph.setData(newGraphData, true);
+		editorViewModel.hardReset();
 	}
 }
