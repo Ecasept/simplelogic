@@ -109,7 +109,7 @@ export async function loadCircuit(circuit: string, page: Page) {
 	await page.getByRole("button", { name: "Paste from clipboard" }).click();
 }
 
-export function throwOnConsole(page: Page) {
+export function throwOnConsoleError(page: Page) {
 	page.on("console", (message) => {
 		if (message.type() === "error") {
 			throw new Error("Error in console: " + message.text());

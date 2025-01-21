@@ -6,14 +6,14 @@ import {
 	dragHandle,
 	getAttr,
 	reload,
-	throwOnConsole,
+	throwOnConsoleError,
 } from "./common";
 
 test.describe("modal", async () => {
 	test.beforeEach(async ({ page, context }) => {
 		await context.clearCookies();
 		await reload(page);
-		throwOnConsole(page);
+		throwOnConsoleError(page);
 	});
 	test.beforeAll(async ({ browser }) => {
 		// Clear database to prevent circuit list from being too long and needing multiple pages
