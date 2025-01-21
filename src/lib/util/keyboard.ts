@@ -135,7 +135,7 @@ export function handleKeyDown(e: KeyboardEvent) {
 		env = "editor";
 	}
 
-	const mode = editorViewModel.uiState.editType;
+	const mode = editorViewModel.uiState.editMode;
 
 	const pressedKey = e.key;
 	const pressedMod =

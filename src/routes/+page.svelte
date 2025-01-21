@@ -20,8 +20,8 @@
 		setMousePosition(pos);
 
 		const uiState = editorViewModel.uiState;
-		const editType = uiState.editType;
-		if (editType === "move" || editType === "add") {
+		const editMode = uiState.editMode;
+		if (editMode === "move" || editMode === "add") {
 			if (uiState.draggedWire === null) {
 				EditorAction.moveComponentReplaceable(pos, uiState.editedId);
 			} else {
@@ -35,13 +35,13 @@
 	}
 	function onMouseUp(e: MouseEvent) {
 		const uiState = editorViewModel.uiState;
-		const editType = uiState.editType;
+		const editMode = uiState.editMode;
 
-		if (!(editType === "move" || editType === "add")) {
+		if (!(editMode === "move" || editMode === "add")) {
 			// don't do anything if nothing is being edited
 			return;
 		}
-		if (editType === "add" && isClickOverSidebar(e)) {
+		if (editMode === "add" && isClickOverSidebar(e)) {
 			return;
 		}
 
@@ -70,7 +70,7 @@
 <div class="wrapper">
 	<Canvas uiState={$canvasViewModel}></Canvas>
 	<Sidebar
-		editType={$editorViewModel.editType}
+		editMode={$editorViewModel.editMode}
 		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
 	></Sidebar>

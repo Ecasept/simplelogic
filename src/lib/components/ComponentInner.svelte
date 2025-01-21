@@ -12,9 +12,9 @@
 		height: number;
 		type: ComponentType;
 		isPowered: boolean;
-		editType: string | null;
+		editMode: string | null;
 	};
-	let { componentId, x, y, width, height, type, isPowered, editType }: Props =
+	let { componentId, x, y, width, height, type, isPowered, editMode }: Props =
 		$props();
 
 	let middleX = $derived(x + width / 2);
@@ -57,7 +57,7 @@
 		cx={middleX}
 		cy={middleY}
 		r="10"
-		style="pointer-events: {editType === null || editType === 'simulate'
+		style="pointer-events: {editMode === null || editMode === 'simulate'
 			? 'all'
 			: 'none'};"
 		fill={isPowered ? "red" : "black"}

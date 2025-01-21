@@ -13,14 +13,14 @@
 
 	type Props = {
 		uiState: SidebarUiState;
-		editType: string | null;
+		editMode: string | null;
 		cookieLoggedIn: boolean;
 	};
-	let { uiState, editType, cookieLoggedIn }: Props = $props();
+	let { uiState, editMode, cookieLoggedIn }: Props = $props();
 
 	sidebarViewModel.setLoggedInState(cookieLoggedIn);
 
-	let simulating = $derived(editType === "simulate");
+	let simulating = $derived(editMode === "simulate");
 
 	function addComponent(type: ComponentType, e: MouseEvent) {
 		EditorAction.addComponent(type, e);
@@ -52,10 +52,10 @@
 		<hr />
 
 		<div class="actions">
-			<Button disabled={simulating} text="Save" onClick={saveGraph}>
+			<Button text="Save" onClick={saveGraph}>
 				{#snippet icon()}<Save />{/snippet}
 			</Button>
-			<Button disabled={simulating} text="Load" onClick={loadGraph}>
+			<Button text="Load" onClick={loadGraph}>
 				{#snippet icon()}<Download />{/snippet}
 			</Button>
 			<Button disabled={simulating} text="Undo" onClick={handleUndo}>
@@ -68,18 +68,18 @@
 		<div>
 			<div class="editingmode">
 				Editing Mode:
-				{#if editType === "add"}
+				{#if editMode === "add"}
 					Add
-				{:else if editType === "move"}
+				{:else if editMode === "move"}
 					Move
-				{:else if editType === "delete"}
+				{:else if editMode === "delete"}
 					Delete
-				{:else if editType === "simulate"}
+				{:else if editMode === "simulate"}
 					Simulate
 				{:else}
 					Normal
 				{/if}
-				{#if editType === "simulate"}
+				{#if editMode === "simulate"}
 					<br />
 					Is simulation running: {isSimulationRunning}
 				{/if}

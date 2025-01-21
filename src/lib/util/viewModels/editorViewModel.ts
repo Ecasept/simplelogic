@@ -2,7 +2,7 @@ import type { ComponentConnection, WireConnection, XYPair } from "../types";
 import { ViewModel } from "./viewModel";
 
 type EditComponent = {
-	editType: "add" | "move";
+	editMode: "add" | "move";
 	editedId: number;
 	clickOffset: XYPair;
 
@@ -11,7 +11,7 @@ type EditComponent = {
 	draggedWireConnectionCount: null;
 };
 type EditWire = {
-	editType: "add" | "move";
+	editMode: "add" | "move";
 	draggedWire: WireConnection;
 	hoveredHandle: WireConnection | ComponentConnection | null;
 	draggedWireConnectionCount: number;
@@ -21,7 +21,7 @@ type EditWire = {
 };
 
 type DeletionState = {
-	editType: "delete";
+	editMode: "delete";
 
 	editedId: null;
 	clickOffset: null;
@@ -31,7 +31,7 @@ type DeletionState = {
 };
 
 type SimulationState = {
-	editType: "simulate";
+	editMode: "simulate";
 
 	editedId: null;
 	clickOffset: null;
@@ -41,7 +41,7 @@ type SimulationState = {
 };
 
 type DefaultState = {
-	editType: null;
+	editMode: null;
 	editedId: null;
 	clickOffset: null;
 	draggedWire: null;
@@ -62,7 +62,7 @@ export type EditorUiState = (
 
 export class EditorViewModel extends ViewModel<EditorUiState> {
 	private initialUiState = {
-		editType: null,
+		editMode: null,
 		isModalOpen: false,
 		hoveredHandle: null,
 		clickOffset: null,
@@ -80,7 +80,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 
 	private softReset() {
 		this._uiState = {
-			editType: null,
+			editMode: null,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredHandle: null,
 			clickOffset: null,
@@ -101,18 +101,18 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 	/** Aborts any editing (eg. moving or adding wires/components) currently in progress,
 	 * but preserves eg. if you are in delete/simulate mode */
 	abortEditing() {
-		if (this._uiState.editType === "add" || this._uiState.editType === "move") {
+		if (this._uiState.editMode === "add" || this._uiState.editMode === "move") {
 			this.softReset();
 		}
 	}
 
 	setDelete(mode: "delete" | null) {
-		this._uiState.editType = mode;
+		this._uiState.editMode = mode;
 		this.notifyAll();
 	}
 
 	setSimulate(mode: "simulate" | null) {
-		this._uiState.editType = mode;
+		this._uiState.editMode = mode;
 		this.notifyAll();
 	}
 
@@ -133,7 +133,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 
 	startMoveComponent(id: number, clickOffset: XYPair) {
 		this._uiState = {
-			editType: "move",
+			editMode: "move",
 			editedId: id,
 			clickOffset: clickOffset,
 			draggedWireConnectionCount: null,
@@ -146,7 +146,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 	}
 	startMoveWire(wire: WireConnection, wireConnectionCount: number) {
 		this._uiState = {
-			editType: "move",
+			editMode: "move",
 			draggedWire: wire,
 			draggedWireConnectionCount: wireConnectionCount,
 			hoveredHandle: null,
@@ -159,7 +159,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 	}
 	startAddComponent(id: number, clickOffset: XYPair) {
 		this._uiState = {
-			editType: "add",
+			editMode: "add",
 			editedId: id,
 			clickOffset: clickOffset,
 			draggedWireConnectionCount: null,
@@ -172,7 +172,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 	}
 	startAddWire(wire: WireConnection, wireConnectionCount: number) {
 		this._uiState = {
-			editType: "add",
+			editMode: "add",
 			draggedWire: wire,
 			draggedWireConnectionCount: wireConnectionCount,
 			editedId: null,

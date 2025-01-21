@@ -41,13 +41,13 @@ export class ChangesAction {
 export class EditorAction {
 	static toggleDelete() {
 		ChangesAction.abortEditing();
-		const editMode = editorViewModel.uiState.editType;
+		const editMode = editorViewModel.uiState.editMode;
 		editorViewModel.setDelete(editMode === "delete" ? null : "delete");
 	}
 
 	static toggleSimulate() {
 		ChangesAction.abortEditing();
-		const editMode = editorViewModel.uiState.editType;
+		const editMode = editorViewModel.uiState.editMode;
 		editorViewModel.setSimulate(editMode === "simulate" ? null : "simulate");
 		if (editMode === null) {
 			// Start simulation if we just entered simulation mode
@@ -77,7 +77,7 @@ export class EditorAction {
 		graphManager.commitChanges();
 		graphManager.notifyAll();
 
-		if (editorViewModel.uiState.editType === "simulate") {
+		if (editorViewModel.uiState.editMode === "simulate") {
 			simulation.recomputeComponent(id);
 		}
 	}

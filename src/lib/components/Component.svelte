@@ -40,7 +40,7 @@
 	let editingThis = $derived(uiState.editedId === id);
 	let editingOtherWire = $derived(uiState.draggedWire?.id != null);
 
-	let simulating = $derived(uiState.editType === "simulate");
+	let simulating = $derived(uiState.editMode === "simulate");
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
 	let isPowered = $derived.by(() => {
@@ -64,13 +64,13 @@
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
-			if (uiState.editType === "move") {
+			if (uiState.editMode === "move") {
 				return "grabbing";
 			} else {
 				return "default";
 			}
 		} else {
-			if (uiState.editType === null) {
+			if (uiState.editMode === null) {
 				return "grab";
 			} else {
 				return "default";
@@ -85,7 +85,7 @@
 		handlePos: number,
 		e: MouseEvent,
 	) {
-		if (uiState.editType != null) {
+		if (uiState.editMode != null) {
 			return;
 		}
 		if (e.button !== 0) {
@@ -106,14 +106,14 @@
 	}
 
 	function onMouseDown(e: MouseEvent) {
-		if (uiState.editType == "delete") {
+		if (uiState.editMode == "delete") {
 			EditorAction.deleteComponent(id);
 			return;
 		}
 		if (e.button !== 0) {
 			return;
 		}
-		if (uiState.editType != null) {
+		if (uiState.editMode != null) {
 			return;
 		}
 
@@ -129,9 +129,9 @@
 
 	function onHandleEnter(identifier: string) {
 		if (
-			uiState.editType != null &&
-			uiState.editType != "move" &&
-			uiState.editType != "add"
+			uiState.editMode != null &&
+			uiState.editMode != "move" &&
+			uiState.editMode != "add"
 		) {
 			return;
 		}
@@ -143,7 +143,7 @@
 	}
 
 	let deletingThis = $derived(
-		uiState.editType == "delete" && uiState.hoveredElement === id,
+		uiState.editMode == "delete" && uiState.hoveredElement === id,
 	);
 
 	let fill = $derived(deletingThis ? "red" : "green");
@@ -185,7 +185,7 @@
 	{height}
 	{type}
 	{isPowered}
-	editType={uiState.editType}
+	{uiState.editMode}
 />
 
 {#each Object.entries(handles) as [identifier, handle]}

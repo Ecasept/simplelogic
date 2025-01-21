@@ -19,7 +19,7 @@
 		uiState.draggedWire?.id != null && !editingThis,
 	);
 
-	let simulating = $derived(uiState.editType === "simulate");
+	let simulating = $derived(uiState.editMode === "simulate");
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
 	let isPowered = $derived.by(() => {
@@ -28,7 +28,7 @@
 	});
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
-		if (uiState.editType != null) {
+		if (uiState.editMode != null) {
 			return;
 		}
 		if (e.button !== 0) {
@@ -47,9 +47,9 @@
 
 	function onHandleEnter(handleType: HandleType) {
 		if (
-			uiState.editType != null &&
-			uiState.editType != "move" &&
-			uiState.editType != "add"
+			uiState.editMode != null &&
+			uiState.editMode != "move" &&
+			uiState.editMode != "add"
 		) {
 			return;
 		}
@@ -62,7 +62,7 @@
 	}
 
 	let deletingThis = $derived(
-		uiState.editType == "delete" && uiState.hoveredElement === id,
+		uiState.editMode == "delete" && uiState.hoveredElement === id,
 	);
 
 	let stroke = $derived(deletingThis || isPowered ? "red" : "black");
@@ -81,16 +81,16 @@
 	class="hitbox"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke="transparent"
-	style="pointer-events: {uiState.editType === 'delete' ? 'all' : 'none'};"
+	style="pointer-events: {uiState.editMode === 'delete' ? 'all' : 'none'};"
 	stroke-width="10"
 	onmouseenter={() => {
-		if (uiState.editType !== "delete") {
+		if (uiState.editMode !== "delete") {
 			return;
 		}
 		editorViewModel.setHovered(id);
 	}}
 	onmouseleave={() => {
-		if (uiState.editType !== "delete") {
+		if (uiState.editMode !== "delete") {
 			return;
 		}
 		editorViewModel.removeHovered();
