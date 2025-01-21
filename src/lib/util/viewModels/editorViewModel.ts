@@ -8,11 +8,13 @@ type EditComponent = {
 
 	draggedWire: null;
 	hoveredHandle: null;
+	draggedWireConnectionCount: null;
 };
 type EditWire = {
 	editType: "add" | "move";
 	draggedWire: WireConnection;
 	hoveredHandle: WireConnection | ComponentConnection | null;
+	draggedWireConnectionCount: number;
 
 	editedId: null;
 	clickOffset: null;
@@ -25,6 +27,7 @@ type DeletionState = {
 	clickOffset: null;
 	draggedWire: null;
 	hoveredHandle: null;
+	draggedWireConnectionCount: null;
 };
 
 type SimulationState = {
@@ -34,6 +37,7 @@ type SimulationState = {
 	clickOffset: null;
 	draggedWire: null;
 	hoveredHandle: null;
+	draggedWireConnectionCount: null;
 };
 
 type DefaultState = {
@@ -42,6 +46,7 @@ type DefaultState = {
 	clickOffset: null;
 	draggedWire: null;
 	hoveredHandle: WireConnection | ComponentConnection | null;
+	draggedWireConnectionCount: null;
 };
 
 export type EditorUiState = (
@@ -64,6 +69,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		editedId: null,
 		draggedWire: null,
 		hoveredElement: null,
+		draggedWireConnectionCount: null,
 	};
 
 	protected resetUiState() {
@@ -75,6 +81,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			editedId: null,
 			draggedWire: null,
 			hoveredElement: this._uiState.hoveredElement,
+			draggedWireConnectionCount: null,
 		};
 	}
 
@@ -113,6 +120,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			editType: "move",
 			editedId: id,
 			clickOffset: clickOffset,
+			draggedWireConnectionCount: null,
 			hoveredHandle: null,
 			draggedWire: null,
 			isModalOpen: this._uiState.isModalOpen,
@@ -120,13 +128,14 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		};
 		this.notifyAll();
 	}
-	startMoveWire(wire: WireConnection) {
+	startMoveWire(wire: WireConnection, wireConnectionCount: number) {
 		this._uiState = {
 			editType: "move",
-			editedId: null,
 			draggedWire: wire,
+			draggedWireConnectionCount: wireConnectionCount,
 			hoveredHandle: null,
 			clickOffset: null,
+			editedId: null,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredElement: this._uiState.hoveredElement,
 		};
@@ -137,6 +146,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			editType: "add",
 			editedId: id,
 			clickOffset: clickOffset,
+			draggedWireConnectionCount: null,
 			hoveredHandle: null,
 			draggedWire: null,
 			isModalOpen: this._uiState.isModalOpen,
@@ -144,11 +154,12 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		};
 		this.notifyAll();
 	}
-	startAddWire(wire: WireConnection) {
+	startAddWire(wire: WireConnection, wireConnectionCount: number) {
 		this._uiState = {
 			editType: "add",
-			editedId: null,
 			draggedWire: wire,
+			draggedWireConnectionCount: wireConnectionCount,
+			editedId: null,
 			hoveredHandle: null,
 			clickOffset: null,
 			isModalOpen: this._uiState.isModalOpen,

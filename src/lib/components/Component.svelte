@@ -193,33 +193,39 @@
 	{#if !(handle.connections.length !== 0 && handle.type === "input")}
 		<!-- Hide handles of same type as dragged handle -->
 		{#if !(uiState.draggedWire?.handleType === handle.type)}
-			{@const isHoveredHandle =
-				isComponentConnection(uiState.hoveredHandle) &&
-				uiState.hoveredHandle.id == id &&
-				uiState.hoveredHandle.handleId == identifier}
-			{@const isHandlePowered =
-				simData?.[handle.type === "input" ? "inputs" : "outputs"]?.[
-					identifier
-				] ?? false}
-			<circle
-				role="button"
-				tabindex="0"
-				class="handle {handle.edge}"
-				onmouseenter={() => {
-					onHandleEnter(identifier);
-				}}
-				onmouseleave={onHandleLeave}
-				cx={position.x + calculateHandleOffset(handle.edge, handle.pos, size).x}
-				cy={position.y + calculateHandleOffset(handle.edge, handle.pos, size).y}
-				r={isHoveredHandle ? 10 : 5}
-				fill={isHoveredHandle && editingOtherWire
-					? "purple"
-					: simulating && isHandlePowered
-						? "red"
-						: "black"}
-				onmousedown={(e) =>
-					onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
-			></circle>
+			<!-- Hide inputs if the dragged wire already has outgoing wires
+			 (wire outputs may only be connected to either 1 component input, or multiple wire inputs) -->
+			{#if !(uiState.draggedWire?.handleType === "output" && (uiState.draggedWireConnectionCount ?? 0) > 0)}
+				{@const isHoveredHandle =
+					isComponentConnection(uiState.hoveredHandle) &&
+					uiState.hoveredHandle.id == id &&
+					uiState.hoveredHandle.handleId == identifier}
+				{@const isHandlePowered =
+					simData?.[handle.type === "input" ? "inputs" : "outputs"]?.[
+						identifier
+					] ?? false}
+				<circle
+					role="button"
+					tabindex="0"
+					class="handle {handle.edge}"
+					onmouseenter={() => {
+						onHandleEnter(identifier);
+					}}
+					onmouseleave={onHandleLeave}
+					cx={position.x +
+						calculateHandleOffset(handle.edge, handle.pos, size).x}
+					cy={position.y +
+						calculateHandleOffset(handle.edge, handle.pos, size).y}
+					r={isHoveredHandle ? 10 : 5}
+					fill={isHoveredHandle && editingOtherWire
+						? "purple"
+						: simulating && isHandlePowered
+							? "red"
+							: "black"}
+					onmousedown={(e) =>
+						onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
+				></circle>
+			{/if}
 		{/if}
 	{/if}
 {/each}

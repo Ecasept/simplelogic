@@ -38,7 +38,11 @@
 		editorViewModel.removeHoveredHandle();
 		e.preventDefault();
 		e.stopPropagation();
-		editorViewModel.startMoveWire({ id: id, handleType: clickedHandle });
+		const handle = clickedHandle === "input" ? input : output;
+		editorViewModel.startMoveWire(
+			{ id: id, handleType: clickedHandle },
+			handle.connections.length,
+		);
 	}
 
 	function onHandleEnter(handleType: HandleType) {

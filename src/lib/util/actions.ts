@@ -143,7 +143,8 @@ export class EditorAction {
 		);
 		graphManager.notifyAll();
 
-		editorViewModel.startAddWire(draggedHandle);
+		// The dragged handle will always have 0 connections
+		editorViewModel.startAddWire(draggedHandle, 0);
 	}
 
 	// ==== Movement ====
