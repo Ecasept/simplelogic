@@ -9,12 +9,14 @@ import {
 	getAttrs,
 	loadCircuit,
 	reload,
+	throwOnConsole,
 	undo,
 } from "./common";
 
 test.describe("editor", () => {
 	test.beforeEach(async ({ page }) => {
 		await reload(page);
+		throwOnConsole(page);
 	});
 	test("has title", async ({ page }) => {
 		await page.goto("/");

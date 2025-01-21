@@ -1,11 +1,19 @@
 import test, { expect } from "@playwright/test";
 import { spawn } from "child_process";
-import { addComponent, drag, dragHandle, getAttr, reload } from "./common";
+import {
+	addComponent,
+	drag,
+	dragHandle,
+	getAttr,
+	reload,
+	throwOnConsole,
+} from "./common";
 
 test.describe("modal", async () => {
 	test.beforeEach(async ({ page, context }) => {
 		await context.clearCookies();
 		await reload(page);
+		throwOnConsole(page);
 	});
 	test.beforeAll(async ({ browser }) => {
 		// Clear database to prevent circuit list from being too long and needing multiple pages

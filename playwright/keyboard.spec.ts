@@ -1,9 +1,10 @@
 import test, { expect } from "@playwright/test";
-import { addComponent, expectPosToBe, reload } from "./common";
+import { addComponent, expectPosToBe, reload, throwOnConsole } from "./common";
 
 test.describe("editor shortcuts", () => {
 	test.beforeEach(async ({ page }) => {
 		await reload(page);
+		throwOnConsole(page);
 	});
 
 	test("a adds AND gate", async ({ page }) => {
