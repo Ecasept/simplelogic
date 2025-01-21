@@ -166,6 +166,7 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).click();
 		await page.locator('input[type="text"]').fill(graphName);
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
+		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Reload page
 		await reload(page);
@@ -174,7 +175,7 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Load" }).click();
 		await page.getByRole("button", { name: "Load from server" }).click();
 		await expect(page.getByText(`${graphName} id:`)).toBeVisible();
-		await page.getByText(`${graphName} id:`).click();
+		await page.getByText(`${graphName} id:`).focus();
 		await page.keyboard.press("Enter");
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await expect(page.locator(".component-body")).toHaveCount(1);
