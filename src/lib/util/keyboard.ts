@@ -132,6 +132,13 @@ const shortcuts: Shortcut[] = [
 		mode: [null, "delete"],
 		action: EditorAction.undo,
 	},
+	{
+		key: "c",
+		mod: "shift",
+		env: "editor",
+		mode: [null, "delete", "simulate", "add", "move"],
+		action: EditorAction.clear,
+	},
 ];
 
 function getPressedMod(e: KeyboardEvent) {

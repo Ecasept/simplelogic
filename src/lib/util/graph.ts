@@ -187,6 +187,10 @@ export class GraphManager {
 		return ZGraphData.safeParse(data);
 	}
 
+	clear() {
+		this.graph.setData({ components: {}, wires: {}, nextId: 0 }, true);
+	}
+
 	// ==== Store Contract ====
 
 	private subscribers: ((graphData: GraphData) => void)[] = [];

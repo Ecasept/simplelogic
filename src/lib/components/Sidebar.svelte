@@ -29,7 +29,9 @@
 	function handleUndo() {
 		EditorAction.undo();
 	}
-
+	function handleClear() {
+		EditorAction.clear();
+	}
 	function saveGraph() {
 		PersistenceAction.saveGraph();
 	}
@@ -60,6 +62,9 @@
 			</Button>
 			<Button disabled={simulating} text="Undo" onClick={handleUndo}>
 				{#snippet icon()}<Undo />{/snippet}
+			</Button>
+			<Button text="Clear" onClick={handleClear}>
+				{#snippet icon()}<Trash2 />{/snippet}
 			</Button>
 		</div>
 

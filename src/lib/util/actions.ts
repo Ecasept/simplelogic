@@ -39,6 +39,10 @@ export class ChangesAction {
 }
 
 export class EditorAction {
+	static clear() {
+		graphManager.clear();
+		editorViewModel.hardReset();
+	}
 	static toggleDelete() {
 		ChangesAction.abortEditing();
 		const editMode = editorViewModel.uiState.editMode;
