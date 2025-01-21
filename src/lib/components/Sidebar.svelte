@@ -14,6 +14,7 @@
 	import AuthentificationSection from "./AuthentificationSection.svelte";
 	import Button from "./Button.svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
+	import ThemeSwitcher from "./ThemeSwitcher.svelte";
 
 	type Props = {
 		uiState: SidebarUiState;
@@ -53,7 +54,11 @@
 <div class="sidebarWrapper" class:open={uiState.open}>
 	<button class="collapse" onclick={toggleOpen}><span>▶</span></button>
 	<div class="content">
-		<h2>Tools</h2>
+		<div id="heading-container">
+			<h2 style="margin:0;">Tools</h2>
+			<ThemeSwitcher />
+		</div>
+
 		<ComponentToolbar {simulating} onClick={addComponent} />
 
 		<hr />
@@ -114,13 +119,13 @@
 
 <style lang="scss">
 	.sidebarWrapper {
-		color: black;
+		color: var(--on-surface-color);
 		position: absolute;
 		width: 20vw;
 		height: 100vh;
 		right: 0;
 		top: 0;
-		background-color: var(--bg-color);
+		background-color: var(--surface-color);
 		transition: left 0.3s ease-in-out;
 		left: 80vw;
 		display: flex;
@@ -133,13 +138,21 @@
 			}
 		}
 
+		#heading-container {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 10px;
+			margin-top: 10px;
+		}
+
 		.collapse {
 			bottom: 0;
 			height: 100%;
 			width: 1vw;
 			padding: 0;
 			border: unset;
-			background-color: rgb(81, 124, 72);
+			background-color: var(--sidebar-collapse-color);
 			cursor: pointer;
 
 			span {
@@ -159,7 +172,7 @@
 		}
 
 		hr {
-			border: 1px solid black;
+			border: 1px solid var(--on-surface-color);
 			margin: 20px 0;
 		}
 

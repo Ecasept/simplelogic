@@ -35,15 +35,15 @@
 
 <style>
 	button {
-		background-color: var(--light-color);
-		color: black;
-		border: 1px solid black;
+		background-color: var(--primary-color);
+		color: var(--on-primary-color);
+		border: 1px solid var(--on-primary-color);
 		cursor: pointer;
 		border-radius: 12px;
 		padding: 8px;
 
 		&:hover {
-			background-color: var(--light-darker-color);
+			background-color: var(--primary-highlight-color);
 		}
 
 		&.icon {
@@ -54,9 +54,9 @@
 		}
 	}
 	button:disabled {
-		background-color: var(--light-color);
-		color: gray;
-		border: 1px solid gray;
+		background-color: var(--primary-color);
+		color: var(--primary-disabled-color);
+		border: 1px solid var(--primary-disabled-color);
 		cursor: default;
 	}
 </style>

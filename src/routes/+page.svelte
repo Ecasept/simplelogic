@@ -11,9 +11,11 @@
 	} from "$lib/util/actions";
 	import { isClickOverSidebar, setMousePosition } from "$lib/util/global";
 	import { handleKeyDown } from "$lib/util/keyboard";
+	import { getThemeClass } from "$lib/util/theme.svelte";
 	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
 
 	let { data }: { data: import("./$types").LayoutData } = $props();
+	let themeClass = $derived.by(getThemeClass);
 
 	function onMouseMove(e: MouseEvent) {
 		const pos = { x: e.clientX, y: e.clientY };
@@ -67,7 +69,7 @@
 	onkeydown={handleKeyDown}
 />
 
-<div class="wrapper">
+<div class="wrapper theme-host {themeClass}">
 	<Canvas uiState={$canvasViewModel}></Canvas>
 	<Sidebar
 		editMode={$editorViewModel.editMode}

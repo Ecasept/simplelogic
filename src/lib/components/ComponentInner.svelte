@@ -57,7 +57,7 @@
 		style="pointer-events: {editMode === null || editMode === 'simulate'
 			? 'all'
 			: 'none'};"
-		fill={isPowered ? "red" : "black"}
+		fill={isPowered ? "var(--component-delete-color)" : "black"}
 		onclick={() => {
 			EditorAction.togglePower(componentId);
 		}}
@@ -72,7 +72,7 @@
 		cy={middleY}
 		r="10"
 		style="pointer-events: none;"
-		fill={isPowered ? "red" : "black"}
+		fill={isPowered ? "var(--component-delete-color)" : "black"}
 	/>
 {:else}
 	<text
@@ -81,7 +81,7 @@
 		font-size="12"
 		dy=".35em"
 		text-anchor="middle"
-		fill="black"
+		fill="currentColor"
 	>
 		{type}
 	</text>
@@ -90,5 +90,6 @@
 <style>
 	text {
 		pointer-events: none;
+		color: var(--on-component-background-color);
 	}
 </style>

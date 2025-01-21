@@ -146,12 +146,20 @@
 		uiState.editMode == "delete" && uiState.hoveredElement === id,
 	);
 
-	let fill = $derived(deletingThis ? "red" : "green");
+	let fill = $derived(
+		deletingThis
+			? "var(--component-delete-color)"
+			: "var(--component-background-color)",
+	);
 
 	let width = $derived(size.x * GRID_SIZE);
 	let height = $derived(size.y * GRID_SIZE);
 
-	let stroke = $derived(isPowered ? "red" : "black");
+	let stroke = $derived(
+		isPowered
+			? "var(--component-delete-color)"
+			: "var(--component-outline-color)",
+	);
 </script>
 
 <rect
@@ -218,10 +226,10 @@
 						calculateHandleOffset(handle.edge, handle.pos, size).y}
 					r={isHoveredHandle ? 10 : 5}
 					fill={isHoveredHandle && editingOtherWire
-						? "purple"
+						? "var(--handle-connect-color)"
 						: simulating && isHandlePowered
-							? "red"
-							: "black"}
+							? "var(--component-delete-color)"
+							: "var(--component-outline-color)"}
 					onmousedown={(e) =>
 						onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 				></circle>

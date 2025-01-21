@@ -2,7 +2,6 @@
 	import { fileModalViewModel } from "$lib/util/actions";
 	import type { ListRequestData } from "$lib/util/api";
 	import { onEnter } from "$lib/util/keyboard";
-	import Button from "./Button.svelte";
 
 	type Props = {
 		listData: ListRequestData | null;
@@ -32,7 +31,7 @@
 			</div>
 		{/each}
 	{:else}
-			<div id="loading-span">Loading...</div>
+		<div id="loading-span">Loading...</div>
 	{/if}
 </div>
 
@@ -42,15 +41,16 @@
 		overflow-y: auto;
 		margin: auto;
 		width: 80%;
-		border: 2px solid black;
+		border: 2px solid var(--on-primary-container-color);
 		border-radius: 25px;
 		overflow-x: hidden;
 		overflow-y: auto;
+		color: var(--on-primary-container-color);
 
 		display: flex;
 		flex-direction: column;
 
-		background-color: var(--light-color);
+		background-color: var(--primary-container-color);
 	}
 
 	.circuit-item {

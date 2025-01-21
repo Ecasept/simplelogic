@@ -65,7 +65,11 @@
 		uiState.editMode == "delete" && uiState.hoveredElement === id,
 	);
 
-	let stroke = $derived(deletingThis || isPowered ? "red" : "black");
+	let stroke = $derived(
+		deletingThis || isPowered
+			? "var(--component-delete-color)"
+			: "var(--component-outline-color)",
+	);
 </script>
 
 <path
@@ -134,10 +138,10 @@
 			cy={input.y}
 			r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
 			fill={draggingOtherOnToThis || draggingThisOnToOther
-				? "purple"
+				? "var(--handle-connect-color)"
 				: simulating && isHandlePowered
-					? "red"
-					: "black"}
+					? "var(--component-delete-color)"
+					: "var(--component-outline-color)"}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			onmousedown={(e) => onHandleDown("input", e)}
 		></circle>
@@ -171,10 +175,10 @@
 			cy={output.y}
 			r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
 			fill={draggingOtherOnToThis || draggingThisOnToOther
-				? "purple"
+				? "var(--handle-connect-color)"
 				: simulating && isHandlePowered
-					? "red"
-					: "black"}
+					? "var(--component-delete-color)"
+					: "var(--component-outline-color)"}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
 			onmousedown={(e) => onHandleDown("output", e)}
 		></circle>

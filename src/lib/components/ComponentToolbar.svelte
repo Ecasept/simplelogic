@@ -29,9 +29,9 @@
 		justify-content: flex-start;
 	}
 	button {
-		background-color: var(--light-color);
-		color: black;
-		border: 1px solid black;
+		background-color: var(--primary-color);
+		color: var(--on-primary-color);
+		border: 1px solid var(--on-primary-color);
 		cursor: pointer;
 		height: 50px;
 		width: 50px;
@@ -39,12 +39,12 @@
 		margin: 5px;
 
 		&:hover {
-			background-color: var(--light-darker-color);
+			background-color: var(--primary-highlight-color);
 		}
 	}
 
 	button:disabled {
-		background-color: var(--light-color);
+		background-color: var(--primary-color);
 		color: gray;
 		border: 1px solid gray;
 		cursor: default;

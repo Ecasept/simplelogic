@@ -138,7 +138,7 @@ test.describe("shortcut interactions", () => {
 		// verify highlighting
 		await expect(page.locator(".component-body")).toHaveAttribute(
 			"fill",
-			"red",
+			"var(--component-delete-color)",
 		);
 
 		await page.keyboard.press("s");
@@ -146,7 +146,7 @@ test.describe("shortcut interactions", () => {
 		// verify highlighting gone
 		await expect(page.locator(".component-body")).not.toHaveAttribute(
 			"fill",
-			"red",
+			"var(--component-delete-color)",
 		);
 
 		await page.keyboard.press("d");
@@ -154,7 +154,7 @@ test.describe("shortcut interactions", () => {
 		// verify highlighting
 		await expect(page.locator(".component-body")).toHaveAttribute(
 			"fill",
-			"red",
+			"var(--component-delete-color)",
 		);
 
 		await page.keyboard.press("Escape");
@@ -162,7 +162,7 @@ test.describe("shortcut interactions", () => {
 		// verify highlighting gone
 		await expect(page.locator(".component-body")).not.toHaveAttribute(
 			"fill",
-			"red",
+			"var(--component-delete-color)",
 		);
 	});
 });

@@ -322,14 +322,20 @@ test.describe("editor", () => {
 		// Delete first wire and confirm
 		const firstWire = page.locator(".wire").first();
 		await firstWire.hover({ force: true }); // has pointer-events: none
-		await expect(firstWire).toHaveAttribute("stroke", "red");
+		await expect(firstWire).toHaveAttribute(
+			"stroke",
+			"var(--component-delete-color)",
+		);
 		await firstWire.click({ force: true });
 		await expect(page.locator(".wire")).toHaveCount(1);
 
 		// Delete second component and confirm
 		const secondComponent = page.locator(".component-body").nth(1);
 		await secondComponent.hover();
-		await expect(secondComponent).toHaveAttribute("fill", "red");
+		await expect(secondComponent).toHaveAttribute(
+			"fill",
+			"var(--component-delete-color)",
+		);
 		await secondComponent.click();
 		await expect(page.locator(".component-body")).toHaveCount(1);
 		await expect(page.locator("circle.handle")).toHaveCount(5); // 3 for first component, 2 for second wire
@@ -339,7 +345,7 @@ test.describe("editor", () => {
 		await expect(page.locator(".component-body")).toHaveCount(2);
 		await expect(page.locator(".component-body").nth(1)).not.toHaveAttribute(
 			"fill",
-			"red",
+			"var(--component-delete-color)",
 		);
 
 		// Undo wire deletion and confirm
@@ -347,7 +353,7 @@ test.describe("editor", () => {
 		await expect(page.locator(".wire")).toHaveCount(2);
 		await expect(page.locator(".wire").first()).not.toHaveAttribute(
 			"stroke",
-			"red",
+			"var(--component-delete-color)",
 		);
 	});
 	test("disable same handles", async ({ page }) => {
@@ -427,5 +433,23 @@ test.describe("editor", () => {
 		await expect(page.getByRole("button", { name: "Undo" })).not.toBeDisabled();
 		await undo(page);
 		await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled();
+	});
+	test("theme switcher switches themes", async ({ page }) => {
+		const lightTheme = page.getByLabel("Light theme");
+		const autoTheme = page.getByLabel("System");
+		const darkTheme = page.getByLabel("Dark theme");
+
+		await expect(autoTheme).toHaveClass(/selected/);
+
+		await lightTheme.click();
+		await expect(lightTheme).toHaveClass(/selected/);
+		await expect(autoTheme).not.toHaveClass(/selected/);
+
+		await expect(page.locator(".theme-host")).toHaveClass(/theme-light/);
+
+		await darkTheme.click();
+		await expect(darkTheme).toHaveClass(/selected/);
+
+		await expect(page.locator(".theme-host")).toHaveClass(/theme-dark/);
 	});
 });

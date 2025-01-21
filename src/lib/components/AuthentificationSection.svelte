@@ -52,8 +52,9 @@
 			padding: 8px;
 			height: 1em;
 
-			background-color: var(--light-color);
-			border: 1px solid black;
+			color: var(--on-primary-color);
+			background-color: var(--primary-color);
+			border: 1px solid var(--on-primary-color);
 			border-radius: 8px;
 		}
 	}
@@ -63,6 +64,6 @@
 		align-items: center;
 	}
 	#error-msg {
-		color: red;
+		color: var(--error-color);
 	}
 </style>

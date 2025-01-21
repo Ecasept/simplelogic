@@ -16,6 +16,9 @@
 	}
 	hr {
 		flex: 1;
-		border: 1px solid black;
+		border: 1px solid var(--on-surface-color);
+	}
+	span {
+		color: var(--on-surface-color);
 	}
 </style>

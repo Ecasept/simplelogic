@@ -121,8 +121,9 @@
 
 		padding: 10px;
 
-		background-color: var(--light-color);
-		border: 1px solid black;
+		background-color: var(--primary-color);
+		border: 1px solid var(--on-primary-color);
+		color: var(--on-primary-color);
 		border-radius: 8px;
 	}
 
@@ -130,13 +131,17 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-	}
+		color: var(--on-surface-color);
 
-	#modal-header .close-button {
-		background-color: transparent;
-		border: none;
-		cursor: pointer;
-		align-self: flex-start;
+		button {
+			color: inherit; // passes color on to svg
+		}
+		.close-button {
+			background-color: transparent;
+			border: none;
+			cursor: pointer;
+			align-self: flex-start;
+		}
 	}
 	.background {
 		width: 100%;
@@ -152,7 +157,7 @@
 	.modal-bg {
 		width: 50%;
 		margin: auto;
-		background-color: var(--bg-color);
+		background-color: var(--surface-color);
 		border-radius: 32px;
 		padding: 30px;
 		max-height: 50vh;
@@ -162,6 +167,6 @@
 
 	#error-msg {
 		margin: 10px auto 0 auto;
-		color: red;
+		color: var(--error-color);
 	}
 </style>
