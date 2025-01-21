@@ -406,4 +406,9 @@ test.describe("editor", () => {
 		await page.mouse.up();
 		await expect(page.locator("circle.handle")).toHaveCount(9);
 	});
+	test("can load while simulating", async ({ page }) => {
+		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await loadCircuit(circuits.singleAnd, page);
+		await expect(page.locator(".component-body")).toHaveCount(1);
+	});
 });
