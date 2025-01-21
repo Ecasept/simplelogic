@@ -78,9 +78,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		throw new Error("Method not implemented.");
 	}
 
-	/** Aborts any editing (eg. moving or adding wires/components) currently in progress,
-	 * regardless of which mode you are in (includes eg. deleting or simulating) */
-	softReset() {
+	private softReset() {
 		this._uiState = {
 			editType: null,
 			isModalOpen: this._uiState.isModalOpen,

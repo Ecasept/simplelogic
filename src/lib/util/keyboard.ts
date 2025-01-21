@@ -6,15 +6,34 @@ import {
 } from "./actions";
 import { mousePosition } from "./global";
 
-const shortcuts = [
+type Shortcut = {
+	key: string;
+	mod: string | null;
+	env: string;
+	mode?: string;
+	action: () => void;
+};
+
+const shortcuts: Shortcut[] = [
 	{
 		key: "escape",
 		mod: null,
 		env: "editor",
-		action: () => {
-			ChangesAction.abortEditing();
-			editorViewModel.softReset(); // also exit edit mode
-		},
+		action: ChangesAction.abortEditing,
+	},
+	{
+		key: "escape",
+		mod: null,
+		env: "editor",
+		mode: "delete",
+		action: EditorAction.toggleDelete,
+	},
+	{
+		key: "escape",
+		mod: null,
+		env: "editor",
+		mode: "simulate",
+		action: EditorAction.toggleSimulate,
 	},
 	{
 		key: "escape",
@@ -115,6 +134,9 @@ export function handleKeyDown(e: KeyboardEvent) {
 	} else {
 		env = "editor";
 	}
+
+	const mode = editorViewModel.uiState.editType;
+
 	const pressedKey = e.key;
 	const pressedMod =
 		e.ctrlKey || e.metaKey
@@ -125,16 +147,19 @@ export function handleKeyDown(e: KeyboardEvent) {
 					? "shift"
 					: null;
 
-	const matchingShortcut = shortcuts.find(
+	const matchingShortcuts = shortcuts.filter(
 		(shortcut) =>
 			shortcut.key === pressedKey.toLowerCase() &&
 			shortcut.mod === pressedMod &&
-			shortcut.env === env,
+			shortcut.env === env &&
+			(shortcut.mode ? shortcut.mode === mode : true), // If the shortcut has a mode, it must match the current mode
 	);
 
-	if (matchingShortcut) {
+	if (matchingShortcuts.length > 0) {
 		e.preventDefault();
-		matchingShortcut.action();
+		for (const shortcut of matchingShortcuts) {
+			shortcut.action();
+		}
 	}
 }
 
