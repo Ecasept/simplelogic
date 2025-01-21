@@ -185,7 +185,7 @@
 	{height}
 	{type}
 	{isPowered}
-	{uiState.editMode}
+	editMode={uiState.editMode}
 />
 
 {#each Object.entries(handles) as [identifier, handle]}
