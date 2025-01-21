@@ -7,7 +7,7 @@ import {
 	ToggleInputPowerStateCommand,
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global";
-import { Graph, GraphManager } from "./graph";
+import { Graph, GraphManager } from "./graph.svelte";
 import { simulation } from "./simulation.svelte";
 import type {
 	ComponentConnection,

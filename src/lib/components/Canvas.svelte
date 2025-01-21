@@ -37,6 +37,8 @@
 			y: event.clientY,
 		});
 	}
+
+	let graphData = $derived(graphManager.graphData);
 </script>
 
 <div class="canvasWrapper">
@@ -77,7 +79,7 @@
 			fill="url(#dot-pattern)"
 		/>
 
-		{#each Object.entries($graphManager.components) as [_, { id, size, position, type, handles, isPoweredInitially }] (id)}
+		{#each Object.entries(graphData.components) as [_, { id, size, position, type, handles, isPoweredInitially }] (id)}
 			<Component
 				{id}
 				{size}
@@ -88,7 +90,7 @@
 				uiState={$editorViewModel}
 			></Component>
 		{/each}
-		{#each Object.entries($graphManager.wires) as [_, { id, input, output }]}
+		{#each Object.entries(graphData.wires) as [_, { id, input, output }]}
 			<Wire {id} {input} {output} uiState={$editorViewModel}></Wire>
 		{/each}
 	</svg>

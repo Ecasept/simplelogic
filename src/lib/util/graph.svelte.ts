@@ -51,9 +51,15 @@ export class Graph {
 	}
 }
 export class GraphManager {
-	private currentData: GraphData = { components: {}, wires: {}, nextId: 0 };
+	private _currentData: GraphData = { components: {}, wires: {}, nextId: 0 };
 	private history: CommandGroup[] = [];
 	private changes: Command[] = [];
+
+	public graphData: GraphData = $state({
+		components: {},
+		wires: {},
+		nextId: 0,
+	});
 
 	get hasChanges(): Readonly<boolean> {
 		return this.changes.length > 0;
@@ -61,7 +67,7 @@ export class GraphManager {
 
 	constructor(private graph: Graph) {
 		graph.subscribe((newData: GraphData, invalidateHistory: boolean) => {
-			this.currentData = newData;
+			this._currentData = newData;
 			if (invalidateHistory) {
 				this.history = [];
 				this.changes = [];
@@ -77,12 +83,12 @@ export class GraphManager {
 		if (replace && this.hasChanges) {
 			const prevCommand = this.changes[this.changes.length - 1];
 			if (prevCommand instanceof command.constructor) {
-				prevCommand.undo(this.currentData);
+				prevCommand.undo(this._currentData);
 				this.changes.pop();
 			}
 		}
 
-		const res = command.execute(this.currentData);
+		const res = command.execute(this._currentData);
 
 		this.changes.push(command);
 
@@ -91,13 +97,13 @@ export class GraphManager {
 
 	undoLastCommand() {
 		const command = this.history.pop();
-		command?.undo(this.currentData);
+		command?.undo(this._currentData);
 		this.notifyAll();
 	}
 
 	discardChanges() {
 		for (let i = this.changes.length - 1; i >= 0; i--) {
-			this.changes[i].undo(this.currentData);
+			this.changes[i].undo(this._currentData);
 		}
 		this.changes = [];
 		this.notifyAll();
@@ -106,7 +112,7 @@ export class GraphManager {
 		const group = new CommandGroup(this.changes);
 		this.history.push(group);
 		this.changes = [];
-		this.graph.setData(structuredClone(this.currentData), false);
+		this.graph.setData(structuredClone(this._currentData), false);
 	}
 
 	moveComponentReplaceable(newComponentPos: XYPair, componentId: number) {
@@ -176,11 +182,11 @@ export class GraphManager {
 	}
 
 	getComponentData(id: number) {
-		return this.currentData.components[id];
+		return this._currentData.components[id];
 	}
 
 	getWireData(id: number) {
-		return this.currentData.wires[id];
+		return this._currentData.wires[id];
 	}
 
 	validateData(data: GraphData) {
@@ -191,24 +197,7 @@ export class GraphManager {
 		this.graph.setData({ components: {}, wires: {}, nextId: 0 }, true);
 	}
 
-	// ==== Store Contract ====
-
-	private subscribers: ((graphData: GraphData) => void)[] = [];
-
-	subscribe(subscriber: (graphData: GraphData) => void): () => void {
-		this.subscribers.push(subscriber);
-		subscriber(this.currentData);
-		return () => {
-			const index = this.subscribers.indexOf(subscriber);
-			if (index !== -1) {
-				this.subscribers.splice(index, 1);
-			}
-		};
-	}
-
 	notifyAll() {
-		for (const subscriberFunc of this.subscribers) {
-			subscriberFunc(this.currentData);
-		}
+		this.graphData = this._currentData;
 	}
 }
