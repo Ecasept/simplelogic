@@ -1,4 +1,5 @@
 import test, { expect } from "@playwright/test";
+import { circuits } from "./circuits";
 import {
 	addComponent,
 	drag,
@@ -6,6 +7,7 @@ import {
 	expectPosToBe,
 	getAttr,
 	getAttrs,
+	loadCircuit,
 	reload,
 	undo,
 } from "./common";
@@ -389,5 +391,19 @@ test.describe("editor", () => {
 
 		// verify that inputs are back
 		await expect(page.locator("circle.handle")).toHaveCount(8);
+	});
+	test("correctly disables component inputs for connected wire outputs", async ({
+		page,
+	}) => {
+		await loadCircuit(circuits.multiconnected, page);
+		let middleHandle = page.locator("circle.handle").nth(8);
+		await middleHandle.hover();
+		await page.mouse.down();
+		await expect(page.locator("circle.handle")).toHaveCount(2);
+		middleHandle = page.locator("circle.handle").first();
+		const targetHandle = page.locator("circle.handle").nth(1);
+		await targetHandle.hover();
+		await page.mouse.up();
+		await expect(page.locator("circle.handle")).toHaveCount(9);
 	});
 });

@@ -77,3 +77,34 @@ export async function getAttrs(locator: Locator, ...attrs: string[]) {
 	const values = await Promise.all(attrs.map((attr) => getAttr(locator, attr)));
 	return values;
 }
+
+export async function loadCircuit(circuit: string, page: Page) {
+	try {
+		await page.evaluate((text) => {
+			return navigator.clipboard.writeText(text);
+		}, circuit);
+	} catch (e) {
+		const modifier = process.platform === "darwin" ? "Meta" : "Control";
+		// Create a temporary input element and copy from it
+		await page.evaluate((text) => {
+			const input = document.createElement("input");
+			input.id = "test-copy-input";
+			input.value = text;
+			document.body.appendChild(input);
+			input.select();
+			document.body.removeChild(input);
+		}, circuit);
+
+		await page.keyboard.press("${modifier}+KeyC");
+
+		await page.evaluate(() => {
+			const input = document.querySelector(
+				"#test-copy-input",
+			) as HTMLInputElement;
+			document.body.removeChild(input);
+		});
+	}
+
+	await page.getByRole("button", { name: "Load" }).click();
+	await page.getByRole("button", { name: "Paste from clipboard" }).click();
+}
