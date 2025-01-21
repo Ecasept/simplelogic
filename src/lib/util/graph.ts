@@ -24,10 +24,6 @@ export class Graph {
 		this.notifyAll(invalidateHistory);
 	}
 
-	validateData(data: GraphData) {
-		return ZGraphData.safeParse(data);
-	}
-
 	// ==== Store Contract ====
 
 	private subscribers: ((
@@ -185,6 +181,10 @@ export class GraphManager {
 
 	getWireData(id: number) {
 		return this.currentData.wires[id];
+	}
+
+	validateData(data: GraphData) {
+		return ZGraphData.safeParse(data);
 	}
 
 	// ==== Store Contract ====

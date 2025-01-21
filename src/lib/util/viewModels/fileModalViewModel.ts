@@ -1,4 +1,4 @@
-import { graph } from "../actions";
+import { graph, graphManager } from "../actions";
 import { API } from "../api";
 import type { GraphData } from "../types";
 import { ViewModel } from "./viewModel";
@@ -74,7 +74,7 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 			const graphData = JSON.parse(json);
 
 			// Validate data
-			const validationResult = graph.validateData(graphData);
+			const validationResult = graphManager.validateData(graphData);
 			if (!validationResult.success) {
 				this.setError("Invalid data: " + validationResult.error.message);
 				return;
