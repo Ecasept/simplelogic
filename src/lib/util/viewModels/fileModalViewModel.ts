@@ -105,6 +105,7 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 
 	async loadCircuitList(page: number) {
 		this._uiState.loadMode = "list";
+		this.notifyAll();
 		const data = await API.loadCircuitList(page);
 		if (data.success) {
 			this._uiState.listRequestData = data.data;
