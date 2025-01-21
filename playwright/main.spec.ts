@@ -411,4 +411,16 @@ test.describe("editor", () => {
 		await loadCircuit(circuits.singleAnd, page);
 		await expect(page.locator(".component-body")).toHaveCount(1);
 	});
+	test("clear button clears the canvas", async ({ page }) => {
+		await addComponent(page, "AND", 100, 100);
+		await page.getByRole("button", { name: "Clear" }).click();
+		await expect(page.locator(".component-body")).toHaveCount(0);
+
+		// Test in simulation mode
+		await addComponent(page, "AND", 100, 100);
+		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await page.getByRole("button", { name: "Clear" }).click();
+		await expect(page.locator(".component-body")).toHaveCount(0);
+		await expect(page.getByText("Editing Mode: Simulate")).not.toBeVisible();
+	});
 });
