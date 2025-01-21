@@ -200,11 +200,8 @@ export class EditorAction {
 		graphManager.notifyAll();
 	}
 	static undo() {
-		if (graphManager.hasChanges) {
-			graphManager.discardChanges();
-		} else {
-			graphManager.undoLastCommand();
-		}
+		ChangesAction.abortEditing();
+		graphManager.undoLastCommand();
 	}
 }
 

@@ -215,14 +215,11 @@ test.describe("editor", () => {
 		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(0);
 
-		// Undo nothing
-		const innerHTML1 = page.locator(".canvasWrapper").innerHTML;
-		await undo(page);
-		const innerHTML2 = page.locator(".canvasWrapper").innerHTML;
-		expect(innerHTML1).toBe(innerHTML2);
-
+		
+		addComponent(page, "AND", 100, 100);
+		
 		// Add component without committing
-		await addComponent(page, "OR", 500, 500);
+		await page.keyboard.press("a");
 
 		// Press undo
 		await undo(page);
