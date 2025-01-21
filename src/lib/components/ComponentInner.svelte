@@ -46,10 +46,7 @@
 	let { upperPath, lowerPath } = $derived.by(createSplitLine);
 </script>
 
-{#if type === "DBL"}
-	<path d={upperPath} stroke="black" fill="none" />
-	<path d={lowerPath} stroke="black" fill="none" />
-{:else if type === "IN"}
+{#if type === "IN"}
 	<circle
 		role="button"
 		tabindex="0"
