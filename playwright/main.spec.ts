@@ -8,16 +8,19 @@ import {
 	getAttr,
 	getAttrs,
 	loadCircuit,
+	mockWebkitClipboard,
 	reload,
 	throwOnConsoleError,
 	undo,
 } from "./common";
 
 test.describe("editor", () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page, browserName }) => {
 		await reload(page);
 		throwOnConsoleError(page);
+		await mockWebkitClipboard(page, browserName);
 	});
+
 	test("has title", async ({ page }) => {
 		await page.goto("/");
 		await expect(page).toHaveTitle("SimpleLogic");

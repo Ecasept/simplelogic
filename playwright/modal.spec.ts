@@ -5,17 +5,19 @@ import {
 	drag,
 	dragHandle,
 	getAttr,
+	mockWebkitClipboard,
 	reload,
 	throwOnConsoleError,
 } from "./common";
 
 test.describe("modal", async () => {
-	test.beforeEach(async ({ page, context }) => {
+	test.beforeEach(async ({ page, context, browserName }) => {
 		await context.clearCookies();
 		await reload(page);
+		await mockWebkitClipboard(page, browserName);
 		throwOnConsoleError(page);
 	});
-	test.beforeAll(async ({ browser }) => {
+	test.beforeAll(async ({ page, browserName }) => {
 		// Clear database to prevent circuit list from being too long and needing multiple pages
 		const cmd = spawn("npm", ["run", "cleardb"], {
 			stdio: "inherit",
@@ -181,10 +183,6 @@ test.describe("modal", async () => {
 		await expect(page.locator(".component-body")).toHaveCount(1);
 	});
 	test("copy and paste", async ({ page, browserName }) => {
-		test.skip(
-			browserName === "webkit",
-			"Playwright doesn't support clipboard for webkit",
-		);
 		// Create 2 components connected by a wire
 		await addComponent(page, "AND", 100, 200);
 		await addComponent(page, "OR", 200, 300);
@@ -218,12 +216,7 @@ test.describe("modal", async () => {
 			initialD,
 		);
 	});
-	test("paste invalid data", async ({ page, browserName }) => {
-		test.skip(
-			browserName === "webkit",
-			"Playwright doesn't support clipboard for webkit",
-		);
-
+	test("paste invalid data", async ({ page }) => {
 		// Copy invalid data to clipboard
 		await page.evaluate(() => {
 			navigator.clipboard.writeText("invalid data");

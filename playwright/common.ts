@@ -116,3 +116,36 @@ export function throwOnConsoleError(page: Page) {
 		}
 	});
 }
+
+/** Mocks the clipboard for webkit by saving the clipboard to the `page` object and overwriting the websites `navigator.clipboard` object
+ *
+ * This is necessary because webkit doesn't play nicely with clipboard permissions with playwright
+ */
+export async function mockWebkitClipboard(page: Page, browserName: string) {
+	if (browserName === "webkit") {
+		// These persist even after page reloads
+		await page.exposeFunction("playwrightReadClipboard", () => {
+			return (page as any)._custom_clipboardText;
+		});
+		await page.exposeFunction("playwrightWriteClipboard", (text: string) => {
+			(page as any)._custom_clipboardText = text;
+		});
+
+		const mockClipboard = async () => {
+			const clipboard = {
+				writeText: async (text: string) => {
+					await (window as any).playwrightWriteClipboard(text);
+				},
+				readText: async () => {
+					return await (window as any).playwrightReadClipboard();
+				},
+			};
+			Object.defineProperty(navigator, "clipboard", {
+				value: clipboard,
+			});
+		};
+
+		// page.evaluate does not persist after reloads, so we need to do this on every load
+		page.on("load", mockClipboard);
+	}
+}

@@ -2,14 +2,16 @@ import test, { expect } from "@playwright/test";
 import {
 	addComponent,
 	expectPosToBe,
+	mockWebkitClipboard,
 	reload,
 	throwOnConsoleError,
 } from "./common";
 
 test.describe("editor shortcuts", () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page, browserName }) => {
 		await reload(page);
 		throwOnConsoleError(page);
+		await mockWebkitClipboard(page, browserName);
 	});
 
 	test("a adds AND gate", async ({ page }) => {

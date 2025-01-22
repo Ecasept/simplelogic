@@ -56,13 +56,13 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 		};
 	}
 
-	copyCircuitToClipboard() {
+	async copyCircuitToClipboard() {
 		if (this._uiState.mode !== "save") {
 			throw new Error("Invalid mode");
 		}
 		const graphData = graph.getData();
 		const json = JSON.stringify(graphData);
-		navigator.clipboard.writeText(json);
+		await navigator.clipboard.writeText(json);
 		this._uiState.callback();
 	}
 	async pasteCircuitFromClipboard() {
