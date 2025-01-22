@@ -1,23 +1,16 @@
-import test, { expect } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { spawn } from "child_process";
 import {
 	addComponent,
 	drag,
 	dragHandle,
 	getAttr,
-	mockWebkitClipboard,
 	reload,
-	throwOnConsoleError,
+	test,
 } from "./common";
 
 test.describe("modal", async () => {
-	test.beforeEach(async ({ page, context, browserName }) => {
-		await context.clearCookies();
-		await reload(page);
-		await mockWebkitClipboard(page, browserName);
-		throwOnConsoleError(page);
-	});
-	test.beforeAll(async ({ page, browserName }) => {
+	test.beforeAll(async () => {
 		// Clear database to prevent circuit list from being too long and needing multiple pages
 		const cmd = spawn("npm", ["run", "cleardb"], {
 			stdio: "inherit",

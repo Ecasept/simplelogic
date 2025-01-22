@@ -1,4 +1,10 @@
-import { ElementHandle, expect, Locator, Page } from "@playwright/test";
+import {
+	test as base,
+	ElementHandle,
+	expect,
+	Locator,
+	Page,
+} from "@playwright/test";
 
 export async function reload(page: Page) {
 	await page.goto("/");
@@ -149,3 +155,16 @@ export async function mockWebkitClipboard(page: Page, browserName: string) {
 		page.on("load", mockClipboard);
 	}
 }
+export const test = base.extend<{ page: Page }>({
+	page: async ({ baseURL, page, browserName, context }, use) => {
+		if (baseURL === undefined) {
+			throw new Error("baseURL is not defined");
+		}
+		await page.goto(baseURL);
+		await page.waitForLoadState("networkidle");
+		await context.clearCookies();
+		throwOnConsoleError(page);
+		await mockWebkitClipboard(page, browserName);
+		await use(page);
+	},
+});
