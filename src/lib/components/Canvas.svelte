@@ -51,8 +51,9 @@
 		onmouseup={endPan}
 		onmouseleave={endPan}
 		onwheel={zoom}
-		width="100vw"
-		height="100vh"
+		width="100%"
+		height="100%"
+		style="width: 100vw; height: 100vh;"
 		preserveAspectRatio="xMinYMin slice"
 		xmlns="http://www.w3.org/2000/svg"
 		stroke-width="2px"
