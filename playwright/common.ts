@@ -153,7 +153,7 @@ export async function mockWebkitClipboard(page: Page, browserName: string) {
 		await page.addInitScript(mockClipboard);
 	}
 }
-export const test = base.extend<{ page: Page; pageNoError: Page }>({
+export const test = base.extend<{ page: Page }>({
 	page: async ({ baseURL, page, browserName, context }, use) => {
 		if (baseURL === undefined) {
 			throw new Error("baseURL is not defined");
