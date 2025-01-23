@@ -153,6 +153,7 @@ test.describe("modal", async () => {
 			.locator('input[type="password"]')
 			.fill(process.env.PASSWORD ?? "");
 		await page.getByRole("button", { name: "Login" }).click();
+		await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
 
 		// Create a circuit
 		await addComponent(page, "AND", 100, 200);
