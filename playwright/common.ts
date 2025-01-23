@@ -127,14 +127,18 @@ export function throwOnConsoleError(page: Page) {
  *
  * This is necessary because webkit doesn't play nicely with clipboard permissions with playwright
  */
-export async function mockWebkitClipboard(page: Page, browserName: string) {
+export async function mockWebkitClipboard(
+	page: Page,
+	browserName: string,
+	clipboard: MockClipboard,
+) {
 	if (browserName === "webkit") {
 		// These persist even after page reloads
 		await page.exposeFunction("playwrightReadClipboard", () => {
-			return (page as any)._custom_clipboardText;
+			return clipboard.content;
 		});
 		await page.exposeFunction("playwrightWriteClipboard", (text: string) => {
-			(page as any)._custom_clipboardText = text;
+			clipboard.content = text;
 		});
 
 		const mockClipboard = async () => {
@@ -153,14 +157,25 @@ export async function mockWebkitClipboard(page: Page, browserName: string) {
 		await page.addInitScript(mockClipboard);
 	}
 }
-export const test = base.extend<{ page: Page }>({
-	page: async ({ baseURL, page, browserName, context }, use) => {
+
+type MockClipboard = {
+	content: string;
+};
+
+export const test = base.extend<{ page: Page; clipboard: MockClipboard }>({
+	clipboard: async ({}, use) => {
+		const clipboard = {
+			content: "",
+		};
+		await use(clipboard);
+	},
+	page: async ({ baseURL, page, browserName, context, clipboard }, use) => {
 		if (baseURL === undefined) {
 			throw new Error("baseURL is not defined");
 		}
 		await context.clearCookies();
 		throwOnConsoleError(page);
-		await mockWebkitClipboard(page, browserName);
+		await mockWebkitClipboard(page, browserName, clipboard);
 
 		await page.goto(baseURL);
 		await page.waitForLoadState("networkidle");
