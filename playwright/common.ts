@@ -150,21 +150,20 @@ export async function mockWebkitClipboard(page: Page, browserName: string) {
 				value: clipboard,
 			});
 		};
-
-		// page.evaluate does not persist after reloads, so we need to do this on every load
-		page.on("load", mockClipboard);
+		await page.addInitScript(mockClipboard);
 	}
 }
-export const test = base.extend<{ page: Page }>({
+export const test = base.extend<{ page: Page; pageNoError: Page }>({
 	page: async ({ baseURL, page, browserName, context }, use) => {
 		if (baseURL === undefined) {
 			throw new Error("baseURL is not defined");
 		}
-		await page.goto(baseURL);
-		await page.waitForLoadState("networkidle");
 		await context.clearCookies();
 		throwOnConsoleError(page);
 		await mockWebkitClipboard(page, browserName);
+
+		await page.goto(baseURL);
+		await page.waitForLoadState("networkidle");
 		await use(page);
 	},
 });
