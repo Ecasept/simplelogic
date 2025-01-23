@@ -82,8 +82,10 @@ export class FileModalViewModel extends ViewModel<FileModalUiState> {
 			this._uiState.callback(graphData);
 		} catch (e: unknown) {
 			if (e instanceof Error) {
+				console.warn(e);
 				this.setError("Invalid data: " + e.message);
 			} else {
+				console.error(e);
 				this.setError("Unknown error");
 				throw e;
 			}
