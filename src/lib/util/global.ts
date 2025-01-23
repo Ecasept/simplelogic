@@ -150,10 +150,6 @@ export function constructComponent(
 	type: ComponentType,
 	pos: XYPair,
 ): Omit<ComponentData, "id"> | undefined {
-	if (!(type in COMPONENT_DATA)) {
-		console.error(`Tried to add non-existing type ${type}`);
-		return;
-	}
 	const data = COMPONENT_DATA[type];
 	const svgPos = canvasViewModel.clientToSVGCoords(pos);
 	return {
