@@ -133,6 +133,13 @@ const shortcuts: Shortcut[] = [
 		action: EditorAction.undo,
 	},
 	{
+		key: "z",
+		mod: "ctrl",
+		env: "editor",
+		mode: ["add", "move"],
+		action: ChangesAction.abortEditing,
+	},
+	{
 		key: "c",
 		mod: "shift",
 		env: "editor",

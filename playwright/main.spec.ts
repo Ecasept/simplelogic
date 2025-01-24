@@ -211,14 +211,19 @@ test.describe("editor", () => {
 		await undo(page);
 		await expect(page.locator(".component-body")).toHaveCount(0);
 
-		addComponent(page, "AND", 100, 100);
+		// Undo while adding
+		await addComponent(page, "AND", 100, 100); // Add component
+		await page.keyboard.press("a"); // Start adding another component
+		await page.keyboard.press("Control+KeyZ");
+		await expect(page.locator(".component-body")).toHaveCount(1);
 
-		// Add component without committing
-		await page.keyboard.press("a");
-
-		// Press undo
-		await undo(page);
-		await expect(page.locator(".component-body")).toHaveCount(0);
+		// Undo while moving
+		await page.locator(".component-body").hover();
+		await page.mouse.down();
+		await page.mouse.move(200, 200);
+		await page.keyboard.press("Control+KeyZ");
+		// Component should be back at 100, 100
+		await expectPosToBe(page.locator(".component-body"), 100, 100);
 	});
 	test("drags and connects wires flow", async ({ page }) => {
 		// Setup: Add component
