@@ -58,7 +58,7 @@
 			? 'all'
 			: 'none'};"
 		fill={isPowered ? "var(--component-delete-color)" : "black"}
-		onclick={() => {
+		onpointerup={() => {
 			EditorAction.togglePower(componentId);
 		}}
 		onkeypress={onEnter(() => {
