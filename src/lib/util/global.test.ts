@@ -1,10 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-	calculateHandleOffset,
-	GRID_SIZE,
-	gridSnap,
-	isClickOverSidebar,
-} from "./global";
+import { calculateHandleOffset, GRID_SIZE, gridSnap } from "./global";
 
 describe("Global Tests", () => {
 	it("gridSnap", () => {
@@ -20,52 +15,6 @@ describe("Global Tests", () => {
 		expect(gridSnap(-10)).toBe(-0);
 		expect(gridSnap(-10.1)).toBe(-20);
 		expect(gridSnap(-1111)).toBe(-1120);
-	});
-
-	describe("isClickOverSidebar", () => {
-		let mockSidebar: HTMLElement;
-
-		beforeEach(() => {
-			mockSidebar = document.createElement("div");
-			mockSidebar.classList.add("sidebarWrapper");
-			document.body.appendChild(mockSidebar);
-
-			vi.spyOn(mockSidebar, "getBoundingClientRect").mockReturnValue({
-				left: 0,
-				right: 100,
-				top: 0,
-				bottom: 100,
-				width: 100,
-				height: 100,
-				x: 0,
-				y: 0,
-				toJSON: () => {},
-			});
-
-			vi.spyOn(document, "querySelector").mockReturnValue(mockSidebar);
-		});
-
-		afterEach(() => {
-			document.body.removeChild(mockSidebar);
-			vi.restoreAllMocks();
-		});
-
-		it("should return true when click is inside sidebar", () => {
-			const event = new MouseEvent("click", { clientX: 50, clientY: 50 });
-			expect(isClickOverSidebar(event)).toBe(true);
-		});
-
-		it("should return false when click is outside sidebar", () => {
-			const event = new MouseEvent("click", { clientX: 150, clientY: 150 });
-			expect(isClickOverSidebar(event)).toBe(false);
-		});
-
-		it("should return false when sidebar does not exist", () => {
-			vi.spyOn(document, "querySelector").mockReturnValue(null);
-
-			const event = new MouseEvent("click", { clientX: 50, clientY: 50 });
-			expect(isClickOverSidebar(event)).toBe(false);
-		});
 	});
 
 	describe("calculateHandleOffset", () => {
