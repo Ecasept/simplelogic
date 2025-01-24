@@ -22,7 +22,10 @@
 		canvasViewModel.pan(e.movementX, e.movementY);
 	}
 	function startPan() {
-		canvasViewModel.startPan();
+		const editMode = editorViewModel.uiState.editMode;
+		if (editMode == null || editMode == "simulate" || editMode == "delete") {
+			canvasViewModel.startPan();
+		}
 	}
 	function endPan() {
 		canvasViewModel.endPan();

@@ -458,4 +458,39 @@ test.describe("editor", () => {
 		await page.getByRole("button", { name: "Cancel" }).click();
 		await expect(page.locator(".component-body")).toHaveCount(0);
 	});
+	test("can pan and zoom", async ({ page }) => {
+		await addComponent(page, "AND", 100, 100);
+
+		await page.mouse.move(500, 500);
+
+		await page.mouse.down();
+		await page.mouse.move(600, 600);
+		await page.mouse.up();
+
+		await expectPosToBe(page.locator(".component-body"), 200, 200);
+
+		// Zoom into component (component position stays the same)
+		await page.mouse.move(200, 200)
+		await page.mouse.wheel(0, 1);
+		await expectPosToBe(page.locator(".component-body"), 200, 200);
+
+		// Zoom out, but not on component (component position does not stay the same)
+		await page.mouse.move(0, 0);
+		await page.mouse.wheel(0, -1);
+		await page.mouse.wheel(0, -1);
+		await page.mouse.wheel(0, -1);
+		await expectPosToBe(page.locator(".component-body"), 280, 280);
+		
+
+		// Can't pan when adding component
+		await page.keyboard.press("a");
+
+		await page.mouse.move(500, 500);
+		await page.mouse.down();
+		await page.mouse.move(600, 600);
+		await page.mouse.up();
+
+		// Component was placed instead of panning
+		await expectPosToBe(page.locator(".component-body").nth(1), 600, 600);
+	});
 });
