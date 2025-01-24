@@ -9,7 +9,7 @@
 		editorViewModel,
 		fileModalViewModel,
 	} from "$lib/util/actions";
-	import { isClickOverSidebar, setMousePosition } from "$lib/util/global";
+	import { setMousePosition } from "$lib/util/global";
 	import { handleKeyDown } from "$lib/util/keyboard";
 	import { getThemeClass } from "$lib/util/theme.svelte";
 	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
@@ -17,7 +17,7 @@
 	let { data }: { data: import("./$types").LayoutData } = $props();
 	let themeClass = $derived.by(getThemeClass);
 
-	function onMouseMove(e: MouseEvent) {
+	function updatePosition(e: PointerEvent) {
 		const pos = { x: e.clientX, y: e.clientY };
 		setMousePosition(pos);
 
@@ -35,15 +35,21 @@
 			}
 		}
 	}
-	function onMouseUp(e: MouseEvent) {
+
+	function onPointerMove(e: PointerEvent) {
+		updatePosition(e);
+	}
+
+	function onPointerUp(e: PointerEvent) {
+		// on touch screens, no pointer move events are emitted for adding components
+		// so we need to update the position here
+		updatePosition(e);
+
 		const uiState = editorViewModel.uiState;
 		const editMode = uiState.editMode;
 
 		if (!(editMode === "move" || editMode === "add")) {
 			// don't do anything if nothing is being edited
-			return;
-		}
-		if (editMode === "add" && isClickOverSidebar(e)) {
 			return;
 		}
 
@@ -64,8 +70,8 @@
 </script>
 
 <svelte:window
-	onmousemove={onMouseMove}
-	onmouseup={onMouseUp}
+	onpointermove={onPointerMove}
+	onpointerup={onPointerUp}
 	onkeydown={handleKeyDown}
 />
 
@@ -75,6 +81,8 @@
 		editMode={$editorViewModel.editMode}
 		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
+		disabled={$editorViewModel.editMode === "add" &&
+			$editorViewModel.editedId != null}
 	></Sidebar>
 	{#if $fileModalViewModel.mode !== null}
 		<FileModal uiState={$fileModalViewModel}></FileModal>

@@ -19,9 +19,10 @@
 	type Props = {
 		uiState: SidebarUiState;
 		editMode: string | null;
+		disabled: boolean;
 		cookieLoggedIn: boolean;
 	};
-	let { uiState, editMode, cookieLoggedIn }: Props = $props();
+	let { uiState, editMode, cookieLoggedIn, disabled }: Props = $props();
 
 	sidebarViewModel.setLoggedInState(cookieLoggedIn);
 
@@ -51,7 +52,7 @@
 	let historyLength = $derived(graphManager.historyLength);
 </script>
 
-<div class="sidebarWrapper" class:open={uiState.open}>
+<div class={{ disabled, sidebarWrapper: true }} class:open={uiState.open}>
 	<button class="collapse" onclick={toggleOpen}><span>▶</span></button>
 	<div class="content">
 		<div id="heading-container">
@@ -129,6 +130,12 @@
 		transition: translate 0.3s ease-in-out;
 		display: flex;
 		overflow-y: scroll;
+		transition: opacity 0.5s;
+
+		&.disabled {
+			pointer-events: none;
+			opacity: 0;
+		}
 
 		&:not(.open) {
 			translate: 95%;

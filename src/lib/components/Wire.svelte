@@ -87,19 +87,19 @@
 	stroke="transparent"
 	style="pointer-events: {uiState.editMode === 'delete' ? 'all' : 'none'};"
 	stroke-width="10"
-	onmouseenter={() => {
+	onpointerenter={() => {
 		if (uiState.editMode !== "delete") {
 			return;
 		}
 		editorViewModel.setHovered(id);
 	}}
-	onmouseleave={() => {
+	onpointerleave={() => {
 		if (uiState.editMode !== "delete") {
 			return;
 		}
 		editorViewModel.removeHovered();
 	}}
-	onmousedown={(e: MouseEvent) => {
+	onpointerdown={(e: MouseEvent) => {
 		if (uiState.isModalOpen || !deletingThis) {
 			return;
 		}
@@ -129,10 +129,10 @@
 		<circle
 			role="button"
 			tabindex="0"
-			onmouseenter={() => {
+			onpointerenter={() => {
 				onHandleEnter("input");
 			}}
-			onmouseleave={onHandleLeave}
+			onpointerleave={onHandleLeave}
 			class="handle"
 			cx={input.x}
 			cy={input.y}
@@ -143,7 +143,7 @@
 					? "var(--component-delete-color)"
 					: "var(--component-outline-color)"}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
-			onmousedown={(e) => onHandleDown("input", e)}
+			onpointerdown={(e) => onHandleDown("input", e)}
 		></circle>
 	{/if}
 {/if}
@@ -166,10 +166,10 @@
 		<circle
 			role="button"
 			tabindex="0"
-			onmouseenter={() => {
+			onpointerenter={() => {
 				onHandleEnter("output");
 			}}
-			onmouseleave={onHandleLeave}
+			onpointerleave={onHandleLeave}
 			class="handle"
 			cx={output.x}
 			cy={output.y}
@@ -180,7 +180,7 @@
 					? "var(--component-delete-color)"
 					: "var(--component-outline-color)"}
 			style="pointer-events: {editingThis ? 'none' : 'all'};"
-			onmousedown={(e) => onHandleDown("output", e)}
+			onpointerdown={(e) => onHandleDown("output", e)}
 		></circle>
 	{/if}
 {/if}

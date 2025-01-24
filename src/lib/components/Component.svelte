@@ -105,7 +105,7 @@
 		});
 	}
 
-	function onMouseDown(e: MouseEvent) {
+	function onPointerDown(e: PointerEvent) {
 		if (uiState.editMode == "delete") {
 			EditorAction.deleteComponent(id);
 			return;
@@ -173,11 +173,11 @@
 	{width}
 	{height}
 	style="cursor: {cursor}"
-	onmousedown={onMouseDown}
-	onmouseenter={() => {
+	onpointerdown={onPointerDown}
+	onpointerenter={() => {
 		editorViewModel.setHovered(id);
 	}}
-	onmouseleave={() => {
+	onpointerleave={() => {
 		editorViewModel.removeHovered();
 	}}
 	{fill}
@@ -216,10 +216,10 @@
 					role="button"
 					tabindex="0"
 					class="handle {handle.edge}"
-					onmouseenter={() => {
+					onpointerenter={() => {
 						onHandleEnter(identifier);
 					}}
-					onmouseleave={onHandleLeave}
+					onpointerleave={onHandleLeave}
 					cx={position.x +
 						calculateHandleOffset(handle.edge, handle.pos, size).x}
 					cy={position.y +
@@ -230,7 +230,7 @@
 						: simulating && isHandlePowered
 							? "var(--component-delete-color)"
 							: "var(--component-outline-color)"}
-					onmousedown={(e) =>
+					onpointerdown={(e) =>
 						onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 				></circle>
 			{/if}

@@ -38,6 +38,60 @@
 		});
 	}
 
+	/**
+	 * The most recent event for all currently active pointers.
+	 */
+	const pointerEventCache: PointerEvent[] = [];
+
+	function onPointerDown(event: PointerEvent) {
+		event.preventDefault();
+		pointerEventCache.push(event);
+		startPan();
+	}
+
+	function removeEvent(ev: PointerEvent) {
+		const index = pointerEventCache.findIndex(
+			(cachedEv) => cachedEv.pointerId === ev.pointerId,
+		);
+		pointerEventCache.splice(index, 1);
+	}
+
+	function onPointerExit(event: PointerEvent) {
+		removeEvent(event);
+		endPan();
+	}
+
+	function onPointerMove(event: PointerEvent) {
+		// Update current event in cache
+		const index = pointerEventCache.findIndex(
+			(cachedEv) => cachedEv.pointerId === event.pointerId,
+		);
+		pointerEventCache[index] = event;
+
+		if (pointerEventCache.length === 1) {
+			event.preventDefault();
+			pan(event);
+		} else if (pointerEventCache.length === 2) {
+			event.preventDefault();
+			const [p1, p2] = pointerEventCache;
+			const distance = Math.hypot(
+				p1.clientX - p2.clientX,
+				p1.clientY - p2.clientY,
+			);
+			const oldDistance = Math.hypot(
+				p1.clientX - p1.movementX - (p2.clientX - p2.movementX),
+				p1.clientY - p1.movementY - (p2.clientY - p2.movementY),
+			);
+
+			const factor = oldDistance / distance;
+
+			canvasViewModel.zoom(factor, {
+				x: (p1.clientX + p2.clientX) / 2,
+				y: (p1.clientY + p2.clientY) / 2,
+			});
+		}
+	}
+
 	let graphData = $derived(graphManager.graphData);
 </script>
 
@@ -46,11 +100,13 @@
 	<svg
 		bind:this={svg}
 		role="application"
-		onmousedown={startPan}
-		onmousemove={pan}
-		onmouseup={endPan}
-		onmouseleave={endPan}
 		onwheel={zoom}
+		onpointerdown={onPointerDown}
+		onpointermove={onPointerMove}
+		onpointerup={onPointerExit}
+		onpointercancel={onPointerExit}
+		onpointerleave={onPointerExit}
+		ondragstart={(e) => e.preventDefault()}
 		width="100%"
 		height="100%"
 		style="width: 100vw; height: 100vh;"
@@ -102,5 +158,6 @@
 		width: 100%;
 		height: 100%;
 		background-color: var(--canvas-background-color);
+		touch-action: none;
 	}
 </style>
