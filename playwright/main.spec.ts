@@ -446,4 +446,11 @@ test.describe("editor", () => {
 
 		await expect(page.locator(".theme-host")).toHaveClass(/theme-dark/);
 	});
+	test("can cancel adding component with button", async ({ page }) => {
+		await page.getByText("AND", { exact: true }).click();
+		await expect(page.getByText("Adding component")).toBeVisible();
+
+		await page.getByRole("button", { name: "Cancel" }).click();
+		await expect(page.locator(".component-body")).toHaveCount(0);
+	});
 });

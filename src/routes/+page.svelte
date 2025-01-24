@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AddingAlert from "$lib/components/AddingAlert.svelte";
 	import Canvas from "$lib/components/Canvas.svelte";
 	import FileModal from "$lib/components/FileModal.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
@@ -67,6 +68,10 @@
 		// commit the changes that were made while dragging
 		ChangesAction.commitChanges();
 	}
+
+	let addingComponent = $derived(
+		$editorViewModel.editMode === "add" && $editorViewModel.editedId != null,
+	);
 </script>
 
 <svelte:window
@@ -76,13 +81,17 @@
 />
 
 <div class="wrapper theme-host {themeClass}">
+	<!-- Show an alert when user is adding a component -->
+	<AddingAlert
+		shouldShow={addingComponent}
+		cancel={ChangesAction.abortEditing}
+	/>
 	<Canvas uiState={$canvasViewModel}></Canvas>
 	<Sidebar
 		editMode={$editorViewModel.editMode}
 		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
-		disabled={$editorViewModel.editMode === "add" &&
-			$editorViewModel.editedId != null}
+		disabled={addingComponent}
 	></Sidebar>
 	{#if $fileModalViewModel.mode !== null}
 		<FileModal uiState={$fileModalViewModel}></FileModal>
