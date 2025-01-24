@@ -115,6 +115,19 @@ export const COMPONENT_DATA: {
 	},
 };
 
+export function calculateHandlePosition(
+	componentPos: XYPair,
+	handleEdge: HandleEdge,
+	handlePos: number,
+	componentSize: XYPair,
+) {
+	const offset = calculateHandleOffset(handleEdge, handlePos, componentSize);
+	return {
+		x: componentPos.x + offset.x,
+		y: componentPos.y + offset.y,
+	};
+}
+
 export function calculateHandleOffset(
 	handleEdge: HandleEdge,
 	handlePos: number,

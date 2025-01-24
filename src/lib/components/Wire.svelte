@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
-	import { isComponentConnection, isWireConnection } from "$lib/util/global";
+	import { isComponentConnection } from "$lib/util/global";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
+	import Handle from "./Handle.svelte";
 
 	type Props = {
 		id: number;
@@ -15,9 +16,6 @@
 	let { id, input, output, uiState }: Props = $props();
 
 	let editingThis = $derived(uiState.draggedWire?.id === id);
-	let editingOtherWire = $derived(
-		uiState.draggedWire?.id != null && !editingThis,
-	);
 
 	let simulating = $derived(uiState.editMode === "simulate");
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
@@ -114,81 +112,41 @@
 {#if input.connections.length === 0}
 	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
 	{#if !(!editingThis && uiState.draggedWire?.handleType === "input")}
-		{@const isHoveredHandle =
-			isWireConnection(uiState.hoveredHandle) &&
-			uiState.hoveredHandle.id == id &&
-			uiState.hoveredHandle.handleType == "input"}
-		{@const hoveringOtherWire =
-			!isHoveredHandle && uiState.hoveredHandle !== null}
-
-		<!-- Highlight both handles when connecting two handles-->
-		{@const draggingOtherOnToThis = isHoveredHandle && editingOtherWire}
-		{@const draggingThisOnToOther = hoveringOtherWire && editingThis}
-
-		{@const isHandlePowered = simData?.["inputs"]?.["input"] ?? false}
-		<circle
-			role="button"
-			tabindex="0"
-			onpointerenter={() => {
-				onHandleEnter("input");
+		<Handle
+			{uiState}
+			connection={{
+				id: id,
+				handleType: "input",
 			}}
-			onpointerleave={onHandleLeave}
-			class="handle"
-			cx={input.x}
-			cy={input.y}
-			r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
-			fill={draggingOtherOnToThis || draggingThisOnToOther
-				? "var(--handle-connect-color)"
-				: simulating && isHandlePowered
-					? "var(--component-delete-color)"
-					: "var(--component-outline-color)"}
-			style="pointer-events: {editingThis ? 'none' : 'all'};"
-			onpointerdown={(e) => onHandleDown("input", e)}
-		></circle>
+			{editingThis}
+			{simulating}
+			{simData}
+			handleType="input"
+			position={{ x: input.x, y: input.y }}
+			onHandleDown={(e) => onHandleDown("input", e)}
+			onHandleEnter={() => onHandleEnter("input")}
+			{onHandleLeave}
+		/>
 	{/if}
 {/if}
 <!-- Hide outputs connected to components -->
 {#if !isComponentConnection(output.connections[0] ?? null)}
 	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
 	{#if !(!editingThis && uiState.draggedWire?.handleType === "output")}
-		{@const isHoveredHandle =
-			isWireConnection(uiState.hoveredHandle) &&
-			uiState.hoveredHandle.id == id &&
-			uiState.hoveredHandle.handleType == "output"}
-		{@const hoveringOtherWire =
-			!isHoveredHandle && uiState.hoveredHandle !== null}
-
-		<!-- Highlight both handles when connecting two handles-->
-		{@const draggingOtherOnToThis = isHoveredHandle && editingOtherWire}
-		{@const draggingThisOnToOther = hoveringOtherWire && editingThis}
-
-		{@const isHandlePowered = simData?.["outputs"]?.["output"] ?? false}
-		<circle
-			role="button"
-			tabindex="0"
-			onpointerenter={() => {
-				onHandleEnter("output");
+		<Handle
+			{uiState}
+			connection={{
+				id: id,
+				handleType: "output",
 			}}
-			onpointerleave={onHandleLeave}
-			class="handle"
-			cx={output.x}
-			cy={output.y}
-			r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
-			fill={draggingOtherOnToThis || draggingThisOnToOther
-				? "var(--handle-connect-color)"
-				: simulating && isHandlePowered
-					? "var(--component-delete-color)"
-					: "var(--component-outline-color)"}
-			style="pointer-events: {editingThis ? 'none' : 'all'};"
-			onpointerdown={(e) => onHandleDown("output", e)}
-		></circle>
+			{editingThis}
+			{simulating}
+			{simData}
+			handleType="output"
+			position={{ x: output.x, y: output.y }}
+			onHandleDown={(e) => onHandleDown("output", e)}
+			onHandleEnter={() => onHandleEnter("output")}
+			{onHandleLeave}
+		/>
 	{/if}
 {/if}
-
-<style lang="scss">
-	circle {
-		transition:
-			r 0.1s cubic-bezier(0.19, 1, 0.22, 1),
-			fill 0.1s cubic-bezier(0.19, 1, 0.22, 1);
-	}
-</style>

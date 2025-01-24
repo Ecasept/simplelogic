@@ -6,8 +6,8 @@
 	} from "$lib/util/actions";
 	import {
 		calculateHandleOffset,
+		calculateHandlePosition,
 		GRID_SIZE,
-		isComponentConnection,
 	} from "$lib/util/global";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type {
@@ -19,6 +19,7 @@
 	} from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
 	import ComponentInner from "./ComponentInner.svelte";
+	import Handle from "./Handle.svelte";
 
 	type Props = {
 		id: number;
@@ -42,7 +43,6 @@
 	let rect: SVGRectElement;
 
 	let editingThis = $derived(uiState.editedId === id);
-	let editingOtherWire = $derived(uiState.draggedWire?.id != null);
 
 	let simulating = $derived(uiState.editMode === "simulate");
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
@@ -212,44 +212,28 @@
 			<!-- Hide inputs if the dragged wire already has outgoing wires
 			 (wire outputs may only be connected to either 1 component input, or multiple wire inputs) -->
 			{#if !(uiState.draggedWire?.handleType === "output" && (uiState.draggedWireConnectionCount ?? 0) > 0)}
-				{@const isHoveredHandle =
-					isComponentConnection(uiState.hoveredHandle) &&
-					uiState.hoveredHandle.id == id &&
-					uiState.hoveredHandle.handleId == identifier}
-				{@const isHandlePowered =
-					simData?.[handle.type === "input" ? "inputs" : "outputs"]?.[
-						identifier
-					] ?? false}
-				<circle
-					role="button"
-					tabindex="0"
-					class="handle {handle.edge}"
-					onpointerenter={() => {
-						onHandleEnter(identifier);
+				<Handle
+					{uiState}
+					connection={{
+						id: id,
+						handleId: identifier,
 					}}
-					onpointerleave={onHandleLeave}
-					cx={position.x +
-						calculateHandleOffset(handle.edge, handle.pos, size).x}
-					cy={position.y +
-						calculateHandleOffset(handle.edge, handle.pos, size).y}
-					r={isHoveredHandle ? 10 : 5}
-					fill={isHoveredHandle && editingOtherWire
-						? "var(--handle-connect-color)"
-						: simulating && isHandlePowered
-							? "var(--component-delete-color)"
-							: "var(--component-outline-color)"}
-					onpointerdown={(e) =>
+					{editingThis}
+					{simulating}
+					{simData}
+					handleType={handle.type}
+					position={calculateHandlePosition(
+						position,
+						handle.edge,
+						handle.pos,
+						size,
+					)}
+					onHandleDown={(e) =>
 						onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
-				></circle>
+					onHandleEnter={() => onHandleEnter(identifier)}
+					{onHandleLeave}
+				/>
 			{/if}
 		{/if}
 	{/if}
 {/each}
-
-<style lang="scss">
-	circle {
-		transition:
-			r 0.1s cubic-bezier(0.19, 1, 0.22, 1),
-			fill 0.1s cubic-bezier(0.19, 1, 0.22, 1);
-	}
-</style>
