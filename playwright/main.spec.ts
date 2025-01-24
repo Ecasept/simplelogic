@@ -470,7 +470,7 @@ test.describe("editor", () => {
 		await expectPosToBe(page.locator(".component-body"), 200, 200);
 
 		// Zoom into component (component position stays the same)
-		await page.mouse.move(200, 200)
+		await page.mouse.move(200, 200);
 		await page.mouse.wheel(0, 1);
 		await expectPosToBe(page.locator(".component-body"), 200, 200);
 
@@ -480,7 +480,6 @@ test.describe("editor", () => {
 		await page.mouse.wheel(0, -1);
 		await page.mouse.wheel(0, -1);
 		await expectPosToBe(page.locator(".component-body"), 280, 280);
-		
 
 		// Can't pan when adding component
 		await page.keyboard.press("a");
@@ -492,5 +491,21 @@ test.describe("editor", () => {
 
 		// Component was placed instead of panning
 		await expectPosToBe(page.locator(".component-body").nth(1), 600, 600);
+	});
+	test("zooming while adding component keeps component centered", async ({
+		page,
+	}) => {
+		await page.mouse.move(500, 500);
+		await page.keyboard.press("a");
+
+		// Move mouse back and forth rapidly while zooming
+		for (let i = 0; i < 21; i++) {
+			await page.mouse.move(i % 2 == 0 ? 0 : 500, 0);
+			await page.mouse.wheel(0, 1);
+		}
+		// Mouse is now at 0, 0
+
+		// Check that compnent and mouse are still in sync
+		await expectPosToBe(page.locator(".component-body"), 0, 0);
 	});
 });

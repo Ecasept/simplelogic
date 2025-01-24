@@ -97,15 +97,9 @@ export class EditorAction {
 			const offsetX = (cmpData.size.x * GRID_SIZE) / 2;
 			const offsetY = (cmpData.size.y * GRID_SIZE) / 2;
 
-			// transform to client coordinate system
-			const center = canvasViewModel.svgToClientCoords({
+			const clickOffset = {
 				x: offsetX,
 				y: offsetY,
-			});
-			const origin = canvasViewModel.svgToClientCoords({ x: 0, y: 0 });
-			const clickOffset = {
-				x: center.x - origin.x,
-				y: center.y - origin.y,
 			};
 
 			const cmd = new CreateComponentCommand(cmpData);
@@ -155,14 +149,17 @@ export class EditorAction {
 	// ==== Movement ====
 
 	static moveComponentReplaceable(newClientPos: XYPair, id: number) {
+		const offsetX = editorViewModel.uiState.clickOffset?.x ?? 0;
+		const offsetY = editorViewModel.uiState.clickOffset?.y ?? 0;
+
 		// transform to svg coordinate system
 		const svgPos = canvasViewModel.clientToSVGCoords({
-			x: newClientPos.x - (editorViewModel.uiState.clickOffset?.x ?? 0),
-			y: newClientPos.y - (editorViewModel.uiState.clickOffset?.y ?? 0),
+			x: newClientPos.x,
+			y: newClientPos.y,
 		});
 		const newPos = {
-			x: gridSnap(svgPos.x),
-			y: gridSnap(svgPos.y),
+			x: gridSnap(svgPos.x - offsetX),
+			y: gridSnap(svgPos.y - offsetY),
 		};
 		if (newPos === graphManager.getComponentData(id).position) {
 			return;
