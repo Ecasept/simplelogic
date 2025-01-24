@@ -508,4 +508,28 @@ test.describe("editor", () => {
 		// Check that compnent and mouse are still in sync
 		await expectPosToBe(page.locator(".component-body"), 0, 0);
 	});
+	test("moves components correctly when zoomed in and panned", async ({
+		page,
+	}) => {
+		await page.mouse.move(500, 500);
+		await page.mouse.down();
+		await page.mouse.move(0, 0);
+		await page.mouse.up();
+
+		for (let i = 0; i < 10; i++) {
+			await page.mouse.wheel(0, 1);
+		}
+
+		await addComponent(page, "AND", 100, 200);
+
+		await page.mouse.down();
+		await page.mouse.move(500, 50, { steps: 10 });
+		await expectPosToBe(page.locator(".component-body"), 500, 50);
+
+		await page.mouse.move(400, 300, { steps: 10 });
+		await expectPosToBe(page.locator(".component-body"), 400, 300);
+		await page.mouse.up();
+		await page.mouse.move(100, 100, { steps: 10 });
+		await expectPosToBe(page.locator(".component-body"), 400, 300);
+	});
 });

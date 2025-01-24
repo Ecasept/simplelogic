@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { EditorAction, editorViewModel } from "$lib/util/actions";
+	import {
+		canvasViewModel,
+		EditorAction,
+		editorViewModel,
+	} from "$lib/util/actions";
 	import {
 		calculateHandleOffset,
 		GRID_SIZE,
@@ -119,10 +123,14 @@
 
 		e.preventDefault();
 		e.stopPropagation();
-		const dim = rect.getBoundingClientRect();
+		// Calculate offset between click position and component origin
+		const clickPos = canvasViewModel.clientToSVGCoords({
+			x: e.clientX,
+			y: e.clientY,
+		});
 		const offset = {
-			x: e.clientX - (dim?.x ?? 0),
-			y: e.clientY - (dim?.y ?? 0),
+			x: clickPos.x - position.x,
+			y: clickPos.y - position.y,
 		};
 		editorViewModel.startMoveComponent(id, offset);
 	}
