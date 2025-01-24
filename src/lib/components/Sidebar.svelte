@@ -130,7 +130,7 @@
 		transition: translate 0.3s ease-in-out;
 		display: flex;
 		overflow-y: scroll;
-		transition: opacity 0.5s;
+		transition: opacity 0.3s;
 
 		&.disabled {
 			pointer-events: none;
