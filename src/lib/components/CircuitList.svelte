@@ -41,7 +41,7 @@
 		overflow-y: auto;
 		margin: auto;
 		width: 80%;
-		border: 2px solid var(--on-primary-container-color);
+		border: 2px solid var(--primary-container-border-color);
 		border-radius: 25px;
 		overflow-x: hidden;
 		overflow-y: auto;

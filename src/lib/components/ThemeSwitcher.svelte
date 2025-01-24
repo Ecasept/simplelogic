@@ -68,6 +68,8 @@
 		--on-primary-color: black;
 		--on-primary-container-color: black;
 		--error-color: red;
+		--primary-border-color: black;
+		--primary-container-border-color: var(--primary-border-color);
 
 		--canvas-background-color: var(--primary-container-color);
 		--component-outline-color: black;
@@ -86,6 +88,8 @@
 		--on-primary-color: #b9de6f;
 		--on-primary-container-color: #b9de6f;
 		--error-color: #ff6e6e;
+		--primary-border-color: #738b43; // Darker version of on-primary-color
+		--primary-container-border-color: var(--primary-border-color);
 
 		--canvas-background-color: #2c2c2c;
 		--component-outline-color: rgb(189, 196, 171);

@@ -54,7 +54,7 @@
 
 			color: var(--on-primary-color);
 			background-color: var(--primary-color);
-			border: 1px solid var(--on-primary-color);
+			border: 1px solid var(--primary-border-color);
 			border-radius: 8px;
 		}
 	}

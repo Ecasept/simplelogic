@@ -37,7 +37,7 @@
 	button {
 		background-color: var(--primary-color);
 		color: var(--on-primary-color);
-		border: 1px solid var(--on-primary-color);
+		border: 1px solid var(--primary-border-color);
 		cursor: pointer;
 		border-radius: 12px;
 		padding: 8px;
