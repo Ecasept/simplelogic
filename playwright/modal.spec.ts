@@ -140,10 +140,9 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await expect(page.locator(".component-body")).toHaveCount(1);
 	});
-	test("discards changes", async ({ page }) => {
+	test("sidebar disappears when editing", async ({ page }) => {
 		await page.getByText("AND", { exact: true }).click();
-		await page.getByRole("button", { name: "Save" }).click();
-		await expect(page.locator(".component-body")).toHaveCount(0);
+		await expect(page.locator(".sidebar")).not.toBeVisible();
 	});
 	test("enter selects circuit", async ({ page, browserName }) => {
 		const graphName = `test_enter_${browserName}_${Date.now()}`;
