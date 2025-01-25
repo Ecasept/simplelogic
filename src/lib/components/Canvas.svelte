@@ -18,8 +18,8 @@
 		canvasViewModel.svg = svg;
 	});
 
-	function pan(e: MouseEvent) {
-		canvasViewModel.pan(e.movementX, e.movementY);
+	function pan(movementX: number, movementY: number) {
+		canvasViewModel.pan(movementX, movementY);
 	}
 	function startPan() {
 		const editMode = editorViewModel.uiState.editMode;
@@ -65,15 +65,20 @@
 	}
 
 	function onPointerMove(event: PointerEvent) {
+		console.log("move", event);
 		// Update current event in cache
 		const index = pointerEventCache.findIndex(
 			(cachedEv) => cachedEv.pointerId === event.pointerId,
 		);
+		const oldEvent = pointerEventCache[index];
 		pointerEventCache[index] = event;
 
+		// Depending on the number of pointers, pan or zoom
 		if (pointerEventCache.length === 1) {
 			event.preventDefault();
-			pan(event);
+			const movementX = event.clientX - oldEvent.clientX;
+			const movementY = event.clientY - oldEvent.clientY;
+			pan(movementX, movementY);
 		} else if (pointerEventCache.length === 2) {
 			event.preventDefault();
 			const [p1, p2] = pointerEventCache;
@@ -81,13 +86,19 @@
 				p1.clientX - p2.clientX,
 				p1.clientY - p2.clientY,
 			);
+
+			// Get both events, but this time replace the current event with the old one
+			const [oldP1, oldP2] = pointerEventCache.map((ev, i) =>
+				i == index ? oldEvent : ev,
+			);
 			const oldDistance = Math.hypot(
-				p1.clientX - p1.movementX - (p2.clientX - p2.movementX),
-				p1.clientY - p1.movementY - (p2.clientY - p2.movementY),
+				oldP1.clientX - oldP2.clientX,
+				oldP1.clientY - oldP2.clientY,
 			);
 
 			const factor = oldDistance / distance;
 
+			// Zoom around the center of the two pointers
 			canvasViewModel.zoom(factor, {
 				x: (p1.clientX + p2.clientX) / 2,
 				y: (p1.clientY + p2.clientY) / 2,
