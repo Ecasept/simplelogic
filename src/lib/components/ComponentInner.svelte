@@ -32,6 +32,7 @@
 			? 'all'
 			: 'none'};"
 		fill={isPowered ? "var(--component-delete-color)" : "black"}
+		onpointerdown={(e) => e.stopPropagation()}
 		onpointerup={() => {
 			EditorAction.togglePower(componentId);
 		}}
