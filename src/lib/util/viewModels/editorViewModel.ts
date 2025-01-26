@@ -9,6 +9,7 @@ type EditComponent = {
 	draggedWire: null;
 	hoveredHandle: null;
 	draggedWireConnectionCount: null;
+	prevState: null;
 };
 type EditWire = {
 	editMode: "add" | "move";
@@ -18,8 +19,18 @@ type EditWire = {
 
 	editedId: null;
 	clickOffset: null;
+	prevState: null;
 };
+type PanningState = {
+	editMode: "pan";
+	prevState: EditorUiState;
 
+	editedId: null;
+	clickOffset: null;
+	draggedWire: null;
+	hoveredHandle: null;
+	draggedWireConnectionCount: null;
+};
 type DeletionState = {
 	editMode: "delete";
 
@@ -28,6 +39,7 @@ type DeletionState = {
 	draggedWire: null;
 	hoveredHandle: null;
 	draggedWireConnectionCount: null;
+	prevState: null;
 };
 
 type SimulationState = {
@@ -38,6 +50,7 @@ type SimulationState = {
 	draggedWire: null;
 	hoveredHandle: null;
 	draggedWireConnectionCount: null;
+	prevState: null;
 };
 
 type DefaultState = {
@@ -47,6 +60,7 @@ type DefaultState = {
 	draggedWire: null;
 	hoveredHandle: WireConnection | ComponentConnection | null;
 	draggedWireConnectionCount: null;
+	prevState: null;
 };
 
 export type EditorUiState = (
@@ -55,6 +69,7 @@ export type EditorUiState = (
 	| DefaultState
 	| DeletionState
 	| SimulationState
+	| PanningState
 ) & {
 	isModalOpen: boolean;
 	hoveredElement: number | null;
@@ -70,6 +85,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		draggedWire: null,
 		hoveredElement: null,
 		draggedWireConnectionCount: null,
+		prevState: null,
 	};
 
 	protected _uiState: EditorUiState = structuredClone(this.initialUiState);
@@ -88,6 +104,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			draggedWire: null,
 			hoveredElement: this._uiState.hoveredElement,
 			draggedWireConnectionCount: null,
+			prevState: null,
 		};
 		this.notifyAll();
 	}
@@ -141,6 +158,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			draggedWire: null,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredElement: this._uiState.hoveredElement,
+			prevState: null,
 		};
 		this.notifyAll();
 	}
@@ -154,6 +172,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			editedId: null,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredElement: this._uiState.hoveredElement,
+			prevState: null,
 		};
 		this.notifyAll();
 	}
@@ -167,6 +186,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			draggedWire: null,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredElement: this._uiState.hoveredElement,
+			prevState: null,
 		};
 		this.notifyAll();
 	}
@@ -180,6 +200,7 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 			clickOffset: null,
 			isModalOpen: this._uiState.isModalOpen,
 			hoveredElement: this._uiState.hoveredElement,
+			prevState: null,
 		};
 		this.notifyAll();
 	}
@@ -192,6 +213,30 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 	}
 	removeHoveredHandle() {
 		this._uiState.hoveredHandle = null;
+		this.notifyAll();
+	}
+	startPanning() {
+		// Save the current state so we can return to it later
+		this._uiState = {
+			editMode: "pan",
+			prevState: structuredClone(this._uiState),
+			editedId: null,
+			clickOffset: null,
+			draggedWire: null,
+			hoveredHandle: null,
+			draggedWireConnectionCount: null,
+			isModalOpen: this._uiState.isModalOpen,
+			hoveredElement: this._uiState.hoveredElement,
+		};
+		this.notifyAll();
+	}
+	stopPanning() {
+		if (this._uiState.editMode !== "pan") {
+			return;
+		}
+		// Restore the previous state
+		// eg. if we were in delete mode before panning, we should return to delete mode
+		this._uiState = this._uiState.prevState;
 		this.notifyAll();
 	}
 }

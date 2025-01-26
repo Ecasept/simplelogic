@@ -45,4 +45,18 @@ export default defineConfig({
 			],
 		},
 	},
+	// Enable this to test the clipboard functionality on mobile devices
+	// The `navigator.clipboard` API needs https or localhost,
+	// so when testing on mobile devices, you need to enable https.
+	// Create a new certificate (input details don't matter) with:
+	// `openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes`
+	// Then visit `https://<your computer's IP>:5173` on your mobile device,
+	// click through all the warnings, and voilà, the clipboard should work (hopefully)!
+	// server: {
+	// 	https: {
+	// 		key: fs.readFileSync("./key.pem"),
+	// 		cert: fs.readFileSync("./cert.pem"),
+	// 	},
+	// 	host: true, // Allow access from network
+	// },
 });

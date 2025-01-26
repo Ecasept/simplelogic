@@ -4,30 +4,39 @@ import { ViewModel } from "./viewModel";
 export type CanvasUiState = {
 	isPanning: boolean;
 	viewBox: XYPair & { width: number; height: number };
+	originalViewBox: XYPair & { width: number; height: number };
 };
 
 export class CanvasViewModel extends ViewModel<CanvasUiState> {
 	protected _uiState: CanvasUiState = {
 		isPanning: false,
 		viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
+		originalViewBox: { x: 0, y: 0, width: 1000, height: 1000 },
 	};
 	protected resetUiState(): void {
 		this._uiState = {
 			isPanning: false,
 			viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
+			originalViewBox: { x: 0, y: 0, width: 1000, height: 1000 },
 		};
 	}
 
 	svg: SVGSVGElement | null = null;
 
 	// ==== Canvas ====
-	startPan() {
+	startPanning() {
 		this._uiState.isPanning = true;
+		this._uiState.originalViewBox = { ...this._uiState.viewBox };
 		this.notifyAll();
 	}
-	endPan() {
+	stopPanning() {
 		this._uiState.isPanning = false;
+		this._uiState.originalViewBox = { ...this._uiState.viewBox };
 		this.notifyAll();
+	}
+	abortPanning() {
+		this._uiState.viewBox = { ...this._uiState.originalViewBox };
+		this.stopPanning();
 	}
 	pan(movementX: number, movementY: number) {
 		if (!this._uiState.isPanning) {

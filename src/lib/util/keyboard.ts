@@ -44,6 +44,13 @@ const shortcuts: Shortcut[] = [
 		action: PersistenceAction.closeModal,
 	},
 	{
+		key: "escape",
+		mod: null,
+		env: "editor",
+		mode: ["pan"],
+		action: EditorAction.abortPanning,
+	},
+	{
 		key: "a",
 		mod: null,
 		env: "editor",

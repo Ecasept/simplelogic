@@ -96,6 +96,8 @@
 					Delete
 				{:else if editMode === "simulate"}
 					Simulate
+				{:else if editMode === "pan"}
+					Pan
 				{:else}
 					Normal
 				{/if}

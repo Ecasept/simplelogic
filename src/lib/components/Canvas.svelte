@@ -3,6 +3,7 @@
 	import Wire from "$lib/components/Wire.svelte";
 	import {
 		canvasViewModel,
+		EditorAction,
 		editorViewModel,
 		graphManager,
 	} from "$lib/util/actions";
@@ -21,14 +22,16 @@
 	function pan(movementX: number, movementY: number) {
 		canvasViewModel.pan(movementX, movementY);
 	}
-	function startPan() {
+	function startPanning() {
 		const editMode = editorViewModel.uiState.editMode;
-		if (editMode == null || editMode == "simulate" || editMode == "delete") {
-			canvasViewModel.startPan();
+		if ([null, "simulate", "delete"].includes(editMode)) {
+			EditorAction.startPanning();
 		}
 	}
-	function endPan() {
-		canvasViewModel.endPan();
+	function stopPanning() {
+		if (pointerEventCache.length === 0) {
+			EditorAction.stopPanning();
+		}
 	}
 	function zoom(event: WheelEvent) {
 		event.preventDefault();
@@ -47,29 +50,38 @@
 	const pointerEventCache: PointerEvent[] = [];
 
 	function onPointerDown(event: PointerEvent) {
+		if (event.button !== 0) {
+			return;
+		}
 		event.preventDefault();
 		pointerEventCache.push(event);
-		startPan();
+		startPanning();
 	}
 
 	function removeEvent(ev: PointerEvent) {
 		const index = pointerEventCache.findIndex(
 			(cachedEv) => cachedEv.pointerId === ev.pointerId,
 		);
-		pointerEventCache.splice(index, 1);
+		if (index !== -1) {
+			pointerEventCache.splice(index, 1);
+		}
 	}
 
 	function onPointerExit(event: PointerEvent) {
 		removeEvent(event);
-		endPan();
+		stopPanning();
 	}
 
 	function onPointerMove(event: PointerEvent) {
-		console.log("move", event);
 		// Update current event in cache
 		const index = pointerEventCache.findIndex(
 			(cachedEv) => cachedEv.pointerId === event.pointerId,
 		);
+		if (index === -1) {
+			// onPointerDown was not triggered on canvas
+			// -> user is not panning
+			return;
+		}
 		const oldEvent = pointerEventCache[index];
 		pointerEventCache[index] = event;
 

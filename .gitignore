@@ -34,3 +34,7 @@ coverage/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# CA certificates for testing with HTTPS
+cert.pem
+key.pem

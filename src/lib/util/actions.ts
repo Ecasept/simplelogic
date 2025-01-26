@@ -39,6 +39,19 @@ export class ChangesAction {
 }
 
 export class EditorAction {
+	static startPanning() {
+		canvasViewModel.startPanning();
+		editorViewModel.startPanning();
+	}
+	static stopPanning() {
+		canvasViewModel.stopPanning();
+		editorViewModel.stopPanning();
+	}
+	static abortPanning() {
+		canvasViewModel.abortPanning();
+		editorViewModel.stopPanning();
+	}
+
 	static clear() {
 		graphManager.clear();
 		editorViewModel.hardReset();
@@ -205,7 +218,7 @@ export class EditorAction {
 export class PersistenceAction {
 	static saveGraph() {
 		ChangesAction.abortEditing();
-		canvasViewModel.endPan();
+		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.open("save", () => {
 			PersistenceAction.closeModal();
@@ -213,7 +226,7 @@ export class PersistenceAction {
 	}
 	static loadGraph() {
 		ChangesAction.abortEditing();
-		canvasViewModel.endPan();
+		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
 		fileModalViewModel.open("load", (newGraphData: GraphData) => {
 			PersistenceAction.setNewGraph(newGraphData);
