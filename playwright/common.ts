@@ -4,6 +4,7 @@ import {
 	expect,
 	Locator,
 	Page,
+	selectors,
 } from "@playwright/test";
 
 export async function reload(page: Page) {
@@ -158,11 +159,183 @@ export async function mockWebkitClipboard(
 	}
 }
 
+/**
+ * Receives a selector of the form `type:id`
+ * and returns all handles with that id that are part of a component with that type.
+ * NOTE: If a handle with that id can't be found on a component with that type,
+ * it will return `null` for that component.
+ */
+const createHandleSelectorEngine = () => ({
+	/** Returns all components with the specified type */
+	getComponents(root: Element, type: string) {
+		return Array.from(
+			root.querySelectorAll(
+				`.component-body[data-testcomponenttype="${type}"]`,
+			),
+		).map((e) => e.getAttribute("data-testcomponentid"));
+	},
+	/** Returns all handles with the specified identifier
+	 * for all components specified */
+	getHandles(root: Element, componentIds: string[], handleId: string) {
+		return componentIds.map((id) =>
+			root.querySelector(
+				`[data-testcomponentid="${id}"][data-testhandleid="${handleId}"]`,
+			),
+		);
+	},
+	query(root: Element, selector: string) {
+		this.queryAll(root, selector)[0];
+	},
+	queryAll(root: Element, selector: string) {
+		const [type, id] = selector.split(":");
+
+		const ids = this.getComponents(root, type);
+		return this.getHandles(root, ids, id);
+	},
+});
+
 type MockClipboard = {
 	content: string;
 };
 
-export const test = base.extend<{ page: Page; clipboard: MockClipboard }>({
+export class Editor {
+	constructor(public readonly page: Page) {}
+
+	/**
+	 * Returns a locator for all handles with a specific identifier
+	 * that belong to a component with the specified type
+	 * @param type The type of the component (eg. "AND")
+	 * @param id The identifier of the handle (eg. "out" or "in1")
+	 */
+	getHandle(type: string, id: string) {
+		// relay over to selector engine
+		return this.page.locator(`handle=${type}:${id}`);
+	}
+}
+
+export class Pointer {
+	currentPosition: { x: number; y: number } | null = { x: 0, y: 0 };
+
+	constructor(
+		public readonly page: Page,
+		private pointerId: number,
+	) {}
+
+	/** Dispatch a synthetic event on `this.page`.
+	 * The target of the event is the object located at the client coordinates specified in `init`
+	 * @param event The type of event to dispatch (eg. "pointerdown")
+	 * @param init The init object for the event
+	 */
+	async dispatchEvent(event: string, init: PointerEventInit) {
+		await this.page.evaluate(
+			// @ts-ignore - PointerEventInit can contain itself
+			({ e: event, i: init }) => {
+				console.log("evaluating", event, init);
+				const element = document.elementFromPoint(
+					init.clientX ?? 0,
+					init.clientY ?? 0,
+				);
+				if (element === null) {
+					throw new Error("No element at position");
+				}
+				console.log(element);
+				element.dispatchEvent(new PointerEvent(event, init));
+			},
+			{ e: event, i: init },
+		);
+	}
+
+	/** Dispatch a pointerdown event at the specified coordinates */
+	async down(x: number, y: number) {
+		const event: PointerEventInit = {
+			clientX: x,
+			clientY: y,
+			pointerId: this.pointerId,
+			bubbles: true,
+		};
+		this.currentPosition = { x, y };
+		await this.dispatchEvent("pointerdown", event);
+	}
+
+	/** Dispatch a pointerup event at the current coordinates
+	 * (a pointerdown event must have been dispatched before)
+	 */
+	async up() {
+		if (this.currentPosition === null) {
+			throw new Error("Pointer is not down");
+		}
+		const event: PointerEventInit = {
+			clientX: this.currentPosition.x,
+			clientY: this.currentPosition.y,
+			pointerId: this.pointerId,
+			bubbles: true,
+		};
+		this.currentPosition = null;
+		await this.dispatchEvent("pointerup", event);
+	}
+
+	/** Dispatch a pointermove event at the specified coordinates */
+	async move(x: number, y: number) {
+		const event: PointerEventInit = {
+			clientX: x,
+			clientY: y,
+			pointerId: this.pointerId,
+			bubbles: true,
+		};
+		this.currentPosition = { x, y };
+		await this.dispatchEvent("pointermove", event);
+	}
+
+	/** Simulate a tap at the specified coordinates by dispatching a pointerdown and pointerup event */
+	async tap(x: number, y: number) {
+		await this.down(x, y);
+		await this.up();
+	}
+	/** Return the position of `locator` on the page */
+	async getPos(locator: Locator) {
+		const handle = await locator.elementHandle();
+		if (handle === null) {
+			throw new Error("Element not found");
+		}
+		const boundingBox = await handle.boundingBox();
+		if (boundingBox === null) {
+			throw new Error("Element not visible");
+		}
+		return {
+			x: boundingBox.x + boundingBox.width / 2,
+			y: boundingBox.y + boundingBox.height / 2,
+		};
+	}
+	/** Simulate a pointerdown event at the position of `locator` */
+	async downOn(locator: Locator) {
+		const pos = await this.getPos(locator);
+		console.log(pos);
+		await this.down(pos.x, pos.y);
+	}
+	/** Simulate a pointermove event to the position of `locator` */
+	async moveTo(locator: Locator) {
+		const pos = await this.getPos(locator);
+		await this.move(pos.x, pos.y);
+	}
+}
+
+export class Touchscreen {
+	pointerId = 0;
+	constructor(public readonly page: Page) {}
+
+	createPointer() {
+		const pointer = new Pointer(this.page, this.pointerId);
+		this.pointerId++;
+		return pointer;
+	}
+}
+
+export const test = base.extend<{
+	page: Page;
+	clipboard: MockClipboard;
+	editor: Editor;
+	touchscreen: Touchscreen;
+}>({
 	clipboard: async ({}, use) => {
 		const clipboard = {
 			content: "",
@@ -173,6 +346,8 @@ export const test = base.extend<{ page: Page; clipboard: MockClipboard }>({
 		if (baseURL === undefined) {
 			throw new Error("baseURL is not defined");
 		}
+		await selectors.register("handle", createHandleSelectorEngine);
+
 		await context.clearCookies();
 		throwOnConsoleError(page);
 		await mockWebkitClipboard(page, browserName, clipboard);
@@ -180,5 +355,11 @@ export const test = base.extend<{ page: Page; clipboard: MockClipboard }>({
 		await page.goto(baseURL);
 		await page.waitForLoadState("networkidle");
 		await use(page);
+	},
+	editor: async ({ page }, use) => {
+		await use(new Editor(page));
+	},
+	touchscreen: async ({ page }, use) => {
+		await use(new Touchscreen(page));
 	},
 });

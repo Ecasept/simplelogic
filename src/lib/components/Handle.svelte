@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { graphManager } from "$lib/util/actions";
 	import { isComponentConnection, isWireConnection } from "$lib/util/global";
 	import type { SimulationData } from "$lib/util/simulation.svelte";
 	import type {
@@ -77,6 +78,8 @@
 	role="button"
 	tabindex="0"
 	class="handle"
+	data-testcomponentid="{connection.id}"
+	data-testhandleid="{identifier}"
 	onpointerenter={() => {
 		onHandleEnter();
 	}}

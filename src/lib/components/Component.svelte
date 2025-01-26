@@ -174,6 +174,8 @@
 	tabindex="0"
 	aria-label={type}
 	class="component-body"
+	data-testcomponenttype={type}
+	data-testcomponentid={id}
 	x={position.x}
 	y={position.y}
 	{width}

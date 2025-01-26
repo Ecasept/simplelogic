@@ -43,23 +43,26 @@ export default defineConfig({
 				},
 				...devices["Desktop Chrome"],
 			},
+			testIgnore: "**/mobile/*",
 		},
 
 		{
 			name: "firefox",
 			use: { ...devices["Desktop Firefox"] },
+			testIgnore: "**/mobile/*",
 		},
 
 		{
 			name: "webkit",
 			use: { ...devices["Desktop Safari"] },
+			testIgnore: "**/mobile/*",
 		},
 
-		/* Test against mobile viewports. */
-		// {
-		//   name: 'Mobile Chrome',
-		//   use: { ...devices['Pixel 5'] },
-		// },
+		{
+			name: "Mobile Chrome",
+			use: { ...devices["Pixel 5"] },
+			testMatch: "**/mobile/*",
+		},
 		// {
 		//   name: 'Mobile Safari',
 		//   use: { ...devices['iPhone 12'] },

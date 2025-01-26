@@ -74,6 +74,8 @@
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	{stroke}
 	style="pointer-events: none;"
+	data-testcomponenttype="wire"
+	data-testcomponentid={id}
 ></path>
 
 <path
