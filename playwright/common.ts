@@ -1,8 +1,9 @@
 import {
 	test as base,
+	expect as baseExpect,
 	ElementHandle,
-	expect,
 	Locator,
+	MatcherReturnType,
 	Page,
 	selectors,
 } from "@playwright/test";
@@ -167,7 +168,7 @@ export async function mockWebkitClipboard(
  * it will return `null` for that component.
  */
 const createHandleSelectorEngine = () => ({
-	/** Returns all components with the specified type */
+	/** Returns ids of all components with the specified type */
 	getComponents(root: Element, type: string) {
 		return Array.from(
 			root.querySelectorAll(
@@ -194,6 +195,20 @@ const createHandleSelectorEngine = () => ({
 		return this.getHandles(root, ids, id);
 	},
 });
+const createComponentSelectorEngine = () => ({
+	query(root: Element, selector: string) {
+		this.queryAll(root, selector)[0];
+	},
+	queryAll(root: Element, selector: string) {
+		const type = selector;
+
+		return Array.from(
+			root.querySelectorAll(
+				`.component-body[data-testcomponenttype="${type}"]`,
+			),
+		);
+	},
+});
 
 type MockClipboard = {
 	content: string;
@@ -217,6 +232,7 @@ export const test = base.extend<{
 			throw new Error("baseURL is not defined");
 		}
 		await selectors.register("handle", createHandleSelectorEngine);
+		await selectors.register("component", createComponentSelectorEngine);
 
 		await context.clearCookies();
 		throwOnConsoleError(page);
@@ -234,5 +250,48 @@ export const test = base.extend<{
 	},
 	editorMobile: async ({ page, touchscreen }, use) => {
 		await use(new Editor(page, true, touchscreen));
+	},
+});
+
+export const expect = baseExpect.extend({
+	async toBePowered(locator: Locator, options?: { timeout?: number }) {
+		const assertionName = "toBePowered";
+		let pass;
+		let matcherResult: MatcherReturnType | undefined;
+		try {
+			await baseExpect(locator).toHaveAttribute(
+				"stroke",
+				"var(--component-delete-color)",
+			);
+			pass = true;
+			matcherResult = undefined;
+		} catch (e) {
+			pass = false;
+			matcherResult = e.matcherResult;
+		}
+
+		const message = pass
+			? () => "idk what to put here"
+			: () =>
+					this.utils.matcherHint(assertionName, undefined, undefined, {
+						isNot: this.isNot,
+					}) +
+					"\n\n" +
+					`Locator: ${locator}\n` +
+					(matcherResult
+						? `Expected: ${this.utils.printExpected(matcherResult.expected)}\n` +
+							`Received: ${this.utils.printReceived(matcherResult.actual)}`
+						: "");
+		if (pass) {
+			return { message, pass: true };
+		}
+
+		return {
+			message,
+			pass,
+			name: assertionName,
+			expected: matcherResult?.expected,
+			actual: matcherResult?.actual,
+		};
 	},
 });

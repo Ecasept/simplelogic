@@ -22,6 +22,11 @@ export class Editor {
 		return this.page.locator(`handle=${type}:${id}`);
 	}
 
+	/** Returns a locator for all components with the specified type */
+	getComponent(type: string) {
+		return this.page.locator(`component=${type}`);
+	}
+
 	/** Adds a component with the specified type at the specified location */
 	async addComponent(type: string, x: number, y: number) {
 		if (this.isMobile) {
@@ -63,6 +68,10 @@ export class Editor {
 		} else {
 			throw new Error("Not implemented");
 		}
+	}
+
+	async toggleSimulate() {
+		await this.page.getByRole("button", { name: "Toggle Simulation" }).click();
 	}
 }
 
@@ -166,6 +175,11 @@ export class Pointer {
 	async moveTo(locator: Locator) {
 		const pos = await this.getPos(locator);
 		await this.move(pos.x, pos.y);
+	}
+	/** Simulate a tap at the position of `locator` */
+	async tapOn(locator: Locator) {
+		const pos = await this.getPos(locator);
+		await this.tap(pos.x, pos.y);
 	}
 }
 
