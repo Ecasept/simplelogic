@@ -92,6 +92,10 @@
 		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
 		disabled={addingComponent}
+		simulating={$editorViewModel.editMode === "simulate" ||
+			$editorViewModel.prevState?.editMode === "simulate"}
+		deleting={$editorViewModel.editMode === "delete" ||
+			$editorViewModel.prevState?.editMode === "delete"}
 	></Sidebar>
 	{#if $fileModalViewModel.mode !== null}
 		<FileModal uiState={$fileModalViewModel}></FileModal>

@@ -17,7 +17,10 @@
 
 	let editingThis = $derived(uiState.draggedWire?.id === id);
 
-	let simulating = $derived(uiState.editMode === "simulate");
+	let simulating = $derived(
+		uiState.editMode === "simulate" ||
+			uiState.prevState?.editMode === "simulate",
+	);
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
 	let isPowered = $derived.by(() => {
