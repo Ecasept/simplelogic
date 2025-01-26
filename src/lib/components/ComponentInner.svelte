@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { EditorAction } from "$lib/util/actions";
-	import { GRID_SIZE } from "$lib/util/global";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { ComponentType } from "$lib/util/types";
 
@@ -19,31 +18,6 @@
 
 	let middleX = $derived(x + width / 2);
 	let middleY = $derived(y + height / 2);
-
-	function createSplitLine() {
-		// Calculate middle points
-		const startX = x;
-		const startY = middleY;
-		const endX = x + width;
-
-		// Create upper and lower paths
-		const upperPath = `M ${startX} ${startY} 
-                      L ${middleX} ${middleY} 
-                      L ${middleX} ${middleY - GRID_SIZE} 
-                      L ${endX} ${middleY - GRID_SIZE}`;
-
-		const lowerPath = `M ${startX} ${startY} 
-                      L ${middleX} ${middleY} 
-                      L ${middleX} ${middleY + GRID_SIZE} 
-                      L ${endX} ${middleY + GRID_SIZE}`;
-
-		return {
-			upperPath,
-			lowerPath,
-		};
-	}
-
-	let { upperPath, lowerPath } = $derived.by(createSplitLine);
 </script>
 
 {#if type === "IN"}
