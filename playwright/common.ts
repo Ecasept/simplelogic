@@ -5,7 +5,6 @@ import {
 	Locator,
 	MatcherReturnType,
 	Page,
-	selectors,
 } from "@playwright/test";
 import { Editor, Touchscreen } from "./fixtures";
 
@@ -214,13 +213,27 @@ type MockClipboard = {
 	content: string;
 };
 
-export const test = base.extend<{
-	page: Page;
-	clipboard: MockClipboard;
-	editor: Editor;
-	editorMobile: Editor;
-	touchscreen: Touchscreen;
-}>({
+export const test = base.extend<
+	{
+		page: Page;
+		clipboard: MockClipboard;
+		editor: Editor;
+		editorMobile: Editor;
+		touchscreen: Touchscreen;
+	},
+	{ selectorRegistration: void }
+>({
+	selectorRegistration: [
+		async ({ playwright }, use) => {
+			await playwright.selectors.register("handle", createHandleSelectorEngine);
+			await playwright.selectors.register(
+				"component",
+				createComponentSelectorEngine,
+			);
+			await use();
+		},
+		{ scope: "worker", auto: true },
+	],
 	clipboard: async ({}, use) => {
 		const clipboard = {
 			content: "",
@@ -231,8 +244,6 @@ export const test = base.extend<{
 		if (baseURL === undefined) {
 			throw new Error("baseURL is not defined");
 		}
-		await selectors.register("handle", createHandleSelectorEngine);
-		await selectors.register("component", createComponentSelectorEngine);
 
 		await context.clearCookies();
 		throwOnConsoleError(page);
