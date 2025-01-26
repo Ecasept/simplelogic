@@ -458,6 +458,9 @@ test.describe("editor", () => {
 		await page.getByRole("button", { name: "Cancel" }).click();
 		await expect(page.locator(".component-body")).toHaveCount(0);
 	});
+});
+
+test.describe("panning and zooming", () => {
 	test("can pan and zoom", async ({ page }) => {
 		await addComponent(page, "AND", 100, 100);
 
@@ -531,5 +534,70 @@ test.describe("editor", () => {
 		await page.mouse.up();
 		await page.mouse.move(100, 100, { steps: 10 });
 		await expectPosToBe(page.locator(".component-body"), 400, 300);
+	});
+	test("can pan and zoom while simulating", async ({ page }) => {
+		await addComponent(page, "AND", 100, 100);
+		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await page.mouse.move(500, 500);
+		await page.mouse.down();
+		await page.mouse.move(600, 600);
+		await page.mouse.up();
+		await expectPosToBe(page.locator(".component-body"), 200, 200);
+	});
+	test("right click does not pan", async ({ page }) => {
+		await addComponent(page, "AND", 100, 100);
+		await page.mouse.move(500, 500);
+		await page.mouse.down({ button: "right" });
+		await page.mouse.move(600, 600);
+		await page.mouse.up();
+		await expectPosToBe(page.locator(".component-body"), 100, 100);
+	});
+	test("releasing mouse on component does nothing", async ({ page }) => {
+		await addComponent(page, "AND", 100, 100);
+		await page.mouse.down();
+		await page.mouse.move(500, 500);
+		await page.keyboard.press("Escape");
+		await expectPosToBe(page.locator(".component-body"), 100, 100);
+
+		const svgContents = await page.locator(".canvasWrapper svg").innerHTML();
+
+		await page.mouse.move(100, 100);
+		await page.mouse.up();
+		await page.mouse.move(500, 500);
+
+		expect(await page.locator(".canvasWrapper svg").innerHTML()).toEqual(
+			svgContents,
+		);
+	});
+	test("can't add components while paning", async ({ page }) => {
+		await page.mouse.move(500, 500);
+		await page.mouse.down();
+		await page.mouse.move(600, 600);
+		await page.keyboard.press("a");
+		await page.mouse.up();
+		await expect(page.locator(".component-body")).toHaveCount(0);
+	});
+	test("simulation mode stays on while panning", async ({ page }) => {
+		await addComponent(page, "IN", 100, 100);
+		const input = page.locator("circle.input");
+		await input.click();
+		// Component should be powered
+		await expect(input).toHaveAttribute(
+			"fill",
+			"var(--component-delete-color)",
+		);
+
+		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await page.mouse.move(500, 500);
+		await page.mouse.down();
+		await page.mouse.move(600, 600);
+
+		// Component should still be powered
+		await expect(input).toHaveAttribute(
+			"fill",
+			"var(--component-delete-color)",
+		);
+
+		await page.mouse.up();
 	});
 });
