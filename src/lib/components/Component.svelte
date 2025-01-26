@@ -96,7 +96,6 @@
 			return;
 		}
 		e.preventDefault();
-		e.stopPropagation();
 
 		editorViewModel.removeHoveredHandle();
 
@@ -122,7 +121,6 @@
 		}
 
 		e.preventDefault();
-		e.stopPropagation();
 		// Calculate offset between click position and component origin
 		const clickPos = canvasViewModel.clientToSVGCoords({
 			x: e.clientX,

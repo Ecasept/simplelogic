@@ -35,7 +35,6 @@
 
 		editorViewModel.removeHoveredHandle();
 		e.preventDefault();
-		e.stopPropagation();
 		const handle = clickedHandle === "input" ? input : output;
 		editorViewModel.startMoveWire(
 			{ id: id, handleType: clickedHandle },
