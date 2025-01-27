@@ -26,7 +26,7 @@ test.describe("Mobile", () => {
 		editorMobile: editor,
 		touchscreen,
 	}) => {
-		test.skip(true, "// fTODO: find source of bug");
+		// test.skip(true, "// fTODO: find source of bug");
 		// Add inputs
 		await editor.addComponent("IN", 100, 100);
 		await editor.addComponent("IN", 100, 200);
@@ -73,15 +73,31 @@ test.describe("Mobile", () => {
 			editor.getHandle("LED", "in").nth(1),
 		);
 
-		editor.toggleSimulate();
+		await editor.toggleSimulate();
 
 		const in1 = editor.getComponent("IN").first();
 		const in2 = editor.getComponent("IN").nth(1);
 		const sum = editor.getComponent("LED").first();
 		const carry = editor.getComponent("LED").nth(1);
-		const pointer = touchscreen.createPointer();
+		const pointer = await touchscreen.createPointer();
 
 		await pointer.tapOn(in1);
+		await expect(in1).toBePowered();
 		await expect(sum).toBePowered();
+
+		await pointer.tapOn(in2);
+		await expect(in2).toBePowered();
+		await expect(sum).not.toBePowered();
+		await expect(carry).toBePowered();
+
+		await pointer.tapOn(in1);
+		await expect(in1).not.toBePowered();
+		await expect(sum).toBePowered();
+		await expect(carry).not.toBePowered();
+
+		await pointer.tapOn(in2);
+		await expect(in2).not.toBePowered();
+		await expect(sum).not.toBePowered();
+		await expect(carry).not.toBePowered();
 	});
 });

@@ -6,7 +6,8 @@ import {
 	MatcherReturnType,
 	Page,
 } from "@playwright/test";
-import { Editor, Touchscreen } from "./fixtures";
+import { Editor } from "./fixtures";
+import { Touchscreen } from "./mobile/touchscreen";
 
 export async function reload(page: Page) {
 	await page.goto("/");
@@ -169,6 +170,7 @@ export async function mockWebkitClipboard(
 const createHandleSelectorEngine = () => ({
 	/** Returns ids of all components with the specified type */
 	getComponents(root: Element, type: string) {
+		// Find all components with the specified type, and extract their ids
 		return Array.from(
 			root.querySelectorAll(
 				`.component-body[data-testcomponenttype="${type}"]`,
@@ -178,6 +180,8 @@ const createHandleSelectorEngine = () => ({
 	/** Returns all handles with the specified identifier
 	 * for all components specified */
 	getHandles(root: Element, componentIds: string[], handleId: string) {
+		// For each component id, try finding a handle with the specified `handleId`
+		// and the component id, or, if it doesn't exist, use `null`.
 		return componentIds.map((id) =>
 			root.querySelector(
 				`[data-testcomponentid="${id}"][data-testhandleid="${handleId}"]`,
@@ -188,10 +192,13 @@ const createHandleSelectorEngine = () => ({
 		this.queryAll(root, selector)[0];
 	},
 	queryAll(root: Element, selector: string) {
-		const [type, id] = selector.split(":");
+		const [type, id, nth] = selector.split(":");
 
-		const ids = this.getComponents(root, type);
-		return this.getHandles(root, ids, id);
+		// Find all components with the specified type
+		const ids: (string | null)[] = this.getComponents(root, type);
+		// Get the handles for each component
+		const res = this.getHandles(root, ids, id);
+		return [res[parseInt(nth)]];
 	},
 });
 const createComponentSelectorEngine = () => ({
@@ -199,13 +206,14 @@ const createComponentSelectorEngine = () => ({
 		this.queryAll(root, selector)[0];
 	},
 	queryAll(root: Element, selector: string) {
-		const type = selector;
+		const [type, nth] = selector.split(":");
 
-		return Array.from(
+		const res = Array.from(
 			root.querySelectorAll(
 				`.component-body[data-testcomponenttype="${type}"]`,
 			),
 		);
+		return [res[parseInt(nth)]];
 	},
 });
 
@@ -265,18 +273,23 @@ export const test = base.extend<
 });
 
 export const expect = baseExpect.extend({
+	/** Passes when the component has the correct stroke color for a powered component */
 	async toBePowered(locator: Locator, options?: { timeout?: number }) {
 		const assertionName = "toBePowered";
-		let pass;
+		let pass: boolean;
 		let matcherResult: MatcherReturnType | undefined;
 		try {
-			await baseExpect(locator).toHaveAttribute(
+			// This custom assertion is actually just a shorthand for the toHaveAttribute assertion
+			const expect = this.isNot ? baseExpect(locator).not : baseExpect(locator);
+			await expect.toHaveAttribute(
 				"stroke",
 				"var(--component-delete-color)",
+				options,
 			);
 			pass = true;
 			matcherResult = undefined;
 		} catch (e) {
+			// If the assertion failed, we need to catch the error and set pass to false
 			pass = false;
 			matcherResult = e.matcherResult;
 		}
@@ -290,16 +303,17 @@ export const expect = baseExpect.extend({
 					"\n\n" +
 					`Locator: ${locator}\n` +
 					(matcherResult
-						? `Expected: ${this.utils.printExpected(matcherResult.expected)}\n` +
+						? `Expected: ${this.utils.printExpected((this.isNot ? "not " : "") + matcherResult.expected)}\n` +
 							`Received: ${this.utils.printReceived(matcherResult.actual)}`
 						: "");
-		if (pass) {
-			return { message, pass: true };
-		}
+
+		// if `this.isNot` is true, then we need to return
+		// pass: false if the assertion passed
+		const passReturnValue = pass !== this.isNot;
 
 		return {
 			message,
-			pass,
+			pass: passReturnValue,
 			name: assertionName,
 			expected: matcherResult?.expected,
 			actual: matcherResult?.actual,

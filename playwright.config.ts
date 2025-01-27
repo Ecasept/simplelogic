@@ -61,7 +61,7 @@ export default defineConfig({
 		{
 			name: "Mobile Chrome",
 			use: { ...devices["Pixel 5"] },
-			testMatch: "**/mobile/*",
+			testMatch: "**/mobile/**/*.@(spec|test).?(c|m)[jt]s?(x)",
 		},
 		// {
 		//   name: 'Mobile Safari',
