@@ -1,7 +1,7 @@
 import { expect, test } from "../common";
 
 test.describe("Mobile", () => {
-	test("can connect", async ({ page, editorMobile: editor }) => {
+	test("can connect", async ({ page, editor }) => {
 		await editor.addComponent("AND", 100, 100);
 		await editor.addComponent("AND", 200, 200);
 
@@ -22,10 +22,7 @@ test.describe("Mobile", () => {
 			"M241 201 L241 261",
 		);
 	});
-	test("build half adder flow", async ({
-		editorMobile: editor,
-		touchscreen,
-	}) => {
+	test("build half adder flow", async ({ editor, touchscreen }) => {
 		// test.skip(true, "// fTODO: find source of bug");
 		// Add inputs
 		await editor.addComponent("IN", 100, 100);

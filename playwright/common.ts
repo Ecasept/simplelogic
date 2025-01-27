@@ -6,7 +6,7 @@ import {
 	MatcherReturnType,
 	Page,
 } from "@playwright/test";
-import { Editor } from "./fixtures";
+import { DesktopEditor, Editor, MobileEditor } from "./fixtures";
 import { Touchscreen } from "./mobile/touchscreen";
 
 export async function reload(page: Page) {
@@ -264,11 +264,12 @@ export const test = base.extend<
 	touchscreen: async ({ page }, use) => {
 		await use(new Touchscreen(page));
 	},
-	editor: async ({ page }, use) => {
-		await use(new Editor(page, false));
-	},
-	editorMobile: async ({ page, touchscreen }, use) => {
-		await use(new Editor(page, true, touchscreen));
+	editor: async ({ page, hasTouch, touchscreen }, use) => {
+		if (hasTouch) {
+			return use(new MobileEditor(page, touchscreen));
+		} else {
+			return use(new DesktopEditor(page));
+		}
 	},
 });
 
