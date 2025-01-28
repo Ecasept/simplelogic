@@ -283,9 +283,6 @@ export class MobilePointer implements Pointer {
 
 	/** Simulate a tap at the specified coordinates by dispatching a pointerdown and pointerup event */
 	async click(x: number, y: number) {
-		if (this.cleanedUp) {
-			throw new Error("Pointer used after being cleaned up");
-		}
 		await this.downAt(x, y);
 		await this.up();
 	}
@@ -306,28 +303,16 @@ export class MobilePointer implements Pointer {
 	}
 	/** Simulate a pointerdown event at the position of `locator` */
 	async downOn(locator: Locator) {
-		if (this.cleanedUp) {
-			throw new Error("Pointer used after being cleaned up");
-		}
-		if (this.isDown) {
-			throw new Error("Pointer is already down");
-		}
 		const pos = await this.getPos(locator);
 		await this.downAt(pos.x, pos.y);
 	}
 	/** Simulate a pointermove event to the position of `locator` */
 	async moveTo(locator: Locator) {
-		if (this.cleanedUp) {
-			throw new Error("Pointer used after being cleaned up");
-		}
 		const pos = await this.getPos(locator);
 		await this.move(pos.x, pos.y);
 	}
 	/** Simulate a tap at the position of `locator` */
 	async clickOn(locator: Locator) {
-		if (this.cleanedUp) {
-			throw new Error("Pointer used after being cleaned up");
-		}
 		const pos = await this.getPos(locator);
 		await this.click(pos.x, pos.y);
 	}
