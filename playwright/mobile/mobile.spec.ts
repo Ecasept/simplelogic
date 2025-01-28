@@ -96,5 +96,7 @@ test.describe("Mobile", () => {
 		await expect(in2).not.toBePowered();
 		await expect(sum).not.toBePowered();
 		await expect(carry).not.toBePowered();
+
+		await touchscreen.deletePointer(pointer);
 	});
 });

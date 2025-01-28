@@ -1,6 +1,7 @@
 import { Locator, Page } from "@playwright/test";
-import { Touchscreen } from "./mobile/touchscreen";
+import { Pointer, Touchscreen } from "./mobile/touchscreen";
 
+/** Base Editor class implementing functions independent of the page being mobile or not */
 export abstract class BaseEditor {
 	constructor(protected readonly page: Page) {}
 
@@ -59,6 +60,7 @@ export interface Editor {
 	/** Drags a locator to a specific position */
 	drag(locator: Locator, x: number, y: number): Promise<void>;
 
+	/** Toggles the simulation mode on the page */
 	toggleSimulate(): Promise<void>;
 }
 
@@ -86,26 +88,39 @@ export class MobileEditor extends BaseEditor implements Editor {
 	}
 
 	async addComponent(type: string, x: number, y: number): Promise<void> {
-		const pointer = await this.touchscreen!.createPointer();
-		await this.page
-			.locator(".sidebarWrapper")
-			.getByText(type, { exact: true })
-			.click();
-		await pointer.tap(x, y);
+		await this.withPointer(async (pointer) => {
+			await this.page
+				.locator(".sidebarWrapper")
+				.getByText(type, { exact: true })
+				.click();
+			await pointer.tap(x, y);
+		});
 	}
 	async connect(handle1: Locator, handle2: Locator): Promise<void> {
-		const pointer = await this.touchscreen!.createPointer();
-		await pointer.downOn(handle1);
-		await pointer.moveTo(handle2);
-		await pointer.up();
+		await this.withPointer(async (pointer) => {
+			await pointer.downOn(handle1);
+			await pointer.moveTo(handle2);
+			await pointer.up();
+		});
 	}
 	async drag(locator: Locator, x: number, y: number): Promise<void> {
-		const pointer = await this.touchscreen!.createPointer();
-		await pointer.downOn(locator);
-		await pointer.move(x, y);
-		await pointer.up();
+		await this.withPointer(async (pointer) => {
+			await pointer.downOn(locator);
+			await pointer.move(x, y);
+			await pointer.up();
+		});
 	}
 	async toggleSimulate(): Promise<void> {
 		await this.page.getByRole("button", { name: "Toggle Simulation" }).click();
+	}
+
+	/** Creates a pointer, calls the given function with that pointer as an argument, and then cleans the pointer up */
+	private async withPointer<T>(
+		fn: (pointer: Pointer) => Promise<T>,
+	): Promise<T> {
+		const pointer = await this.touchscreen!.createPointer();
+		const result = await fn(pointer);
+		await this.touchscreen!.deletePointer(pointer);
+		return result;
 	}
 }

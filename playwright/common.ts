@@ -262,7 +262,9 @@ export const test = base.extend<
 		await use(page);
 	},
 	touchscreen: async ({ page }, use) => {
-		await use(new Touchscreen(page));
+		const touchscreen = new Touchscreen(page);
+		touchscreen.init();
+		await use(touchscreen);
 	},
 	editor: async ({ page, hasTouch, touchscreen }, use) => {
 		if (hasTouch) {
