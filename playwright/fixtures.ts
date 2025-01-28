@@ -117,7 +117,7 @@ export class MobileEditor extends BaseEditor implements Editor {
 
 export interface Pointer {
 	/** Press the pointer at the current coordinates */
-	down(): Promise<void>;
+	down(options?: { button: "right" }): Promise<void>;
 
 	/** Release the pointer */
 	up(): Promise<void>;
@@ -144,8 +144,8 @@ export interface Pointer {
 export class DesktopPointer implements Pointer {
 	constructor(private readonly page: Page) {}
 
-	async down() {
-		await this.page.mouse.down();
+	async down(options: { button: "right" }) {
+		await this.page.mouse.down(options);
 	}
 
 	async up() {

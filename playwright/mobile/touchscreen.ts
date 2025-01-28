@@ -187,7 +187,7 @@ export class MobilePointer implements Pointer {
 	 *
 	 * Will issue pointerenter and pointerleave events first.
 	 */
-	async down() {
+	async down(options?: { button: "right" }) {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
 		}
@@ -208,6 +208,7 @@ export class MobilePointer implements Pointer {
 			clientY: this.currentPosition.y,
 			pointerId: this.pointerId,
 			bubbles: true,
+			button: options?.button === "right" ? 2 : 0,
 		};
 		await this.dispatchEvent("pointerdown", event);
 	}
