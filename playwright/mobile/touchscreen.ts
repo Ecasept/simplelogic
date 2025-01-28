@@ -307,7 +307,7 @@ export class MobilePointer implements Pointer {
 		await this.downAt(pos.x, pos.y);
 	}
 	/** Simulate a pointermove event to the position of `locator` */
-	async moveTo(locator: Locator) {
+	async moveOnto(locator: Locator) {
 		const pos = await this.getPos(locator);
 		await this.move(pos.x, pos.y);
 	}
