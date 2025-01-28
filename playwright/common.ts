@@ -197,8 +197,11 @@ const createHandleSelectorEngine = () => ({
 		// Find all components with the specified type
 		const ids: (string | null)[] = this.getComponents(root, type);
 		// Get the handles for each component
-		const res = this.getHandles(root, ids, id);
-		return [res[parseInt(nth)]];
+		const handles = this.getHandles(root, ids, id);
+
+		const handle = handles[parseInt(nth)];
+
+		return handle ? [handle] : [];
 	},
 });
 const createComponentSelectorEngine = () => ({
@@ -208,12 +211,15 @@ const createComponentSelectorEngine = () => ({
 	queryAll(root: Element, selector: string) {
 		const [type, nth] = selector.split(":");
 
-		const res = Array.from(
+		const components = Array.from(
 			root.querySelectorAll(
 				`.component-body[data-testcomponenttype="${type}"]`,
 			),
 		);
-		return [res[parseInt(nth)]];
+
+		const component = components[parseInt(nth)];
+
+		return component ? [component] : [];
 	},
 });
 
