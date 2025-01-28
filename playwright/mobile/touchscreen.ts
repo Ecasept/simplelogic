@@ -212,32 +212,6 @@ export class MobilePointer implements Pointer {
 		await this.dispatchEvent("pointerdown", event);
 	}
 
-	/** Dispatch a pointerdown event at the specified coordinates.
-	 *
-	 * Will issue pointerenter and pointerleave events first.
-	 */
-	async downAt(x: number, y: number) {
-		if (this.cleanedUp) {
-			throw new Error("Pointer used after being cleaned up");
-		}
-		if (this.isDown) {
-			throw new Error("Pointer is already down");
-		}
-		this.currentPosition = { x, y };
-		this.isDown = true;
-		await this.lastDownedElement?.dispose();
-		this.lastDownedElement = await this.getCurrentElement();
-		await this.recalculateElements();
-
-		const event: PointerEventInit = {
-			clientX: this.currentPosition.x,
-			clientY: this.currentPosition.y,
-			pointerId: this.pointerId,
-			bubbles: true,
-		};
-		await this.dispatchEvent("pointerdown", event);
-	}
-
 	/** Dispatch a pointerup event at the current coordinates
 	 * (a pointerdown event must have been dispatched before)
 	 *
@@ -277,10 +251,15 @@ export class MobilePointer implements Pointer {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
 		}
-		if (!this.isDown) {
-			throw new Error("Pointer is not down");
-		}
 		this.currentPosition = { x, y };
+
+		if (!this.isDown) {
+			// If the pointer is not down, we don't need to issue a pointermove event.
+			// The move method can be used in conjunction with the down method
+			// to move the pointer to a new position before pressing down
+			// without issuing a pointermove event, like downAt does.
+			return;
+		}
 
 		await this.recalculateElements();
 
@@ -291,6 +270,15 @@ export class MobilePointer implements Pointer {
 			bubbles: true,
 		};
 		await this.dispatchEvent("pointermove", event);
+	}
+
+	/** Move the pointer to the specified coordinates
+	 * without issuing a pointermove event,
+	 * and dispatch a pointerdown event there.
+	 */
+	async downAt(x: number, y: number) {
+		await this.move(x, y);
+		await this.down();
 	}
 
 	/** Simulate a tap at the specified coordinates by dispatching a pointerdown and pointerup event */
