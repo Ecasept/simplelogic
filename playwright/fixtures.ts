@@ -96,7 +96,7 @@ export class MobileEditor extends BaseEditor implements Editor {
 		await this.pointer.clickOn(
 			this.page.locator(".sidebarWrapper").getByText(type, { exact: true }),
 		);
-		await this.pointer.click(x, y);
+		await this.pointer.clickAt(x, y);
 	}
 	async connect(handle1: Locator, handle2: Locator): Promise<void> {
 		await this.pointer.downOn(handle1);
@@ -105,7 +105,7 @@ export class MobileEditor extends BaseEditor implements Editor {
 	}
 	async drag(locator: Locator, x: number, y: number): Promise<void> {
 		await this.pointer.downOn(locator);
-		await this.pointer.move(x, y);
+		await this.pointer.moveTo(x, y);
 		await this.pointer.up();
 	}
 	async toggleSimulate(): Promise<void> {
@@ -123,13 +123,13 @@ export interface Pointer {
 	up(): Promise<void>;
 
 	/** Move the pointer to the specified coordinates */
-	move(x: number, y: number): Promise<void>;
+	moveTo(x: number, y: number): Promise<void>;
 
 	/** Press the pointer at the specified coordinates */
 	downAt(x: number, y: number): Promise<void>;
 
 	/** Press and then release the pointer at the specified coordinates */
-	click(x: number, y: number): Promise<void>;
+	clickAt(x: number, y: number): Promise<void>;
 
 	/** Press the pointer on the specified locator */
 	downOn(locator: Locator): Promise<void>;
@@ -152,7 +152,7 @@ export class DesktopPointer implements Pointer {
 		await this.page.mouse.up();
 	}
 
-	async move(x: number, y: number) {
+	async moveTo(x: number, y: number) {
 		await this.page.mouse.move(x, y);
 	}
 
@@ -161,7 +161,7 @@ export class DesktopPointer implements Pointer {
 		await this.page.mouse.down();
 	}
 
-	async click(x: number, y: number) {
+	async clickAt(x: number, y: number) {
 		await this.page.mouse.click(x, y);
 	}
 

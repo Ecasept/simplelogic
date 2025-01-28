@@ -54,13 +54,13 @@ test.describe("editor", () => {
 		await editor.addComponent("AND", 100, 200);
 
 		await pointer.down();
-		await pointer.move(500, 50);
+		await pointer.moveTo(500, 50);
 		await expectPosToBe(page.locator(".component-body"), 500, 50);
 
-		await pointer.move(400, 300);
+		await pointer.moveTo(400, 300);
 		await expectPosToBe(page.locator(".component-body"), 400, 300);
 		await pointer.up();
-		await pointer.move(100, 100);
+		await pointer.moveTo(100, 100);
 		await expectPosToBe(page.locator(".component-body"), 400, 300);
 	});
 	test("moves component and discards", async ({ page }) => {

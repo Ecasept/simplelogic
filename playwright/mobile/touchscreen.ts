@@ -247,7 +247,7 @@ export class MobilePointer implements Pointer {
 	 *
 	 * Will issue pointerenter and pointerleave events first for elements that are now under the pointer.
 	 */
-	async move(x: number, y: number) {
+	async moveTo(x: number, y: number) {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
 		}
@@ -277,12 +277,12 @@ export class MobilePointer implements Pointer {
 	 * and dispatch a pointerdown event there.
 	 */
 	async downAt(x: number, y: number) {
-		await this.move(x, y);
+		await this.moveTo(x, y);
 		await this.down();
 	}
 
 	/** Simulate a tap at the specified coordinates by dispatching a pointerdown and pointerup event */
-	async click(x: number, y: number) {
+	async clickAt(x: number, y: number) {
 		await this.downAt(x, y);
 		await this.up();
 	}
@@ -309,12 +309,12 @@ export class MobilePointer implements Pointer {
 	/** Simulate a pointermove event to the position of `locator` */
 	async moveOnto(locator: Locator) {
 		const pos = await this.getPos(locator);
-		await this.move(pos.x, pos.y);
+		await this.moveTo(pos.x, pos.y);
 	}
 	/** Simulate a tap at the position of `locator` */
 	async clickOn(locator: Locator) {
 		const pos = await this.getPos(locator);
-		await this.click(pos.x, pos.y);
+		await this.clickAt(pos.x, pos.y);
 	}
 }
 
