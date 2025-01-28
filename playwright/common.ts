@@ -263,7 +263,7 @@ export const test = base.extend<
 	},
 	touchscreen: async ({ page }, use) => {
 		const touchscreen = new Touchscreen(page);
-		touchscreen.init();
+		await touchscreen.init();
 		await use(touchscreen);
 	},
 	pointer: async ({ page, hasTouch, touchscreen }, use) => {

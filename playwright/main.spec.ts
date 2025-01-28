@@ -248,7 +248,7 @@ test.describe("editor", () => {
 
 		await dragHandle(sourceHandle, targetHandle!, page);
 
-		targetHandle!.dispose();
+		await targetHandle!.dispose();
 
 		await expect(page.locator(".wire").last()).toHaveAttribute(
 			"d",
