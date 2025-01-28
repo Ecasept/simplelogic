@@ -1,13 +1,6 @@
 import { expect } from "@playwright/test";
 import { spawn } from "child_process";
-import {
-	addComponent,
-	drag,
-	dragHandle,
-	getAttr,
-	reload,
-	test,
-} from "./common";
+import { drag, dragHandle, getAttr, reload, test } from "./common";
 
 test.describe("modal", async () => {
 	test.beforeAll(async () => {

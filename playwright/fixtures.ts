@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { Pointer, Touchscreen } from "./mobile/touchscreen";
+import { Touchscreen } from "./mobile/touchscreen";
 
 /** Base Editor class implementing functions independent of the page being mobile or not */
 export abstract class BaseEditor {
@@ -65,16 +65,20 @@ export interface Editor {
 }
 
 export class DesktopEditor extends BaseEditor implements Editor {
-	addComponent(type: string, x: number, y: number): Promise<void> {
+	async addComponent(type: string, x: number, y: number): Promise<void> {
+		await this.page
+			.locator(".sidebarWrapper")
+			.getByText(type, { exact: true })
+			.click();
+		await this.page.mouse.click(x, y);
+	}
+	async connect(handle1: Locator, handle2: Locator): Promise<void> {
 		throw new Error("Method not implemented.");
 	}
-	connect(handle1: Locator, handle2: Locator): Promise<void> {
+	async drag(locator: Locator, x: number, y: number): Promise<void> {
 		throw new Error("Method not implemented.");
 	}
-	drag(locator: Locator, x: number, y: number): Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	toggleSimulate(): Promise<void> {
+	async toggleSimulate(): Promise<void> {
 		throw new Error("Method not implemented.");
 	}
 }
@@ -83,44 +87,94 @@ export class MobileEditor extends BaseEditor implements Editor {
 	constructor(
 		page: Page,
 		private readonly touchscreen: Touchscreen,
+		private readonly pointer: Pointer,
 	) {
 		super(page);
 	}
 
 	async addComponent(type: string, x: number, y: number): Promise<void> {
-		await this.withPointer(async (pointer) => {
-			await this.page
-				.locator(".sidebarWrapper")
-				.getByText(type, { exact: true })
-				.click();
-			await pointer.tap(x, y);
-		});
+		await this.pointer.clickOn(
+			this.page.locator(".sidebarWrapper").getByText(type, { exact: true }),
+		);
+		await this.pointer.click(x, y);
 	}
 	async connect(handle1: Locator, handle2: Locator): Promise<void> {
-		await this.withPointer(async (pointer) => {
-			await pointer.downOn(handle1);
-			await pointer.moveTo(handle2);
-			await pointer.up();
-		});
+		await this.pointer.downOn(handle1);
+		await this.pointer.moveTo(handle2);
+		await this.pointer.up();
 	}
 	async drag(locator: Locator, x: number, y: number): Promise<void> {
-		await this.withPointer(async (pointer) => {
-			await pointer.downOn(locator);
-			await pointer.move(x, y);
-			await pointer.up();
-		});
+		await this.pointer.downOn(locator);
+		await this.pointer.move(x, y);
+		await this.pointer.up();
 	}
 	async toggleSimulate(): Promise<void> {
-		await this.page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Toggle Simulation" }),
+		);
+	}
+}
+
+export interface Pointer {
+	/** Press the pointer at the specified coordinates */
+	downAt(x: number, y: number): Promise<void>;
+
+	/** Press the pointer at the current coordinates */
+	down(): Promise<void>;
+
+	/** Release the pointer */
+	up(): Promise<void>;
+
+	/** Move the pointer to the specified coordinates */
+	move(x: number, y: number): Promise<void>;
+
+	/** Press and then release the pointer at the specified coordinates */
+	click(x: number, y: number): Promise<void>;
+
+	/** Press the pointer on the specified locator */
+	downOn(locator: Locator): Promise<void>;
+
+	/** Move the pointer to the specified locator */
+	moveTo(locator: Locator): Promise<void>;
+
+	/** Press and then release the pointer on the specified locator */
+	clickOn(locator: Locator): Promise<void>;
+}
+
+export class DesktopPointer {
+	constructor(private readonly page: Page) {}
+
+	async downAt(x: number, y: number) {
+		await this.page.mouse.move(x, y);
+		await this.page.mouse.down();
 	}
 
-	/** Creates a pointer, calls the given function with that pointer as an argument, and then cleans the pointer up */
-	private async withPointer<T>(
-		fn: (pointer: Pointer) => Promise<T>,
-	): Promise<T> {
-		const pointer = await this.touchscreen!.createPointer();
-		const result = await fn(pointer);
-		await this.touchscreen!.deletePointer(pointer);
-		return result;
+	async down() {
+		await this.page.mouse.down();
+	}
+
+	async up() {
+		await this.page.mouse.up();
+	}
+
+	async move(x: number, y: number) {
+		await this.page.mouse.move(x, y);
+	}
+
+	async click(x: number, y: number) {
+		await this.page.mouse.click(x, y);
+	}
+
+	async downOn(locator: Locator) {
+		await locator.hover();
+		await this.page.mouse.down();
+	}
+
+	async moveTo(locator: Locator) {
+		await locator.hover();
+	}
+
+	async clickOn(locator: Locator) {
+		await locator.click();
 	}
 }

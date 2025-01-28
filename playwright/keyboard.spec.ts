@@ -1,7 +1,14 @@
 import { expect } from "@playwright/test";
-import { addComponent, expectPosToBe, reload, test } from "./common";
+import { expectPosToBe, test } from "./common";
 
 test.describe("editor shortcuts", () => {
+	test.beforeEach(async ({ hasTouch }) => {
+		test.skip(
+			hasTouch,
+			"Keyboard shortcuts are not supported on touch devices",
+		);
+	});
+
 	test("a adds AND gate", async ({ page }) => {
 		await page.keyboard.press("A");
 		await page.mouse.click(100, 100);
@@ -48,9 +55,9 @@ test.describe("editor shortcuts", () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 	});
 
-	test("ctrl+z undoes last action", async ({ page }) => {
+	test("ctrl+z undoes last action", async ({ page, editor }) => {
 		// Add a component
-		await addComponent(page, "AND", 100, 100);
+		await editor.addComponent("AND", 100, 100);
 
 		await expect(page.locator(".component-body")).toHaveCount(1);
 
@@ -67,9 +74,9 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("Escape");
 		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
 	});
-	test("d toggles delete mode", async ({ page }) => {
+	test("d toggles delete mode", async ({ page, editor }) => {
 		// add component
-		await addComponent(page, "AND", 200, 200);
+		await editor.addComponent("AND", 200, 200);
 		await expect(page.locator(".component-body")).toHaveCount(1);
 
 		// press d
@@ -92,14 +99,12 @@ test.describe("editor shortcuts", () => {
 	});
 });
 test.describe("shortcut interactions", () => {
-	test.beforeEach(async ({ page }) => {
-		await reload(page);
-	});
 	test("moving component then a resets component and adds AND gate", async ({
 		page,
+		editor,
 	}) => {
 		// Add initial component
-		await addComponent(page, "AND", 100, 100);
+		await editor.addComponent("AND", 100, 100);
 
 		// Start moving component
 		const component = page.locator(".component-body").first();
@@ -121,9 +126,10 @@ test.describe("shortcut interactions", () => {
 	});
 	test("correct highlighting when switching modes while hovering", async ({
 		page,
+		editor,
 	}) => {
 		// add component
-		await addComponent(page, "AND", 200, 200);
+		await editor.addComponent("AND", 200, 200);
 
 		// hover over component
 		await page.locator(".component-body").hover();

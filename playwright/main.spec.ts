@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 import { circuits } from "./circuits";
 import {
-	addComponent,
 	drag,
 	dragHandle,
 	expectPosToBe,
@@ -17,39 +16,26 @@ test.describe("editor", () => {
 		await expect(page).toHaveTitle("SimpleLogic");
 	});
 
-	test("adds component at correct position", async ({ page }) => {
-		await addComponent(page, "AND", 100, 200);
+	test("adds component at correct position", async ({ page, editor }) => {
+		await editor.addComponent("AND", 100, 200);
 
 		const component = page.locator(".component-body").first();
 		await expect(component).toBeVisible();
 
 		await expectPosToBe(component, 100, 200);
 	});
-	test("adds component and discards", async ({ page }) => {
+	test("adds component and discards", async ({ page, hasTouch }) => {
+		test.skip(hasTouch, "Can't press escape on touch devices");
 		await page.getByText("AND", { exact: true }).click();
 
 		await page.keyboard.press("Escape");
 		await expect(page.locator(".component-body")).toHaveCount(0);
 	});
-	test("adds multiple components", async ({ page }) => {
-		const andBtn = page
-			.locator(".sidebarWrapper")
-			.getByText("AND", { exact: true });
-		const orBtn = page
-			.locator(".sidebarWrapper")
-			.getByText("OR", { exact: true });
-
-		await andBtn.click();
-		await page.mouse.click(100, 100);
-
-		await orBtn.click();
-		await page.mouse.click(200, 100);
-
-		await andBtn.click();
-		await page.mouse.click(200, 100);
-
-		await orBtn.click();
-		await page.mouse.click(100, 200);
+	test("adds multiple components", async ({ page, editor }) => {
+		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("OR", 200, 100);
+		await editor.addComponent("AND", 200, 100);
+		await editor.addComponent("OR", 100, 200);
 
 		await expect(page.locator(".component-body").nth(0)).toBeVisible();
 		await expect(page.locator(".component-body").nth(1)).toBeVisible();
@@ -64,17 +50,17 @@ test.describe("editor", () => {
 		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
 	});
 
-	test("moves components correctly", async ({ page }) => {
-		await addComponent(page, "AND", 100, 200);
+	test("moves components correctly", async ({ page, editor, pointer }) => {
+		await editor.addComponent("AND", 100, 200);
 
-		await page.mouse.down();
-		await page.mouse.move(500, 50, { steps: 10 });
+		await pointer.down();
+		await pointer.move(500, 50);
 		await expectPosToBe(page.locator(".component-body"), 500, 50);
 
-		await page.mouse.move(400, 300, { steps: 10 });
+		await pointer.move(400, 300);
 		await expectPosToBe(page.locator(".component-body"), 400, 300);
-		await page.mouse.up();
-		await page.mouse.move(100, 100, { steps: 10 });
+		await pointer.up();
+		await pointer.move(100, 100);
 		await expectPosToBe(page.locator(".component-body"), 400, 300);
 	});
 	test("moves component and discards", async ({ page }) => {

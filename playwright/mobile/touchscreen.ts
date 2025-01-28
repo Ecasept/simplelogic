@@ -1,6 +1,7 @@
 import { JSHandle, Locator, Page } from "@playwright/test";
+import { Pointer } from "../fixtures";
 
-export class Pointer {
+export class MobilePointer implements Pointer {
 	/** The position of this pointer on the screen, or null if it isn't currently positioned on the screen */
 	private currentPosition: { x: number; y: number } | null = null;
 	private isDown = false;
@@ -9,7 +10,7 @@ export class Pointer {
 	/** Returns a new pointer on `page` with the specified `pointerId` */
 	static async new(page: Page, pointerId: number) {
 		const currentElements = await page.evaluateHandle(() => []);
-		return new Pointer(page, pointerId, currentElements);
+		return new MobilePointer(page, pointerId, currentElements);
 	}
 
 	constructor(
@@ -119,13 +120,43 @@ export class Pointer {
 		);
 	}
 
+	/** Dispatch a pointerdown event at the current coordinates.
+	 *
+	 * Will issue pointerenter and pointerleave events first.
+	 */
+	async down() {
+		if (this.cleanedUp) {
+			throw new Error("Pointer used after being cleaned up");
+		}
+		if (this.isDown) {
+			throw new Error("Pointer is already down");
+		}
+		if (this.currentPosition === null) {
+			throw new Error("No current position to down at");
+		}
+
+		this.isDown = true;
+		await this.recalculateElements();
+
+		const event: PointerEventInit = {
+			clientX: this.currentPosition.x,
+			clientY: this.currentPosition.y,
+			pointerId: this.pointerId,
+			bubbles: true,
+		};
+		await this.dispatchEvent("pointerdown", event);
+	}
+
 	/** Dispatch a pointerdown event at the specified coordinates.
 	 *
 	 * Will issue pointerenter and pointerleave events first.
 	 */
-	async down(x: number, y: number) {
+	async downAt(x: number, y: number) {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
+		}
+		if (this.isDown) {
+			throw new Error("Pointer is already down");
 		}
 		this.currentPosition = { x, y };
 		this.isDown = true;
@@ -149,8 +180,11 @@ export class Pointer {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
 		}
-		if (this.currentPosition === null) {
+		if (!this.isDown) {
 			throw new Error("Pointer is not down");
+		}
+		if (this.currentPosition === null) {
+			throw new Error("No current position to up at");
 		}
 		this.isDown = false;
 		const event: PointerEventInit = {
@@ -161,7 +195,6 @@ export class Pointer {
 		};
 		await this.dispatchEvent("pointerup", event);
 		await this.recalculateElements();
-		this.currentPosition = null;
 	}
 
 	/** Dispatch a pointermove event at the specified coordinates
@@ -171,6 +204,9 @@ export class Pointer {
 	async move(x: number, y: number) {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
+		}
+		if (!this.isDown) {
+			throw new Error("Pointer is not down");
 		}
 		this.currentPosition = { x, y };
 
@@ -186,11 +222,11 @@ export class Pointer {
 	}
 
 	/** Simulate a tap at the specified coordinates by dispatching a pointerdown and pointerup event */
-	async tap(x: number, y: number) {
+	async click(x: number, y: number) {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
 		}
-		await this.down(x, y);
+		await this.downAt(x, y);
 		await this.up();
 	}
 	/** Return the position of `locator` on the page */
@@ -213,8 +249,11 @@ export class Pointer {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
 		}
+		if (this.isDown) {
+			throw new Error("Pointer is already down");
+		}
 		const pos = await this.getPos(locator);
-		await this.down(pos.x, pos.y);
+		await this.downAt(pos.x, pos.y);
 	}
 	/** Simulate a pointermove event to the position of `locator` */
 	async moveTo(locator: Locator) {
@@ -225,19 +264,19 @@ export class Pointer {
 		await this.move(pos.x, pos.y);
 	}
 	/** Simulate a tap at the position of `locator` */
-	async tapOn(locator: Locator) {
+	async clickOn(locator: Locator) {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
 		}
 		const pos = await this.getPos(locator);
-		await this.tap(pos.x, pos.y);
+		await this.click(pos.x, pos.y);
 	}
 }
 
 /** A touchscreen that can manage multiple pointers */
 export class Touchscreen {
 	private pointerId = 0;
-	private pointers: Pointer[] = [];
+	private pointers: MobilePointer[] = [];
 	constructor(public readonly page: Page) {}
 
 	/** Registers a mutation observer on the page which calls the
@@ -279,7 +318,7 @@ export class Touchscreen {
 
 	/** Create a new pointer on the page */
 	async createPointer() {
-		const pointer = await Pointer.new(this.page, this.pointerId);
+		const pointer = await MobilePointer.new(this.page, this.pointerId);
 		this.pointerId++;
 		this.pointers.push(pointer);
 		return pointer;
@@ -288,7 +327,7 @@ export class Touchscreen {
 	/** Delete a pointer from the page so that it cannot be used anymore and does not receive
 	 * any more events from the page.
 	 */
-	async deletePointer(pointer: Pointer) {
+	async deletePointer(pointer: MobilePointer) {
 		const index = this.pointers.indexOf(pointer);
 		if (index === -1) {
 			throw new Error("Pointer not found");

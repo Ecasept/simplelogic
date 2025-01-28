@@ -6,7 +6,13 @@ import {
 	MatcherReturnType,
 	Page,
 } from "@playwright/test";
-import { DesktopEditor, Editor, MobileEditor } from "./fixtures";
+import {
+	DesktopEditor,
+	DesktopPointer,
+	Editor,
+	MobileEditor,
+	Pointer,
+} from "./fixtures";
 import { Touchscreen } from "./mobile/touchscreen";
 
 export async function reload(page: Page) {
@@ -58,20 +64,6 @@ export async function drag(
 		await expectPosToBe(component, x, y);
 	}
 }
-
-export async function addComponent(
-	page: Page,
-	componentName: string,
-	x: number,
-	y: number,
-) {
-	await page
-		.locator(".sidebarWrapper")
-		.getByText(componentName, { exact: true })
-		.click();
-	await page.mouse.click(x, y);
-}
-
 export async function undo(page: Page) {
 	await page.getByRole("button", { name: "Undo" }).click();
 }
@@ -234,6 +226,8 @@ export const test = base.extend<
 		editor: Editor;
 		editorMobile: Editor;
 		touchscreen: Touchscreen;
+		/** A default pointer used by the editor */
+		pointer: Pointer;
 	},
 	{ selectorRegistration: void }
 >({
@@ -272,9 +266,19 @@ export const test = base.extend<
 		touchscreen.init();
 		await use(touchscreen);
 	},
-	editor: async ({ page, hasTouch, touchscreen }, use) => {
+	pointer: async ({ page, hasTouch, touchscreen }, use) => {
 		if (hasTouch) {
-			return use(new MobileEditor(page, touchscreen));
+			const pointer = await touchscreen.createPointer();
+			await use(pointer);
+			await touchscreen.deletePointer(pointer);
+		} else {
+			// Only one pointer is needed for desktop
+			await use(new DesktopPointer(page));
+		}
+	},
+	editor: async ({ page, hasTouch, touchscreen, pointer }, use) => {
+		if (hasTouch) {
+			return use(new MobileEditor(page, touchscreen, pointer));
 		} else {
 			return use(new DesktopEditor(page));
 		}
