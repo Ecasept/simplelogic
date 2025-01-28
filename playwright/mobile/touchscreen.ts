@@ -54,6 +54,7 @@ export class Pointer {
 					clientX: position.x,
 					clientY: position.y,
 					pointerId,
+					bubbles: true,
 				};
 				element.dispatchEvent(new PointerEvent("pointerleave", event));
 			}
@@ -63,6 +64,7 @@ export class Pointer {
 					clientX: position.x,
 					clientY: position.y,
 					pointerId,
+					bubbles: true,
 				};
 				element.dispatchEvent(new PointerEvent("pointerenter", event));
 			}
