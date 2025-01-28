@@ -10,20 +10,31 @@ export class MobilePointer implements Pointer {
 	/** Returns a new pointer on `page` with the specified `pointerId` */
 	static async new(page: Page, pointerId: number) {
 		const currentElements = await page.evaluateHandle(() => []);
-		return new MobilePointer(page, pointerId, currentElements);
+		const lastDownedElement = await page.evaluateHandle(() => null);
+		return new MobilePointer(
+			page,
+			pointerId,
+			currentElements,
+			lastDownedElement,
+		);
 	}
 
 	constructor(
 		private readonly page: Page,
 		private pointerId: number,
+		/** The elements which are currently reachable under the pointer */
 		private currentElements: JSHandle<Element[]>,
+		/** The last element that this pointer last pressed down upon */
+		private lastDownedElement: JSHandle<Element | null>,
 	) {}
 
+	/** Cleans up held JSHandles of the pointer */
 	async cleanup() {
 		if (this.cleanedUp) {
 			throw new Error("Pointer already cleaned up");
 		}
-		this.currentElements.dispose();
+		await this.currentElements.dispose();
+		await this.lastDownedElement.dispose();
 		this.cleanedUp = true;
 	}
 
@@ -39,7 +50,7 @@ export class MobilePointer implements Pointer {
 		if (this.cleanedUp) {
 			throw new Error("Pointer used after being cleaned up");
 		}
-		const process = ({
+		const getElements = ({
 			oldElements,
 			pointerId,
 			position,
@@ -90,12 +101,15 @@ export class MobilePointer implements Pointer {
 		}
 
 		// Execute the process function in the page context and update the list of current elements
-		this.currentElements = await this.page.evaluateHandle(process, {
+		const newElements = await this.page.evaluateHandle(getElements, {
 			oldElements: this.currentElements,
 			pointerId: this.pointerId,
 			position: this.currentPosition,
 			isDown: this.isDown,
 		});
+		// Dispose of the old element handle and set the variable to the new one
+		await this.currentElements.dispose();
+		this.currentElements = newElements;
 	}
 
 	/** Dispatch a synthetic event on `this.page`.
@@ -112,11 +126,60 @@ export class MobilePointer implements Pointer {
 				}
 				const element = document.elementFromPoint(init.clientX, init.clientY);
 				if (element === null) {
-					throw new Error("No element at position");
+					throw new Error("Can't dispatch event - No element at position");
 				}
 				element.dispatchEvent(new PointerEvent(event, init));
 			},
 			{ event, init },
+		);
+	}
+
+	/** Return the element that is currently under the pointer */
+	private async getCurrentElement() {
+		if (this.currentPosition === null) {
+			throw new Error("No current position to down at");
+		}
+		return await this.page.evaluateHandle(({ x, y }) => {
+			const el = document.elementFromPoint(x, y);
+			if (el === null) {
+				throw new Error(
+					`Can't get current element - No element at position ${x}, ${y}`,
+				);
+			}
+			return el;
+		}, this.currentPosition);
+	}
+
+	/** Dispatch a synthetic click event
+	 * if the pointer is under the same element as when it was pressed down.
+	 *
+	 * cf. https://developer.mozilla.org/en-US/docs/Web/API/Element/click_event
+	 * > A pointing-device button (such as a mouse's primary button) is both pressed and released while the pointer is located inside the element.
+	 */
+	private async maybeDispatchClick(currentElement: JSHandle<Element>) {
+		if (this.currentPosition === null) {
+			throw new Error("No current position to click at");
+		}
+		const init: PointerEventInit = {
+			clientX: this.currentPosition.x,
+			clientY: this.currentPosition.y,
+			pointerId: this.pointerId,
+			bubbles: true,
+		};
+		await this.page.evaluate(
+			// @ts-ignore - PointerEventInit can contain itself
+			({ init, last, current }) => {
+				console.log("test");
+				console.log(last, current);
+				if (last === current) {
+					current.dispatchEvent(new PointerEvent("click", init));
+				}
+			},
+			{
+				init: init,
+				last: this.lastDownedElement,
+				current: currentElement,
+			},
 		);
 	}
 
@@ -136,6 +199,8 @@ export class MobilePointer implements Pointer {
 		}
 
 		this.isDown = true;
+		await this.lastDownedElement?.dispose();
+		this.lastDownedElement = await this.getCurrentElement();
 		await this.recalculateElements();
 
 		const event: PointerEventInit = {
@@ -160,6 +225,8 @@ export class MobilePointer implements Pointer {
 		}
 		this.currentPosition = { x, y };
 		this.isDown = true;
+		await this.lastDownedElement?.dispose();
+		this.lastDownedElement = await this.getCurrentElement();
 		await this.recalculateElements();
 
 		const event: PointerEventInit = {
@@ -175,6 +242,8 @@ export class MobilePointer implements Pointer {
 	 * (a pointerdown event must have been dispatched before)
 	 *
 	 * Will issue pointerenter and pointerleave events thereafter.
+	 *
+	 * Will also dispatch a click event if the pointer is over the same element as when it was pressed down.
 	 */
 	async up() {
 		if (this.cleanedUp) {
@@ -193,8 +262,11 @@ export class MobilePointer implements Pointer {
 			pointerId: this.pointerId,
 			bubbles: true,
 		};
+		const el = await this.getCurrentElement();
 		await this.dispatchEvent("pointerup", event);
 		await this.recalculateElements();
+		await this.maybeDispatchClick(el);
+		await el.dispose();
 	}
 
 	/** Dispatch a pointermove event at the specified coordinates
