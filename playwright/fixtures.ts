@@ -13,8 +13,33 @@ export class Editor {
 		await this.page.waitForLoadState("networkidle");
 	}
 
+	/** Open/close the sidebar */
+	async toggleSidebar() {
+		await this.pointer.clickOn(this.page.getByRole("button", { name: "▶" }));
+	}
+
 	async undo() {
 		await this.pointer.clickOn(this.page.getByRole("button", { name: "Undo" }));
+	}
+	async delete(locator: Locator) {
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Toggle Delete" }),
+		);
+		await this.pointer.clickOn(locator);
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Toggle Delete" }),
+		);
+	}
+
+	async loadCircuit(circuit: string) {
+		await this.page.evaluate((text) => {
+			return navigator.clipboard.writeText(text);
+		}, circuit);
+
+		await this.pointer.clickOn(this.page.getByRole("button", { name: "Load" }));
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Paste from clipboard" }),
+		);
 	}
 
 	/**
@@ -47,6 +72,11 @@ export class Editor {
 	/** Returns a locator matching all components currently in the editor */
 	comps() {
 		return this.page.locator(".component-body");
+	}
+
+	/** Returns a locator matching all wires currently in the editor */
+	wires() {
+		return this.page.locator(".wire");
 	}
 
 	/** Adds a component with the specified type at the specified location */

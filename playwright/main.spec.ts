@@ -1,6 +1,5 @@
-import { expect } from "@playwright/test";
 import { circuits } from "./circuits";
-import { expectPosToBe, getAttr, getAttrs, loadCircuit, test } from "./common";
+import { expect, expectPosToBe, getAttr, getAttrs, test } from "./common";
 
 test.describe("adding and dragging/moving", async () => {
 	test("adds component at correct position", async ({ page, editor }) => {
@@ -210,6 +209,93 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(page.locator(".wire").nth(0)).not.toHaveAttribute("d", d1);
 		await expect(page.locator(".wire").nth(1)).not.toHaveAttribute("d", d2);
 	});
+	test("doesn't connect wire when under component", async ({ editor }) => {
+		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("AND", 150, 100);
+		await editor.drag(
+			editor.getHandle("AND", "in1").first(),
+			editor.getHandle("AND", "out").first(),
+		);
+		await expect(editor.wires()).toHaveCount(0);
+	});
+});
+
+test.describe("deleting", async () => {
+	test("deletes wire on top of component", async ({ editor }) => {
+		await editor.addComponent("AND", 100, 100);
+		await editor.drag(
+			editor.getHandle("AND", "out").first(),
+			editor.getHandle("AND", "in1").first(),
+		);
+		await editor.drag(
+			editor.getHandle("AND", "out").nth(1),
+			editor.getHandle("AND", "in2").first(),
+		);
+		await editor.delete(editor.wires().first());
+
+		await expect(editor.wires()).toHaveCount(1);
+		await expect(editor.comps()).toHaveCount(1);
+	});
+	test("delete flow", async ({ page, editor }) => {
+		// Create first component
+		await editor.addComponent("AND", 100, 100);
+
+		// Drag wire from first component
+		const sourceHandle = page.locator("circle.handle").nth(2); // Output handle
+		await editor.dragTo(sourceHandle, 300, 300);
+		await expect(page.locator(".wire")).toHaveCount(1);
+
+		// Create second component
+		await editor.addComponent("OR", 400, 400);
+		await expect(editor.comps()).toHaveCount(2);
+
+		// Connect wire from second to first component
+		const secondSourceHandle = page.locator("circle.handle").nth(3); // Second component input
+		const targetHandle = page.locator("circle.handle").nth(2); // First wire output (after other inputs have disappeared)
+		await editor.drag(secondSourceHandle, targetHandle);
+		await expect(page.locator(".wire")).toHaveCount(2);
+
+		// Switch to delete mode
+		await page.getByRole("button", { name: "Toggle Delete" }).click();
+		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
+
+		// Delete first wire and confirm
+		const firstWire = page.locator(".wire").first();
+		await firstWire.hover({ force: true }); // has pointer-events: none
+		await expect(firstWire).toHaveAttribute(
+			"stroke",
+			"var(--component-delete-color)",
+		);
+		await firstWire.click({ force: true });
+		await expect(page.locator(".wire")).toHaveCount(1);
+
+		// Delete second component and confirm
+		const secondComponent = editor.comps().nth(1);
+		await secondComponent.hover();
+		await expect(secondComponent).toHaveAttribute(
+			"fill",
+			"var(--component-delete-color)",
+		);
+		await secondComponent.click();
+		await expect(editor.comps()).toHaveCount(1);
+		await expect(page.locator("circle.handle")).toHaveCount(5); // 3 for first component, 2 for second wire
+
+		// Undo component deletion and confirm
+		await editor.undo();
+		await expect(editor.comps()).toHaveCount(2);
+		await expect(editor.comps().nth(1)).not.toHaveAttribute(
+			"fill",
+			"var(--component-delete-color)",
+		);
+
+		// Undo wire deletion and confirm
+		await editor.undo();
+		await expect(page.locator(".wire")).toHaveCount(2);
+		await expect(page.locator(".wire").first()).not.toHaveAttribute(
+			"stroke",
+			"var(--component-delete-color)",
+		);
+	});
 });
 
 test.describe("other", () => {
@@ -217,11 +303,11 @@ test.describe("other", () => {
 		await expect(page).toHaveTitle("SimpleLogic");
 	});
 
-	test("toggles sidebar correctly", async ({ page, pointer }) => {
+	test("toggles sidebar correctly", async ({ page, editor }) => {
 		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
-		await pointer.clickOn(page.getByRole("button", { name: "▶" }));
+		await editor.toggleSidebar();
 		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(0);
-		await pointer.clickOn(page.getByRole("button", { name: "▶" }));
+		await editor.toggleSidebar();
 		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
 	});
 
@@ -290,66 +376,6 @@ test.describe("other", () => {
 		await expectPosToBe(editor.comps(), 100, 100);
 	});
 
-	test("delete flow", async ({ page, editor }) => {
-		// Create first component
-		await editor.addComponent("AND", 100, 100);
-
-		// Drag wire from first component
-		const sourceHandle = page.locator("circle.handle").nth(2); // Output handle
-		await editor.dragTo(sourceHandle, 300, 300);
-		await expect(page.locator(".wire")).toHaveCount(1);
-
-		// Create second component
-		await editor.addComponent("OR", 400, 400);
-		await expect(editor.comps()).toHaveCount(2);
-
-		// Connect wire from second to first component
-		const secondSourceHandle = page.locator("circle.handle").nth(3); // Second component input
-		const targetHandle = page.locator("circle.handle").nth(2); // First wire output (after other inputs have disappeared)
-		await editor.drag(secondSourceHandle, targetHandle);
-		await expect(page.locator(".wire")).toHaveCount(2);
-
-		// Switch to delete mode
-		await page.getByRole("button", { name: "Toggle Delete" }).click();
-		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
-
-		// Delete first wire and confirm
-		const firstWire = page.locator(".wire").first();
-		await firstWire.hover({ force: true }); // has pointer-events: none
-		await expect(firstWire).toHaveAttribute(
-			"stroke",
-			"var(--component-delete-color)",
-		);
-		await firstWire.click({ force: true });
-		await expect(page.locator(".wire")).toHaveCount(1);
-
-		// Delete second component and confirm
-		const secondComponent = editor.comps().nth(1);
-		await secondComponent.hover();
-		await expect(secondComponent).toHaveAttribute(
-			"fill",
-			"var(--component-delete-color)",
-		);
-		await secondComponent.click();
-		await expect(editor.comps()).toHaveCount(1);
-		await expect(page.locator("circle.handle")).toHaveCount(5); // 3 for first component, 2 for second wire
-
-		// Undo component deletion and confirm
-		await editor.undo();
-		await expect(editor.comps()).toHaveCount(2);
-		await expect(editor.comps().nth(1)).not.toHaveAttribute(
-			"fill",
-			"var(--component-delete-color)",
-		);
-
-		// Undo wire deletion and confirm
-		await editor.undo();
-		await expect(page.locator(".wire")).toHaveCount(2);
-		await expect(page.locator(".wire").first()).not.toHaveAttribute(
-			"stroke",
-			"var(--component-delete-color)",
-		);
-	});
 	test("disable same handles", async ({ page, editor, pointer, hasTouch }) => {
 		// Create components
 		await editor.addComponent("AND", 200, 200);
@@ -398,8 +424,9 @@ test.describe("other", () => {
 	test("correctly disables component inputs for connected wire outputs", async ({
 		page,
 		pointer,
+		editor,
 	}) => {
-		await loadCircuit(circuits.multiconnected, page);
+		await editor.loadCircuit(circuits.multiconnected);
 		let middleHandle = page.locator("circle.handle").nth(8);
 		await middleHandle.hover();
 		await pointer.down();
@@ -409,11 +436,6 @@ test.describe("other", () => {
 		await targetHandle.hover();
 		await pointer.up();
 		await expect(page.locator("circle.handle")).toHaveCount(9);
-	});
-	test("can load while simulating", async ({ page, editor }) => {
-		await page.getByRole("button", { name: "Toggle Simulation" }).click();
-		await loadCircuit(circuits.singleAnd, page);
-		await expect(editor.comps()).toHaveCount(1);
 	});
 });
 
@@ -640,5 +662,144 @@ test.describe("panning and zooming", () => {
 		);
 
 		await pointer.up();
+	});
+});
+
+test.describe("simulating", () => {
+	test("can load while simulating", async ({ page, editor }) => {
+		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await editor.loadCircuit(circuits.singleAnd);
+		await expect(editor.comps()).toHaveCount(1);
+	});
+	test("build half adder flow", async ({ editor, pointer }) => {
+		// Add inputs
+		await editor.addComponent("IN", 100, 100);
+		await editor.addComponent("IN", 100, 200);
+
+		// Add XOR gate for sum
+		await editor.addComponent("XOR", 200, 150);
+
+		// Add AND gate for carry
+		await editor.addComponent("AND", 200, 250);
+
+		// Add LED gates for outputs
+		await editor.addComponent("LED", 300, 150); // Sum output
+		await editor.addComponent("LED", 300, 250); // Carry output
+
+		// Connect inputs to XOR gate
+		await editor.drag(
+			editor.getHandle("IN", "out").first(),
+			editor.getHandle("XOR", "in1").first(),
+		);
+		await editor.drag(
+			editor.getHandle("IN", "out").nth(1),
+			editor.getHandle("XOR", "in2").first(),
+		);
+
+		// Connect inputs to AND gate
+		await editor.drag(
+			editor.getHandle("IN", "out").first(),
+			editor.getHandle("AND", "in1").first(),
+		);
+		await editor.drag(
+			editor.getHandle("IN", "out").nth(1),
+			editor.getHandle("AND", "in2").first(),
+		);
+
+		// Connect XOR output to LED (sum)
+		await editor.drag(
+			editor.getHandle("XOR", "out").first(),
+			editor.getHandle("LED", "in").first(),
+		);
+
+		// Connect AND output to LED (carry)
+		await editor.drag(
+			editor.getHandle("AND", "out").first(),
+			editor.getHandle("LED", "in").nth(1),
+		);
+
+		await editor.toggleSimulate();
+
+		const in1 = editor.getComponent("IN").first();
+		const in2 = editor.getComponent("IN").nth(1);
+		const sum = editor.getComponent("LED").first();
+		const carry = editor.getComponent("LED").nth(1);
+
+		await pointer.clickOn(in1, true);
+		await expect(in1).toBePowered();
+		await expect(sum).toBePowered();
+
+		await pointer.clickOn(in2, true);
+		await expect(in2).toBePowered();
+		await expect(sum).not.toBePowered();
+		await expect(carry).toBePowered();
+
+		await pointer.clickOn(in1, true);
+		await expect(in1).not.toBePowered();
+		await expect(sum).toBePowered();
+		await expect(carry).not.toBePowered();
+
+		await pointer.clickOn(in2, true);
+		await expect(in2).not.toBePowered();
+		await expect(sum).not.toBePowered();
+		await expect(carry).not.toBePowered();
+	});
+	test("simulate 2-bit ripple carry adder", async ({ editor, pointer }) => {
+		await editor.loadCircuit(circuits.rippleCarryAdder);
+
+		const b1 = editor.getComponent("IN").first(); // first bit of second number
+		const b2 = editor.getComponent("IN").nth(1); // second bit of second number
+		const a1 = editor.getComponent("IN").nth(2); // first bit of first number
+		const a2 = editor.getComponent("IN").nth(3); // second bit of first number
+		const sum2 = editor.getComponent("LED").first(); // second bit of solution
+		const sum3 = editor.getComponent("LED").nth(1); // third bit of solution
+		const sum1 = editor.getComponent("LED").nth(2); // first bit of solution
+
+		await editor.toggleSimulate();
+
+		// Close sidebar
+		await editor.toggleSidebar();
+
+		// Test case 1: 001 (A1 = 1)
+		await pointer.clickOn(a1, true);
+		await expect(a1).toBePowered();
+		await expect(sum1).toBePowered();
+
+		// Test case 2: 011 (A1 = 1, A2 = 1)
+		await pointer.clickOn(a2, true);
+		await expect(a2).toBePowered();
+		await expect(sum2).toBePowered();
+		await expect(sum1).toBePowered();
+
+		// Test case 3: 100 (A1 = 1, A2 = 1, B1 = 1)
+		await pointer.clickOn(b1, true);
+		await expect(b1).toBePowered();
+		await expect(sum1).not.toBePowered();
+		await expect(sum2).not.toBePowered();
+		await expect(sum3).toBePowered();
+
+		// Test case 4: 110 (All inputs = 1)
+		await pointer.clickOn(b2, true);
+		await expect(b2).toBePowered();
+		await expect(sum1).not.toBePowered();
+		await expect(sum2).toBePowered();
+		await expect(sum3).toBePowered();
+
+		// Reset all inputs
+		await pointer.clickOn(a1, true);
+		await pointer.clickOn(a2, true);
+		await pointer.clickOn(b1, true);
+		await pointer.clickOn(b2, true);
+		await expect(a1).not.toBePowered();
+		await expect(a2).not.toBePowered();
+		await expect(b1).not.toBePowered();
+		await expect(b2).not.toBePowered();
+
+		// Test case 5: 100 (A2 = 1, B2 = 1)
+		await pointer.clickOn(a2, true);
+		await pointer.clickOn(b2, true);
+		await expect(sum1).not.toBePowered();
+		await expect(sum2).not.toBePowered();
+		await expect(sum3).toBePowered();
 	});
 });

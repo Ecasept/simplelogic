@@ -32,37 +32,6 @@ export async function getAttrs(locator: Locator, ...attrs: string[]) {
 	return values;
 }
 
-export async function loadCircuit(circuit: string, page: Page) {
-	try {
-		await page.evaluate((text) => {
-			return navigator.clipboard.writeText(text);
-		}, circuit);
-	} catch (e) {
-		const modifier = process.platform === "darwin" ? "Meta" : "Control";
-		// Create a temporary input element and copy from it
-		await page.evaluate((text) => {
-			const input = document.createElement("input");
-			input.id = "test-copy-input";
-			input.value = text;
-			document.body.appendChild(input);
-			input.select();
-			document.body.removeChild(input);
-		}, circuit);
-
-		await page.keyboard.press("${modifier}+KeyC");
-
-		await page.evaluate(() => {
-			const input = document.querySelector(
-				"#test-copy-input",
-			) as HTMLInputElement;
-			document.body.removeChild(input);
-		});
-	}
-
-	await page.getByRole("button", { name: "Load" }).click();
-	await page.getByRole("button", { name: "Paste from clipboard" }).click();
-}
-
 export function throwOnConsoleError(page: Page) {
 	page.on("console", (message) => {
 		if (message.type() === "error") {
@@ -117,9 +86,7 @@ const createHandleSelectorEngine = () => ({
 	getComponents(root: Element, type: string) {
 		// Find all components with the specified type, and extract their ids
 		return Array.from(
-			root.querySelectorAll(
-				`.component-body[data-testcomponenttype="${type}"]`,
-			),
+			root.querySelectorAll(`[data-testcomponenttype="${type}"]`),
 		).map((e) => e.getAttribute("data-testcomponentid"));
 	},
 	/** Returns all handles with the specified identifier
@@ -129,7 +96,7 @@ const createHandleSelectorEngine = () => ({
 		// and the component id, or, if it doesn't exist, use `null`.
 		return componentIds.map((id) =>
 			root.querySelector(
-				`[data-testcomponentid="${id}"][data-testhandleid="${handleId}"]`,
+				`[data-testconnectedcomponentid="${id}"][data-testhandleid="${handleId}"]`,
 			),
 		);
 	},
@@ -157,9 +124,7 @@ const createComponentSelectorEngine = () => ({
 		const [type, nth] = selector.split(":");
 
 		const components = Array.from(
-			root.querySelectorAll(
-				`.component-body[data-testcomponenttype="${type}"]`,
-			),
+			root.querySelectorAll(`[data-testcomponenttype="${type}"]`),
 		);
 
 		const component = components[parseInt(nth)];
@@ -168,7 +133,7 @@ const createComponentSelectorEngine = () => ({
 	},
 });
 
-type MockClipboard = {
+export type MockClipboard = {
 	content: string;
 };
 

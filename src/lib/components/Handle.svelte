@@ -77,7 +77,7 @@
 	role="button"
 	tabindex="0"
 	class="handle"
-	data-testcomponentid={connection.id}
+	data-testconnectedcomponentid={connection.id}
 	data-testhandleid={identifier}
 	onpointerenter={() => {
 		onHandleEnter();
