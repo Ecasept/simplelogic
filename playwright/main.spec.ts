@@ -102,7 +102,6 @@ test.describe("adding and dragging/moving", async () => {
 		pointer,
 		hasTouch,
 	}) => {
-		test.skip(hasTouch, "Can't press escape on touch devices");
 		// Setup: Add component
 		await editor.addComponent("AND", 100, 100);
 
@@ -122,9 +121,14 @@ test.describe("adding and dragging/moving", async () => {
 		await expectPosToBe(page.locator("circle.handle").nth(1), 150, 150);
 		await expect(wire).not.toHaveAttribute("d", initialD);
 
-		// 3. Press escape
-		await page.keyboard.press("Escape");
-		await pointer.up();
+		// 3. Press escape (or undo if on mobile)
+		if (hasTouch) {
+			await pointer.up();
+			await editor.undo();
+		} else {
+			await page.keyboard.press("Escape");
+			await pointer.up();
+		}
 		await expectPosToBe(handle, 400, 400);
 		await expect(wire).toHaveAttribute("d", initialD);
 
@@ -240,7 +244,6 @@ test.describe("other", () => {
 	});
 
 	test("undo", async ({ page, editor, pointer, hasTouch }) => {
-		test.skip(hasTouch, "Can't press escape on touch devices");
 		// Add components
 		await editor.addComponent("AND", 300, 300);
 		await editor.addComponent("AND", 500, 500);
@@ -279,9 +282,11 @@ test.describe("other", () => {
 
 		// Undo while adding
 		await editor.addComponent("AND", 100, 100); // Add component
-		await page.keyboard.press("a"); // Start adding another component
-		await page.keyboard.press("Control+KeyZ");
-		await expect(editor.comp()).toHaveCount(1);
+		if (!hasTouch) {
+			await page.keyboard.press("a"); // Start adding another component
+			await page.keyboard.press("Control+KeyZ");
+			await expect(editor.comp()).toHaveCount(1);
+		}
 
 		// Undo while moving
 		await editor.comp().hover();
@@ -353,7 +358,6 @@ test.describe("other", () => {
 		);
 	});
 	test("disable same handles", async ({ page, editor, pointer, hasTouch }) => {
-		test.skip(hasTouch, "Can't press escape on touch devices");
 		// Create components
 		await editor.addComponent("AND", 200, 200);
 		await editor.addComponent("OR", 600, 600);
@@ -372,9 +376,14 @@ test.describe("other", () => {
 		// verify that other outputs have disappeared
 		await expect(page.locator("circle.handle")).toHaveCount(5);
 
-		// escape
-		await page.keyboard.press("Escape");
-		await pointer.up();
+		// escape (or undo if on mobile)
+		if (hasTouch) {
+			await pointer.up();
+			await editor.undo();
+		} else {
+			await page.keyboard.press("Escape");
+			await pointer.up();
+		}
 
 		// verify that outputs are back
 		await expect(page.locator("circle.handle")).toHaveCount(8);
@@ -473,7 +482,7 @@ test.describe("adding dialog", async () => {
 
 test.describe("panning and zooming", () => {
 	test("can pan and zoom", async ({ page, editor, pointer, hasTouch }) => {
-		test.skip(hasTouch, "Can't press keys and use wheel on touch devices");
+		test.skip(hasTouch, "Can't use wheel on touch devices");
 		await editor.addComponent("AND", 100, 100);
 
 		await pointer.moveTo(500, 500);
@@ -513,7 +522,7 @@ test.describe("panning and zooming", () => {
 		pointer,
 		hasTouch,
 	}) => {
-		test.skip(hasTouch, "Can't press use wheel on touch devices");
+		test.skip(hasTouch, "Can't use wheel on touch devices");
 		await pointer.moveTo(500, 500);
 		await page.keyboard.press("a");
 
@@ -533,7 +542,7 @@ test.describe("panning and zooming", () => {
 		pointer,
 		hasTouch,
 	}) => {
-		test.skip(hasTouch, "Can't press use wheel on touch devices");
+		test.skip(hasTouch, "Can't use wheel on touch devices");
 		await pointer.moveTo(500, 500);
 		await pointer.down();
 		await pointer.moveTo(0, 0);

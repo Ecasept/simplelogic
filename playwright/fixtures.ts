@@ -7,6 +7,16 @@ export class Editor {
 		protected readonly pointer: Pointer,
 	) {}
 
+	/** Reloads the editor, resetting all components and everyhing else in the UI */
+	async reload() {
+		await this.page.goto("/");
+		await this.page.waitForLoadState("networkidle");
+	}
+
+	async undo() {
+		await this.pointer.clickOn(this.page.getByRole("button", { name: "Undo" }));
+	}
+
 	/**
 	 * Returns a custom locator for all handles (or the nth) with a specific identifier
 	 * that belong to a component with the specified type.

@@ -23,7 +23,6 @@ test.describe("Mobile", () => {
 		);
 	});
 	test("build half adder flow", async ({ editor, pointer }) => {
-		// test.skip(true, "// fTODO: find source of bug");
 		// Add inputs
 		await editor.addComponent("IN", 100, 100);
 		await editor.addComponent("IN", 100, 200);

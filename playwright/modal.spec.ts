@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { spawn } from "child_process";
-import { getAttr, reload, test } from "./common";
+import { getAttr, test } from "./common";
 
 test.describe("modal", async () => {
 	test.beforeAll(async () => {
@@ -16,7 +16,7 @@ test.describe("modal", async () => {
 			});
 		});
 	});
-	test("login flow", async ({ page }) => {
+	test("login flow", async ({ page, editor }) => {
 		// Can't save without being logged in
 		await page.getByRole("button", { name: "Save" }).click();
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
@@ -47,7 +47,7 @@ test.describe("modal", async () => {
 		await expect(page.locator('input[type="password"]')).not.toBeVisible();
 
 		// Still logged in after reload
-		await reload(page);
+		await editor.reload();
 		await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
 		await expect(page.locator('input[type="password"]')).not.toBeVisible();
 
@@ -57,7 +57,7 @@ test.describe("modal", async () => {
 		await expect(page.locator('input[type="password"]')).toBeVisible();
 
 		// Still logged out after reload
-		await reload(page);
+		await editor.reload();
 		await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
 		await expect(page.locator('input[type="password"]')).toBeVisible();
 
@@ -73,7 +73,7 @@ test.describe("modal", async () => {
 		await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
 		await expect(page.locator('input[type="password"]')).toBeVisible();
 	});
-	test("save flow", async ({ page, browserName }) => {
+	test("save flow", async ({ page, browserName, editor }) => {
 		const graphName = `test_${browserName}_${Date.now()}`;
 
 		// Login
@@ -122,7 +122,7 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Reload page
-		await reload(page);
+		await editor.reload();
 		// Open modal
 		await page.getByRole("button", { name: "Load" }).click();
 		await expect(page.locator(".modal-bg")).toBeVisible();
@@ -137,7 +137,7 @@ test.describe("modal", async () => {
 		await page.getByText("AND", { exact: true }).click();
 		await expect(page.locator(".sidebar")).not.toBeVisible();
 	});
-	test("enter selects circuit", async ({ page, browserName }) => {
+	test("enter selects circuit", async ({ page, browserName, editor }) => {
 		const graphName = `test_enter_${browserName}_${Date.now()}`;
 
 		// Login
@@ -157,7 +157,7 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Reload page
-		await reload(page);
+		await editor.reload();
 
 		// Open load modal and select with Enter
 		await page.getByRole("button", { name: "Load" }).click();
@@ -182,7 +182,7 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Reload page
-		await reload(page);
+		await editor.reload();
 
 		// Paste from clipboard
 		await page.getByRole("button", { name: "Load" }).click();
