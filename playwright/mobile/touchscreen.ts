@@ -17,6 +17,10 @@ export class MobilePointer implements Pointer {
 		return pointer;
 	}
 
+	/** Initialize the JSHandles to empty values.
+	 * JSHandles don't persist after a page reload so this method needs to be called
+	 * after a page reload to reinitialize the handles.
+	 */
 	async init() {
 		this.currentElements = await this.page.evaluateHandle(() => []);
 		this.lastDownedElement = await this.page.evaluateHandle(() => null);
