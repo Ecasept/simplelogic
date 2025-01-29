@@ -177,8 +177,7 @@ export const test = base.extend<
 		page: Page;
 		clipboard: MockClipboard;
 		editor: Editor;
-		editorMobile: Editor;
-		touchscreen: Touchscreen;
+		touchscreen: Touchscreen | null;
 		/** A default pointer used by the editor */
 		pointer: Pointer;
 	},
@@ -214,16 +213,20 @@ export const test = base.extend<
 		await page.waitForLoadState("networkidle");
 		await use(page);
 	},
-	touchscreen: async ({ page }, use) => {
+	touchscreen: async ({ page, hasTouch }, use) => {
+		if (!hasTouch) {
+			await use(null);
+			return;
+		}
 		const touchscreen = new Touchscreen(page);
 		await touchscreen.init();
 		await use(touchscreen);
 	},
 	pointer: async ({ page, hasTouch, touchscreen }, use) => {
 		if (hasTouch) {
-			const pointer = await touchscreen.createPointer();
+			const pointer = await touchscreen!.createPointer();
 			await use(pointer);
-			await touchscreen.deletePointer(pointer);
+			await touchscreen!.deletePointer(pointer);
 		} else {
 			// Only one pointer is needed for desktop
 			await use(new DesktopPointer(page));
