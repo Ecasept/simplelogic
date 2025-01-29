@@ -1,18 +1,11 @@
 import {
 	test as base,
 	expect as baseExpect,
-	ElementHandle,
 	Locator,
 	MatcherReturnType,
 	Page,
 } from "@playwright/test";
-import {
-	DesktopEditor,
-	DesktopPointer,
-	Editor,
-	MobileEditor,
-	Pointer,
-} from "./fixtures";
+import { DesktopPointer, Editor, Pointer } from "./fixtures";
 import { Touchscreen } from "./mobile/touchscreen";
 
 export async function reload(page: Page) {
@@ -33,32 +26,21 @@ export async function expectPosToBe(component: Locator, x: number, y: number) {
 	expect(Math.abs(centerY - y)).toBeLessThan(35);
 }
 
-export async function dragHandle(
-	source: Locator | ElementHandle<SVGElement | HTMLElement>,
-	dest: Locator | ElementHandle<SVGElement | HTMLElement>,
-	page: Page,
-) {
-	await source.hover();
-	await page.mouse.down();
-	await dest.hover();
-	await page.mouse.up();
-}
-
 export async function drag(
 	component: Locator,
 	x: number,
 	y: number,
-	page: Page,
+	pointer: Pointer,
 	{
 		mouseUp = true,
 		expect = true,
 	}: { mouseUp?: boolean; expect?: boolean } = {},
 ) {
 	await component.hover();
-	await page.mouse.down();
-	await page.mouse.move(x, y);
+	await pointer.down();
+	await pointer.moveTo(x, y);
 	if (mouseUp) {
-		await page.mouse.up();
+		await pointer.up();
 	}
 	if (expect) {
 		await expectPosToBe(component, x, y);
@@ -276,12 +258,8 @@ export const test = base.extend<
 			await use(new DesktopPointer(page));
 		}
 	},
-	editor: async ({ page, hasTouch, touchscreen, pointer }, use) => {
-		if (hasTouch) {
-			return use(new MobileEditor(page, touchscreen, pointer));
-		} else {
-			return use(new DesktopEditor(page));
-		}
+	editor: async ({ page, pointer }, use) => {
+		await use(new Editor(page, pointer));
 	},
 });
 

@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { spawn } from "child_process";
-import { drag, dragHandle, getAttr, reload, test } from "./common";
+import { getAttr, reload, test } from "./common";
 
 test.describe("modal", async () => {
 	test.beforeAll(async () => {
@@ -95,7 +95,7 @@ test.describe("modal", async () => {
 		// Close modal and add data
 		await page.getByRole("button", { name: "Close" }).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
-		await addComponent(page, "AND", 100, 200);
+		await editor.addComponent("AND", 100, 200);
 
 		// Open modal
 		await page.getByRole("button", { name: "Save" }).click();
@@ -131,7 +131,7 @@ test.describe("modal", async () => {
 		await expect(page.getByText(`${graphName} id:`)).toBeVisible();
 		await page.getByText(`${graphName} id:`).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
-		await expect(page.locator(".component-body")).toHaveCount(1);
+		await expect(editor.comp()).toHaveCount(1);
 	});
 	test("sidebar disappears when editing", async ({ page }) => {
 		await page.getByText("AND", { exact: true }).click();
@@ -148,7 +148,7 @@ test.describe("modal", async () => {
 		await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
 
 		// Create a circuit
-		await addComponent(page, "AND", 100, 200);
+		await editor.addComponent("AND", 100, 200);
 
 		// Save the circuit
 		await page.getByRole("button", { name: "Save" }).click();
@@ -166,15 +166,15 @@ test.describe("modal", async () => {
 		await page.getByText(`${graphName} id:`).focus();
 		await page.keyboard.press("Enter");
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
-		await expect(page.locator(".component-body")).toHaveCount(1);
+		await expect(editor.comp()).toHaveCount(1);
 	});
-	test("copy and paste", async ({ page }) => {
+	test("copy and paste", async ({ page, editor }) => {
 		// Create 2 components connected by a wire
-		await addComponent(page, "AND", 100, 200);
-		await addComponent(page, "OR", 200, 300);
+		await editor.addComponent("AND", 100, 200);
+		await editor.addComponent("OR", 200, 300);
 		const sourceHandle = page.locator("circle.handle").nth(2);
 		const targetHandle = page.locator("circle.handle").nth(3);
-		await dragHandle(sourceHandle, targetHandle, page);
+		await editor.drag(sourceHandle, targetHandle);
 
 		// Copy to clipboard
 		await page.getByRole("button", { name: "Save" }).click();
@@ -190,13 +190,13 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Check that the components were copied
-		await expect(page.locator(".component-body")).toHaveCount(2);
+		await expect(editor.comp()).toHaveCount(2);
 		await expect(page.locator(".wire")).toHaveCount(1);
 
 		// Check that components are correctly connected
 		const initialD = await getAttr(page.locator(".wire").first(), "d");
-		const component = page.locator(".component-body").first();
-		await drag(component, 50, 50, page);
+		const component = editor.comp().first();
+		await editor.dragTo(component, 50, 50);
 		await expect(page.locator(".wire").first()).not.toHaveAttribute(
 			"d",
 			initialD,

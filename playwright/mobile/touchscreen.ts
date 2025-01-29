@@ -169,8 +169,6 @@ export class MobilePointer implements Pointer {
 		await this.page.evaluate(
 			// @ts-ignore - PointerEventInit can contain itself
 			({ init, last, current }) => {
-				console.log("test");
-				console.log(last, current);
 				if (last === current) {
 					current.dispatchEvent(new PointerEvent("click", init));
 				}

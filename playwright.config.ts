@@ -59,6 +59,9 @@ export default defineConfig({
 			name: "Mobile Chrome",
 			use: {
 				...devices["Pixel 5"],
+				contextOptions: {
+					permissions: ["clipboard-read", "clipboard-write"],
+				},
 				viewport: devices["Desktop Chrome"].viewport,
 			},
 		},

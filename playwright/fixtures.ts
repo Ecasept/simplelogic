@@ -1,31 +1,12 @@
 import { Locator, Page } from "@playwright/test";
-import { Touchscreen } from "./mobile/touchscreen";
 
 /** Base Editor class implementing functions independent of the page being mobile or not */
-export abstract class BaseEditor {
-	constructor(protected readonly page: Page) {}
+export class Editor {
+	constructor(
+		protected readonly page: Page,
+		protected readonly pointer: Pointer,
+	) {}
 
-	getHandle(type: string, id: string) {
-		// relay over to selector engine
-		return {
-			nth: (n: number) => this.page.locator(`handle=${type}:${id}:${n}`),
-			first: () => this.page.locator(`handle=${type}:${id}:0`),
-		};
-	}
-
-	getComponent(type: string) {
-		return {
-			nth: (n: number) => this.page.locator(`component=${type}:${n}`),
-			first: () => this.page.locator(`component=${type}:0`),
-		};
-	}
-
-	comp() {
-		return this.page.locator(".component-body");
-	}
-}
-
-export interface Editor {
 	/**
 	 * Returns a custom locator for all handles (or the nth) with a specific identifier
 	 * that belong to a component with the specified type.
@@ -37,77 +18,50 @@ export interface Editor {
 	 * This means that if you pass type="AND", id="in1", n=0, but the first AND gate
 	 * has the "in1" gate hidden, **it will return null** instead of selecting the second AND gate.
 	 */
-	getHandle(
-		type: string,
-		id: string,
-	): { nth: (n: number) => Locator; first: () => Locator };
+	getHandle(type: string, id: string) {
+		// relay over to selector engine
+		return {
+			nth: (n: number) => this.page.locator(`handle=${type}:${id}:${n}`),
+			first: () => this.page.locator(`handle=${type}:${id}:0`),
+		};
+	}
 
 	/** Returns a custom locator for all components with the specified type */
-	getComponent(type: string): {
-		nth: (n: number) => Locator;
-		first: () => Locator;
-	};
-
-	/** Adds a component with the specified type at the specified location */
-	addComponent(type: string, x: number, y: number): Promise<void>;
+	getComponent(type: string) {
+		return {
+			nth: (n: number) => this.page.locator(`component=${type}:${n}`),
+			first: () => this.page.locator(`component=${type}:0`),
+		};
+	}
 
 	/** Returns a locator matching all components currently in the editor */
-	comp(): Locator;
-
-	/* Connects two handles with each other */
-	connect(handle1: Locator, handle2: Locator): Promise<void>;
-
-	/** Drags a locator to a specific position */
-	drag(locator: Locator, x: number, y: number): Promise<void>;
-
-	/** Toggles the simulation mode on the page */
-	toggleSimulate(): Promise<void>;
-}
-
-export class DesktopEditor extends BaseEditor implements Editor {
-	async addComponent(type: string, x: number, y: number): Promise<void> {
-		await this.page
-			.locator(".sidebarWrapper")
-			.getByText(type, { exact: true })
-			.click();
-		await this.page.mouse.click(x, y);
-	}
-	async connect(handle1: Locator, handle2: Locator): Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	async drag(locator: Locator, x: number, y: number): Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	async toggleSimulate(): Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-}
-
-export class MobileEditor extends BaseEditor implements Editor {
-	constructor(
-		page: Page,
-		private readonly touchscreen: Touchscreen,
-		private readonly pointer: Pointer,
-	) {
-		super(page);
+	comp() {
+		return this.page.locator(".component-body");
 	}
 
+	/** Adds a component with the specified type at the specified location */
 	async addComponent(type: string, x: number, y: number): Promise<void> {
 		await this.pointer.clickOn(
 			this.page.locator(".sidebarWrapper").getByText(type, { exact: true }),
 		);
 		await this.pointer.clickAt(x, y);
 	}
-	async connect(handle1: Locator, handle2: Locator): Promise<void> {
-		await this.pointer.downOn(handle1);
-		await this.pointer.moveOnto(handle2);
+
+	/* Drags one locator to another locator */
+	async drag(src: Locator, dst: Locator): Promise<void> {
+		await this.pointer.downOn(src);
+		await this.pointer.moveOnto(dst);
 		await this.pointer.up();
 	}
-	async drag(locator: Locator, x: number, y: number): Promise<void> {
-		await this.pointer.downOn(locator);
+
+	/** Drags a locator to the specified coordinates */
+	async dragTo(src: Locator, x: number, y: number): Promise<void> {
+		await this.pointer.downOn(src);
 		await this.pointer.moveTo(x, y);
 		await this.pointer.up();
 	}
+
+	/** Toggles the simulation mode on the page */
 	async toggleSimulate(): Promise<void> {
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Toggle Simulation" }),
