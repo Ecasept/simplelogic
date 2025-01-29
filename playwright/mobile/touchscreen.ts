@@ -6,26 +6,26 @@ export class MobilePointer implements Pointer {
 	private currentPosition: { x: number; y: number } | null = null;
 	private isDown = false;
 	private cleanedUp = false;
+	private currentElements: JSHandle<Element[]>;
+	/** The last element that this pointer last pressed down upon */
+	private lastDownedElement: JSHandle<Element | null>;
 
 	/** Returns a new pointer on `page` with the specified `pointerId` */
 	static async new(page: Page, pointerId: number) {
-		const currentElements = await page.evaluateHandle(() => []);
-		const lastDownedElement = await page.evaluateHandle(() => null);
-		return new MobilePointer(
-			page,
-			pointerId,
-			currentElements,
-			lastDownedElement,
-		);
+		const pointer = new MobilePointer(page, pointerId);
+		await pointer.init();
+		return pointer;
+	}
+
+	async init() {
+		this.currentElements = await this.page.evaluateHandle(() => []);
+		this.lastDownedElement = await this.page.evaluateHandle(() => null);
 	}
 
 	constructor(
 		private readonly page: Page,
 		private pointerId: number,
 		/** The elements which are currently reachable under the pointer */
-		private currentElements: JSHandle<Element[]>,
-		/** The last element that this pointer last pressed down upon */
-		private lastDownedElement: JSHandle<Element | null>,
 	) {}
 
 	/** Cleans up held JSHandles of the pointer */
@@ -358,6 +358,12 @@ export class Touchscreen {
 		);
 		// Register observer on page load
 		await this.page.addInitScript(this.registerMutationObserver);
+		// Reinitialize all pointers on page load
+		this.page.on("load", async () => {
+			for (const pointer of this.pointers) {
+				await pointer.init();
+			}
+		});
 	}
 
 	/** Create a new pointer on the page */

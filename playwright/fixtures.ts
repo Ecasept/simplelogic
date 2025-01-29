@@ -3,8 +3,8 @@ import { Locator, Page } from "@playwright/test";
 /** Base Editor class implementing functions independent of the page being mobile or not */
 export class Editor {
 	constructor(
-		protected readonly page: Page,
-		protected readonly pointer: Pointer,
+		private readonly page: Page,
+		private readonly pointer: Pointer,
 	) {}
 
 	/** Reloads the editor, resetting all components and everyhing else in the UI */
