@@ -102,7 +102,7 @@ export interface Pointer {
 	moveOnto(locator: Locator): Promise<void>;
 
 	/** Press and then release the pointer on the specified locator */
-	clickOn(locator: Locator): Promise<void>;
+	clickOn(locator: Locator, force?: boolean): Promise<void>;
 }
 
 export class DesktopPointer implements Pointer {
@@ -138,7 +138,7 @@ export class DesktopPointer implements Pointer {
 		await locator.hover();
 	}
 
-	async clickOn(locator: Locator) {
-		await locator.click();
+	async clickOn(locator: Locator, force?: boolean) {
+		await locator.click({ force });
 	}
 }

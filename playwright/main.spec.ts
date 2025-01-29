@@ -1,13 +1,6 @@
 import { expect } from "@playwright/test";
 import { circuits } from "./circuits";
-import {
-	expectPosToBe,
-	getAttr,
-	getAttrs,
-	loadCircuit,
-	test,
-	undo,
-} from "./common";
+import { expectPosToBe, getAttr, getAttrs, loadCircuit, test } from "./common";
 
 test.describe("adding and dragging/moving", async () => {
 	test("adds component at correct position", async ({ page, editor }) => {
@@ -143,14 +136,14 @@ test.describe("adding and dragging/moving", async () => {
 			"d",
 			"M121 81 L201 221",
 		);
-		await undo(page);
-		await undo(page);
+		await editor.undo();
+		await editor.undo();
 
 		// 4. Drag
 		await editor.dragTo(handle, 250, 250);
 
 		// 5. Undo
-		await undo(page);
+		await editor.undo();
 		await expectPosToBe(handle, 400, 400);
 		await expect(wire).toHaveAttribute("d", initialD);
 
@@ -161,13 +154,13 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(wire).not.toHaveAttribute("d", initialD);
 
 		// Undo
-		await undo(page);
+		await editor.undo();
 		await expectPosToBe(handle, 400, 400);
 		await expect(wire).toHaveAttribute("d", initialD);
 
 		// 7. Undo twice (should remove the wire)
-		await undo(page);
-		await undo(page);
+		await editor.undo();
+		await editor.undo();
 		await expect(page.locator(".wire")).toHaveCount(0);
 	});
 	test("moves components correctly", async ({ page, editor, pointer }) => {
@@ -264,20 +257,20 @@ test.describe("other", () => {
 		await pointer.up();
 
 		// Undo Wire
-		await undo(page);
+		await editor.undo();
 		await expect(handle).toHaveAttribute("cx", x1);
 		await expect(handle).toHaveAttribute("cy", y1);
 
 		// Undo Move
 		await expectPosToBe(editor.comp().nth(1), 100, 100);
-		await undo(page);
+		await editor.undo();
 		await expectPosToBe(editor.comp().nth(1), 500, 500);
 
 		// Undo Components
 		await expect(editor.comp()).toHaveCount(2);
-		await undo(page);
+		await editor.undo();
 		await expect(editor.comp()).toHaveCount(1);
-		await undo(page);
+		await editor.undo();
 		await expect(editor.comp()).toHaveCount(0);
 
 		// Undo while adding
@@ -342,7 +335,7 @@ test.describe("other", () => {
 		await expect(page.locator("circle.handle")).toHaveCount(5); // 3 for first component, 2 for second wire
 
 		// Undo component deletion and confirm
-		await undo(page);
+		await editor.undo();
 		await expect(editor.comp()).toHaveCount(2);
 		await expect(editor.comp().nth(1)).not.toHaveAttribute(
 			"fill",
@@ -350,7 +343,7 @@ test.describe("other", () => {
 		);
 
 		// Undo wire deletion and confirm
-		await undo(page);
+		await editor.undo();
 		await expect(page.locator(".wire")).toHaveCount(2);
 		await expect(page.locator(".wire").first()).not.toHaveAttribute(
 			"stroke",
@@ -432,7 +425,7 @@ test.describe("sidebar actions", async () => {
 		await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled();
 		await editor.addComponent("AND", 100, 100);
 		await expect(page.getByRole("button", { name: "Undo" })).not.toBeDisabled();
-		await undo(page);
+		await editor.undo();
 		await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled();
 	});
 	test("clear button clears the canvas", async ({ page, editor }) => {
