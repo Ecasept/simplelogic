@@ -802,4 +802,63 @@ test.describe("simulating", () => {
 		await expect(sum2).not.toBePowered();
 		await expect(sum3).toBePowered();
 	});
+	test("simulate SR NOR latch", async ({ editor, pointer }) => {
+		await editor.loadCircuit(circuits.SR_NOR_latch);
+
+		const r = editor.getComponent("IN").first(); // reset
+		const s = editor.getComponent("IN").nth(1); // set
+		const qnot = editor.getComponent("LED").first(); // inverted result (Q̅)
+		const q = editor.getComponent("LED").nth(1); // result (Q)
+
+		await editor.toggleSimulate();
+
+		// Initial state: R = 1, S = 0, Q = 0, Q̅ = 1
+		await expect(r).toBePowered(); // R = 1
+		await expect(s).not.toBePowered(); // S = 0
+		await expect(q).not.toBePowered(); // Q = 0
+		await expect(qnot).toBePowered(); // Q̅ = 1
+
+		// Toggle R (Reset) to 0
+		await pointer.clickOn(r, true); // Toggle R to 0
+		await expect(r).not.toBePowered(); // R = 0
+		await expect(s).not.toBePowered(); // S remains 0
+		await expect(q).not.toBePowered(); // Q remains 0 (no change)
+		await expect(qnot).toBePowered(); // Q̅ remains 1 (no change)
+
+		// Toggle S (Set) to 1
+		await pointer.clickOn(s, true); // Toggle S to 1
+		await expect(r).not.toBePowered(); // R remains 0
+		await expect(s).toBePowered(); // S = 1
+		await expect(q).toBePowered(); // Q = 1
+		await expect(qnot).not.toBePowered(); // Q̅ = 0
+
+		// Toggle S (Set) to 0
+		await pointer.clickOn(s, true); // Toggle S to 0
+		await expect(r).not.toBePowered(); // R remains 0
+		await expect(s).not.toBePowered(); // S = 0
+		await expect(q).toBePowered(); // Q remains 1 (no change)
+		await expect(qnot).not.toBePowered(); // Q̅ remains 0 (no change)
+
+		// Toggle R (Reset) to 1
+		await pointer.clickOn(r, true); // Toggle R to 1
+		await expect(r).toBePowered(); // R = 1
+		await expect(s).not.toBePowered(); // S remains 0
+		await expect(q).not.toBePowered(); // Q = 0
+		await expect(qnot).toBePowered(); // Q̅ = 1
+
+		// Toggle S (Set) to 1 (invalid state)
+		await pointer.clickOn(s, true); // Toggle S to 1
+		await expect(r).toBePowered(); // R remains 1
+		await expect(s).toBePowered(); // S = 1
+		await expect(q).not.toBePowered(); // Q is 0 (invalid state)
+		await expect(qnot).not.toBePowered(); // Q̅ is 0 (invalid state)
+		// invalid state because: Q = Q̅, which is by definition not possible
+
+		// Toggle R (Reset) to 0
+		await pointer.clickOn(r, true); // Toggle R to 0
+		await expect(r).not.toBePowered(); // R = 0
+		await expect(s).toBePowered(); // S remains 1
+		await expect(q).toBePowered(); // Q = 1
+		await expect(qnot).not.toBePowered(); // Q̅ = 0
+	});
 });
