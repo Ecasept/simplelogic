@@ -1,4 +1,5 @@
 import { Locator, Page } from "@playwright/test";
+import { expect } from "./common";
 
 /** Base Editor class implementing functions independent of the page being mobile or not */
 export class Editor {
@@ -40,6 +41,12 @@ export class Editor {
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Paste from clipboard" }),
 		);
+	}
+
+	async waitForSimulationFinished() {
+		await expect(
+			this.page.getByText("Is simulation running: false"),
+		).toBeVisible();
 	}
 
 	/**

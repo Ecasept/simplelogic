@@ -725,25 +725,34 @@ test.describe("simulating", () => {
 		const sum = editor.getComponent("LED").first();
 		const carry = editor.getComponent("LED").nth(1);
 
+		// Test case 1: in1 = 1, in2 = 0
 		await pointer.clickOn(in1, true);
 		await expect(in1).toBePowered();
+		await editor.waitForSimulationFinished();
 		await expect(sum).toBePowered();
 
+		// Test case 2: in1 = 1, in2 = 1
 		await pointer.clickOn(in2, true);
 		await expect(in2).toBePowered();
+		await editor.waitForSimulationFinished();
 		await expect(sum).not.toBePowered();
 		await expect(carry).toBePowered();
 
+		// Test case 3: in1 = 0, in2 = 1
 		await pointer.clickOn(in1, true);
 		await expect(in1).not.toBePowered();
+		await editor.waitForSimulationFinished();
 		await expect(sum).toBePowered();
 		await expect(carry).not.toBePowered();
 
+		// Test case 4: in1 = 0, in2 = 0
 		await pointer.clickOn(in2, true);
 		await expect(in2).not.toBePowered();
+		await editor.waitForSimulationFinished();
 		await expect(sum).not.toBePowered();
 		await expect(carry).not.toBePowered();
 	});
+
 	test("simulate 2-bit ripple carry adder", async ({ editor, pointer }) => {
 		await editor.loadCircuit(circuits.rippleCarryAdder);
 
@@ -756,24 +765,25 @@ test.describe("simulating", () => {
 		const sum1 = editor.getComponent("LED").nth(2); // first bit of solution
 
 		await editor.toggleSimulate();
-
-		// Close sidebar
-		await editor.toggleSidebar();
+		await editor.waitForSimulationFinished(); // Initial simulation state
 
 		// Test case 1: 001 (A1 = 1)
 		await pointer.clickOn(a1, true);
 		await expect(a1).toBePowered();
+		await editor.waitForSimulationFinished();
 		await expect(sum1).toBePowered();
 
 		// Test case 2: 011 (A1 = 1, A2 = 1)
 		await pointer.clickOn(a2, true);
 		await expect(a2).toBePowered();
+		await editor.waitForSimulationFinished();
 		await expect(sum2).toBePowered();
 		await expect(sum1).toBePowered();
 
 		// Test case 3: 100 (A1 = 1, A2 = 1, B1 = 1)
 		await pointer.clickOn(b1, true);
 		await expect(b1).toBePowered();
+		await editor.waitForSimulationFinished();
 		await expect(sum1).not.toBePowered();
 		await expect(sum2).not.toBePowered();
 		await expect(sum3).toBePowered();
@@ -781,27 +791,42 @@ test.describe("simulating", () => {
 		// Test case 4: 110 (All inputs = 1)
 		await pointer.clickOn(b2, true);
 		await expect(b2).toBePowered();
+		await editor.waitForSimulationFinished();
 		await expect(sum1).not.toBePowered();
 		await expect(sum2).toBePowered();
 		await expect(sum3).toBePowered();
 
-		// Reset all inputs
+		// Reset all inputs (with checks + waits)
 		await pointer.clickOn(a1, true);
-		await pointer.clickOn(a2, true);
-		await pointer.clickOn(b1, true);
-		await pointer.clickOn(b2, true);
 		await expect(a1).not.toBePowered();
+		await editor.waitForSimulationFinished();
+
+		await pointer.clickOn(a2, true);
 		await expect(a2).not.toBePowered();
+		await editor.waitForSimulationFinished();
+
+		await pointer.clickOn(b1, true);
 		await expect(b1).not.toBePowered();
+		await editor.waitForSimulationFinished();
+
+		await pointer.clickOn(b2, true);
 		await expect(b2).not.toBePowered();
+		await editor.waitForSimulationFinished();
 
 		// Test case 5: 100 (A2 = 1, B2 = 1)
 		await pointer.clickOn(a2, true);
+		await expect(a2).toBePowered();
+		await editor.waitForSimulationFinished();
+
 		await pointer.clickOn(b2, true);
+		await expect(b2).toBePowered();
+		await editor.waitForSimulationFinished();
+
 		await expect(sum1).not.toBePowered();
 		await expect(sum2).not.toBePowered();
 		await expect(sum3).toBePowered();
 	});
+
 	test("simulate SR NOR latch", async ({ editor, pointer }) => {
 		await editor.loadCircuit(circuits.SR_NOR_latch);
 
@@ -811,6 +836,7 @@ test.describe("simulating", () => {
 		const q = editor.getComponent("LED").nth(1); // result (Q)
 
 		await editor.toggleSimulate();
+		await editor.waitForSimulationFinished(); // Initial state stabilization
 
 		// Initial state: R = 1, S = 0, Q = 0, Q̅ = 1
 		await expect(r).toBePowered(); // R = 1
@@ -821,35 +847,40 @@ test.describe("simulating", () => {
 		// Toggle R (Reset) to 0
 		await pointer.clickOn(r, true); // Toggle R to 0
 		await expect(r).not.toBePowered(); // R = 0
+		await editor.waitForSimulationFinished();
 		await expect(s).not.toBePowered(); // S remains 0
 		await expect(q).not.toBePowered(); // Q remains 0 (no change)
 		await expect(qnot).toBePowered(); // Q̅ remains 1 (no change)
 
 		// Toggle S (Set) to 1
 		await pointer.clickOn(s, true); // Toggle S to 1
-		await expect(r).not.toBePowered(); // R remains 0
 		await expect(s).toBePowered(); // S = 1
+		await editor.waitForSimulationFinished();
+		await expect(r).not.toBePowered(); // R remains 0
 		await expect(q).toBePowered(); // Q = 1
 		await expect(qnot).not.toBePowered(); // Q̅ = 0
 
 		// Toggle S (Set) to 0
 		await pointer.clickOn(s, true); // Toggle S to 0
-		await expect(r).not.toBePowered(); // R remains 0
 		await expect(s).not.toBePowered(); // S = 0
+		await editor.waitForSimulationFinished();
+		await expect(r).not.toBePowered(); // R remains 0
 		await expect(q).toBePowered(); // Q remains 1 (no change)
 		await expect(qnot).not.toBePowered(); // Q̅ remains 0 (no change)
 
 		// Toggle R (Reset) to 1
 		await pointer.clickOn(r, true); // Toggle R to 1
 		await expect(r).toBePowered(); // R = 1
+		await editor.waitForSimulationFinished();
 		await expect(s).not.toBePowered(); // S remains 0
 		await expect(q).not.toBePowered(); // Q = 0
 		await expect(qnot).toBePowered(); // Q̅ = 1
 
 		// Toggle S (Set) to 1 (invalid state)
 		await pointer.clickOn(s, true); // Toggle S to 1
-		await expect(r).toBePowered(); // R remains 1
 		await expect(s).toBePowered(); // S = 1
+		await editor.waitForSimulationFinished();
+		await expect(r).toBePowered(); // R remains 1
 		await expect(q).not.toBePowered(); // Q is 0 (invalid state)
 		await expect(qnot).not.toBePowered(); // Q̅ is 0 (invalid state)
 		// invalid state because: Q = Q̅, which is by definition not possible
@@ -857,6 +888,7 @@ test.describe("simulating", () => {
 		// Toggle R (Reset) to 0
 		await pointer.clickOn(r, true); // Toggle R to 0
 		await expect(r).not.toBePowered(); // R = 0
+		await editor.waitForSimulationFinished();
 		await expect(s).toBePowered(); // S remains 1
 		await expect(q).toBePowered(); // Q = 1
 		await expect(qnot).not.toBePowered(); // Q̅ = 0
