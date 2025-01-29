@@ -131,7 +131,7 @@ test.describe("modal", async () => {
 		await expect(page.getByText(`${graphName} id:`)).toBeVisible();
 		await page.getByText(`${graphName} id:`).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
-		await expect(editor.comp()).toHaveCount(1);
+		await expect(editor.comps()).toHaveCount(1);
 	});
 	test("sidebar disappears when editing", async ({ page }) => {
 		await page.getByText("AND", { exact: true }).click();
@@ -166,7 +166,7 @@ test.describe("modal", async () => {
 		await page.getByText(`${graphName} id:`).focus();
 		await page.keyboard.press("Enter");
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
-		await expect(editor.comp()).toHaveCount(1);
+		await expect(editor.comps()).toHaveCount(1);
 	});
 	test("copy and paste", async ({ page, editor }) => {
 		// Create 2 components connected by a wire
@@ -190,12 +190,12 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Check that the components were copied
-		await expect(editor.comp()).toHaveCount(2);
+		await expect(editor.comps()).toHaveCount(2);
 		await expect(page.locator(".wire")).toHaveCount(1);
 
 		// Check that components are correctly connected
 		const initialD = await getAttr(page.locator(".wire").first(), "d");
-		const component = editor.comp().first();
+		const component = editor.comps().first();
 		await editor.dragTo(component, 50, 50);
 		await expect(page.locator(".wire").first()).not.toHaveAttribute(
 			"d",

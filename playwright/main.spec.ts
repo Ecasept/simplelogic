@@ -6,7 +6,7 @@ test.describe("adding and dragging/moving", async () => {
 	test("adds component at correct position", async ({ page, editor }) => {
 		await editor.addComponent("AND", 100, 200);
 
-		const component = editor.comp().first();
+		const component = editor.comps().first();
 		await expect(component).toBeVisible();
 
 		await expectPosToBe(component, 100, 200);
@@ -16,7 +16,7 @@ test.describe("adding and dragging/moving", async () => {
 		await page.getByText("AND", { exact: true }).click();
 
 		await page.keyboard.press("Escape");
-		await expect(editor.comp()).toHaveCount(0);
+		await expect(editor.comps()).toHaveCount(0);
 	});
 	test("adds multiple components", async ({ editor }) => {
 		await editor.addComponent("AND", 100, 100);
@@ -24,10 +24,10 @@ test.describe("adding and dragging/moving", async () => {
 		await editor.addComponent("AND", 200, 100);
 		await editor.addComponent("OR", 100, 200);
 
-		await expect(editor.comp().first()).toBeVisible();
-		await expect(editor.comp().nth(1)).toBeVisible();
-		await expect(editor.comp().nth(2)).toBeVisible();
-		await expect(editor.comp().nth(3)).toBeVisible();
+		await expect(editor.comps().first()).toBeVisible();
+		await expect(editor.comps().nth(1)).toBeVisible();
+		await expect(editor.comps().nth(2)).toBeVisible();
+		await expect(editor.comps().nth(3)).toBeVisible();
 	});
 
 	test("drags and moves new wires", async ({ page, editor, pointer }) => {
@@ -58,7 +58,7 @@ test.describe("adding and dragging/moving", async () => {
 	test("drags new wire and discards", async ({ page, editor, pointer }) => {
 		test.skip(false, "Can't press escape on touch devices");
 		await editor.addComponent("AND", 100, 200);
-		await expect(editor.comp()).toBeVisible();
+		await expect(editor.comps()).toBeVisible();
 
 		const handle = page.locator("circle").nth(2);
 		const [x1, y1] = await getAttrs(handle, "cx", "cy");
@@ -83,7 +83,7 @@ test.describe("adding and dragging/moving", async () => {
 		await pointer.up();
 
 		const d1 = await getAttr(page.locator(".wire"), "d");
-		await editor.comp().hover();
+		await editor.comps().hover();
 		await pointer.down();
 		await pointer.moveTo(200, 300);
 		await pointer.up();
@@ -148,7 +148,7 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(wire).toHaveAttribute("d", initialD);
 
 		// 6. Move component
-		const component = editor.comp();
+		const component = editor.comps();
 		await editor.dragTo(component, 50, 50);
 		await expectPosToBe(handle, 400, 400);
 		await expect(wire).not.toHaveAttribute("d", initialD);
@@ -168,20 +168,20 @@ test.describe("adding and dragging/moving", async () => {
 
 		await pointer.down();
 		await pointer.moveTo(500, 50);
-		await expectPosToBe(editor.comp(), 500, 50);
+		await expectPosToBe(editor.comps(), 500, 50);
 
 		await pointer.moveTo(400, 300);
-		await expectPosToBe(editor.comp(), 400, 300);
+		await expectPosToBe(editor.comps(), 400, 300);
 		await pointer.up();
 		await pointer.moveTo(100, 100);
-		await expectPosToBe(editor.comp(), 400, 300);
+		await expectPosToBe(editor.comps(), 400, 300);
 	});
 	test("moves component and discards", async ({ page, editor, hasTouch }) => {
 		test.skip(hasTouch, "Can't press escape on touch devices");
 		await editor.addComponent("AND", 100, 200);
-		await expect(editor.comp()).toBeVisible();
+		await expect(editor.comps()).toBeVisible();
 
-		const component = editor.comp();
+		const component = editor.comps();
 		const [x1, y1] = await getAttrs(component, "x", "y");
 		await page.keyboard.press("Escape");
 
@@ -204,8 +204,8 @@ test.describe("adding and dragging/moving", async () => {
 		const d1 = await getAttr(page.locator(".wire").nth(0), "d");
 		const d2 = await getAttr(page.locator(".wire").nth(1), "d");
 
-		await editor.dragTo(editor.comp(), 100, 100);
-		await expectPosToBe(editor.comp(), 100, 100);
+		await editor.dragTo(editor.comps(), 100, 100);
+		await expectPosToBe(editor.comps(), 100, 100);
 
 		await expect(page.locator(".wire").nth(0)).not.toHaveAttribute("d", d1);
 		await expect(page.locator(".wire").nth(1)).not.toHaveAttribute("d", d2);
@@ -230,9 +230,9 @@ test.describe("other", () => {
 
 		await pointer.downAt(100, 200);
 		await pointer.moveTo(20, 20);
-		const boundingBox1 = (await editor.comp().boundingBox())!;
+		const boundingBox1 = (await editor.comps().boundingBox())!;
 		await pointer.moveTo(15, 15);
-		const boundingBox2 = (await editor.comp().boundingBox())!;
+		const boundingBox2 = (await editor.comps().boundingBox())!;
 		expect(boundingBox1).toStrictEqual(boundingBox2);
 	});
 
@@ -242,7 +242,7 @@ test.describe("other", () => {
 		await editor.addComponent("AND", 500, 500);
 
 		// Move Component
-		await editor.comp().nth(1).hover();
+		await editor.comps().nth(1).hover();
 		await pointer.down();
 		await pointer.moveTo(100, 100);
 		await pointer.up();
@@ -262,32 +262,32 @@ test.describe("other", () => {
 		await expect(handle).toHaveAttribute("cy", y1);
 
 		// Undo Move
-		await expectPosToBe(editor.comp().nth(1), 100, 100);
+		await expectPosToBe(editor.comps().nth(1), 100, 100);
 		await editor.undo();
-		await expectPosToBe(editor.comp().nth(1), 500, 500);
+		await expectPosToBe(editor.comps().nth(1), 500, 500);
 
 		// Undo Components
-		await expect(editor.comp()).toHaveCount(2);
+		await expect(editor.comps()).toHaveCount(2);
 		await editor.undo();
-		await expect(editor.comp()).toHaveCount(1);
+		await expect(editor.comps()).toHaveCount(1);
 		await editor.undo();
-		await expect(editor.comp()).toHaveCount(0);
+		await expect(editor.comps()).toHaveCount(0);
 
 		// Undo while adding
 		await editor.addComponent("AND", 100, 100); // Add component
 		if (!hasTouch) {
 			await page.keyboard.press("a"); // Start adding another component
 			await page.keyboard.press("Control+KeyZ");
-			await expect(editor.comp()).toHaveCount(1);
+			await expect(editor.comps()).toHaveCount(1);
 		}
 
 		// Undo while moving
-		await editor.comp().hover();
+		await editor.comps().hover();
 		await pointer.down();
 		await pointer.moveTo(200, 200);
 		await page.keyboard.press("Control+KeyZ");
 		// Component should be back at 100, 100
-		await expectPosToBe(editor.comp(), 100, 100);
+		await expectPosToBe(editor.comps(), 100, 100);
 	});
 
 	test("delete flow", async ({ page, editor }) => {
@@ -301,7 +301,7 @@ test.describe("other", () => {
 
 		// Create second component
 		await editor.addComponent("OR", 400, 400);
-		await expect(editor.comp()).toHaveCount(2);
+		await expect(editor.comps()).toHaveCount(2);
 
 		// Connect wire from second to first component
 		const secondSourceHandle = page.locator("circle.handle").nth(3); // Second component input
@@ -324,20 +324,20 @@ test.describe("other", () => {
 		await expect(page.locator(".wire")).toHaveCount(1);
 
 		// Delete second component and confirm
-		const secondComponent = editor.comp().nth(1);
+		const secondComponent = editor.comps().nth(1);
 		await secondComponent.hover();
 		await expect(secondComponent).toHaveAttribute(
 			"fill",
 			"var(--component-delete-color)",
 		);
 		await secondComponent.click();
-		await expect(editor.comp()).toHaveCount(1);
+		await expect(editor.comps()).toHaveCount(1);
 		await expect(page.locator("circle.handle")).toHaveCount(5); // 3 for first component, 2 for second wire
 
 		// Undo component deletion and confirm
 		await editor.undo();
-		await expect(editor.comp()).toHaveCount(2);
-		await expect(editor.comp().nth(1)).not.toHaveAttribute(
+		await expect(editor.comps()).toHaveCount(2);
+		await expect(editor.comps().nth(1)).not.toHaveAttribute(
 			"fill",
 			"var(--component-delete-color)",
 		);
@@ -413,7 +413,7 @@ test.describe("other", () => {
 	test("can load while simulating", async ({ page, editor }) => {
 		await page.getByRole("button", { name: "Toggle Simulation" }).click();
 		await loadCircuit(circuits.singleAnd, page);
-		await expect(editor.comp()).toHaveCount(1);
+		await expect(editor.comps()).toHaveCount(1);
 	});
 });
 
@@ -431,13 +431,13 @@ test.describe("sidebar actions", async () => {
 	test("clear button clears the canvas", async ({ page, editor }) => {
 		await editor.addComponent("AND", 100, 100);
 		await page.getByRole("button", { name: "Clear" }).click();
-		await expect(editor.comp()).toHaveCount(0);
+		await expect(editor.comps()).toHaveCount(0);
 
 		// Test in simulation mode
 		await editor.addComponent("AND", 100, 100);
 		await page.getByRole("button", { name: "Toggle Simulation" }).click();
 		await page.getByRole("button", { name: "Clear" }).click();
-		await expect(editor.comp()).toHaveCount(0);
+		await expect(editor.comps()).toHaveCount(0);
 		await expect(page.getByText("Editing Mode: Simulate")).not.toBeVisible();
 	});
 });
@@ -469,7 +469,7 @@ test.describe("adding dialog", async () => {
 		await expect(page.getByText("Adding component")).toBeVisible();
 
 		await page.getByRole("button", { name: "Cancel" }).click();
-		await expect(editor.comp()).toHaveCount(0);
+		await expect(editor.comps()).toHaveCount(0);
 	});
 });
 
@@ -484,19 +484,19 @@ test.describe("panning and zooming", () => {
 		await pointer.moveTo(600, 600);
 		await pointer.up();
 
-		await expectPosToBe(editor.comp(), 200, 200);
+		await expectPosToBe(editor.comps(), 200, 200);
 
 		// Zoom into component (component position stays the same)
 		await pointer.moveTo(200, 200);
 		await page.mouse.wheel(0, 1);
-		await expectPosToBe(editor.comp(), 200, 200);
+		await expectPosToBe(editor.comps(), 200, 200);
 
 		// Zoom out, but not on component (component position does not stay the same)
 		await pointer.moveTo(0, 0);
 		await page.mouse.wheel(0, -1);
 		await page.mouse.wheel(0, -1);
 		await page.mouse.wheel(0, -1);
-		await expectPosToBe(editor.comp(), 280, 280);
+		await expectPosToBe(editor.comps(), 280, 280);
 
 		// Can't pan when adding component
 		await page.keyboard.press("a");
@@ -507,7 +507,7 @@ test.describe("panning and zooming", () => {
 		await pointer.up();
 
 		// Component was placed instead of panning
-		await expectPosToBe(editor.comp().nth(1), 600, 600);
+		await expectPosToBe(editor.comps().nth(1), 600, 600);
 	});
 	test("zooming while adding component keeps component centered", async ({
 		page,
@@ -527,7 +527,7 @@ test.describe("panning and zooming", () => {
 		// Mouse is now at 0, 0
 
 		// Check that compnent and mouse are still in sync
-		await expectPosToBe(editor.comp(), 0, 0);
+		await expectPosToBe(editor.comps(), 0, 0);
 	});
 	test("moves components correctly when zoomed in and panned", async ({
 		page,
@@ -549,13 +549,13 @@ test.describe("panning and zooming", () => {
 
 		await pointer.down();
 		await pointer.moveTo(500, 50);
-		await expectPosToBe(editor.comp(), 500, 50);
+		await expectPosToBe(editor.comps(), 500, 50);
 
 		await pointer.moveTo(400, 300);
-		await expectPosToBe(editor.comp(), 400, 300);
+		await expectPosToBe(editor.comps(), 400, 300);
 		await pointer.up();
 		await pointer.moveTo(100, 100);
-		await expectPosToBe(editor.comp(), 400, 300);
+		await expectPosToBe(editor.comps(), 400, 300);
 	});
 	test("can pan and zoom while simulating", async ({
 		page,
@@ -568,7 +568,7 @@ test.describe("panning and zooming", () => {
 		await pointer.down();
 		await pointer.moveTo(600, 600);
 		await pointer.up();
-		await expectPosToBe(editor.comp(), 200, 200);
+		await expectPosToBe(editor.comps(), 200, 200);
 	});
 	test("right click does not pan", async ({ editor, pointer }) => {
 		await editor.addComponent("AND", 100, 100);
@@ -576,7 +576,7 @@ test.describe("panning and zooming", () => {
 		await pointer.down({ button: "right" });
 		await pointer.moveTo(600, 600);
 		await pointer.up();
-		await expectPosToBe(editor.comp(), 100, 100);
+		await expectPosToBe(editor.comps(), 100, 100);
 	});
 	test("releasing mouse on component does nothing", async ({
 		page,
@@ -589,7 +589,7 @@ test.describe("panning and zooming", () => {
 		await pointer.down();
 		await pointer.moveTo(500, 500);
 		await page.keyboard.press("Escape");
-		await expectPosToBe(editor.comp(), 100, 100);
+		await expectPosToBe(editor.comps(), 100, 100);
 
 		const svgContents = await page.locator(".canvasWrapper svg").innerHTML();
 
@@ -612,7 +612,7 @@ test.describe("panning and zooming", () => {
 		await pointer.moveTo(600, 600);
 		await page.keyboard.press("a");
 		await pointer.up();
-		await expect(editor.comp()).toHaveCount(0);
+		await expect(editor.comps()).toHaveCount(0);
 	});
 	test("simulation mode stays on while panning", async ({
 		page,

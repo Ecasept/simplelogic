@@ -45,7 +45,7 @@ export class Editor {
 	}
 
 	/** Returns a locator matching all components currently in the editor */
-	comp() {
+	comps() {
 		return this.page.locator(".component-body");
 	}
 

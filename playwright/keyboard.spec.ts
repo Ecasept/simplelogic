@@ -13,7 +13,7 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("A");
 		await pointer.clickAt(100, 100);
 
-		const component = editor.comp();
+		const component = editor.comps();
 		await expect(component).toBeVisible();
 		await expectPosToBe(component, 100, 100);
 	});
@@ -22,7 +22,7 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("O");
 		await pointer.clickAt(200, 200);
 
-		const component = editor.comp();
+		const component = editor.comps();
 		await expect(component).toBeVisible();
 		await expectPosToBe(component, 200, 200);
 	});
@@ -32,8 +32,8 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("O");
 		await pointer.clickAt(300, 300);
 
-		await expect(editor.comp()).toHaveCount(1);
-		const component = editor.comp();
+		await expect(editor.comps()).toHaveCount(1);
+		const component = editor.comps();
 		await expect(component).toBeVisible();
 		await expectPosToBe(component, 300, 300);
 	});
@@ -59,12 +59,12 @@ test.describe("editor shortcuts", () => {
 		// Add a component
 		await editor.addComponent("AND", 100, 100);
 
-		await expect(editor.comp()).toHaveCount(1);
+		await expect(editor.comps()).toHaveCount(1);
 
 		// Undo
 		await page.keyboard.press("Control+Z");
 
-		await expect(editor.comp()).toHaveCount(0);
+		await expect(editor.comps()).toHaveCount(0);
 	});
 
 	test("escape cancels delete mode", async ({ page }) => {
@@ -77,7 +77,7 @@ test.describe("editor shortcuts", () => {
 	test("d toggles delete mode", async ({ page, editor }) => {
 		// add component
 		await editor.addComponent("AND", 200, 200);
-		await expect(editor.comp()).toHaveCount(1);
+		await expect(editor.comps()).toHaveCount(1);
 
 		// press d
 		await page.keyboard.press("d");
@@ -86,10 +86,10 @@ test.describe("editor shortcuts", () => {
 		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
 
 		// delete component
-		await editor.comp().click();
+		await editor.comps().click();
 
 		// verify component is deleted
-		await expect(editor.comp()).toHaveCount(0);
+		await expect(editor.comps()).toHaveCount(0);
 
 		// press d
 		await page.keyboard.press("d");
@@ -99,21 +99,19 @@ test.describe("editor shortcuts", () => {
 	});
 });
 test.describe("shortcut interactions", () => {
-	test.beforeEach(async ({hasTouch}) => {
+	test.beforeEach(async ({ hasTouch }) => {
 		test.skip(hasTouch, "Can't use keyboard on mobile");
-	})
+	});
 	test("moving component then a resets component and adds AND gate", async ({
 		page,
 		editor,
 		pointer,
 	}) => {
-
-
 		// Add initial component
 		await editor.addComponent("AND", 100, 100);
 
 		// Start moving component
-		const component = editor.comp().first();
+		const component = editor.comps().first();
 		await component.hover();
 		await pointer.down();
 		await pointer.moveTo(200, 200);
@@ -126,24 +124,24 @@ test.describe("shortcut interactions", () => {
 
 		// Check that new AND gate is added at cursor position
 		await pointer.clickAt(200, 200);
-		const newComponent = editor.comp().nth(1);
+		const newComponent = editor.comps().nth(1);
 		await expect(newComponent).toBeVisible();
 		await expectPosToBe(newComponent, 200, 200);
 	});
 	test("correct highlighting when switching modes while hovering", async ({
 		editor,
-		page
+		page,
 	}) => {
 		// add component
 		await editor.addComponent("AND", 200, 200);
 
 		// hover over component
-		await editor.comp().hover();
+		await editor.comps().hover();
 
 		await page.keyboard.press("d");
 
 		// verify highlighting
-		await expect(editor.comp()).toHaveAttribute(
+		await expect(editor.comps()).toHaveAttribute(
 			"fill",
 			"var(--component-delete-color)",
 		);
@@ -151,7 +149,7 @@ test.describe("shortcut interactions", () => {
 		await page.keyboard.press("s");
 
 		// verify highlighting gone
-		await expect(editor.comp()).not.toHaveAttribute(
+		await expect(editor.comps()).not.toHaveAttribute(
 			"fill",
 			"var(--component-delete-color)",
 		);
@@ -159,7 +157,7 @@ test.describe("shortcut interactions", () => {
 		await page.keyboard.press("d");
 
 		// verify highlighting
-		await expect(editor.comp()).toHaveAttribute(
+		await expect(editor.comps()).toHaveAttribute(
 			"fill",
 			"var(--component-delete-color)",
 		);
@@ -167,7 +165,7 @@ test.describe("shortcut interactions", () => {
 		await page.keyboard.press("Escape");
 
 		// verify highlighting gone
-		await expect(editor.comp()).not.toHaveAttribute(
+		await expect(editor.comps()).not.toHaveAttribute(
 			"fill",
 			"var(--component-delete-color)",
 		);
