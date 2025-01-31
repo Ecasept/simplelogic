@@ -211,12 +211,20 @@ test.describe("adding and dragging/moving", async () => {
 	});
 	test("doesn't connect wire when under component", async ({ editor }) => {
 		await editor.addComponent("AND", 100, 100);
-		await editor.addComponent("AND", 150, 100);
+		await editor.addComponent("AND", 150, 120);
 		await editor.drag(
 			editor.getHandle("AND", "in1").first(),
 			editor.getHandle("AND", "out").first(),
+			true,
 		);
-		await expect(editor.wires()).toHaveCount(0);
+
+		// Verify that the created wire is not connected
+		// Move second component off the first
+		await editor.dragTo(editor.getComponent("AND").nth(1), 200, 200);
+		// Move the first component away
+		await editor.dragTo(editor.getComponent("AND").first(), 300, 300);
+		// Expect wire to not have moved
+		await expect(editor.wires()).toHaveAttribute("d", "M121 81 L201 221");
 	});
 });
 
@@ -228,10 +236,10 @@ test.describe("deleting", async () => {
 			editor.getHandle("AND", "in1").first(),
 		);
 		await editor.drag(
-			editor.getHandle("AND", "out").nth(1),
+			editor.getHandle("AND", "out").first(),
 			editor.getHandle("AND", "in2").first(),
 		);
-		await editor.delete(editor.wires().first());
+		await editor.deleteWire(editor.wires().first());
 
 		await expect(editor.wires()).toHaveCount(1);
 		await expect(editor.comps()).toHaveCount(1);
@@ -627,8 +635,9 @@ test.describe("panning and zooming", () => {
 		page,
 		pointer,
 		editor,
+		hasTouch,
 	}) => {
-		test.skip(false, "Can't press keys on touch devices");
+		test.skip(hasTouch, "Can't press keys on touch devices");
 		await pointer.moveTo(500, 500);
 		await pointer.down();
 		await pointer.moveTo(600, 600);

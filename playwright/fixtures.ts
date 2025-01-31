@@ -22,13 +22,23 @@ export class Editor {
 	async undo() {
 		await this.pointer.clickOn(this.page.getByRole("button", { name: "Undo" }));
 	}
-	async delete(locator: Locator) {
+
+	async deleteWire(locator: Locator) {
+		// Wires have a separate hitbox which intercepts the click
+		// so we need to force the click so playwright doesn't wait
+		// for the actual wire to be clicked.
+		return this.delete(locator, true);
+	}
+
+	async delete(locator: Locator, force?: boolean) {
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Toggle Delete" }),
+			force,
 		);
-		await this.pointer.clickOn(locator);
+		await this.pointer.clickOn(locator, force);
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Toggle Delete" }),
+			force,
 		);
 	}
 
@@ -95,15 +105,20 @@ export class Editor {
 	}
 
 	/* Drags one locator to another locator */
-	async drag(src: Locator, dst: Locator): Promise<void> {
-		await this.pointer.downOn(src);
-		await this.pointer.moveOnto(dst);
+	async drag(src: Locator, dst: Locator, force?: boolean): Promise<void> {
+		await this.pointer.downOn(src, force);
+		await this.pointer.moveOnto(dst, force);
 		await this.pointer.up();
 	}
 
 	/** Drags a locator to the specified coordinates */
-	async dragTo(src: Locator, x: number, y: number): Promise<void> {
-		await this.pointer.downOn(src);
+	async dragTo(
+		src: Locator,
+		x: number,
+		y: number,
+		force?: boolean,
+	): Promise<void> {
+		await this.pointer.downOn(src, force);
 		await this.pointer.moveTo(x, y);
 		await this.pointer.up();
 	}
@@ -133,10 +148,10 @@ export interface Pointer {
 	clickAt(x: number, y: number): Promise<void>;
 
 	/** Press the pointer on the specified locator */
-	downOn(locator: Locator): Promise<void>;
+	downOn(locator: Locator, force?: boolean): Promise<void>;
 
 	/** Move the pointer to the specified locator */
-	moveOnto(locator: Locator): Promise<void>;
+	moveOnto(locator: Locator, force?: boolean): Promise<void>;
 
 	/** Press and then release the pointer on the specified locator */
 	clickOn(locator: Locator, force?: boolean): Promise<void>;
@@ -166,13 +181,13 @@ export class DesktopPointer implements Pointer {
 		await this.page.mouse.click(x, y);
 	}
 
-	async downOn(locator: Locator) {
-		await locator.hover();
+	async downOn(locator: Locator, force?: boolean) {
+		await locator.hover({ force });
 		await this.page.mouse.down();
 	}
 
-	async moveOnto(locator: Locator) {
-		await locator.hover();
+	async moveOnto(locator: Locator, force?: boolean) {
+		await locator.hover({ force });
 	}
 
 	async clickOn(locator: Locator, force?: boolean) {
