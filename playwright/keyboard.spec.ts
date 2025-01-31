@@ -2,13 +2,6 @@ import { expect } from "@playwright/test";
 import { expectPosToBe, test } from "./common";
 
 test.describe("editor shortcuts", () => {
-	test.beforeEach(async ({ hasTouch }) => {
-		test.skip(
-			hasTouch,
-			"Keyboard shortcuts are not supported on touch devices",
-		);
-	});
-
 	test("a adds AND gate", async ({ page, pointer, editor }) => {
 		await page.keyboard.press("A");
 		await pointer.clickAt(100, 100);
@@ -99,9 +92,6 @@ test.describe("editor shortcuts", () => {
 	});
 });
 test.describe("shortcut interactions", () => {
-	test.beforeEach(async ({ hasTouch }) => {
-		test.skip(hasTouch, "Can't use keyboard on mobile");
-	});
 	test("moving component then a resets component and adds AND gate", async ({
 		page,
 		editor,

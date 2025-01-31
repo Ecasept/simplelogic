@@ -2,7 +2,7 @@ import { circuits } from "./circuits";
 import { expect, expectPosToBe, getAttr, getAttrs, test } from "./common";
 
 test.describe("adding and dragging/moving", async () => {
-	test("adds component at correct position", async ({ page, editor }) => {
+	test("adds component at correct position", async ({ editor }) => {
 		await editor.addComponent("AND", 100, 200);
 
 		const component = editor.comps().first();
@@ -10,8 +10,7 @@ test.describe("adding and dragging/moving", async () => {
 
 		await expectPosToBe(component, 100, 200);
 	});
-	test("adds component and discards", async ({ page, hasTouch, editor }) => {
-		test.skip(hasTouch, "Can't press escape on touch devices");
+	test("adds component and discards", async ({ page, editor }) => {
 		await page.getByText("AND", { exact: true }).click();
 
 		await page.keyboard.press("Escape");
@@ -55,7 +54,6 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(page.locator("circle.handle")).toHaveCount(4);
 	});
 	test("drags new wire and discards", async ({ page, editor, pointer }) => {
-		test.skip(false, "Can't press escape on touch devices");
 		await editor.addComponent("AND", 100, 200);
 		await expect(editor.comps()).toBeVisible();
 
@@ -175,8 +173,7 @@ test.describe("adding and dragging/moving", async () => {
 		await pointer.moveTo(100, 100);
 		await expectPosToBe(editor.comps(), 400, 300);
 	});
-	test("moves component and discards", async ({ page, editor, hasTouch }) => {
-		test.skip(hasTouch, "Can't press escape on touch devices");
+	test("moves component and discards", async ({ page, editor }) => {
 		await editor.addComponent("AND", 100, 200);
 		await expect(editor.comps()).toBeVisible();
 
@@ -504,8 +501,7 @@ test.describe("adding dialog", async () => {
 });
 
 test.describe("panning and zooming", () => {
-	test("can pan and zoom", async ({ page, editor, pointer, hasTouch }) => {
-		test.skip(hasTouch, "Can't use wheel on touch devices");
+	test("can pan and zoom", async ({ page, editor, pointer }) => {
 		await editor.addComponent("AND", 100, 100);
 
 		await pointer.moveTo(500, 500);
@@ -543,9 +539,7 @@ test.describe("panning and zooming", () => {
 		page,
 		editor,
 		pointer,
-		hasTouch,
 	}) => {
-		test.skip(hasTouch, "Can't use wheel on touch devices");
 		await pointer.moveTo(500, 500);
 		await page.keyboard.press("a");
 
@@ -563,9 +557,7 @@ test.describe("panning and zooming", () => {
 		page,
 		editor,
 		pointer,
-		hasTouch,
 	}) => {
-		test.skip(hasTouch, "Can't use wheel on touch devices");
 		await pointer.moveTo(500, 500);
 		await pointer.down();
 		await pointer.moveTo(0, 0);
@@ -612,9 +604,7 @@ test.describe("panning and zooming", () => {
 		page,
 		editor,
 		pointer,
-		hasTouch,
 	}) => {
-		test.skip(hasTouch, "Can't press escape on touch devices");
 		await editor.addComponent("AND", 100, 100);
 		await pointer.down();
 		await pointer.moveTo(500, 500);
@@ -635,9 +625,7 @@ test.describe("panning and zooming", () => {
 		page,
 		pointer,
 		editor,
-		hasTouch,
 	}) => {
-		test.skip(hasTouch, "Can't press keys on touch devices");
 		await pointer.moveTo(500, 500);
 		await pointer.down();
 		await pointer.moveTo(600, 600);
