@@ -43,16 +43,19 @@ export default defineConfig({
 				},
 				...devices["Desktop Chrome"],
 			},
+			testIgnore: "**/mobile/**",
 		},
 
 		{
 			name: "firefox",
 			use: { ...devices["Desktop Firefox"] },
+			testIgnore: "**/mobile/**",
 		},
 
 		{
 			name: "webkit",
 			use: { ...devices["Desktop Safari"] },
+			testIgnore: "**/mobile/**",
 		},
 
 		{
@@ -64,6 +67,7 @@ export default defineConfig({
 				},
 				viewport: devices["Desktop Chrome"].viewport,
 			},
+			testDir: "./playwright/mobile",
 		},
 		// {
 		//   name: 'Mobile Safari',
