@@ -55,13 +55,15 @@
 		}
 
 		if (uiState.draggedWire != null && uiState.hoveredHandle != null) {
-			// wire is being connected
+			// A wire is being dragged, and it is hovering over a handle
+			// -> connect the wire to the handle
 			EditorAction.connect(
 				{
 					id: uiState.draggedWire.id,
 					handleType: uiState.draggedWire.handleType,
 				},
-				uiState.hoveredHandle,
+				// uiState is a rune, so we need to snapshot it
+				$state.snapshot(uiState.hoveredHandle),
 			);
 		}
 
