@@ -10,8 +10,9 @@
 		editorViewModel,
 		fileModalViewModel,
 	} from "$lib/util/actions";
-	import { setMousePosition } from "$lib/util/global";
+	import { mousePosition, setMousePosition } from "$lib/util/global";
 	import { handleKeyDown } from "$lib/util/keyboard";
+	import { cancelLongPressIfMoved } from "$lib/util/longpress";
 	import { getThemeClass } from "$lib/util/theme.svelte";
 	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
 
@@ -39,12 +40,15 @@
 
 	function onPointerMove(e: PointerEvent) {
 		updatePosition(e);
+		cancelLongPressIfMoved(mousePosition);
 	}
 
 	function onPointerUp(e: PointerEvent) {
 		// on touch screens, no pointer move events are emitted for adding components
 		// so we need to update the position here
 		updatePosition(e);
+
+		cancelLongPressIfMoved(mousePosition);
 
 		const uiState = editorViewModel.uiState;
 		const editMode = uiState.editMode;

@@ -1,4 +1,5 @@
-import { expectPosToBe, test } from "../common";
+import { circuits } from "../circuits";
+import { expect, expectPosToBe, test } from "../common";
 
 test.describe("panning", async () => {
 	test("can pan and zoom while moving component", async ({
@@ -36,5 +37,22 @@ test.describe("panning", async () => {
 
 		touchscreen!.deletePointer(ptr2);
 		touchscreen!.deletePointer(ptr3);
+	});
+	test("can add wire from wire with long press", async ({
+		editor,
+		pointer,
+		page,
+	}) => {
+		await editor.loadCircuit(circuits.multiconnected);
+
+		await pointer.downOn(editor.getHandle("wire", "output").nth(3));
+		await page.waitForTimeout(500); // long press
+		await expect(editor.wires()).toHaveCount(6); // long press adds wire
+
+		await pointer.moveOnto(editor.getHandle("wire", "input").nth(4));
+
+		await pointer.up();
+
+		await expect(editor.wires()).toHaveCount(6);
 	});
 });

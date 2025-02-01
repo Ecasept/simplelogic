@@ -15,6 +15,8 @@ export function setMousePosition(pos: XYPair) {
 }
 
 export const GRID_SIZE = 20;
+/** How long a long press should be in milliseconds */
+export const LONG_PRESS_MS = 500;
 
 export function gridSnap(val: number) {
 	return Math.round(val / GRID_SIZE) * GRID_SIZE;

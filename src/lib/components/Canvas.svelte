@@ -208,5 +208,11 @@
 		height: 100%;
 		background-color: var(--canvas-background-color);
 		touch-action: none;
+
+		/** Prevent long presses on mobile from selecting text */
+		-webkit-user-select: none;
+		-moz-user-select: -moz-none;
+		-ms-user-select: none;
+		user-select: none;
 	}
 </style>

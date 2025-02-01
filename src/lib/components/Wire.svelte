@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
 	import { isComponentConnection } from "$lib/util/global";
+	import { startLongPressTimer } from "$lib/util/longpress";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type { HandleType, WireHandle } from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
@@ -28,6 +29,21 @@
 		return simulating && isOutputPowered;
 	});
 
+	function onLongPress(handle: WireHandle, clickedHandle: HandleType) {
+		// Add new wire instead of moving existing one on long press
+		// Abort the previous move wire action
+		editorViewModel.abortEditing();
+		navigator.vibrate(10);
+		EditorAction.addWire(
+			{
+				x: handle.x,
+				y: handle.y,
+			},
+			clickedHandle,
+			{ id: id, handleType: clickedHandle },
+		);
+	}
+
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
 		if (deletingThis) {
 			EditorAction.deleteWire(id);
@@ -44,6 +60,12 @@
 		editorViewModel.removeHoveredHandle();
 
 		const handle = clickedHandle === "input" ? input : output;
+
+		if (clickedHandle === "output") {
+			startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
+				onLongPress(handle, clickedHandle);
+			});
+		}
 
 		if (e.shiftKey && clickedHandle === "output") {
 			EditorAction.addWire(
