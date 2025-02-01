@@ -69,7 +69,6 @@
 	function onHandleLeave() {
 		if (uiState.editMode == "delete") {
 			editorViewModel.removeHovered();
-			return;
 		}
 		editorViewModel.removeHoveredHandle();
 	}
