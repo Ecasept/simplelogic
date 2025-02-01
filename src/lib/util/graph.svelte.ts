@@ -51,10 +51,12 @@ export class Graph {
 	}
 }
 export class GraphManager {
+	/** Private state of the graph manager, that gets published with the notifyAll() method */
 	private _currentData: GraphData = { components: {}, wires: {}, nextId: 0 };
 	private history: CommandGroup[] = [];
 	private changes: Command[] = [];
 
+	/** Publicly exposed rune state for the graph manager */
 	public graphData: GraphData = $state({
 		components: {},
 		wires: {},
@@ -199,7 +201,7 @@ export class GraphManager {
 	}
 
 	notifyAll() {
-		this.graphData = this._currentData;
-		this.historyLength = this.history.length;
+		this.graphData = structuredClone(this._currentData);
+		this.historyLength = structuredClone(this.history.length);
 	}
 }
