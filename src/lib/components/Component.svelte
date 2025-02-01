@@ -109,7 +109,12 @@
 		// calculate position of handle
 		let handleOffset = calculateHandleOffset(handleEdge, handlePos, size);
 
-		EditorAction.addWire(position, handleOffset, handleType, {
+		const wirePos = {
+			x: position.x + handleOffset.x,
+			y: position.y + handleOffset.y,
+		};
+
+		EditorAction.addWire(wirePos, handleType, {
 			id: id,
 			handleId: handleId,
 		});

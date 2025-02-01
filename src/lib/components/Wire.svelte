@@ -44,10 +44,22 @@
 		editorViewModel.removeHoveredHandle();
 
 		const handle = clickedHandle === "input" ? input : output;
-		editorViewModel.startMoveWire(
-			{ id: id, handleType: clickedHandle },
-			handle.connections.length,
-		);
+
+		if (e.shiftKey && clickedHandle === "output") {
+			EditorAction.addWire(
+				{
+					x: handle.x,
+					y: handle.y,
+				},
+				clickedHandle,
+				{ id: id, handleType: clickedHandle },
+			);
+		} else {
+			editorViewModel.startMoveWire(
+				{ id: id, handleType: clickedHandle },
+				handle.connections.length,
+			);
+		}
 	}
 
 	function onHandleEnter(handleType: HandleType) {

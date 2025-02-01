@@ -223,6 +223,22 @@ test.describe("adding and dragging/moving", async () => {
 		// Expect wire to not have moved
 		await expect(editor.wires()).toHaveAttribute("d", "M121 81 L201 221");
 	});
+	test("can add wire from wire with shift", async ({
+		editor,
+		pointer,
+		page,
+	}) => {
+		await editor.loadCircuit(circuits.multiconnected);
+
+		await page.keyboard.down("Shift");
+		await pointer.downOn(editor.getHandle("wire", "output").nth(3));
+
+		await pointer.moveOnto(editor.getHandle("wire", "input").nth(4));
+
+		await pointer.up();
+
+		await expect(editor.wires()).toHaveCount(6);
+	});
 });
 
 test.describe("deleting", async () => {

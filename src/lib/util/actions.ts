@@ -124,20 +124,19 @@ export class EditorAction {
 	}
 
 	static addWire(
-		componentPosition: XYPair,
-		handleOffset: XYPair,
+		position: XYPair,
 		clickedHandle: HandleType,
-		componentConnection: ComponentConnection,
+		connection: ComponentConnection | WireConnection,
 	) {
 		const wireData = {
 			input: {
-				x: componentPosition.x + handleOffset.x,
-				y: componentPosition.y + handleOffset.y,
+				x: position.x,
+				y: position.y,
 				connections: [],
 			},
 			output: {
-				x: componentPosition.x + handleOffset.x,
-				y: componentPosition.y + handleOffset.y,
+				x: position.x,
+				y: position.y,
 				connections: [],
 			},
 		};
@@ -151,7 +150,7 @@ export class EditorAction {
 		const draggedHandle = { id: wireId, handleType: clickedHandle };
 
 		graphManager.executeCommand(
-			new ConnectCommand(connectedHandle, componentConnection),
+			new ConnectCommand(connectedHandle, connection),
 		);
 		graphManager.notifyAll();
 
