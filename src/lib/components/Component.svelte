@@ -222,6 +222,7 @@
 						handleId: identifier,
 					}}
 					{editingThis}
+					deletingThis={false}
 					{simulating}
 					{simData}
 					handleType={handle.type}

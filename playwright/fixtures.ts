@@ -19,6 +19,13 @@ export class Editor {
 		await this.pointer.clickOn(this.page.getByRole("button", { name: "▶" }));
 	}
 
+	/** Clicks the toggle delete button */
+	async toggleDelete() {
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Toggle Delete" }),
+		);
+	}
+
 	async undo() {
 		await this.pointer.clickOn(this.page.getByRole("button", { name: "Undo" }));
 	}

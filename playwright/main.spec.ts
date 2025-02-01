@@ -301,6 +301,16 @@ test.describe("deleting", async () => {
 			"var(--component-delete-color)",
 		);
 	});
+	test("delete wire with handle", async ({ editor, pointer }) => {
+		await editor.addComponent("AND", 100, 100);
+		await editor.dragTo(editor.getHandle("AND", "out").first(), 200, 200);
+
+		await editor.toggleDelete();
+
+		await pointer.clickOn(editor.getHandle("wire", "output").first());
+
+		await expect(editor.wires()).toHaveCount(0);
+	});
 });
 
 test.describe("other", () => {

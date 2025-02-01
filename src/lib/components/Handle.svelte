@@ -12,6 +12,7 @@
 		uiState: EditorUiState;
 		connection: WireConnection | ComponentConnection;
 		editingThis: boolean;
+		deletingThis: boolean;
 		simulating: boolean;
 		simData: SimulationData | null;
 		handleType: HandleType;
@@ -29,6 +30,7 @@
 		simData,
 		handleType,
 		position,
+		deletingThis,
 		onHandleDown,
 		onHandleEnter,
 		onHandleLeave,
@@ -88,7 +90,7 @@
 	r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
 	fill={draggingOtherOnToThis || draggingThisOnToOther
 		? "var(--handle-connect-color)"
-		: simulating && isHandlePowered
+		: (simulating && isHandlePowered) || deletingThis
 			? "var(--component-delete-color)"
 			: "var(--component-outline-color)"}
 	onpointerdown={(e) => onHandleDown(e)}

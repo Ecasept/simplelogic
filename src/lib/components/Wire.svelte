@@ -29,6 +29,10 @@
 	});
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
+		if (uiState.editMode == "delete") {
+			EditorAction.deleteWire(id);
+			return;
+		}
 		if (uiState.editMode != null) {
 			return;
 		}
@@ -46,6 +50,11 @@
 	}
 
 	function onHandleEnter(handleType: HandleType) {
+		if (uiState.editMode == "delete") {
+			editorViewModel.setHovered(id);
+			return;
+		}
+
 		if (
 			uiState.editMode != null &&
 			uiState.editMode != "move" &&
@@ -58,6 +67,10 @@
 	}
 
 	function onHandleLeave() {
+		if (uiState.editMode == "delete") {
+			editorViewModel.removeHovered();
+			return;
+		}
 		editorViewModel.removeHoveredHandle();
 	}
 
@@ -123,6 +136,7 @@
 				handleType: "input",
 			}}
 			{editingThis}
+			{deletingThis}
 			{simulating}
 			{simData}
 			handleType="input"
@@ -144,6 +158,7 @@
 				handleType: "output",
 			}}
 			{editingThis}
+			{deletingThis}
 			{simulating}
 			{simData}
 			handleType="output"
