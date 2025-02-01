@@ -92,6 +92,10 @@
 		handlePos: number,
 		e: MouseEvent,
 	) {
+		if (deletingThis) {
+			EditorAction.deleteComponent(id);
+			return;
+		}
 		if (uiState.editMode != null) {
 			return;
 		}
@@ -140,7 +144,9 @@
 		if (
 			uiState.editMode != null &&
 			uiState.editMode != "move" &&
-			uiState.editMode != "add"
+			uiState.editMode != "add" &&
+			uiState.editMode != "delete" &&
+			uiState.editMode != "simulate"
 		) {
 			return;
 		}
@@ -151,8 +157,12 @@
 		editorViewModel.removeHoveredHandle();
 	}
 
+	// If we are in delete mode, and either
+	// - this component is being hovered
+	// - a handle of this component is being hovered
 	let deletingThis = $derived(
-		uiState.editMode == "delete" && uiState.hoveredElement === id,
+		uiState.editMode == "delete" &&
+			(uiState.hoveredElement === id || uiState.hoveredHandle?.id === id),
 	);
 
 	let fill = $derived(
@@ -186,10 +196,10 @@
 	style="cursor: {cursor}"
 	onpointerdown={onPointerDown}
 	onpointerenter={() => {
-		editorViewModel.setHovered(id);
+		editorViewModel.setHoveredElement(id);
 	}}
 	onpointerleave={() => {
-		editorViewModel.removeHovered();
+		editorViewModel.removeHoveredElement();
 	}}
 	{fill}
 	{stroke}
@@ -222,7 +232,7 @@
 						handleId: identifier,
 					}}
 					{editingThis}
-					deletingThis={false}
+					{deletingThis}
 					{simulating}
 					{simData}
 					handleType={handle.type}

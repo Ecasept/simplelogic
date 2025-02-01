@@ -29,7 +29,7 @@
 	});
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
-		if (uiState.editMode == "delete") {
+		if (deletingThis) {
 			EditorAction.deleteWire(id);
 			return;
 		}
@@ -39,9 +39,10 @@
 		if (e.button !== 0) {
 			return;
 		}
+		e.preventDefault();
 
 		editorViewModel.removeHoveredHandle();
-		e.preventDefault();
+
 		const handle = clickedHandle === "input" ? input : output;
 		editorViewModel.startMoveWire(
 			{ id: id, handleType: clickedHandle },
@@ -50,15 +51,12 @@
 	}
 
 	function onHandleEnter(handleType: HandleType) {
-		if (uiState.editMode == "delete") {
-			editorViewModel.setHovered(id);
-			return;
-		}
-
 		if (
 			uiState.editMode != null &&
 			uiState.editMode != "move" &&
-			uiState.editMode != "add"
+			uiState.editMode != "add" &&
+			uiState.editMode != "delete" &&
+			uiState.editMode != "simulate"
 		) {
 			return;
 		}
@@ -67,14 +65,15 @@
 	}
 
 	function onHandleLeave() {
-		if (uiState.editMode == "delete") {
-			editorViewModel.removeHovered();
-		}
 		editorViewModel.removeHoveredHandle();
 	}
 
+	// If we are in delete mode, and either
+	// - this wire is being hovered
+	// - a handle of this wire is being hovered
 	let deletingThis = $derived(
-		uiState.editMode == "delete" && uiState.hoveredElement === id,
+		uiState.editMode == "delete" &&
+			(uiState.hoveredElement === id || uiState.hoveredHandle?.id === id),
 	);
 
 	let stroke = $derived(
@@ -102,19 +101,13 @@
 	style="pointer-events: {uiState.editMode === 'delete' ? 'all' : 'none'};"
 	stroke-width="10"
 	onpointerenter={() => {
-		if (uiState.editMode !== "delete") {
-			return;
-		}
-		editorViewModel.setHovered(id);
+		editorViewModel.setHoveredElement(id);
 	}}
 	onpointerleave={() => {
-		if (uiState.editMode !== "delete") {
-			return;
-		}
-		editorViewModel.removeHovered();
+		editorViewModel.removeHoveredElement();
 	}}
 	onpointerdown={(e: MouseEvent) => {
-		if (uiState.isModalOpen || !deletingThis) {
+		if (!deletingThis) {
 			return;
 		}
 		if (e.button !== 0) {

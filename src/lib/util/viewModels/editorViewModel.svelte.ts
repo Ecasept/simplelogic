@@ -32,22 +32,22 @@ type PanningState = {
 };
 type DeletionState = {
 	editMode: "delete";
+	hoveredHandle: WireConnection | ComponentConnection | null;
 
 	editedId: null;
 	clickOffset: null;
 	draggedWire: null;
-	hoveredHandle: null;
 	draggedWireConnectionCount: null;
 	prevState: null;
 };
 
 type SimulationState = {
 	editMode: "simulate";
+	hoveredHandle: WireConnection | ComponentConnection | null;
 
 	editedId: null;
 	clickOffset: null;
 	draggedWire: null;
-	hoveredHandle: null;
 	draggedWireConnectionCount: null;
 	prevState: null;
 };
@@ -125,7 +125,17 @@ export class EditorViewModel {
 	}
 
 	setDelete(mode: "delete" | null) {
-		this._uiState.editMode = mode;
+		this._uiState = {
+			editMode: mode,
+			editedId: null,
+			clickOffset: null,
+			draggedWire: null,
+			draggedWireConnectionCount: null,
+			hoveredHandle: this._uiState.hoveredHandle,
+			isModalOpen: this._uiState.isModalOpen,
+			hoveredElement: this._uiState.hoveredElement,
+			prevState: null,
+		};
 		this.notifyAll();
 	}
 
@@ -139,12 +149,12 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 
-	setHovered(id: number) {
+	setHoveredElement(id: number) {
 		this._uiState.hoveredElement = id;
 		this.notifyAll();
 	}
 
-	removeHovered() {
+	removeHoveredElement() {
 		this._uiState.hoveredElement = null;
 		this.notifyAll();
 	}

@@ -73,7 +73,7 @@ export class EditorAction {
 	}
 
 	static deleteComponent(id: number) {
-		editorViewModel.removeHovered();
+		editorViewModel.removeHoveredElement();
 		const cmd = new DeleteComponentCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
@@ -81,7 +81,7 @@ export class EditorAction {
 	}
 
 	static deleteWire(id: number) {
-		editorViewModel.removeHovered();
+		editorViewModel.removeHoveredElement();
 		const cmd = new DeleteWireCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();

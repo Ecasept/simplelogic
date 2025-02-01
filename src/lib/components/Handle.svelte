@@ -73,6 +73,38 @@
 		handleType === "output" ? "outputs" : "inputs",
 	);
 	let isHandlePowered = $derived(simData?.[simDataKey]?.[identifier] ?? false);
+
+	// If
+	// - the user is dragging a wire from another component onto this handle
+	//   or the user is dragging this wire onto another component,
+	//   -> fill the handle with the connection color
+	// - the user is simulating and the handle is powered
+	//   -> fill the handle with the powered color
+	// - the user is deleting this handle
+	//   and the we are part of a wire
+	//   (we don't want to change the color of component handles when hovering components in delete mode)
+	//   -> fill the handle with the delete color
+	let fill = $derived(
+		draggingOtherOnToThis || draggingThisOnToOther
+			? "var(--handle-connect-color)"
+			: (simulating && isHandlePowered) ||
+				  (deletingThis && isWireConnection(connection))
+				? "var(--component-delete-color)"
+				: "var(--component-outline-color)",
+	);
+
+	// If
+	// - the user is hovering over this handle
+	//   and we are not deleting this handle or simulation is active
+	//   (handles are disabled when deleting or simulating)
+	//   -> increase the radius of the handle
+	// - the user is dragging this wire onto another component
+	//   -> increase the radius of the handle
+	let r = $derived(
+		(isHoveredHandle && !deletingThis && !simulating) || draggingThisOnToOther
+			? 10
+			: 5,
+	);
 </script>
 
 <circle
@@ -87,12 +119,8 @@
 	onpointerleave={onHandleLeave}
 	cx={position.x}
 	cy={position.y}
-	r={isHoveredHandle || draggingThisOnToOther ? 10 : 5}
-	fill={draggingOtherOnToThis || draggingThisOnToOther
-		? "var(--handle-connect-color)"
-		: (simulating && isHandlePowered) || deletingThis
-			? "var(--component-delete-color)"
-			: "var(--component-outline-color)"}
+	{fill}
+	{r}
 	onpointerdown={(e) => onHandleDown(e)}
 	style="pointer-events: {editingThis ? 'none' : 'all'};"
 ></circle>
