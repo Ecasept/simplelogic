@@ -154,7 +154,6 @@
 		onpointerdown={onPointerDown}
 		onpointermove={onPointerMove}
 		onpointerup={onPointerExit}
-		onpointercancel={onPointerExit}
 		onpointerleave={onPointerExit}
 		ondragstart={(e) => e.preventDefault()}
 		width="100%"
