@@ -3,7 +3,7 @@
 	import { isComponentConnection } from "$lib/util/global";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type { HandleType, WireHandle } from "$lib/util/types";
-	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
+	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import Handle from "./Handle.svelte";
 
 	type Props = {

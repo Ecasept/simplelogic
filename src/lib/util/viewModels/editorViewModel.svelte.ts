@@ -1,5 +1,4 @@
 import type { ComponentConnection, WireConnection, XYPair } from "../types";
-import { ViewModel } from "./viewModel";
 
 type EditComponent = {
 	editMode: "add" | "move";
@@ -75,7 +74,7 @@ export type EditorUiState = (
 	hoveredElement: number | null;
 };
 
-export class EditorViewModel extends ViewModel<EditorUiState> {
+export class EditorViewModel {
 	private initialUiState = {
 		editMode: null,
 		isModalOpen: false,
@@ -88,10 +87,12 @@ export class EditorViewModel extends ViewModel<EditorUiState> {
 		prevState: null,
 	};
 
-	protected _uiState: EditorUiState = structuredClone(this.initialUiState);
+	private _uiState: EditorUiState = structuredClone(this.initialUiState);
+	public uiState: EditorUiState = $state(structuredClone(this._uiState));
 
-	protected resetUiState() {
-		throw new Error("Method not implemented.");
+	private notifyAll() {
+		// Update exposed state rune
+		this.uiState = structuredClone(this._uiState);
 	}
 
 	private softReset() {

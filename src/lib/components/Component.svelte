@@ -17,7 +17,7 @@
 		HandleType,
 		XYPair,
 	} from "$lib/util/types";
-	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel";
+	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import ComponentInner from "./ComponentInner.svelte";
 	import Handle from "./Handle.svelte";
 

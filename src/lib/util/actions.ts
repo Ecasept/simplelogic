@@ -18,7 +18,7 @@ import type {
 	XYPair,
 } from "./types";
 import { CanvasViewModel } from "./viewModels/canvasViewModel";
-import { EditorViewModel } from "./viewModels/editorViewModel";
+import { EditorViewModel } from "./viewModels/editorViewModel.svelte";
 import { FileModalViewModel } from "./viewModels/fileModalViewModel";
 
 export const graph = new Graph();

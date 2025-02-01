@@ -194,11 +194,11 @@
 				{type}
 				{handles}
 				{isPoweredInitially}
-				uiState={$editorViewModel}
+				uiState={editorViewModel.uiState}
 			></Component>
 		{/each}
 		{#each Object.entries(graphData.wires) as [_, { id, input, output }]}
-			<Wire {id} {input} {output} uiState={$editorViewModel}></Wire>
+			<Wire {id} {input} {output} uiState={editorViewModel.uiState}></Wire>
 		{/each}
 	</svg>
 </div>

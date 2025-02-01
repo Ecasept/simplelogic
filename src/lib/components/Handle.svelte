@@ -7,7 +7,7 @@
 		WireConnection,
 		XYPair,
 	} from "$lib/util/types";
-	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel";
+	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	type Props = {
 		uiState: EditorUiState;
 		connection: WireConnection | ComponentConnection;

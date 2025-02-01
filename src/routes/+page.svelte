@@ -70,7 +70,8 @@
 	}
 
 	let addingComponent = $derived(
-		$editorViewModel.editMode === "add" && $editorViewModel.editedId != null,
+		editorViewModel.uiState.editMode === "add" &&
+			editorViewModel.uiState.editedId != null,
 	);
 </script>
 
@@ -88,14 +89,14 @@
 	/>
 	<Canvas uiState={$canvasViewModel}></Canvas>
 	<Sidebar
-		editMode={$editorViewModel.editMode}
+		editMode={editorViewModel.uiState.editMode}
 		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
 		disabled={addingComponent}
-		simulating={$editorViewModel.editMode === "simulate" ||
-			$editorViewModel.prevState?.editMode === "simulate"}
-		deleting={$editorViewModel.editMode === "delete" ||
-			$editorViewModel.prevState?.editMode === "delete"}
+		simulating={editorViewModel.uiState.editMode === "simulate" ||
+			editorViewModel.uiState.prevState?.editMode === "simulate"}
+		deleting={editorViewModel.uiState.editMode === "delete" ||
+			editorViewModel.uiState.prevState?.editMode === "delete"}
 	></Sidebar>
 	{#if $fileModalViewModel.mode !== null}
 		<FileModal uiState={$fileModalViewModel}></FileModal>
