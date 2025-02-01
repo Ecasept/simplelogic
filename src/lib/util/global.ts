@@ -216,3 +216,13 @@ export function includesByValueMulti(
 ) {
 	return indexOfByValueMulti(arr, value) !== -1;
 }
+
+/** The Vibrate API is not available in all browsers,
+ *  contrary to the typescript definition.
+ *  This function checks if the vibrate function is available
+ *
+ *  https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1486
+ */
+export function isVibrateSupported(): boolean {
+	return typeof navigator.vibrate === "function";
+}

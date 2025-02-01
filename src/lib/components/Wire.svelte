@@ -33,7 +33,10 @@
 		// Add new wire instead of moving existing one on long press
 		// Abort the previous move wire action
 		editorViewModel.abortEditing();
-		navigator.vibrate(10);
+
+		if (isVibrateSupported()) {
+			navigator.vibrate(10);
+		}
 		EditorAction.addWire(
 			{
 				x: handle.x,
