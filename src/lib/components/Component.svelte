@@ -116,11 +116,11 @@
 	}
 
 	function onPointerDown(e: PointerEvent) {
-		if (uiState.editMode == "delete") {
-			EditorAction.deleteComponent(id);
+		if (e.button !== 0) {
 			return;
 		}
-		if (e.button !== 0) {
+		if (uiState.editMode == "delete") {
+			EditorAction.deleteComponent(id);
 			return;
 		}
 		if (uiState.editMode != null) {
