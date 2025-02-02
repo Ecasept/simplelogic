@@ -3,7 +3,11 @@
 	import { isComponentConnection, isVibrateSupported } from "$lib/util/global";
 	import { startLongPressTimer } from "$lib/util/longpress";
 	import { simulation } from "$lib/util/simulation.svelte";
-	import type { HandleType, WireHandle } from "$lib/util/types";
+	import type {
+		HandleType,
+		SVGPointerEvent,
+		WireHandle,
+	} from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import Handle from "./Handle.svelte";
 
@@ -47,7 +51,7 @@
 		);
 	}
 
-	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
+	function onHandleDown(clickedHandle: HandleType, e: SVGPointerEvent) {
 		if (e.button !== 0) {
 			return;
 		}
@@ -59,6 +63,7 @@
 			return;
 		}
 		e.preventDefault();
+		e.currentTarget.releasePointerCapture(e.pointerId);
 
 		editorViewModel.removeHoveredHandle();
 

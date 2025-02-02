@@ -4,6 +4,7 @@
 	import type {
 		ComponentConnection,
 		HandleType,
+		SVGPointerEvent,
 		WireConnection,
 		XYPair,
 	} from "$lib/util/types";
@@ -17,7 +18,7 @@
 		simData: SimulationData | null;
 		handleType: HandleType;
 		position: XYPair;
-		onHandleDown: (event: PointerEvent) => void;
+		onHandleDown: (event: SVGPointerEvent) => void;
 		onHandleEnter: () => void;
 		onHandleLeave: () => void;
 	};

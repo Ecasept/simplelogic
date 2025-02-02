@@ -81,3 +81,7 @@ export type WireData = z.infer<typeof ZWireData>;
 export type ComponentData = z.infer<typeof ZComponentData>;
 export type GraphData = z.infer<typeof ZGraphData>;
 export type ComponentType = z.infer<typeof ZComponentType>;
+
+export type SVGPointerEvent = PointerEvent & {
+	currentTarget: EventTarget & (SVGSVGElement | SVGCircleElement);
+};

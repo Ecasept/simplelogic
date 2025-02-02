@@ -15,6 +15,7 @@
 		ComponentType,
 		HandleEdge,
 		HandleType,
+		SVGPointerEvent,
 		XYPair,
 	} from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
@@ -90,7 +91,7 @@
 		handleType: HandleType,
 		handleEdge: HandleEdge,
 		handlePos: number,
-		e: MouseEvent,
+		e: SVGPointerEvent,
 	) {
 		if (e.button !== 0) {
 			return;
@@ -103,6 +104,7 @@
 			return;
 		}
 		e.preventDefault();
+		e.currentTarget.releasePointerCapture(e.pointerId);
 
 		editorViewModel.removeHoveredHandle();
 

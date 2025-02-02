@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { editorViewModel } from "$lib/util/actions";
 	import { COMPONENT_DATA, GRID_SIZE } from "$lib/util/global";
-	import type { ComponentType } from "$lib/util/types";
+	import type { ComponentType, SVGPointerEvent } from "$lib/util/types";
 	import { ChevronDown } from "lucide-svelte";
 	import Component from "./Component.svelte";
 
 	type Props = {
-		onPointerDown: (type: ComponentType, e: MouseEvent) => void;
+		onPointerDown: (type: ComponentType, e: SVGPointerEvent) => void;
 	};
 	let { onPointerDown }: Props = $props();
 
@@ -31,6 +31,7 @@
 				viewBox={`-5 -5 ${COMPONENT_DATA[type].width * GRID_SIZE + 10} ${COMPONENT_DATA[type].height * GRID_SIZE + 10}`}
 				onpointerdown={(e) => {
 					e.preventDefault();
+					e.currentTarget.releasePointerCapture(e.pointerId);
 					onPointerDown(type, e);
 				}}
 				class="component-svg"
