@@ -27,7 +27,7 @@
 	<div class={["buttons-container", collapsed && "collapsed"]}>
 		{#each Object.keys(COMPONENT_DATA) as Array<keyof typeof COMPONENT_DATA> as type}
 			<svg
-				aria-label="Add ${type}"
+				aria-label="Add {type}"
 				viewBox={`-5 -5 ${COMPONENT_DATA[type].width * GRID_SIZE + 10} ${COMPONENT_DATA[type].height * GRID_SIZE + 10}`}
 				onpointerdown={(e) => {
 					e.preventDefault();

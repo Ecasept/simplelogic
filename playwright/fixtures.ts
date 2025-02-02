@@ -110,7 +110,7 @@ export class Editor {
 
 	/** Returns a locator matching all components currently in the editor */
 	comps() {
-		return this.page.locator(".component-body");
+		return this.page.locator(".canvasWrapper .component-body");
 	}
 
 	/** Returns a locator matching all wires currently in the editor */
@@ -120,10 +120,11 @@ export class Editor {
 
 	/** Adds a component with the specified type at the specified location */
 	async addComponent(type: string, x: number, y: number): Promise<void> {
-		await this.pointer.clickOn(
-			this.page.locator(".sidebarWrapper").getByText(type, { exact: true }),
+		await this.pointer.downOn(
+			this.page.locator(".sidebarWrapper").getByLabel(`Add ${type}`),
 		);
-		await this.pointer.clickAt(x, y);
+		await this.pointer.moveTo(x, y);
+		await this.pointer.up();
 	}
 
 	/* Drags one locator to another locator */
