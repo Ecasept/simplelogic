@@ -40,7 +40,7 @@
 		border: 1px solid var(--primary-border-color);
 		cursor: pointer;
 		border-radius: 12px;
-		padding: 8px;
+		padding: var(--padding, 8px);
 
 		&:hover {
 			background-color: var(--primary-highlight-color);

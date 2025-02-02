@@ -10,7 +10,15 @@
 		sidebarViewModel,
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
-	import { Download, Play, Save, Trash2, Undo } from "lucide-svelte";
+	import {
+		Download,
+		PanelRightClose,
+		PanelRightOpen,
+		Play,
+		Save,
+		Trash2,
+		Undo,
+	} from "lucide-svelte";
 	import AuthentificationSection from "./AuthentificationSection.svelte";
 	import Button from "./Button.svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
@@ -59,10 +67,19 @@
 	let historyLength = $derived(graphManager.historyLength);
 </script>
 
+{#if !uiState.open}
+	<div id="button-container">
+		<Button --padding="6px" text="" onClick={toggleOpen}>
+			{#snippet icon()}<PanelRightOpen size="24px" />{/snippet}
+		</Button>
+	</div>
+{/if}
 <div class={{ disabled, sidebarWrapper: true }} class:open={uiState.open}>
-	<button class="collapse" onclick={toggleOpen}><span>▶</span></button>
 	<div class="content">
 		<div id="heading-container">
+			<Button --padding="6px" text="" onClick={toggleOpen}>
+				{#snippet icon()}<PanelRightClose size="24px" />{/snippet}
+			</Button>
 			<h2 style="margin:0;">Tools</h2>
 			<ThemeSwitcher />
 		</div>
@@ -128,6 +145,11 @@
 </div>
 
 <style lang="scss">
+	#button-container {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+	}
 	.sidebarWrapper {
 		color: var(--on-surface-color);
 		position: absolute;
@@ -136,22 +158,21 @@
 		right: 0;
 		top: 0;
 		background-color: var(--surface-color);
-		transition: translate 0.3s ease-in-out;
+		transition:
+			translate 0.3s ease-in-out,
+			opacity 0.3s;
 		display: flex;
 		overflow-y: scroll;
-		transition: opacity 0.3s;
 
+		/** Disable sidebar */
 		&.disabled {
 			pointer-events: none;
 			opacity: 0;
 		}
 
+		/** Close sidebar */
 		&:not(.open) {
-			translate: 95%;
-
-			.collapse > span {
-				transform: rotate(180deg);
-			}
+			translate: 100%;
 		}
 
 		#heading-container {
@@ -161,27 +182,10 @@
 			margin-bottom: 10px;
 			margin-top: 10px;
 		}
-
-		.collapse {
-			bottom: 0;
-			height: 100%;
-			width: 5%;
-			padding: 0;
-			border: unset;
-			background-color: var(--sidebar-collapse-color);
-			cursor: pointer;
-
-			span {
-				color: black;
-				display: block;
-				transition: transform 0.3s;
-			}
-		}
 		.content {
 			display: flex;
 			flex-direction: column;
 			padding: 10px;
-			width: 95%;
 			box-sizing: border-box;
 		}
 		#space {
