@@ -74,7 +74,7 @@
 		</Button>
 	</div>
 {/if}
-<div class={{ disabled, sidebarWrapper: true }} class:open={uiState.open}>
+<div class={{ disabled, sidebarWrapper: true, open: uiState.open }}>
 	<div class="content">
 		<div id="heading-container">
 			<div id="inside-button-container">
