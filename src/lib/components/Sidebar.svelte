@@ -91,6 +91,8 @@
 			<ThemeSwitcher />
 		</div>
 
+		<div id="fixed-margin"></div>
+
 		<ComponentToolbar {simulating} onClick={addComponent} />
 
 		<hr />
@@ -169,6 +171,10 @@
 			top: 10px;
 			right: 10px;
 		}
+		#heading-container {
+			margin-bottom: 10px;
+			margin-top: 10px;
+		}
 	}
 	/** If the screen isn't wide enough, put the sidebar at the bottom */
 	@media (max-width: 850px) {
@@ -191,6 +197,23 @@
 		}
 		#inside-button-container {
 			transform: rotate(90deg);
+		}
+		#heading-container {
+			position: fixed;
+			// The heading needs to cover the content without any margin at the edges
+			// However we also don't want the heading to be at the very edge of the screen
+			// So we cancel out the padding with negative margins (to remove any holes at the edges)
+			// and add padding to the inside of the heading (so the heading doesn't touch the edge)
+			margin-top: -10px;
+			margin-left: -10px;
+			padding-top: 10px;
+			padding-left: 10px;
+			// The heading should be as wide as the sidebar - 20px (padding)
+			width: calc(100% - 20px);
+			background-color: var(--surface-color);
+		}
+		#fixed-margin {
+			min-height: 70px;
 		}
 	}
 
@@ -217,15 +240,12 @@
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			margin-bottom: 10px;
-			margin-top: 10px;
 		}
 		.content {
 			display: flex;
 			flex-direction: column;
 			padding: 10px;
 			width: 100%;
-			box-sizing: border-box;
 		}
 		#space {
 			flex-grow: 1;
