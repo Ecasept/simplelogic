@@ -34,6 +34,13 @@ export class Editor {
 		);
 	}
 
+	/** Clicks the component toolbar toggle */
+	async toggleComponentToolbar() {
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Show components" }),
+		);
+	}
+
 	async undo() {
 		await this.pointer.clickOn(this.page.getByRole("button", { name: "Undo" }));
 	}

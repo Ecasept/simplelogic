@@ -334,14 +334,6 @@ test.describe("other", () => {
 		await expect(page).toHaveTitle("SimpleLogic");
 	});
 
-	test("toggles sidebar correctly", async ({ page, editor }) => {
-		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
-		await editor.toggleSidebar();
-		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(0);
-		await editor.toggleSidebar();
-		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
-	});
-
 	test("snaps", async ({ page, editor, pointer }) => {
 		await editor.addComponent("AND", 100, 200);
 
@@ -915,5 +907,22 @@ test.describe("simulating", () => {
 		await expect(s).toBePowered(); // S remains 1
 		await expect(q).toBePowered(); // Q = 1
 		await expect(qnot).not.toBePowered(); // Q̅ = 0
+	});
+});
+
+test.describe("sidebar", () => {
+	test("toggles sidebar correctly", async ({ page, editor }) => {
+		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
+		await editor.toggleSidebar();
+		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(0);
+		await editor.toggleSidebar();
+		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
+	});
+	test("toggles component toolbar correctly", async ({ page, editor }) => {
+		await expect(page.locator(".buttons-container")).toBeVisible();
+		await editor.toggleComponentToolbar();
+		await expect(page.locator(".buttons-container")).not.toBeVisible();
+		await editor.toggleComponentToolbar();
+		await expect(page.locator(".buttons-container")).toBeVisible();
 	});
 });

@@ -18,7 +18,7 @@
 </script>
 
 <div class="toolbar">
-	<button id="collapse" aria-label="Collapse" onclick={toggle}>
+	<button id="collapse" aria-label="Show components" onclick={toggle}>
 		Show components
 		<div id="collapse-icon" class={[collapsed && "collapsed"]}>
 			<ChevronDown size="20px" />
