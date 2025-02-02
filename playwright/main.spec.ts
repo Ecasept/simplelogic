@@ -674,13 +674,10 @@ test.describe("panning and zooming", () => {
 		pointer,
 	}) => {
 		await editor.addComponent("IN", 100, 100);
-		const input = editor.getHandle("IN", "out").first();
-		await input.click();
+		const component = editor.comps().first();
+		await pointer.clickOn(component, true);
 		// Component should be powered
-		await expect(input).toHaveAttribute(
-			"fill",
-			"var(--component-delete-color)",
-		);
+		await expect(component).toBePowered();
 
 		await page.getByRole("button", { name: "Toggle Simulation" }).click();
 		await pointer.moveTo(500, 500);
@@ -688,10 +685,7 @@ test.describe("panning and zooming", () => {
 		await pointer.moveTo(600, 600);
 
 		// Component should still be powered
-		await expect(input).toHaveAttribute(
-			"fill",
-			"var(--component-delete-color)",
-		);
+		await expect(component).toBePowered();
 
 		await pointer.up();
 	});
