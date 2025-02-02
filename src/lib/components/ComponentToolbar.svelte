@@ -64,6 +64,7 @@
 		width: 100px;
 		height: 100px;
 		cursor: grab;
+		touch-action: none;
 	}
 
 	#collapse {
