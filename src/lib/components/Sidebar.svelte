@@ -191,7 +191,7 @@
 		/* Place the button at the bottom-left
 		and rotate it 90 degrees to make the icon match the vbertical sidebar */
 		#button-container {
-			left: 10px;
+			right: 10px;
 			bottom: 10px;
 			transform: rotate(90deg);
 		}
@@ -211,6 +211,11 @@
 			// The heading should be as wide as the sidebar - 20px (padding)
 			width: calc(100% - 20px);
 			background-color: var(--surface-color);
+
+			// Put sidebar button to the right so that
+			// people holding their phone with their right hand can easily reach it
+			// (sorry left-handed people)
+			flex-direction: row-reverse;
 		}
 		#fixed-margin {
 			min-height: 70px;
