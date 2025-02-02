@@ -122,7 +122,7 @@
 	{fill}
 	{r}
 	onpointerdown={(e) => onHandleDown(e)}
-	style="pointer-events: {editingThis ? 'none' : 'all'};"
+	style="pointer-events: {editingThis ? 'none' : 'inherit'};"
 ></circle>
 
 <style lang="scss">

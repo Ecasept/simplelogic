@@ -60,7 +60,7 @@
 	/* ==== Theme switching ==== */
 	@mixin theme-light {
 		--surface-color: rgb(126, 190, 113);
-		--primary-container-color: #e5f5e4;
+		--primary-container-color: #a7daa4;
 		--primary-color: #c1dfbf;
 		--primary-highlight-color: #a1bf9f;
 		--primary-disabled-color: gray;
@@ -71,7 +71,7 @@
 		--primary-border-color: black;
 		--primary-container-border-color: var(--primary-border-color);
 
-		--canvas-background-color: var(--primary-container-color);
+		--canvas-background-color: rgb(238, 255, 223);
 		--component-outline-color: black;
 		--component-background-color: green;
 		--on-component-background-color: black;

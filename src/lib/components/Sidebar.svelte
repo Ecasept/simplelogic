@@ -93,7 +93,7 @@
 
 		<div id="fixed-margin"></div>
 
-		<ComponentToolbar {simulating} onClick={addComponent} />
+		<ComponentToolbar onPointerDown={addComponent} />
 
 		<hr />
 

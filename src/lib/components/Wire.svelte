@@ -135,7 +135,7 @@
 	class="hitbox"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke="transparent"
-	style="pointer-events: {uiState.editMode === 'delete' ? 'all' : 'none'};"
+	style="pointer-events: {uiState.editMode === 'delete' ? 'inherit' : 'none'};"
 	stroke-width="10"
 	onpointerenter={() => {
 		editorViewModel.setHoveredElement(id);
