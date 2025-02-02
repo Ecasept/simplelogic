@@ -21,13 +21,13 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).click();
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("Please login")).toBeVisible();
-		await page.getByRole("button", { name: "Close" }).click();
+		await page.getByRole("button", { name: "Close", exact: true }).click();
 
 		// Can't load without being logged in
 		await page.getByRole("button", { name: "Load" }).click();
 		await page.getByRole("button", { name: "Load from server" }).click();
 		await expect(page.getByText("Please login")).toBeVisible();
-		await page.getByRole("button", { name: "Close" }).click();
+		await page.getByRole("button", { name: "Close", exact: true }).click();
 
 		// Sending no password
 		await page.getByRole("button", { name: "Login" }).click();
@@ -93,7 +93,7 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("No data to save - please")).toBeVisible();
 		// Close modal and add data
-		await page.getByRole("button", { name: "Close" }).click();
+		await page.getByRole("button", { name: "Close", exact: true }).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await editor.addComponent("AND", 100, 200);
 
@@ -118,7 +118,7 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Save" }).nth(1).click();
 		await expect(page.getByText("Name already exists")).toBeVisible();
 		// Close modal
-		await page.getByRole("button", { name: "Close" }).click();
+		await page.getByRole("button", { name: "Close", exact: true }).click();
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 
 		// Reload page
@@ -212,7 +212,7 @@ test.describe("modal", async () => {
 		await page.getByRole("button", { name: "Load" }).click();
 		await page.getByRole("button", { name: "Paste from clipboard" }).click();
 		await expect(page.getByText("Invalid data")).toBeVisible();
-		await page.getByRole("button", { name: "Close" }).click();
+		await page.getByRole("button", { name: "Close", exact: true }).click();
 
 		// Test schema validation
 		const invalidData =
