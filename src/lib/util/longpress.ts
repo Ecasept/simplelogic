@@ -37,3 +37,10 @@ export function cancelLongPressIfMoved(mousePos: XYPair) {
 		}
 	}
 }
+
+/** Cancel an ongoing long press regardless of mouse movement */
+export function cancelLongPress() {
+	if (timeoutCancel) {
+		clearTimeout(timeoutCancel);
+	}
+}
