@@ -11,7 +11,7 @@ test.describe("adding and dragging/moving", async () => {
 		await expectPosToBe(component, 100, 200);
 	});
 	test("adds component and discards", async ({ page, editor }) => {
-		await page.getByText("AND", { exact: true }).click();
+		await editor.initiateAddComponent("AND");
 
 		await page.keyboard.press("Escape");
 		await expect(editor.comps()).toHaveCount(0);
@@ -32,13 +32,13 @@ test.describe("adding and dragging/moving", async () => {
 		await editor.addComponent("AND", 100, 200);
 
 		// Click handle
-		const originalHandle = page.locator("circle.handle").nth(2);
+		const originalHandle = editor.handles().nth(2);
 		await originalHandle.hover();
 		await expect(originalHandle).toHaveAttribute("r", "10");
 		await pointer.down();
 
 		// Move handle
-		const handle = page.locator("circle.handle").nth(2);
+		const handle = editor.handles().nth(2);
 		await pointer.moveTo(300, 300);
 		await expectPosToBe(handle, 300, 300);
 		await expect(page.locator(".wire").first()).toBeVisible();
@@ -50,8 +50,8 @@ test.describe("adding and dragging/moving", async () => {
 		// Release and move mouse
 		await pointer.up();
 		await pointer.moveTo(200, 200);
-		await expectPosToBe(page.locator("circle.handle").nth(3), 400, 400);
-		await expect(page.locator("circle.handle")).toHaveCount(4);
+		await expectPosToBe(editor.handles().nth(3), 400, 400);
+		await expect(editor.handles()).toHaveCount(4);
 	});
 	test("drags new wire and discards", async ({ page, editor, pointer }) => {
 		await editor.addComponent("AND", 100, 200);
@@ -73,7 +73,7 @@ test.describe("adding and dragging/moving", async () => {
 	test("drags wires with components", async ({ page, editor, pointer }) => {
 		await editor.addComponent("AND", 500, 500);
 
-		const handle = page.locator("circle.handle").first();
+		const handle = editor.handles().first();
 		await handle.hover();
 		await pointer.down();
 		await pointer.moveTo(100, 100);
@@ -96,19 +96,19 @@ test.describe("adding and dragging/moving", async () => {
 		await editor.addComponent("AND", 100, 100);
 
 		// Setup: Drag wire
-		let sourceHandle = page.locator("circle.handle").first();
+		let sourceHandle = editor.handles().first();
 		await editor.dragTo(sourceHandle, 500, 500);
 
 		// 1. Drag and release
 		const wire = page.locator(".wire");
-		const handle = page.locator("circle.handle").nth(2);
+		const handle = editor.handles().nth(2);
 		await editor.dragTo(handle, 400, 400);
 
 		// 2. Drag but not release
 		const initialD = await getAttr(wire, "d");
 		await pointer.downOn(handle);
 		await pointer.moveTo(150, 150);
-		await expectPosToBe(page.locator("circle.handle").nth(1), 150, 150);
+		await expectPosToBe(editor.handles().nth(1), 150, 150);
 		await expect(wire).not.toHaveAttribute("d", initialD);
 
 		// 3. Press escape (or undo if on mobile)
@@ -190,7 +190,7 @@ test.describe("adding and dragging/moving", async () => {
 	}) => {
 		await editor.addComponent("AND", 100, 300);
 
-		const handle = page.locator("circle.handle").nth(2);
+		const handle = editor.handles().nth(2);
 		await editor.dragTo(handle, 300, 100);
 		await editor.dragTo(handle, 300, 500);
 
@@ -262,7 +262,7 @@ test.describe("deleting", async () => {
 		await editor.addComponent("AND", 100, 100);
 
 		// Drag wire from first component
-		const sourceHandle = page.locator("circle.handle").nth(2); // Output handle
+		const sourceHandle = editor.handles().nth(2); // Output handle
 		await editor.dragTo(sourceHandle, 300, 300);
 		await expect(page.locator(".wire")).toHaveCount(1);
 
@@ -271,8 +271,8 @@ test.describe("deleting", async () => {
 		await expect(editor.comps()).toHaveCount(2);
 
 		// Connect wire from second to first component
-		const secondSourceHandle = page.locator("circle.handle").nth(3); // Second component input
-		const targetHandle = page.locator("circle.handle").nth(2); // First wire output (after other inputs have disappeared)
+		const secondSourceHandle = editor.handles().nth(3); // Second component input
+		const targetHandle = editor.handles().nth(2); // First wire output (after other inputs have disappeared)
 		await editor.drag(secondSourceHandle, targetHandle);
 		await expect(page.locator(".wire")).toHaveCount(2);
 
@@ -299,7 +299,7 @@ test.describe("deleting", async () => {
 		);
 		await secondComponent.click();
 		await expect(editor.comps()).toHaveCount(1);
-		await expect(page.locator("circle.handle")).toHaveCount(5); // 3 for first component, 2 for second wire
+		await expect(editor.handles()).toHaveCount(5); // 3 for first component, 2 for second wire
 
 		// Undo component deletion and confirm
 		await editor.undo();
@@ -405,18 +405,18 @@ test.describe("other", () => {
 		await editor.addComponent("OR", 600, 600);
 
 		// drag two wires from output
-		const outputHandle = page.locator("circle.handle").nth(2);
+		const outputHandle = editor.handles().nth(2);
 		await editor.dragTo(outputHandle, 400, 100);
 		await editor.dragTo(outputHandle, 400, 300);
-		await expect(page.locator("circle.handle")).toHaveCount(8); // 2 inputs + 1 output + 2 wire endpoints, + 3 from second component
+		await expect(editor.handles()).toHaveCount(8); // 2 inputs + 1 output + 2 wire endpoints, + 3 from second component
 
 		// click on output handle
-		const thirdHandle = page.locator("circle.handle").nth(5);
+		const thirdHandle = editor.handles().nth(5);
 		await thirdHandle.hover();
 		await pointer.down();
 
 		// verify that other outputs have disappeared
-		await expect(page.locator("circle.handle")).toHaveCount(5);
+		await expect(editor.handles()).toHaveCount(5);
 
 		// escape (or undo if on mobile)
 		if (hasTouch) {
@@ -428,21 +428,21 @@ test.describe("other", () => {
 		}
 
 		// verify that outputs are back
-		await expect(page.locator("circle.handle")).toHaveCount(8);
+		await expect(editor.handles()).toHaveCount(8);
 
 		// click on input handle (n = 0)
-		const inputHandle = page.locator("circle.handle").first();
+		const inputHandle = editor.handles().first();
 		await inputHandle.hover();
 		await pointer.down();
 
 		// verify that other inputs have disappeared
-		await expect(page.locator("circle.handle")).toHaveCount(5);
+		await expect(editor.handles()).toHaveCount(5);
 
 		// release
 		await pointer.up();
 
 		// verify that inputs are back
-		await expect(page.locator("circle.handle")).toHaveCount(8);
+		await expect(editor.handles()).toHaveCount(8);
 	});
 	test("correctly disables component inputs for connected wire outputs", async ({
 		page,
@@ -450,15 +450,15 @@ test.describe("other", () => {
 		editor,
 	}) => {
 		await editor.loadCircuit(circuits.multiconnected);
-		let middleHandle = page.locator("circle.handle").nth(8);
+		let middleHandle = editor.handles().nth(8);
 		await middleHandle.hover();
 		await pointer.down();
-		await expect(page.locator("circle.handle")).toHaveCount(2);
-		middleHandle = page.locator("circle.handle").first();
-		const targetHandle = page.locator("circle.handle").nth(1);
+		await expect(editor.handles()).toHaveCount(2);
+		middleHandle = editor.handles().first();
+		const targetHandle = editor.handles().nth(1);
 		await targetHandle.hover();
 		await pointer.up();
-		await expect(page.locator("circle.handle")).toHaveCount(9);
+		await expect(editor.handles()).toHaveCount(9);
 	});
 });
 
@@ -510,7 +510,7 @@ test.describe("theme switcher", async () => {
 
 test.describe("adding dialog", async () => {
 	test("can cancel adding component with button", async ({ page, editor }) => {
-		await page.getByText("AND", { exact: true }).click();
+		await editor.initiateAddComponent("AND");
 		await expect(page.getByText("Adding component")).toBeVisible();
 
 		await page.getByRole("button", { name: "Cancel" }).click();
@@ -657,7 +657,7 @@ test.describe("panning and zooming", () => {
 		pointer,
 	}) => {
 		await editor.addComponent("IN", 100, 100);
-		const input = page.locator("circle.input");
+		const input = editor.getHandle("IN", "out").first();
 		await input.click();
 		// Component should be powered
 		await expect(input).toHaveAttribute(

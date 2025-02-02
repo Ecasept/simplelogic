@@ -115,14 +115,25 @@ export class Editor {
 
 	/** Returns a locator matching all wires currently in the editor */
 	wires() {
-		return this.page.locator(".wire");
+		return this.page.locator(".canvasWrapper .wire");
+	}
+
+	/** **DEPRECATED**: Use `editor.getHandle()` instead
+	 *
+	 * Returns a locator matching all handles currently in the editor */
+	handles() {
+		return this.page.locator(".canvasWrapper .handle");
+	}
+
+	async initiateAddComponent(type: string) {
+		await this.pointer.downOn(
+			this.page.locator(".sidebarWrapper").getByLabel(`Add ${type}`),
+		);
 	}
 
 	/** Adds a component with the specified type at the specified location */
 	async addComponent(type: string, x: number, y: number): Promise<void> {
-		await this.pointer.downOn(
-			this.page.locator(".sidebarWrapper").getByLabel(`Add ${type}`),
-		);
+		await this.initiateAddComponent(type);
 		await this.pointer.moveTo(x, y);
 		await this.pointer.up();
 	}

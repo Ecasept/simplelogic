@@ -133,8 +133,8 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await expect(editor.comps()).toHaveCount(1);
 	});
-	test("sidebar disappears when editing", async ({ page }) => {
-		await page.getByText("AND", { exact: true }).click();
+	test("sidebar disappears when editing", async ({ page, editor }) => {
+		await editor.initiateAddComponent("AND");
 		await expect(page.locator(".sidebar")).not.toBeVisible();
 	});
 	test("enter selects circuit", async ({ page, browserName, editor }) => {
@@ -172,8 +172,8 @@ test.describe("modal", async () => {
 		// Create 2 components connected by a wire
 		await editor.addComponent("AND", 100, 200);
 		await editor.addComponent("OR", 200, 300);
-		const sourceHandle = page.locator("circle.handle").nth(2);
-		const targetHandle = page.locator("circle.handle").nth(3);
+		const sourceHandle = editor.handles().nth(2);
+		const targetHandle = editor.handles().nth(3);
 		await editor.drag(sourceHandle, targetHandle);
 
 		// Copy to clipboard
