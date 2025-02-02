@@ -18,14 +18,14 @@ import type {
 	XYPair,
 } from "./types";
 import { CanvasViewModel } from "./viewModels/canvasViewModel";
+import { CircuitModalViewModel } from "./viewModels/circuitModalViewModel";
 import { EditorViewModel } from "./viewModels/editorViewModel.svelte";
-import { FileModalViewModel } from "./viewModels/fileModalViewModel";
 
 export const graph = new Graph();
 export const graphManager = new GraphManager(graph);
 export const editorViewModel = new EditorViewModel();
 export const canvasViewModel = new CanvasViewModel();
-export const fileModalViewModel = new FileModalViewModel();
+export const circuitModalViewModel = new CircuitModalViewModel();
 
 export class ChangesAction {
 	static commitChanges() {
@@ -219,7 +219,7 @@ export class PersistenceAction {
 		ChangesAction.abortEditing();
 		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
-		fileModalViewModel.open("save", () => {
+		circuitModalViewModel.open("save", () => {
 			PersistenceAction.closeModal();
 		});
 	}
@@ -227,13 +227,13 @@ export class PersistenceAction {
 		ChangesAction.abortEditing();
 		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
-		fileModalViewModel.open("load", (newGraphData: GraphData) => {
+		circuitModalViewModel.open("load", (newGraphData: GraphData) => {
 			PersistenceAction.setNewGraph(newGraphData);
 			PersistenceAction.closeModal();
 		});
 	}
 	static closeModal() {
-		fileModalViewModel.close();
+		circuitModalViewModel.close();
 		editorViewModel.setModalOpen(false);
 	}
 	static setNewGraph(newGraphData: GraphData) {

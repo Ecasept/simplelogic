@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fileModalViewModel } from "$lib/util/actions";
+	import { circuitModalViewModel } from "$lib/util/actions";
 	import type { ListRequestData } from "$lib/util/api";
 	import { onEnter } from "$lib/util/keyboard";
 
@@ -11,7 +11,7 @@
 	let { listData, onSelect }: Props = $props();
 
 	function loadCircuitList() {
-		fileModalViewModel.loadCircuitList(1);
+		circuitModalViewModel.loadCircuitList(1);
 	}
 </script>
 

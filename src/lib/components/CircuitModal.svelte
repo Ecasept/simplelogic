@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { fileModalViewModel, PersistenceAction } from "$lib/util/actions";
-	import type { FileModalUiState } from "$lib/util/viewModels/fileModalViewModel";
+	import { circuitModalViewModel, PersistenceAction } from "$lib/util/actions";
+	import type { CircuitModalUiState } from "$lib/util/viewModels/circuitModalViewModel";
 	import { Download, Save, X } from "lucide-svelte";
 	import Button from "./Button.svelte";
 	import CircuitList from "./CircuitList.svelte";
@@ -8,25 +8,25 @@
 
 	let enteredName = $state("");
 
-	let { uiState }: { uiState: FileModalUiState } = $props();
+	let { uiState }: { uiState: CircuitModalUiState } = $props();
 
 	function saveGraph() {
-		fileModalViewModel.saveCircuit(enteredName);
+		circuitModalViewModel.saveCircuit(enteredName);
 	}
 	function copyCircuitToClipboard() {
-		fileModalViewModel.copyCircuitToClipboard();
+		circuitModalViewModel.copyCircuitToClipboard();
 	}
 	function pasteCircuitFromClipboard() {
-		fileModalViewModel.pasteCircuitFromClipboard();
+		circuitModalViewModel.pasteCircuitFromClipboard();
 	}
 	function loadCircuitList() {
-		fileModalViewModel.loadCircuitList(1);
+		circuitModalViewModel.loadCircuitList(1);
 	}
 	function close() {
 		PersistenceAction.closeModal();
 	}
 	function chooseGraph(id: number) {
-		fileModalViewModel.loadCircuit(id);
+		circuitModalViewModel.loadCircuit(id);
 	}
 </script>
 

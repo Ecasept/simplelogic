@@ -1,14 +1,14 @@
 <script lang="ts">
 	import AddingAlert from "$lib/components/AddingAlert.svelte";
 	import Canvas from "$lib/components/Canvas.svelte";
-	import FileModal from "$lib/components/FileModal.svelte";
+	import CircuitModal from "$lib/components/CircuitModal.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
 	import {
 		canvasViewModel,
 		ChangesAction,
+		circuitModalViewModel,
 		EditorAction,
 		editorViewModel,
-		fileModalViewModel,
 	} from "$lib/util/actions";
 	import { mousePosition, setMousePosition } from "$lib/util/global";
 	import { handleKeyDown } from "$lib/util/keyboard";
@@ -104,7 +104,7 @@
 		deleting={editorViewModel.uiState.editMode === "delete" ||
 			editorViewModel.uiState.prevState?.editMode === "delete"}
 	></Sidebar>
-	{#if $fileModalViewModel.mode !== null}
-		<FileModal uiState={$fileModalViewModel}></FileModal>
+	{#if $circuitModalViewModel.mode !== null}
+		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
 	{/if}
 </div>

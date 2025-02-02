@@ -3,7 +3,7 @@ import { API } from "../api";
 import type { GraphData } from "../types";
 import { ViewModel } from "./viewModel";
 
-export type FileModalUiState =
+export type CircuitModalUiState =
 	| {
 			mode: null;
 			callback: null;
@@ -37,8 +37,8 @@ type ListRequestData = {
 	};
 } | null;
 
-export class FileModalViewModel extends ViewModel<FileModalUiState> {
-	protected _uiState: FileModalUiState = {
+export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
+	protected _uiState: CircuitModalUiState = {
 		mode: null,
 		errorMessage: null,
 		callback: null,
