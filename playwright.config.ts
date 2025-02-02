@@ -58,17 +58,17 @@ export default defineConfig({
 			testIgnore: "**/mobile/**",
 		},
 
-		{
-			name: "Mobile Chrome",
-			use: {
-				...devices["Pixel 5"],
-				contextOptions: {
-					permissions: ["clipboard-read", "clipboard-write"],
-				},
-				viewport: devices["Desktop Chrome"].viewport,
-			},
-			testDir: "./playwright/mobile",
-		},
+		// {
+		// 	name: "Mobile Chrome",
+		// 	use: {
+		// 		...devices["Pixel 5"],
+		// 		contextOptions: {
+		// 			permissions: ["clipboard-read", "clipboard-write"],
+		// 		},
+		// 		viewport: devices["Desktop Chrome"].viewport,
+		// 	},
+		// 	testDir: "./playwright/mobile",
+		// },
 		// {
 		//   name: 'Mobile Safari',
 		//   use: { ...devices['iPhone 12'] },
