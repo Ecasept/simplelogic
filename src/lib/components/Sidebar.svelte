@@ -77,9 +77,11 @@
 <div class={{ disabled, sidebarWrapper: true }} class:open={uiState.open}>
 	<div class="content">
 		<div id="heading-container">
-			<Button --padding="6px" text="" onClick={toggleOpen}>
-				{#snippet icon()}<PanelRightClose size="24px" />{/snippet}
-			</Button>
+			<div id="inside-button-container">
+				<Button --padding="6px" text="" onClick={toggleOpen}>
+					{#snippet icon()}<PanelRightClose size="24px" />{/snippet}
+				</Button>
+			</div>
 			<h2 style="margin:0;">Tools</h2>
 			<ThemeSwitcher />
 		</div>
@@ -145,34 +147,65 @@
 </div>
 
 <style lang="scss">
+	/** Sidebar at the right */
+	@media (min-width: 850px) {
+		.sidebarWrapper {
+			width: 25vw;
+			height: 100%;
+			right: 0;
+			top: 0;
+			/** Close the sidebar by moving it 100% of its width to the right */
+			&:not(.open) {
+				translate: 100%;
+			}
+		}
+		/** Place the button at the top-right */
+		#button-container {
+			top: 10px;
+			right: 10px;
+		}
+	}
+	/** If the screen isn't wide enough, put the sidebar at the bottom */
+	@media (max-width: 850px) {
+		.sidebarWrapper {
+			width: 100%;
+			max-height: 50vh;
+			bottom: 0;
+			left: 0;
+			/** Close it by shifting it 100% on the y-axis*/
+			&:not(.open) {
+				translate: 0 100%;
+			}
+		}
+		/* Place the button at the bottom-left
+		and rotate it 90 degrees to make the icon match the vbertical sidebar */
+		#button-container {
+			left: 10px;
+			bottom: 10px;
+			transform: rotate(90deg);
+		}
+		#inside-button-container {
+			transform: rotate(90deg);
+		}
+	}
+
 	#button-container {
 		position: absolute;
-		top: 10px;
-		right: 10px;
 	}
 	.sidebarWrapper {
 		color: var(--on-surface-color);
 		position: absolute;
-		width: 20vw;
-		height: 100%;
-		right: 0;
-		top: 0;
 		background-color: var(--surface-color);
+		display: flex;
+		overflow-y: scroll;
 		transition:
 			translate 0.3s ease-in-out,
 			opacity 0.3s;
-		display: flex;
-		overflow-y: scroll;
 
 		/** Disable sidebar */
 		&.disabled {
 			pointer-events: none;
 			opacity: 0;
-		}
-
-		/** Close sidebar */
-		&:not(.open) {
-			translate: 100%;
 		}
 
 		#heading-container {
@@ -186,6 +219,7 @@
 			display: flex;
 			flex-direction: column;
 			padding: 10px;
+			width: 100%;
 			box-sizing: border-box;
 		}
 		#space {
