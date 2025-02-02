@@ -92,14 +92,14 @@
 		handlePos: number,
 		e: MouseEvent,
 	) {
+		if (e.button !== 0) {
+			return;
+		}
 		if (deletingThis) {
 			EditorAction.deleteComponent(id);
 			return;
 		}
 		if (uiState.editMode != null) {
-			return;
-		}
-		if (e.button !== 0) {
 			return;
 		}
 		e.preventDefault();

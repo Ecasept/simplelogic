@@ -48,14 +48,14 @@
 	}
 
 	function onHandleDown(clickedHandle: HandleType, e: MouseEvent) {
+		if (e.button !== 0) {
+			return;
+		}
 		if (deletingThis) {
 			EditorAction.deleteWire(id);
 			return;
 		}
 		if (uiState.editMode != null) {
-			return;
-		}
-		if (e.button !== 0) {
 			return;
 		}
 		e.preventDefault();
