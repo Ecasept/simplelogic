@@ -24,9 +24,6 @@
 
 {#if shouldShow}
 	<div id="container">
-		<!-- onpointerup prevents the global onpointerup listener that would usually place the element from triggering
-	 so that the button can receive the onClick event, and clicks on the alert don't do anything.
-	 onpointermove makes it so that the component does not move when the mouse is on top of the dialog-->
 		<div
 			class={{ alert: true, hovered: isHovering }}
 			onpointerup={_cancel}

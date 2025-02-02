@@ -508,12 +508,29 @@ test.describe("theme switcher", async () => {
 	});
 });
 
-test.describe("adding dialog", async () => {
-	test("can cancel adding component with button", async ({ page, editor }) => {
+test.describe("cancel button", async () => {
+	test("can cancel adding component by dragging on to cancel button", async ({
+		page,
+		editor,
+		pointer,
+	}) => {
 		await editor.initiateAddComponent("AND");
-		await expect(page.getByText("Adding component")).toBeVisible();
+		await expect(page.getByText("Cancel")).toBeVisible();
 
-		await page.getByRole("button", { name: "Cancel" }).click();
+		await pointer.moveOnto(page.getByText("Cancel"), true);
+		await pointer.up();
+		await expect(editor.comps()).toHaveCount(0);
+	});
+	test("can cancel adding component by clicking on cancel button", async ({
+		page,
+		editor,
+		pointer,
+	}) => {
+		await page.keyboard.press("a");
+		await expect(page.getByText("Cancel")).toBeVisible();
+
+		await pointer.clickOn(page.getByText("Cancel"), true);
+
 		await expect(editor.comps()).toHaveCount(0);
 	});
 });
