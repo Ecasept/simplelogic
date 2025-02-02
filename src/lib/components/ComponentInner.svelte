@@ -29,9 +29,11 @@
 		cy={middleY}
 		r="10"
 		style="pointer-events: {editMode === null || editMode === 'simulate'
-			? 'all'
+			? 'inherit'
 			: 'none'};"
-		fill={isPowered ? "var(--component-delete-color)" : "black"}
+		fill={isPowered
+			? "var(--component-delete-color)"
+			: "var(--component-outline-color)"}
 		onpointerdown={(e) => e.stopPropagation()}
 		onpointerup={() => {
 			EditorAction.togglePower(componentId);
@@ -47,7 +49,9 @@
 		cy={middleY}
 		r="10"
 		style="pointer-events: none;"
-		fill={isPowered ? "var(--component-delete-color)" : "black"}
+		fill={isPowered
+			? "var(--component-delete-color)"
+			: "var(--component-outline-color)"}
 	/>
 {:else}
 	<text
