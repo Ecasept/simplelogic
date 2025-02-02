@@ -75,7 +75,9 @@
 		--component-outline-color: black;
 		--component-background-color: green;
 		--on-component-background-color: black;
-		--component-delete-color: red;
+		--delete-color: red;
+		--on-delete-color: white;
+		--component-delete-color: var(--delete-color);
 		--handle-connect-color: purple;
 	}
 	@mixin theme-dark {
@@ -95,7 +97,9 @@
 		--component-outline-color: rgb(189, 196, 171);
 		--component-background-color: #4f7000;
 		--on-component-background-color: white;
-		--component-delete-color: red;
+		--delete-color: red;
+		--on-delete-color: white;
+		--component-delete-color: var(--delete-color);
 		--handle-connect-color: rgb(184, 0, 184);
 	}
 
