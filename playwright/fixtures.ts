@@ -16,7 +16,15 @@ export class Editor {
 
 	/** Open/close the sidebar */
 	async toggleSidebar() {
-		await this.pointer.clickOn(this.page.getByRole("button", { name: "▶" }));
+		if (await this.page.locator(".sidebarWrapper").isVisible()) {
+			await this.pointer.clickOn(
+				this.page.getByRole("button", { name: "Close Sidebar" }),
+			);
+		} else {
+			await this.pointer.clickOn(
+				this.page.getByRole("button", { name: "Open Sidebar" }),
+			);
+		}
 	}
 
 	/** Clicks the toggle delete button */

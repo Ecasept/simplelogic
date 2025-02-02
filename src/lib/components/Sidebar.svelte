@@ -69,7 +69,7 @@
 
 {#if !uiState.open}
 	<div id="button-container">
-		<Button --padding="6px" text="" onClick={toggleOpen}>
+		<Button title="Open Sidebar" --padding="6px" text="" onClick={toggleOpen}>
 			{#snippet icon()}<PanelRightOpen size="24px" />{/snippet}
 		</Button>
 	</div>
@@ -78,7 +78,12 @@
 	<div class="content">
 		<div id="heading-container">
 			<div id="inside-button-container">
-				<Button --padding="6px" text="" onClick={toggleOpen}>
+				<Button
+					title="Close Sidebar"
+					--padding="6px"
+					text=""
+					onClick={toggleOpen}
+				>
 					{#snippet icon()}<PanelRightClose size="24px" />{/snippet}
 				</Button>
 			</div>
