@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
-	import { isComponentConnection } from "$lib/util/global";
+	import { isComponentConnection, isVibrateSupported } from "$lib/util/global";
 	import { startLongPressTimer } from "$lib/util/longpress";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type { HandleType, WireHandle } from "$lib/util/types";
