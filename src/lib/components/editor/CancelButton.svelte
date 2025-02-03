@@ -50,7 +50,7 @@
 		background-color: var(--primary-color);
 		color: var(--on-primary-color);
 		padding: 5px 10px;
-		border-radius: 50vh;
+		border-radius: 100vmin;
 		margin-top: 10px;
 		display: flex;
 		align-items: center;

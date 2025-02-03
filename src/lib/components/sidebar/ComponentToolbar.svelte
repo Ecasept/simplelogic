@@ -69,7 +69,7 @@
 	}
 
 	#collapse {
-		border-radius: 50vh;
+		border-radius: 100vmin;
 		border: none;
 		background-color: var(--primary-container-color);
 		margin: 10px;

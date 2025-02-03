@@ -149,6 +149,7 @@
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<svg
 		bind:this={svg}
+		class="canvas"
 		role="application"
 		onwheel={zoom}
 		onpointerdown={onPointerDown}
@@ -156,9 +157,6 @@
 		onpointerup={onPointerExit}
 		onpointerleave={onPointerExit}
 		ondragstart={(e) => e.preventDefault()}
-		width="100%"
-		height="100%"
-		style="width: 100vw; height: 100vh;"
 		preserveAspectRatio="xMinYMin slice"
 		xmlns="http://www.w3.org/2000/svg"
 		stroke-width="2px"
@@ -214,5 +212,10 @@
 		-moz-user-select: -moz-none;
 		-ms-user-select: none;
 		user-select: none;
+
+		.canvas {
+			width: 100lvw;
+			height: 100lvh;
+		}
 	}
 </style>
