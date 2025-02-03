@@ -20,7 +20,7 @@
 		Undo,
 	} from "lucide-svelte";
 	import AuthentificationSection from "./AuthentificationSection.svelte";
-	import Button from "./Button.svelte";
+	import Button from "../reusable/Button.svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import ThemeSwitcher from "./ThemeSwitcher.svelte";
 

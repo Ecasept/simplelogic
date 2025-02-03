@@ -3,7 +3,7 @@
 	import { COMPONENT_DATA, GRID_SIZE } from "$lib/util/global";
 	import type { ComponentType, SVGPointerEvent } from "$lib/util/types";
 	import { ChevronDown } from "lucide-svelte";
-	import Component from "./Component.svelte";
+	import Component from "../editor/Component.svelte";
 
 	type Props = {
 		onPointerDown: (type: ComponentType, e: SVGPointerEvent) => void;

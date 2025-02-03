@@ -5,7 +5,7 @@
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
 	import type { FormEventHandler } from "svelte/elements";
-	import Button from "./Button.svelte";
+	import Button from "../reusable/Button.svelte";
 
 	let { uiState }: { uiState: SidebarUiState } = $props();
 	function login() {

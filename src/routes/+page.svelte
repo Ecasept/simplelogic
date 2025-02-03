@@ -1,8 +1,8 @@
 <script lang="ts">
-	import CancelButton from "$lib/components/CancelButton.svelte";
-	import Canvas from "$lib/components/Canvas.svelte";
-	import CircuitModal from "$lib/components/CircuitModal.svelte";
-	import Sidebar from "$lib/components/Sidebar.svelte";
+	import CancelButton from "$lib/components/editor/CancelButton.svelte";
+	import Canvas from "$lib/components/editor/Canvas.svelte";
+	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
+	import Sidebar from "$lib/components/sidebar/Sidebar.svelte";
 	import {
 		canvasViewModel,
 		ChangesAction,

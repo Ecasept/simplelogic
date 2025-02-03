@@ -2,9 +2,9 @@
 	import { circuitModalViewModel, PersistenceAction } from "$lib/util/actions";
 	import type { CircuitModalUiState } from "$lib/util/viewModels/circuitModalViewModel";
 	import { Download, Save, X } from "lucide-svelte";
-	import Button from "./Button.svelte";
+	import Button from "../reusable/Button.svelte";
 	import CircuitList from "./CircuitList.svelte";
-	import HrText from "./HRText.svelte";
+	import HrText from "../reusable/HRText.svelte";
 
 	let enteredName = $state("");
 

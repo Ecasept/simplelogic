@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Component from "$lib/components/Component.svelte";
-	import Wire from "$lib/components/Wire.svelte";
+	import Component from "$lib/components/editor/Component.svelte";
+	import Wire from "$lib/components/editor/Wire.svelte";
 	import {
 		canvasViewModel,
 		EditorAction,
