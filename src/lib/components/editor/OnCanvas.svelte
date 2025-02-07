@@ -18,6 +18,12 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		pointer-events: none;
+	}
+	/* Make sure that the children of the container can be interacted with,
+	 * event if the container itself cannot */
+	#container > * {
+		pointer-events: auto;
 	}
 
 	@media (max-width: $mobile-breakpoint) {
