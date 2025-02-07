@@ -99,7 +99,7 @@ export class EditorViewModel {
 		this._uiState = {
 			editMode: null,
 			isModalOpen: this._uiState.isModalOpen,
-			hoveredHandle: null,
+			hoveredHandle: this._uiState.hoveredHandle,
 			clickOffset: null,
 			editedId: null,
 			draggedWire: null,
@@ -124,7 +124,7 @@ export class EditorViewModel {
 		}
 	}
 
-	setDelete(mode: "delete" | null) {
+	setEditMode(mode: "delete" | "simulate" | null) {
 		this._uiState = {
 			editMode: mode,
 			editedId: null,
@@ -136,11 +136,6 @@ export class EditorViewModel {
 			hoveredElement: this._uiState.hoveredElement,
 			prevState: null,
 		};
-		this.notifyAll();
-	}
-
-	setSimulate(mode: "simulate" | null) {
-		this._uiState.editMode = mode;
 		this.notifyAll();
 	}
 

@@ -56,21 +56,6 @@ export class EditorAction {
 		graphManager.clear();
 		editorViewModel.hardReset();
 	}
-	static toggleDelete() {
-		ChangesAction.abortEditing();
-		const editMode = editorViewModel.uiState.editMode;
-		editorViewModel.setDelete(editMode === "delete" ? null : "delete");
-	}
-
-	static toggleSimulate() {
-		ChangesAction.abortEditing();
-		const editMode = editorViewModel.uiState.editMode;
-		editorViewModel.setSimulate(editMode === "simulate" ? null : "simulate");
-		if (editMode === null) {
-			// Start simulation if we just entered simulation mode
-			simulation.startSimulation();
-		}
-	}
 
 	static deleteComponent(id: number) {
 		editorViewModel.removeHoveredElement();
@@ -211,6 +196,36 @@ export class EditorAction {
 	static undo() {
 		ChangesAction.abortEditing();
 		graphManager.undoLastCommand();
+	}
+}
+export class ModeAction {
+	static switchToDefaultMode() {
+		ChangesAction.abortEditing();
+		editorViewModel.setEditMode(null);
+	}
+
+	static switchToDeleteMode() {
+		ChangesAction.abortEditing();
+		editorViewModel.setEditMode("delete");
+	}
+
+	static switchToSimulateMode() {
+		ChangesAction.abortEditing();
+		editorViewModel.setEditMode("simulate");
+	}
+	static toggleDelete() {
+		if (editorViewModel.uiState.editMode === "delete") {
+			ModeAction.switchToDefaultMode();
+		} else {
+			ModeAction.switchToDeleteMode();
+		}
+	}
+	static toggleSimulate() {
+		if (editorViewModel.uiState.editMode === "simulate") {
+			ModeAction.switchToDefaultMode();
+		} else {
+			ModeAction.switchToSimulateMode();
+		}
 	}
 }
 

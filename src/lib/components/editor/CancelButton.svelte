@@ -23,35 +23,24 @@
 </script>
 
 {#if shouldShow}
-	<div id="container">
-		<div
-			class={{ alert: true, hovered: isHovering }}
-			onpointerup={_cancel}
-			onpointerdown={_cancel}
-			onpointerenter={onPointerEnter}
-			onpointerleave={onPointerLeave}
-		>
-			<X />
-			<span style="pointer-events: none;">Cancel</span>
-		</div>
+	<div
+		class={{ alert: true, hovered: isHovering }}
+		onpointerup={_cancel}
+		onpointerdown={_cancel}
+		onpointerenter={onPointerEnter}
+		onpointerleave={onPointerLeave}
+	>
+		<X />
+		<span style="pointer-events: none;">Cancel</span>
 	</div>
 {/if}
 
 <style>
-	#container {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		display: flex;
-		justify-content: center;
-	}
 	.alert {
 		background-color: var(--primary-color);
 		color: var(--on-primary-color);
 		padding: 5px 10px;
 		border-radius: 100vmin;
-		margin-top: 10px;
 		display: flex;
 		align-items: center;
 		gap: 5px;

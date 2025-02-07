@@ -2,6 +2,7 @@ import {
 	ChangesAction,
 	EditorAction,
 	editorViewModel,
+	ModeAction,
 	PersistenceAction,
 } from "./actions";
 import { mousePosition } from "./global";
@@ -27,14 +28,14 @@ const shortcuts: Shortcut[] = [
 		mod: null,
 		env: "editor",
 		mode: ["delete"],
-		action: EditorAction.toggleDelete,
+		action: ModeAction.toggleDelete,
 	},
 	{
 		key: "escape",
 		mod: null,
 		env: "editor",
 		mode: ["simulate"],
-		action: EditorAction.toggleSimulate,
+		action: ModeAction.toggleSimulate,
 	},
 	{
 		key: "escape",
@@ -109,14 +110,14 @@ const shortcuts: Shortcut[] = [
 		mod: null,
 		env: "editor",
 		mode: [null, "delete", "simulate"],
-		action: EditorAction.toggleDelete,
+		action: ModeAction.toggleDelete,
 	},
 	{
 		key: "s",
 		mod: null,
 		env: "editor",
 		mode: [null, "delete", "simulate"],
-		action: EditorAction.toggleSimulate,
+		action: ModeAction.toggleSimulate,
 	},
 	{
 		key: "s",

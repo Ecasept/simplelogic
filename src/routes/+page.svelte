@@ -1,6 +1,8 @@
 <script lang="ts">
 	import CancelButton from "$lib/components/editor/CancelButton.svelte";
 	import Canvas from "$lib/components/editor/Canvas.svelte";
+	import OnCanvas from "$lib/components/editor/OnCanvas.svelte";
+	import Toolbar from "$lib/components/editor/Toolbar.svelte";
 	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
 	import Sidebar from "$lib/components/sidebar/Sidebar.svelte";
 	import {
@@ -88,11 +90,15 @@
 />
 
 <div class="wrapper theme-host {themeClass}">
-	<!-- Show an alert when user is adding a component -->
-	<CancelButton
-		shouldShow={addingComponent}
-		cancel={ChangesAction.abortEditing}
-	/>
+	<OnCanvas>
+		{#snippet content()}
+			<Toolbar uiState={editorViewModel.uiState}></Toolbar>
+			<CancelButton
+				shouldShow={addingComponent}
+				cancel={ChangesAction.abortEditing}
+			/>
+		{/snippet}
+	</OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>
 	<Sidebar
 		editMode={editorViewModel.uiState.editMode}

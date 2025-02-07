@@ -14,13 +14,12 @@
 		Download,
 		PanelRightClose,
 		PanelRightOpen,
-		Play,
 		Save,
 		Trash2,
 		Undo,
 	} from "lucide-svelte";
-	import AuthentificationSection from "./AuthentificationSection.svelte";
 	import Button from "../reusable/Button.svelte";
+	import AuthentificationSection from "./AuthentificationSection.svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import ThemeSwitcher from "./ThemeSwitcher.svelte";
 
@@ -117,35 +116,6 @@
 		</div>
 
 		<hr />
-
-		<div>
-			<div class="editingmode">
-				Editing Mode:
-				{#if editMode === "add"}
-					Add
-				{:else if editMode === "move"}
-					Move
-				{:else if deleting}
-					Delete
-				{:else if simulating}
-					Simulate
-				{:else if editMode === "pan"}
-					Pan
-				{:else}
-					Normal
-				{/if}
-				{#if simulating}
-					<br />
-					Is simulation running: {isSimulationRunning}
-				{/if}
-			</div>
-			<Button text="Toggle Delete" onClick={EditorAction.toggleDelete}>
-				{#snippet icon()}<Trash2 />{/snippet}
-			</Button>
-			<Button text="Toggle Simulation" onClick={EditorAction.toggleSimulate}>
-				{#snippet icon()}<Play />{/snippet}
-			</Button>
-		</div>
 
 		<div id="space"></div>
 
@@ -265,10 +235,6 @@
 			display: flex;
 			justify-content: space-around;
 			flex-wrap: wrap;
-		}
-
-		.editingmode {
-			margin: 5px;
 		}
 	}
 </style>
