@@ -78,8 +78,10 @@
 	}
 
 	let addingComponent = $derived(
-		editorViewModel.uiState.editMode === "add" &&
-			editorViewModel.uiState.editedId != null,
+		(editorViewModel.uiState.editMode === "add" &&
+			editorViewModel.uiState.editedId != null) ||
+			(editorViewModel.uiState.prevState?.editMode === "add" &&
+				editorViewModel.uiState.prevState.editedId != null),
 	);
 </script>
 

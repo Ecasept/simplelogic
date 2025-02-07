@@ -37,7 +37,7 @@
 	 * The most recent event for all currently active pointers.
 	 */
 	const pointerEventCache: PointerEvent[] = [];
-	let panType: "default" | "whileEditing" = "default";
+	let panType: "default" | "whileAdding" | "whileMoving" = "default";
 
 	function startPanning() {
 		const editMode = editorViewModel.uiState.editMode;
@@ -49,15 +49,24 @@
 			// Don't pan when editing components or wires
 			EditorAction.startPanning();
 			panType = "default";
-		} else if (pointerEventCache.length === 2) {
-			// If the user starts using a second finger while editing, start panning
+		} else if (editMode == "add") {
+			// The first pointerdown to start dragging is not registered by the canvas
+			// so we need to start panning here at the first pointerdown
+			// as that means a second finger (in addition to the one used for adding)
+			// was placed on the screen
 			EditorAction.startPanning();
-			panType = "whileEditing";
+			panType = "whileAdding";
+		} else if (editMode == "move" && pointerEventCache.length === 2) {
+			// When moving a component, the first pointerdown is registered
+			// so we need to start panning only when the second pointerdown is registered
+			// as that means a second finger was placed on the screen
+			EditorAction.startPanning();
+			panType = "whileMoving";
 		}
 	}
 
 	function stopPanning() {
-		const stopCount = panType === "whileEditing" ? 1 : 0;
+		const stopCount = panType === "whileMoving" ? 1 : 0;
 		if (pointerEventCache.length === stopCount) {
 			EditorAction.stopPanning();
 		}
@@ -103,8 +112,8 @@
 		const oldEvent = pointerEventCache[index];
 		pointerEventCache[index] = event;
 
-		const panCount = panType === "whileEditing" ? 2 : 1;
-		const zoomCount = panType === "whileEditing" ? 3 : 2;
+		const panCount = panType === "whileMoving" ? 2 : 1;
+		const zoomCount = panType === "whileMoving" ? 3 : 2;
 
 		// Depending on the number of pointers, pan or zoom
 		if (pointerEventCache.length === panCount) {
