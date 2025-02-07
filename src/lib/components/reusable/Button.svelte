@@ -39,7 +39,7 @@
 		color: var(--on-primary-color);
 		border: 1px solid var(--primary-border-color);
 		cursor: pointer;
-		border-radius: 12px;
+		border-radius: var(--default-border-radius);
 		padding: var(--padding, 8px);
 
 		&:hover {
