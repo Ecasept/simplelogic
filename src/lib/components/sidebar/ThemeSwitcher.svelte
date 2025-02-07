@@ -57,7 +57,8 @@
 		}
 	}
 
-	/* ==== Theme switching ==== */
+	/* ==== Theme Definitions ==== */
+
 	@mixin theme-light {
 		--surface-color: rgb(126, 190, 113);
 		--primary-container-color: #a7daa4;
@@ -80,6 +81,7 @@
 		--component-delete-color: var(--delete-color);
 		--handle-connect-color: purple;
 	}
+
 	@mixin theme-dark {
 		--surface-color: #171d16;
 		--primary-container-color: #2e3426;
@@ -103,21 +105,29 @@
 		--handle-connect-color: rgb(184, 0, 184);
 	}
 
+	/* ==== Apply theme ==== */
+
+	// Explicit light theme selection
 	:global(:root:has(.theme-host.theme-light)) {
 		@include theme-light;
 	}
 
+	// Explicit dark theme selection
 	:global(:root:has(.theme-host.theme-dark)) {
 		@include theme-dark;
 	}
 
-	/* Default scheme */
+	/* ==== System theme selection ==== */
+	/* for when no theme is selected */
+
+	// System dark theme preference
 	@media (prefers-color-scheme: dark) {
 		:global(:root:not(:has(.theme-host.user-theme))) {
 			@include theme-dark;
 		}
 	}
 
+	// System light theme preference
 	@media not (prefers-color-scheme: dark) {
 		:global(:root:not(:has(.theme-host.user-theme))) {
 			@include theme-light;
