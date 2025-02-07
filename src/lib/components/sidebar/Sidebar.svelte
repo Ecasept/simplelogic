@@ -124,8 +124,8 @@
 </div>
 
 <style lang="scss">
-	/** Sidebar at the right */
-	@media (min-width: 850px) {
+	@use "src/lib/css/variables.scss" as *;
+	@media (min-width: $mobile-breakpoint) {
 		.sidebarWrapper {
 			width: 25vw;
 			height: 100%;
@@ -147,7 +147,7 @@
 		}
 	}
 	/** If the screen isn't wide enough, put the sidebar at the bottom */
-	@media (max-width: 850px) {
+	@media (max-width: $mobile-breakpoint) {
 		.sidebarWrapper {
 			width: 100%;
 			max-height: 50vh;
