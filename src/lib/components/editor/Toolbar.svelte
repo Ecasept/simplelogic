@@ -73,6 +73,7 @@
 		border: none;
 		color: var(--on-primary-color);
 		line-height: 0;
+		pointer-events: auto; /* are disabled for the on canvas div */
 	}
 	.icon:hover {
 		background-color: var(--primary-highlight-color);
