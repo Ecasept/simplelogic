@@ -1,6 +1,6 @@
 import type { ComponentConnection, WireConnection, XYPair } from "../types";
 
-type EditComponent = {
+export type EditComponent = {
 	editMode: "add" | "move";
 	editedId: number;
 	clickOffset: XYPair;
@@ -62,6 +62,11 @@ type DefaultState = {
 	prevState: null;
 };
 
+export type PersistentEditorUiState = {
+	isModalOpen: boolean;
+	hoveredElement: number | null;
+};
+
 export type EditorUiState = (
 	| EditComponent
 	| EditWire
@@ -69,10 +74,8 @@ export type EditorUiState = (
 	| DeletionState
 	| SimulationState
 	| PanningState
-) & {
-	isModalOpen: boolean;
-	hoveredElement: number | null;
-};
+) &
+	PersistentEditorUiState;
 
 export class EditorViewModel {
 	private initialUiState = {

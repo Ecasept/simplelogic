@@ -7,7 +7,7 @@
 		editorViewModel,
 		graphManager,
 	} from "$lib/util/actions";
-	import { GRID_SIZE } from "$lib/util/global";
+	import { editModeIs, GRID_SIZE, isEditingComponent } from "$lib/util/global";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 
 	let { uiState }: { uiState: CanvasUiState } = $props();
@@ -49,15 +49,22 @@
 			// Don't pan when editing components or wires
 			EditorAction.startPanning();
 			panType = "default";
-		} else if (editMode == "add") {
+		} else if (
+			editMode == "add" &&
+			isEditingComponent(editorViewModel.uiState)
+		) {
+			// This is a special case when adding a component:
 			// The first pointerdown to start dragging is not registered by the canvas
 			// so we need to start panning here at the first pointerdown
 			// as that means a second finger (in addition to the one used for adding)
 			// was placed on the screen
 			EditorAction.startPanning();
 			panType = "whileAdding";
-		} else if (editMode == "move" && pointerEventCache.length === 2) {
-			// When moving a component, the first pointerdown is registered
+		} else if (
+			editModeIs(editMode, ["move", "add"]) &&
+			pointerEventCache.length === 2
+		) {
+			// When moving a component (or adding a wire), the first pointerdown is registered
 			// so we need to start panning only when the second pointerdown is registered
 			// as that means a second finger was placed on the screen
 			EditorAction.startPanning();
