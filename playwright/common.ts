@@ -1,6 +1,7 @@
 import {
 	test as base,
 	expect as baseExpect,
+	ExpectMatcherState,
 	Locator,
 	MatcherReturnType,
 	Page,
@@ -202,20 +203,63 @@ export const test = base.extend<
 	},
 });
 
-export const expect = baseExpect.extend({
-	/** Passes when the component has the correct stroke color for a powered component */
-	async toBePowered(locator: Locator, options?: { timeout?: number }) {
-		const assertionName = "toBePowered";
+/**A matcher function.
+ * A matcher function will be used like this:
+ * ```
+ * expect(obj).myMatcherFunction(arg1, arg2)
+ * ```
+ *
+ * The object that is being tested is passed as the `received` argument.
+ *
+ * All following arguments are passed as arguments to the matcher function.
+ * These are represented as `...args` with the type `TArgs` (which defines any kind of array).
+ *
+ * Additionally, a MatcherFunction usually returns a MatcherReturnType, but this
+ * has been abstracted away to allow for more flexibility.
+ *
+ * The `this` context is an instance of `ExpectMatcherState` which is used to provide
+ * useful utilities for the matcher function.
+ *
+ * @param TReceived The type of the object that is being tested
+ * @param TArgs The type of the arguments that the matcher function takes
+ * @param ReturnType The return type of the matcher function
+ */
+type MatcherFunction<
+	TReceived extends unknown,
+	TArgs extends unknown[],
+	ReturnType,
+> = (
+	this: ExpectMatcherState,
+	received: TReceived,
+	...args: TArgs
+) => Promise<ReturnType>;
+
+/**Creates a matcher function that can be used with the `expect` function.
+ *
+ * To save time writing boilerplate code, this function takes a simple matcher function
+ * that just needs to throw an error if the assertion fails (eg. by calling a builtin matcher function
+ * using `expect`), and wraps it to return the proper values and messages.
+ *
+ * ### Type parameters:
+ * @param TReceived The type of the object that the matcher function can receive
+ * @param TArgs A type of an array of arguments that the matcher function should receive
+ *
+ * ### Arguments:
+ * @param assertionName The name of the new assertion function
+ * @param toString A function that converts the received object to a string
+ * @param matcher The simple matcher function that should be wrapped
+ * @returns A new matcher function that can be used with `expect` and returns the proper values and messages
+ */
+const createMatcher = <TReceived extends unknown, TArgs extends unknown[]>(
+	assertionName: string,
+	toString: (received: TReceived) => string,
+	matcher: MatcherFunction<TReceived, TArgs, void>,
+): MatcherFunction<TReceived, TArgs, MatcherReturnType> => {
+	return async function (this, received, ...args) {
 		let pass: boolean;
 		let matcherResult: MatcherReturnType | undefined;
 		try {
-			// This custom assertion is actually just a shorthand for the toHaveAttribute assertion
-			const expect = this.isNot ? baseExpect(locator).not : baseExpect(locator);
-			await expect.toHaveAttribute(
-				"stroke",
-				"var(--component-delete-color)",
-				options,
-			);
+			await matcher.call(this, received, ...args);
 			pass = true;
 			matcherResult = undefined;
 		} catch (e) {
@@ -231,7 +275,7 @@ export const expect = baseExpect.extend({
 						isNot: this.isNot,
 					}) +
 					"\n\n" +
-					`Locator: ${locator}\n` +
+					`${toString(received)}\n` +
 					(matcherResult
 						? `Expected: ${this.utils.printExpected((this.isNot ? "not " : "") + matcherResult.expected)}\n` +
 							`Received: ${this.utils.printReceived(matcherResult.actual)}`
@@ -248,5 +292,34 @@ export const expect = baseExpect.extend({
 			expected: matcherResult?.expected,
 			actual: matcherResult?.actual,
 		};
-	},
+	};
+};
+
+export const expect = baseExpect.extend({
+	/** Passes when the component has the correct stroke color for a powered component */
+	toBePowered: createMatcher(
+		"toBePowered",
+		(l: Locator) => `Locator: ${l}`,
+		async function (locator: Locator, options?: { timeout?: number }) {
+			const expect = this.isNot ? baseExpect(locator).not : baseExpect(locator);
+			await expect.toHaveAttribute(
+				"stroke",
+				"var(--component-delete-color)",
+				options,
+			);
+		},
+	),
+	toHaveMode: createMatcher(
+		"toHaveMode",
+		(p: Page) => `Page: ${p.url()}`,
+		async function (page: Page, mode: string, options?: { timeout?: number }) {
+			const modeButton = page.getByRole("button", {
+				name: `Switch to ${mode} mode`,
+			});
+			const expect = this.isNot
+				? baseExpect(modeButton).not
+				: baseExpect(modeButton);
+			await expect.toHaveAttribute("aria-pressed", "true", options);
+		},
+	),
 });
