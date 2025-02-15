@@ -1,5 +1,4 @@
-import { expect } from "@playwright/test";
-import { expectPosToBe, test } from "./common";
+import { expect, expectPosToBe, test } from "./common";
 
 test.describe("editor shortcuts", () => {
 	test("a adds AND gate", async ({ page, pointer, editor }) => {
@@ -61,11 +60,11 @@ test.describe("editor shortcuts", () => {
 	});
 
 	test("escape cancels delete mode", async ({ page }) => {
-		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
+		await expect(page).toHaveMode("default");
 		await page.keyboard.press("d");
-		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
+		await expect(page).toHaveMode("delete");
 		await page.keyboard.press("Escape");
-		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
+		await expect(page).toHaveMode("default");
 	});
 	test("d toggles delete mode", async ({ page, editor }) => {
 		// add component
@@ -76,7 +75,7 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("d");
 
 		// verify delete mode
-		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
+		await expect(page).toHaveMode("delete");
 
 		// delete component
 		await editor.comps().click();
@@ -88,7 +87,7 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("d");
 
 		// verify not in delete mode
-		await expect(page.getByText("Editing Mode: Normal")).toBeVisible();
+		await expect(page).toHaveMode("default");
 	});
 });
 test.describe("shortcut interactions", () => {

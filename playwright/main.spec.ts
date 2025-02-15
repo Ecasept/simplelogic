@@ -277,8 +277,7 @@ test.describe("deleting", async () => {
 		await expect(page.locator(".wire")).toHaveCount(2);
 
 		// Switch to delete mode
-		await page.getByRole("button", { name: "Toggle Delete" }).click();
-		await expect(page.getByText("Editing Mode: Delete")).toBeVisible();
+		await editor.toggleDelete();
 
 		// Delete first wire and confirm
 		const firstWire = page.locator(".wire").first();
@@ -480,10 +479,10 @@ test.describe("sidebar actions", async () => {
 
 		// Test in simulation mode
 		await editor.addComponent("AND", 100, 100);
-		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await editor.toggleSimulate();
 		await page.getByRole("button", { name: "Clear" }).click();
 		await expect(editor.comps()).toHaveCount(0);
-		await expect(page.getByText("Editing Mode: Simulate")).not.toBeVisible();
+		await expect(page).toHaveMode("default");
 	});
 });
 
@@ -620,7 +619,7 @@ test.describe("panning and zooming", () => {
 		pointer,
 	}) => {
 		await editor.addComponent("AND", 100, 100);
-		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await editor.toggleSimulate();
 		await pointer.moveTo(500, 500);
 		await pointer.down();
 		await pointer.moveTo(600, 600);
@@ -679,7 +678,7 @@ test.describe("panning and zooming", () => {
 		// Component should be powered
 		await expect(component).toBePowered();
 
-		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await editor.toggleSimulate();
 		await pointer.moveTo(500, 500);
 		await pointer.down();
 		await pointer.moveTo(600, 600);
@@ -693,7 +692,7 @@ test.describe("panning and zooming", () => {
 
 test.describe("simulating", () => {
 	test("can load while simulating", async ({ page, editor }) => {
-		await page.getByRole("button", { name: "Toggle Simulation" }).click();
+		await editor.toggleSimulate();
 		await editor.loadCircuit(circuits.singleAnd);
 		await expect(editor.comps()).toHaveCount(1);
 	});

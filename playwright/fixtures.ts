@@ -29,9 +29,15 @@ export class Editor {
 
 	/** Clicks the toggle delete button */
 	async toggleDelete() {
-		await this.pointer.clickOn(
-			this.page.getByRole("button", { name: "Toggle Delete" }),
-		);
+		const button = this.page.getByLabel("Switch to delete mode");
+		// get aria pressed
+		const ariaPressed = await button.getAttribute("aria-pressed");
+		if (ariaPressed === "false") {
+			await this.setMode("delete");
+		} else {
+			await this.setMode("default");
+		}
+		await expect(this.page).toHaveMode("delete");
 	}
 
 	/** Clicks the component toolbar toggle */
@@ -53,15 +59,9 @@ export class Editor {
 	}
 
 	async delete(locator: Locator, force?: boolean) {
-		await this.pointer.clickOn(
-			this.page.getByRole("button", { name: "Toggle Delete" }),
-			force,
-		);
+		await this.setMode("delete");
 		await this.pointer.clickOn(locator, force);
-		await this.pointer.clickOn(
-			this.page.getByRole("button", { name: "Toggle Delete" }),
-			force,
-		);
+		await this.setMode("default");
 	}
 
 	async loadCircuit(circuit: string) {
@@ -159,9 +159,20 @@ export class Editor {
 
 	/** Toggles the simulation mode on the page */
 	async toggleSimulate(): Promise<void> {
-		await this.pointer.clickOn(
-			this.page.getByRole("button", { name: "Toggle Simulation" }),
-		);
+		const simulateButton = this.page.getByLabel("Switch to simulate mode");
+		const ariaPressed = await simulateButton.getAttribute("aria-pressed");
+		if (ariaPressed === "false") {
+			await this.setMode("simulate");
+		} else {
+			await this.setMode("default");
+		}
+	}
+
+	async setMode(mode: "default" | "delete" | "simulate") {
+		const button = this.page.getByLabel(`Switch to ${mode} mode`);
+		expect(await button.getAttribute("aria-pressed")).toBe("false");
+		await this.pointer.clickOn(button);
+		await expect(this.page).toHaveMode(mode);
 	}
 }
 
