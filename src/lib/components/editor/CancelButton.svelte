@@ -46,10 +46,12 @@
 		gap: 5px;
 		transition: background-color 0.3s;
 		pointer-events: auto;
+		transition: transform 0.3s;
 
 		&.hovered {
 			background-color: var(--delete-color);
 			color: var(--on-delete-color);
+			transform: scale(1.1);
 		}
 	}
 </style>
