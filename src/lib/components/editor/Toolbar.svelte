@@ -57,12 +57,14 @@
 	.toolbar {
 		display: flex;
 		justify-content: space-around;
-		background-color: var(--primary-color);
-		color: var(--on-primary-color);
+		background-color: var(--surface-color);
+		color: var(--on-surface-color);
 		margin: 10px;
 		border-radius: var(--default-border-radius);
 		gap: 5px;
 		padding: 5px;
+		border: 1px solid var(--surface-border-color);
+		box-shadow: 0px 0px 10px var(--shadow-color);
 	}
 	.icon {
 		cursor: pointer;
@@ -71,15 +73,15 @@
 		transition: background-color 0.1s;
 		background-color: transparent;
 		border: none;
-		color: var(--on-primary-color);
+		color: var(--on-surface-color);
 		line-height: 0;
 		pointer-events: auto; /* are disabled for the on canvas div */
 	}
 	.icon:hover {
-		background-color: var(--primary-highlight-color);
+		background-color: var(--surface-highlight-color);
 	}
 	.icon.selected {
-		background-color: var(--primary-highlight-color);
+		background-color: var(--surface-highlight-color);
 		cursor: default;
 	}
 </style>

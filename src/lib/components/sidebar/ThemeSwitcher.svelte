@@ -80,6 +80,9 @@
 		--on-delete-color: white;
 		--component-delete-color: var(--delete-color);
 		--handle-connect-color: purple;
+		--shadow-color: gray;
+		--surface-border-color: #596858;
+		--surface-highlight-color: var(--primary-container-color);
 	}
 
 	@mixin theme-dark {
@@ -103,6 +106,9 @@
 		--on-delete-color: white;
 		--component-delete-color: var(--delete-color);
 		--handle-connect-color: rgb(184, 0, 184);
+		--shadow-color: #333333;
+		--surface-border-color: #4b5046;
+		--surface-highlight-color: var(--primary-color);
 	}
 
 	/* ==== Apply theme ==== */
