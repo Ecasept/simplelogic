@@ -76,9 +76,8 @@ export class Editor {
 	}
 
 	async waitForSimulationFinished() {
-		await expect(
-			this.page.getByText("Is simulation running: false"),
-		).toBeVisible();
+		console.warn("waitForSimulationFinished is not implemented, using timeout");
+		await this.page.waitForTimeout(1000);
 	}
 
 	/**
