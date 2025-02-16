@@ -225,6 +225,7 @@ export class ModeAction {
 	static switchToSimulateMode() {
 		ChangesAction.abortEditing();
 		editorViewModel.switchToSimulationMode();
+		simulation.startSimulation();
 	}
 	static toggleDelete() {
 		if (editorViewModel.uiState.matches({ mode: "delete" })) {
