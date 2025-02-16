@@ -45,7 +45,6 @@
 		align-items: center;
 		gap: 5px;
 		transition: background-color 0.3s;
-		pointer-events: auto;
 		transition: transform 0.3s;
 
 		&.hovered {

@@ -22,7 +22,7 @@
 	}
 	/* Make sure that the children of the container can be interacted with,
 	 * event if the container itself cannot */
-	#container > * {
+	:global(#on-canvas-container > *) {
 		pointer-events: auto;
 	}
 
