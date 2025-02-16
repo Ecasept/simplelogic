@@ -4,13 +4,13 @@
 </script>
 
 <!-- The container for canvas overlays -->
-<div id="container">
+<div id="on-canvas-container">
 	{@render content()}
 </div>
 
 <style lang="scss">
 	@use "src/lib/css/variables.scss" as *;
-	#container {
+	#on-canvas-container {
 		position: absolute;
 		top: 0;
 		left: 0;
