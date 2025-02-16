@@ -25,25 +25,16 @@
 
 	type Props = {
 		uiState: SidebarUiState;
-		editMode: string | null;
 		simulating: boolean;
-		deleting: boolean;
 		disabled: boolean;
 		cookieLoggedIn: boolean;
 	};
-	let {
-		uiState,
-		editMode,
-		cookieLoggedIn,
-		disabled,
-		simulating,
-		deleting,
-	}: Props = $props();
+	let { uiState, cookieLoggedIn, disabled, simulating }: Props = $props();
 
 	sidebarViewModel.setLoggedInState(cookieLoggedIn);
 
 	function addComponent(type: ComponentType, e: MouseEvent) {
-		EditorAction.addComponent(type, e);
+		EditorAction.addComponent(type, e, "drag");
 	}
 
 	function handleUndo() {

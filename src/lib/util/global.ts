@@ -8,11 +8,6 @@ import type {
 	WireConnection,
 	XYPair,
 } from "./types";
-import type {
-	EditComponent,
-	EditorUiState,
-	PersistentEditorUiState,
-} from "./viewModels/editorViewModel.svelte";
 
 export let mousePosition = { x: 0, y: 0 };
 export function setMousePosition(pos: XYPair) {
@@ -181,16 +176,6 @@ export function isWireConnection(
 	return connection !== null && "handleType" in connection;
 }
 
-/** Type guard for differentiating between editing a wire and editing a component */
-export function isEditingComponent(
-	uiState: EditorUiState,
-): uiState is EditComponent & PersistentEditorUiState {
-	return (
-		(uiState.editMode === "move" || uiState.editMode === "add") &&
-		uiState.editedId !== null
-	);
-}
-
 export function indexOfByValue(arr: WireConnection[], value: WireConnection) {
 	for (let i = 0; i < arr.length; i++) {
 		if (arr[i].id === value.id && arr[i].handleType === value.handleType) {
@@ -240,12 +225,4 @@ export function includesByValueMulti(
  */
 export function isVibrateSupported(): boolean {
 	return typeof navigator.vibrate === "function";
-}
-
-/** Checks if the provided edit mode is one of the other provided modes (or a single mode), with proper type checking */
-export function editModeIs(
-	editMode: EditorUiState["editMode"],
-	mode: EditorUiState["editMode"] | EditorUiState["editMode"][],
-): boolean {
-	return Array.isArray(mode) ? mode.includes(editMode) : editMode === mode;
 }

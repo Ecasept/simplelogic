@@ -2,6 +2,8 @@
 	import { EditorAction } from "$lib/util/actions";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { ComponentType } from "$lib/util/types";
+	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+	import { P } from "ts-pattern";
 
 	type Props = {
 		componentId: number;
@@ -11,9 +13,9 @@
 		height: number;
 		type: ComponentType;
 		isPowered: boolean;
-		editMode: string | null;
+		uiState: EditorUiState;
 	};
-	let { componentId, x, y, width, height, type, isPowered, editMode }: Props =
+	let { componentId, x, y, width, height, type, isPowered, uiState }: Props =
 		$props();
 
 	let middleX = $derived(x + width / 2);
@@ -28,7 +30,9 @@
 		cx={middleX}
 		cy={middleY}
 		r="10"
-		style="pointer-events: {editMode === null || editMode === 'simulate'
+		style="pointer-events: {uiState.matches({
+			mode: P.union('simulate', 'edit'),
+		})
 			? 'inherit'
 			: 'none'};"
 		fill={isPowered

@@ -60,11 +60,11 @@ test.describe("editor shortcuts", () => {
 	});
 
 	test("escape cancels delete mode", async ({ page }) => {
-		await expect(page).toHaveMode("default");
+		await expect(page).toHaveMode("edit");
 		await page.keyboard.press("d");
 		await expect(page).toHaveMode("delete");
 		await page.keyboard.press("Escape");
-		await expect(page).toHaveMode("default");
+		await expect(page).toHaveMode("edit");
 	});
 	test("d toggles delete mode", async ({ page, editor }) => {
 		// add component
@@ -87,11 +87,11 @@ test.describe("editor shortcuts", () => {
 		await page.keyboard.press("d");
 
 		// verify not in delete mode
-		await expect(page).toHaveMode("default");
+		await expect(page).toHaveMode("edit");
 	});
 });
 test.describe("shortcut interactions", () => {
-	test("moving component then a resets component and adds AND gate", async ({
+	test("moving component then pressing a does nothing", async ({
 		page,
 		editor,
 		pointer,
@@ -108,14 +108,9 @@ test.describe("shortcut interactions", () => {
 		// Press A
 		await page.keyboard.press("A");
 
-		// Check that original component is back at initial position
-		await expectPosToBe(component, 100, 100);
-
-		// Check that new AND gate is added at cursor position
-		await pointer.clickAt(200, 200);
-		const newComponent = editor.comps().nth(1);
-		await expect(newComponent).toBeVisible();
-		await expectPosToBe(newComponent, 200, 200);
+		// Check that component is still the same
+		await expectPosToBe(component, 200, 200);
+		await expect(editor.comps()).toHaveCount(1);
 	});
 	test("correct highlighting when switching modes while hovering", async ({
 		editor,

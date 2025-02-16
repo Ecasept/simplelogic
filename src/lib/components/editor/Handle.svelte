@@ -58,7 +58,9 @@
 	);
 
 	let editingOtherWire = $derived(
-		uiState.draggedWire?.id != null && !editingThis,
+		"draggedHandle" in uiState &&
+			uiState.draggedHandle.id != null &&
+			!editingThis,
 	);
 
 	let draggingOtherOnToThis = $derived(isHoveredHandle && editingOtherWire);

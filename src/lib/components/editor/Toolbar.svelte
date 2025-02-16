@@ -9,7 +9,7 @@
 	const modes = [
 		{
 			icon: MousePointer2,
-			name: null,
+			name: "edit",
 			switchTo: ModeAction.switchToDefaultMode,
 		},
 		{
@@ -24,15 +24,7 @@
 		},
 	];
 
-	let currentMode = $derived.by(() => {
-		if (uiState.editMode === "pan") {
-			return uiState.prevState.editMode;
-		}
-		if (uiState.editMode === "add" || uiState.editMode === "move") {
-			return null;
-		}
-		return uiState.editMode;
-	});
+	let currentMode = $derived(uiState.mode);
 </script>
 
 <div class="toolbar">

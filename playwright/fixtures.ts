@@ -35,7 +35,7 @@ export class Editor {
 		if (ariaPressed === "false") {
 			await this.setMode("delete");
 		} else {
-			await this.setMode("default");
+			await this.setMode("edit");
 		}
 		await expect(this.page).toHaveMode("delete");
 	}
@@ -61,7 +61,7 @@ export class Editor {
 	async delete(locator: Locator, force?: boolean) {
 		await this.setMode("delete");
 		await this.pointer.clickOn(locator, force);
-		await this.setMode("default");
+		await this.setMode("edit");
 	}
 
 	async loadCircuit(circuit: string) {
@@ -164,11 +164,11 @@ export class Editor {
 		if (ariaPressed === "false") {
 			await this.setMode("simulate");
 		} else {
-			await this.setMode("default");
+			await this.setMode("edit");
 		}
 	}
 
-	async setMode(mode: "default" | "delete" | "simulate") {
+	async setMode(mode: "edit" | "delete" | "simulate") {
 		const button = this.page.getByLabel(`Switch to ${mode} mode`);
 		expect(await button.getAttribute("aria-pressed")).toBe("false");
 		await this.pointer.clickOn(button);

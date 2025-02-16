@@ -18,7 +18,8 @@
 		SVGPointerEvent,
 		XYPair,
 	} from "$lib/util/types";
-	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+	import { P } from "ts-pattern";
 	import ComponentInner from "./ComponentInner.svelte";
 	import Handle from "./Handle.svelte";
 
@@ -43,12 +44,9 @@
 
 	let rect: SVGRectElement;
 
-	let editingThis = $derived(uiState.editedId === id);
+	let editingThis = $derived(uiState.matches({ componentId: id }));
 
-	let simulating = $derived(
-		uiState.editMode === "simulate" ||
-			uiState.prevState?.editMode === "simulate",
-	);
+	let simulating = $derived(uiState.matches({ mode: "simulate" }));
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
 	let isPowered = $derived.by(() => {
@@ -72,13 +70,15 @@
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
-			if (uiState.editMode === "move") {
+			if (uiState.matches({ editType: "draggingComponent" })) {
+				// If we are dragging this component, show grabbing cursor
 				return "grabbing";
 			} else {
 				return "default";
 			}
 		} else {
-			if (uiState.editMode === null) {
+			if (uiState.matches({ editType: "idle" })) {
+				// If we are in idle mode, show grab cursor
 				return "grab";
 			} else {
 				return "default";
@@ -100,7 +100,7 @@
 			EditorAction.deleteComponent(id);
 			return;
 		}
-		if (uiState.editMode != null) {
+		if (!uiState.matches({ editType: "idle" })) {
 			return;
 		}
 		e.preventDefault();
@@ -126,11 +126,16 @@
 		if (e.button !== 0) {
 			return;
 		}
-		if (uiState.editMode == "delete") {
+		if (uiState.matches({ isPanning: true })) {
+			// Disable any component interaction while panning
+			return;
+		}
+
+		if (uiState.matches({ mode: "delete" })) {
 			EditorAction.deleteComponent(id);
 			return;
 		}
-		if (uiState.editMode != null) {
+		if (!uiState.matches({ editType: "idle" })) {
 			return;
 		}
 
@@ -149,11 +154,10 @@
 
 	function onHandleEnter(identifier: string) {
 		if (
-			uiState.editMode != null &&
-			uiState.editMode != "move" &&
-			uiState.editMode != "add" &&
-			uiState.editMode != "delete" &&
-			uiState.editMode != "simulate"
+			!uiState.matches({
+				mode: P.union("edit", "simulate", "delete"),
+				isPanning: false,
+			})
 		) {
 			return;
 		}
@@ -168,7 +172,7 @@
 	// - this component is being hovered
 	// - a handle of this component is being hovered
 	let deletingThis = $derived(
-		uiState.editMode == "delete" &&
+		uiState.matches({ mode: "delete" }) &&
 			(uiState.hoveredElement === id || uiState.hoveredHandle?.id === id),
 	);
 
@@ -221,17 +225,17 @@
 	{height}
 	{type}
 	{isPowered}
-	editMode={uiState.editMode}
+	{uiState}
 />
 
 {#each Object.entries(handles) as [identifier, handle]}
 	<!-- Hide connected inputs -->
 	{#if !(handle.connections.length !== 0 && handle.type === "input")}
 		<!-- Hide handles of same type as dragged handle -->
-		{#if !(uiState.draggedWire?.handleType === handle.type)}
-			<!-- Hide inputs if the dragged wire already has outgoing wires
+		{#if !("draggedHandle" in uiState && uiState.draggedHandle.handleType === handle.type)}
+			<!-- Hide inputs if the dragged handle already has outgoing wires
 			 (wire outputs may only be connected to either 1 component input, or multiple wire inputs) -->
-			{#if !(uiState.draggedWire?.handleType === "output" && (uiState.draggedWireConnectionCount ?? 0) > 0)}
+			{#if !("draggedHandle" in uiState && uiState.draggedHandle.handleType === "output" && (uiState.connectionCount ?? 0) > 0)}
 				<Handle
 					{uiState}
 					connection={{

@@ -385,6 +385,7 @@ test.describe("other", () => {
 		await editor.addComponent("AND", 100, 100); // Add component
 		if (!hasTouch) {
 			await page.keyboard.press("a"); // Start adding another component
+			await expect(editor.comps()).toHaveCount(2);
 			await page.keyboard.press("Control+KeyZ");
 			await expect(editor.comps()).toHaveCount(1);
 		}
@@ -482,7 +483,7 @@ test.describe("sidebar actions", async () => {
 		await editor.toggleSimulate();
 		await page.getByRole("button", { name: "Clear" }).click();
 		await expect(editor.comps()).toHaveCount(0);
-		await expect(page).toHaveMode("default");
+		await expect(page).toHaveMode("edit");
 	});
 });
 

@@ -1,3 +1,5 @@
+import { match, P } from "ts-pattern";
+import type { Pattern } from "ts-pattern/types";
 import {
 	ChangesAction,
 	EditorAction,
@@ -6,152 +8,241 @@ import {
 	PersistenceAction,
 } from "./actions";
 import { mousePosition } from "./global";
+import type { EditorUiState } from "./viewModels/editorViewModel.svelte";
+
+type Environment = { env: "editor" | "modal" };
+type Key = { key: string; mod: string | null };
 
 type Shortcut = {
-	key: string;
-	mod: string | null;
-	env: string;
-	mode: (string | null)[];
+	name: string;
+	pattern: Pattern<EditorUiState & Environment & Key>;
 	action: () => void;
 };
 
 const shortcuts: Shortcut[] = [
 	{
-		key: "escape",
-		mod: null,
-		env: "editor",
-		mode: ["add", "move"],
+		name: "Cancel editing",
+		pattern: {
+			key: "escape",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: P.union(
+				"addingComponent",
+				"addingWire",
+				"draggingComponent",
+				"draggingWire",
+			),
+			isPanning: false,
+		},
 		action: ChangesAction.abortEditing,
 	},
 	{
-		key: "escape",
-		mod: null,
-		env: "editor",
-		mode: ["delete"],
+		name: "Exit delete mode",
+		pattern: {
+			key: "escape",
+			mod: null,
+			env: "editor",
+			mode: "delete",
+			isPanning: false,
+		},
 		action: ModeAction.toggleDelete,
 	},
 	{
-		key: "escape",
-		mod: null,
-		env: "editor",
-		mode: ["simulate"],
+		name: "Exit simulation mode",
+		pattern: {
+			key: "escape",
+			mod: null,
+			env: "editor",
+			mode: "simulate",
+			isPanning: false,
+		},
 		action: ModeAction.toggleSimulate,
 	},
 	{
-		key: "escape",
-		mod: null,
-		env: "modal",
-		mode: [null],
+		name: "Close modal",
+		pattern: {
+			key: "escape",
+			mod: null,
+			env: "modal",
+		},
 		action: PersistenceAction.closeModal,
 	},
 	{
-		key: "escape",
-		mod: null,
-		env: "editor",
-		mode: ["pan"],
+		name: "Cancel panning",
+		pattern: {
+			key: "escape",
+			mod: null,
+			env: "editor",
+			isPanning: true,
+		},
 		action: EditorAction.abortPanning,
 	},
 	{
-		key: "a",
-		mod: null,
-		env: "editor",
-		mode: [null, "delete", "add", "move"],
+		name: "Add AND gate",
+		pattern: {
+			key: "a",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
 		action: () => {
-			EditorAction.addComponent("AND", mousePosition);
+			EditorAction.addComponent("AND", mousePosition, "keyboard");
 		},
 	},
 	{
-		key: "i",
-		mod: null,
-		env: "editor",
-		mode: [null, "delete", "add", "move"],
+		name: "Add input",
+		pattern: {
+			key: "i",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
 		action: () => {
-			EditorAction.addComponent("IN", mousePosition);
+			EditorAction.addComponent("IN", mousePosition, "keyboard");
 		},
 	},
 	{
-		key: "l",
-		mod: null,
-		env: "editor",
-		mode: [null, "delete", "add", "move"],
+		name: "Add LED",
+		pattern: {
+			key: "l",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
 		action: () => {
-			EditorAction.addComponent("LED", mousePosition);
+			EditorAction.addComponent("LED", mousePosition, "keyboard");
 		},
 	},
 	{
-		key: "n",
-		mod: null,
-		env: "editor",
-		mode: [null, "delete", "add", "move"],
+		name: "Add NOT gate",
+		pattern: {
+			key: "n",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
 		action: () => {
-			EditorAction.addComponent("NOT", mousePosition);
+			EditorAction.addComponent("NOT", mousePosition, "keyboard");
 		},
 	},
 	{
-		key: "x",
-		mod: null,
-		env: "editor",
-		mode: [null, "delete", "add", "move"],
+		name: "Add XOR gate",
+		pattern: {
+			key: "x",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
 		action: () => {
-			EditorAction.addComponent("XOR", mousePosition);
+			EditorAction.addComponent("XOR", mousePosition, "keyboard");
 		},
 	},
 	{
-		key: "o",
-		mod: null,
-		env: "editor",
-		mode: [null, "delete", "add", "move"],
+		name: "Add OR gate",
+		pattern: {
+			key: "o",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
 		action: () => {
-			EditorAction.addComponent("OR", mousePosition);
+			EditorAction.addComponent("OR", mousePosition, "keyboard");
 		},
 	},
 	{
-		key: "d",
-		mod: null,
-		env: "editor",
-		mode: [null, "delete", "simulate"],
+		name: "Toggle delete mode",
+		pattern: {
+			key: "d",
+			mod: null,
+			env: "editor",
+			mode: P.union("edit", "simulate", "delete"),
+			isPanning: false,
+		},
 		action: ModeAction.toggleDelete,
 	},
 	{
-		key: "s",
-		mod: null,
-		env: "editor",
-		mode: [null, "delete", "simulate"],
+		name: "Toggle simulation mode",
+		pattern: {
+			key: "s",
+			mod: null,
+			env: "editor",
+			mode: P.union("edit", "simulate", "delete"),
+			isPanning: false,
+		},
 		action: ModeAction.toggleSimulate,
 	},
 	{
-		key: "s",
-		mod: "ctrl",
-		env: "editor",
-		mode: [null, "delete", "simulate"],
+		name: "Save circuit",
+		pattern: {
+			key: "s",
+			mod: "ctrl",
+			env: "editor",
+			mode: P.union("edit", "simulate", "delete"),
+			isPanning: false,
+		},
 		action: PersistenceAction.saveGraph,
 	},
 	{
-		key: "l",
-		mod: "ctrl",
-		env: "editor",
-		mode: [null, "delete", "simulate"],
+		name: "Load circuit",
+		pattern: {
+			key: "l",
+			mod: "ctrl",
+			env: "editor",
+			mode: P.union("edit", "simulate", "delete"),
+			isPanning: false,
+		},
 		action: PersistenceAction.loadGraph,
 	},
 	{
-		key: "z",
-		mod: "ctrl",
-		env: "editor",
-		mode: [null, "delete"],
+		name: "Undo",
+		pattern: {
+			key: "z",
+			mod: "ctrl",
+			env: "editor",
+			mode: P.union("edit", "delete"),
+			isPanning: false,
+		},
 		action: EditorAction.undo,
 	},
 	{
-		key: "z",
-		mod: "ctrl",
-		env: "editor",
-		mode: ["add", "move"],
+		name: "Cancel editing when undoing while editing",
+		pattern: {
+			key: "z",
+			mod: "ctrl",
+			env: "editor",
+			mode: "edit",
+			editType: P.union(
+				"addingComponent",
+				"addingWire",
+				"draggingComponent",
+				"draggingWire",
+			),
+			isPanning: false,
+		},
 		action: ChangesAction.abortEditing,
 	},
 	{
-		key: "c",
-		mod: "shift",
-		env: "editor",
-		mode: [null, "delete", "simulate", "add", "move"],
+		name: "Clear canvas",
+		pattern: {
+			key: "c",
+			mod: "shift",
+			env: "editor",
+			mode: P.union("edit", "simulate", "delete"),
+			isPanning: false,
+		},
 		action: EditorAction.clear,
 	},
 ];
@@ -166,41 +257,26 @@ function getPressedMod(e: KeyboardEvent) {
 				: null;
 }
 
-function getMatches(
-	shortcut: Shortcut,
-	env: string,
-	mode: string | null,
-	e: KeyboardEvent,
-) {
-	const pressedKey = e.key;
-	const pressedMod = getPressedMod(e);
-
-	return (
-		shortcut.key === pressedKey.toLowerCase() &&
-		shortcut.mod === pressedMod &&
-		shortcut.env === env &&
-		shortcut.mode.includes(mode)
-	);
+function constructValue(e: KeyboardEvent) {
+	return {
+		...editorViewModel.uiState,
+		key: e.key.toLowerCase(),
+		mod: getPressedMod(e),
+		env: editorViewModel.uiState.isModalOpen ? "modal" : "editor",
+	};
 }
 
 export function handleKeyDown(e: KeyboardEvent) {
-	// x == null checks for undefined or null
-	if (e.target !== null && (e.target as HTMLElement).nodeName != null) {
-		if ((e.target as HTMLElement).nodeName.toLowerCase() === "input") {
-			return;
-		}
-	}
-	let env = null;
-	if (editorViewModel.uiState.isModalOpen) {
-		env = "modal";
-	} else {
-		env = "editor";
+	if (e.target instanceof HTMLInputElement) {
+		return;
 	}
 
-	const mode = env == "editor" ? editorViewModel.uiState.editMode : null;
+	const value = constructValue(e);
 
 	const matchingShortcuts = shortcuts.filter((shortcut) =>
-		getMatches(shortcut, env, mode, e),
+		match(value)
+			.with(shortcut.pattern, () => true)
+			.otherwise(() => false),
 	);
 
 	if (matchingShortcuts.length > 0) {
@@ -211,10 +287,17 @@ export function handleKeyDown(e: KeyboardEvent) {
 	}
 }
 
-export function onEnter(f: (e: KeyboardEvent) => void) {
+/** Can be wrapped around a function to only call it when the Enter key is pressed
+ *
+ * @example
+ * ```html
+ * <input onkeydown={onEnter((e) => console.log("Enter pressed"))} />
+ * ```
+ */
+export function onEnter(func: (e: KeyboardEvent) => void) {
 	return (e: KeyboardEvent) => {
 		if (e.key === "Enter") {
-			f(e);
+			func(e);
 		}
 	};
 }

@@ -17,6 +17,7 @@
 	import { cancelLongPress, cancelLongPressIfMoved } from "$lib/util/longpress";
 	import { getThemeClass } from "$lib/util/theme.svelte";
 	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
+	import { P } from "ts-pattern";
 
 	let { data }: { data: import("./$types").LayoutData } = $props();
 	let themeClass = $derived.by(getThemeClass);
@@ -26,17 +27,25 @@
 		setMousePosition(pos);
 
 		const uiState = editorViewModel.uiState;
-		const editMode = uiState.editMode;
-		if (editMode === "move" || editMode === "add") {
-			if (uiState.draggedWire === null) {
-				EditorAction.moveComponentReplaceable(pos, uiState.editedId);
-			} else {
-				EditorAction.moveWireConnectionReplaceable(
-					pos,
-					uiState.draggedWire.id,
-					uiState.draggedWire.handleType,
-				);
-			}
+
+		if (
+			uiState.matches({
+				editType: P.union("draggingComponent", "addingComponent"),
+				isPanning: false,
+			})
+		) {
+			EditorAction.moveComponentReplaceable(pos, uiState.componentId);
+		} else if (
+			uiState.matches({
+				editType: P.union("draggingWire", "addingWire"),
+				isPanning: false,
+			})
+		) {
+			EditorAction.moveWireConnectionReplaceable(
+				pos,
+				uiState.draggedHandle.id,
+				uiState.draggedHandle.handleType,
+			);
 		}
 	}
 
@@ -52,21 +61,25 @@
 
 		cancelLongPress();
 
-		const uiState = editorViewModel.uiState;
-		const editMode = uiState.editMode;
+		console.log("up");
 
-		if (!(editMode === "move" || editMode === "add")) {
-			// don't do anything if nothing is being edited
+		const uiState = editorViewModel.uiState;
+
+		if (!uiState.matches({ mode: "edit", editType: P.not("idle") })) {
+			// not in edit mode or not editing anything
 			return;
 		}
 
-		if (uiState.draggedWire != null && uiState.hoveredHandle != null) {
+		if (
+			uiState.matches({ editType: "draggingWire" }) &&
+			uiState.hoveredHandle !== null
+		) {
 			// A wire is being dragged, and it is hovering over a handle
 			// -> connect the wire to the handle
 			EditorAction.connect(
 				{
-					id: uiState.draggedWire.id,
-					handleType: uiState.draggedWire.handleType,
+					id: uiState.draggedHandle.id,
+					handleType: uiState.draggedHandle.handleType,
 				},
 				// uiState is a rune, so we need to snapshot it
 				$state.snapshot(uiState.hoveredHandle),
@@ -78,10 +91,9 @@
 	}
 
 	let addingComponent = $derived(
-		(editorViewModel.uiState.editMode === "add" &&
-			editorViewModel.uiState.editedId != null) ||
-			(editorViewModel.uiState.prevState?.editMode === "add" &&
-				editorViewModel.uiState.prevState.editedId != null),
+		editorViewModel.uiState.matches({
+			editType: "addingComponent",
+		}),
 	);
 </script>
 
@@ -103,14 +115,10 @@
 	</OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>
 	<Sidebar
-		editMode={editorViewModel.uiState.editMode}
 		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
 		disabled={addingComponent}
-		simulating={editorViewModel.uiState.editMode === "simulate" ||
-			editorViewModel.uiState.prevState?.editMode === "simulate"}
-		deleting={editorViewModel.uiState.editMode === "delete" ||
-			editorViewModel.uiState.prevState?.editMode === "delete"}
+		simulating={editorViewModel.uiState.matches({ mode: "simulate" })}
 	></Sidebar>
 	{#if $circuitModalViewModel.mode !== null}
 		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>

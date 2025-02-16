@@ -7,8 +7,9 @@
 		editorViewModel,
 		graphManager,
 	} from "$lib/util/actions";
-	import { editModeIs, GRID_SIZE, isEditingComponent } from "$lib/util/global";
+	import { GRID_SIZE } from "$lib/util/global";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
+	import { P } from "ts-pattern";
 
 	let { uiState }: { uiState: CanvasUiState } = $props();
 
@@ -18,6 +19,8 @@
 		// update the svg element in the canvas view model
 		canvasViewModel.svg = svg;
 	});
+
+	$inspect(editorViewModel.uiState);
 
 	function pan(movementX: number, movementY: number) {
 		canvasViewModel.pan(movementX, movementY);
@@ -40,20 +43,24 @@
 	let panType: "default" | "whileAdding" | "whileMoving" = "default";
 
 	function startPanning() {
-		const editMode = editorViewModel.uiState.editMode;
-		if (editMode == "pan") {
+		const uiState = editorViewModel.uiState;
+		if (uiState.matches({ isPanning: true })) {
 			// Already panning, onPointerMove will handle this so do nothing
 			return;
 		}
-		if ([null, "simulate", "delete"].includes(editMode)) {
-			// Don't pan when editing components or wires
+
+		if (
+			uiState.matches({ mode: P.union("simulate", "delete") }) ||
+			uiState.matches({ editType: "idle" })
+		) {
+			console.log("starting panning");
+			// Pan as usual when simulating, deleting or when no component is being edited
 			EditorAction.startPanning();
 			panType = "default";
 		} else if (
-			editMode == "add" &&
-			isEditingComponent(editorViewModel.uiState)
+			uiState.matches({ editType: "addingComponent", initiator: "drag" })
 		) {
-			// This is a special case when adding a component:
+			// This is a special case when adding a component by dragging it:
 			// The first pointerdown to start dragging is not registered by the canvas
 			// so we need to start panning here at the first pointerdown
 			// as that means a second finger (in addition to the one used for adding)
@@ -61,12 +68,13 @@
 			EditorAction.startPanning();
 			panType = "whileAdding";
 		} else if (
-			editModeIs(editMode, ["move", "add"]) &&
+			uiState.matches({ mode: "edit" }) &&
 			pointerEventCache.length === 2
 		) {
-			// When moving a component (or adding a wire), the first pointerdown is registered
-			// so we need to start panning only when the second pointerdown is registered
-			// as that means a second finger was placed on the screen
+			// When editing components and wires (but not when adding components, see above),
+			// the first pointerdown that starts the editing is registered by the canvas,
+			// so we need to start panning only when the second pointerdown is registered,
+			// because that means a second finger was placed on the screen in order to pan
 			EditorAction.startPanning();
 			panType = "whileMoving";
 		}
@@ -98,12 +106,14 @@
 	}
 	function onPointerExit(event: PointerEvent) {
 		removeEvent(event);
-		if (editorViewModel.uiState.editMode == "pan") {
+		if (editorViewModel.uiState.matches({ isPanning: true })) {
 			// Prevent the page from registering the pointer event
 			// as the user releasing a component
 			event.stopPropagation();
 		}
 		stopPanning();
+
+		console.log("up ca");
 	}
 
 	function onPointerMove(event: PointerEvent) {

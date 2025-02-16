@@ -1,3 +1,4 @@
+import { P } from "ts-pattern";
 import {
 	ConnectCommand,
 	CreateComponentCommand,
@@ -79,12 +80,16 @@ export class EditorAction {
 		graphManager.commitChanges();
 		graphManager.notifyAll();
 
-		if (editorViewModel.uiState.editMode === "simulate") {
+		if (editorViewModel.uiState.matches({ mode: "simulate" })) {
 			simulation.recomputeComponent(id);
 		}
 	}
 
-	static addComponent(type: ComponentType, pos: XYPair) {
+	static addComponent(
+		type: ComponentType,
+		pos: XYPair,
+		initiator: "drag" | "keyboard",
+	) {
 		ChangesAction.abortEditing();
 		const cmpData = constructComponent(type, pos);
 		if (cmpData === undefined) {
@@ -104,7 +109,7 @@ export class EditorAction {
 			const id = graphManager.executeCommand(cmd);
 			graphManager.notifyAll();
 
-			editorViewModel.startAddComponent(id, clickOffset);
+			editorViewModel.startAddComponent(id, clickOffset, initiator);
 		}
 	}
 
@@ -146,8 +151,16 @@ export class EditorAction {
 	// ==== Movement ====
 
 	static moveComponentReplaceable(newClientPos: XYPair, id: number) {
-		const offsetX = editorViewModel.uiState.clickOffset?.x ?? 0;
-		const offsetY = editorViewModel.uiState.clickOffset?.y ?? 0;
+		if (
+			!editorViewModel.uiState.matches({
+				editType: P.union("draggingComponent", "addingComponent"),
+			})
+		) {
+			throw new Error("Tried dragging a component without starting it");
+		}
+
+		const offsetX = editorViewModel.uiState.clickOffset.x;
+		const offsetY = editorViewModel.uiState.clickOffset.y;
 
 		// transform to svg coordinate system
 		const svgPos = canvasViewModel.clientToSVGCoords({
@@ -201,27 +214,27 @@ export class EditorAction {
 export class ModeAction {
 	static switchToDefaultMode() {
 		ChangesAction.abortEditing();
-		editorViewModel.setEditMode(null);
+		editorViewModel.switchToEditMode();
 	}
 
 	static switchToDeleteMode() {
 		ChangesAction.abortEditing();
-		editorViewModel.setEditMode("delete");
+		editorViewModel.switchToDeleteMode();
 	}
 
 	static switchToSimulateMode() {
 		ChangesAction.abortEditing();
-		editorViewModel.setEditMode("simulate");
+		editorViewModel.switchToSimulationMode();
 	}
 	static toggleDelete() {
-		if (editorViewModel.uiState.editMode === "delete") {
+		if (editorViewModel.uiState.matches({ mode: "delete" })) {
 			ModeAction.switchToDefaultMode();
 		} else {
 			ModeAction.switchToDeleteMode();
 		}
 	}
 	static toggleSimulate() {
-		if (editorViewModel.uiState.editMode === "simulate") {
+		if (editorViewModel.uiState.matches({ mode: "simulate" })) {
 			ModeAction.switchToDefaultMode();
 		} else {
 			ModeAction.switchToSimulateMode();

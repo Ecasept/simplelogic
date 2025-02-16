@@ -9,6 +9,7 @@
 		WireHandle,
 	} from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+	import { P } from "ts-pattern";
 	import Handle from "./Handle.svelte";
 
 	type Props = {
@@ -20,12 +21,12 @@
 
 	let { id, input, output, uiState }: Props = $props();
 
-	let editingThis = $derived(uiState.draggedWire?.id === id);
-
-	let simulating = $derived(
-		uiState.editMode === "simulate" ||
-			uiState.prevState?.editMode === "simulate",
+	let editingThis = $derived(
+		"draggedHandle" in uiState && uiState.draggedHandle.id === id,
 	);
+
+	let simulating = $derived(uiState.matches({ mode: "simulate" }));
+
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
 	let isPowered = $derived.by(() => {
@@ -59,7 +60,7 @@
 			EditorAction.deleteWire(id);
 			return;
 		}
-		if (uiState.editMode != null) {
+		if (!uiState.matches({ editType: "idle" })) {
 			return;
 		}
 		e.preventDefault();
@@ -94,11 +95,10 @@
 
 	function onHandleEnter(handleType: HandleType) {
 		if (
-			uiState.editMode != null &&
-			uiState.editMode != "move" &&
-			uiState.editMode != "add" &&
-			uiState.editMode != "delete" &&
-			uiState.editMode != "simulate"
+			!uiState.matches({
+				mode: P.union("edit", "simulate", "delete"),
+				isPanning: false,
+			})
 		) {
 			return;
 		}
@@ -114,7 +114,7 @@
 	// - this wire is being hovered
 	// - a handle of this wire is being hovered
 	let deletingThis = $derived(
-		uiState.editMode == "delete" &&
+		uiState.matches({ mode: "delete" }) &&
 			(uiState.hoveredElement === id || uiState.hoveredHandle?.id === id),
 	);
 
@@ -140,7 +140,9 @@
 	class="hitbox"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke="transparent"
-	style="pointer-events: {uiState.editMode === 'delete' ? 'inherit' : 'none'};"
+	style="pointer-events: {uiState.matches({ mode: 'delete' })
+		? 'inherit'
+		: 'none'};"
 	stroke-width="10"
 	onpointerenter={() => {
 		editorViewModel.setHoveredElement(id);
@@ -162,7 +164,7 @@
 <!-- Hide connected inputs -->
 {#if input.connections.length === 0}
 	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
-	{#if !(!editingThis && uiState.draggedWire?.handleType === "input")}
+	{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle.handleType === "input")}
 		<Handle
 			{uiState}
 			connection={{
@@ -184,7 +186,7 @@
 <!-- Hide outputs connected to components -->
 {#if !isComponentConnection(output.connections[0] ?? null)}
 	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
-	{#if !(!editingThis && uiState.draggedWire?.handleType === "output")}
+	{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle?.handleType === "output")}
 		<Handle
 			{uiState}
 			connection={{

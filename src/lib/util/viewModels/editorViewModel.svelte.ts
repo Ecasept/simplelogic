@@ -1,147 +1,242 @@
+import { isMatching, type P } from "ts-pattern";
+import type { PatternConstraint } from "../../../../node_modules/ts-pattern/dist/is-matching";
 import type { ComponentConnection, WireConnection, XYPair } from "../types";
 
-export type EditComponent = {
-	editMode: "add" | "move";
-	editedId: number;
-	clickOffset: XYPair;
-
-	draggedWire: null;
-	hoveredHandle: null;
-	draggedWireConnectionCount: null;
-	prevState: null;
-};
-type EditWire = {
-	editMode: "add" | "move";
-	draggedWire: WireConnection;
+// Base properties that are always present
+export type BaseState = {
 	hoveredHandle: WireConnection | ComponentConnection | null;
-	draggedWireConnectionCount: number;
-
-	editedId: null;
-	clickOffset: null;
-	prevState: null;
-};
-type PanningState = {
-	editMode: "pan";
-	prevState: EditorUiState;
-
-	editedId: null;
-	clickOffset: null;
-	draggedWire: null;
-	hoveredHandle: null;
-	draggedWireConnectionCount: null;
-};
-type DeletionState = {
-	editMode: "delete";
-	hoveredHandle: WireConnection | ComponentConnection | null;
-
-	editedId: null;
-	clickOffset: null;
-	draggedWire: null;
-	draggedWireConnectionCount: null;
-	prevState: null;
-};
-
-type SimulationState = {
-	editMode: "simulate";
-	hoveredHandle: WireConnection | ComponentConnection | null;
-
-	editedId: null;
-	clickOffset: null;
-	draggedWire: null;
-	draggedWireConnectionCount: null;
-	prevState: null;
-};
-
-type DefaultState = {
-	editMode: null;
-	editedId: null;
-	clickOffset: null;
-	draggedWire: null;
-	hoveredHandle: WireConnection | ComponentConnection | null;
-	draggedWireConnectionCount: null;
-	prevState: null;
-};
-
-export type PersistentEditorUiState = {
-	isModalOpen: boolean;
 	hoveredElement: number | null;
+	isModalOpen: boolean;
 };
 
-export type EditorUiState = (
-	| EditComponent
-	| EditWire
-	| DefaultState
-	| DeletionState
-	| SimulationState
-	| PanningState
-) &
-	PersistentEditorUiState;
+// ==== Edit Mode states ====
+export type EditIdle = {
+	mode: "edit";
+	editType: "idle";
+};
+export type EditAddingComponent = {
+	mode: "edit";
+	editType: "addingComponent";
+	componentId: number;
+	clickOffset: XYPair;
+	/** Whether the component was added by dragging from the component toolbar, or by using the keyboard shortcut */
+	initiator: "drag" | "keyboard";
+};
+export type EditDraggingComponent = {
+	mode: "edit";
+	editType: "draggingComponent";
+	componentId: number;
+	clickOffset: XYPair;
+};
+export type EditDraggingWire = {
+	mode: "edit";
+	editType: "draggingWire";
+	draggedHandle: WireConnection;
+	connectionCount: number;
+};
+export type EditAddingWire = {
+	mode: "edit";
+	editType: "addingWire";
+	draggedHandle: WireConnection;
+	connectionCount: number;
+};
 
-export class EditorViewModel {
-	private initialUiState = {
-		editMode: null,
-		isModalOpen: false,
-		hoveredHandle: null,
-		clickOffset: null,
-		editedId: null,
-		draggedWire: null,
-		hoveredElement: null,
-		draggedWireConnectionCount: null,
-		prevState: null,
+export type EditState =
+	| EditIdle
+	| EditAddingComponent
+	| EditDraggingComponent
+	| EditDraggingWire
+	| EditAddingWire;
+
+// ==== Delete Mode states ====
+export type DeleteState = {
+	mode: "delete";
+};
+
+// ==== Simulation Mode states ====
+export type SimulationState = {
+	mode: "simulate";
+};
+
+// ==== Panning states ====
+export type NotPanning = {
+	isPanning: false;
+};
+export type Panning = {
+	isPanning: true;
+};
+export type PanningState = NotPanning | Panning;
+
+// ==== Editor state ====
+export type EditorUiState = (EditState | DeleteState | SimulationState) &
+	BaseState &
+	PanningState & {
+		matches: matcher.MatchesFunction;
 	};
 
-	private _uiState: EditorUiState = structuredClone(this.initialUiState);
-	public uiState: EditorUiState = $state(structuredClone(this._uiState));
+export namespace matcher {
+	/** Ensures that UI state matches a given pattern
+	 * @param pattern The pattern to match against
+	 * @returns Whether the UI state matches the pattern
+	 *
+	 * @example
+	 * ```ts
+	 * if (uiState.matches({ mode: "edit" })) {
+	 *     // uiState is guaranteed to be in edit mode
+	 *     console.log(uiState.editType); // no error
+	 * }
+	 * ```
+	 */
+	export function matches<
+		const Pattern extends PatternConstraint<EditorUiState>,
+	>(this: EditorUiState, pattern: Pattern): this is P.infer<Pattern> {
+		// Call ts-pattern's `isMatching` function with the UI state (`this`) and the provided pattern
+		return isMatching(pattern, this);
+	}
+
+	export type MatchesFunction = typeof matches;
+}
+
+// ==== Helper types ====
+/** Properties that are always present in the UI state */
+export type PersistentProperties =
+	| keyof BaseState
+	| "matches"
+	| keyof PanningState;
+type DistributiveOmit<T, K extends keyof any> = T extends any
+	? Omit<T, K>
+	: never;
+
+/** Creates a deep clone of the state, but does not clone the `matches` function */
+function makeUiStateClone(state: EditorUiState): EditorUiState {
+	const { matches, ...rest } = state;
+	const deepClone = structuredClone(rest); // create a deep clone
+	return { ...deepClone, matches };
+}
+
+export class EditorViewModel {
+	private initialUiState: EditorUiState = {
+		mode: "edit",
+		editType: "idle",
+		hoveredHandle: null,
+		hoveredElement: null,
+		isModalOpen: false,
+		isPanning: false,
+		matches: matcher.matches,
+	};
+
+	private _uiState: EditorUiState = makeUiStateClone(this.initialUiState);
+	public uiState: EditorUiState = $state(makeUiStateClone(this._uiState));
 
 	private notifyAll() {
 		// Update exposed state rune
-		this.uiState = structuredClone(this._uiState);
+		this.uiState = makeUiStateClone(this._uiState);
+	}
+
+	/** Sets the UI state, preserving the persistent state */
+	private setUiState(
+		newState: DistributiveOmit<EditorUiState, PersistentProperties>,
+	) {
+		const persistent = {
+			hoveredHandle: this._uiState.hoveredHandle,
+			hoveredElement: this._uiState.hoveredElement,
+			isModalOpen: this._uiState.isModalOpen,
+			isPanning: this._uiState.isPanning,
+			matches: this._uiState.matches,
+		};
+		this._uiState = { ...persistent, ...newState };
 	}
 
 	private softReset() {
 		this._uiState = {
-			editMode: null,
-			isModalOpen: this._uiState.isModalOpen,
+			mode: "edit",
+			editType: "idle",
 			hoveredHandle: this._uiState.hoveredHandle,
-			clickOffset: null,
-			editedId: null,
-			draggedWire: null,
 			hoveredElement: this._uiState.hoveredElement,
-			draggedWireConnectionCount: null,
-			prevState: null,
+			isModalOpen: this._uiState.isModalOpen,
+			isPanning: false,
+			matches: this._uiState.matches,
 		};
 		this.notifyAll();
 	}
 
 	/** Completely resets the editor, as if the page was loaded again */
 	hardReset() {
-		this._uiState = structuredClone(this.initialUiState);
+		this._uiState = makeUiStateClone(this.initialUiState);
 		this.notifyAll();
 	}
 
 	/** Aborts any editing (eg. moving or adding wires/components) currently in progress,
 	 * but preserves eg. if you are in delete/simulate mode */
 	abortEditing() {
-		if (this._uiState.editMode === "add" || this._uiState.editMode === "move") {
+		if (this._uiState.matches({ mode: "edit" })) {
 			this.softReset();
 		}
 	}
 
-	setEditMode(mode: "delete" | "simulate" | null) {
-		this._uiState = {
-			editMode: mode,
-			editedId: null,
-			clickOffset: null,
-			draggedWire: null,
-			draggedWireConnectionCount: null,
-			hoveredHandle: this._uiState.hoveredHandle,
-			isModalOpen: this._uiState.isModalOpen,
-			hoveredElement: this._uiState.hoveredElement,
-			prevState: null,
-		};
+	switchToEditMode() {
+		this.setUiState({
+			mode: "edit",
+			editType: "idle",
+		});
+		this.notifyAll();
+	}
+	switchToDeleteMode() {
+		this.setUiState({
+			mode: "delete",
+		});
+		this.notifyAll();
+	}
+	switchToSimulationMode() {
+		this.setUiState({
+			mode: "simulate",
+		});
 		this.notifyAll();
 	}
 
+	startMoveComponent(id: number, clickOffset: XYPair) {
+		this.setUiState({
+			mode: "edit",
+			editType: "draggingComponent",
+			componentId: id,
+			clickOffset: clickOffset,
+		});
+		this.notifyAll();
+	}
+	startMoveWire(wire: WireConnection, wireConnectionCount: number) {
+		this.setUiState({
+			mode: "edit",
+			editType: "draggingWire",
+			draggedHandle: wire,
+			connectionCount: wireConnectionCount,
+		});
+		this.notifyAll();
+	}
+	startAddComponent(
+		id: number,
+		clickOffset: XYPair,
+		initiator: "drag" | "keyboard",
+	) {
+		this.setUiState({
+			mode: "edit",
+			editType: "addingComponent",
+			componentId: id,
+			clickOffset: clickOffset,
+			initiator: initiator,
+		});
+		this.notifyAll();
+	}
+	startAddWire(wire: WireConnection, wireConnectionCount: number) {
+		this.setUiState({
+			mode: "edit",
+			editType: "addingWire",
+			draggedHandle: wire,
+			connectionCount: wireConnectionCount,
+		});
+		this.notifyAll();
+	}
+
+	// ==== Persistent state setters ====
 	setModalOpen(val: boolean) {
 		this._uiState.isModalOpen = val;
 		this.notifyAll();
@@ -156,63 +251,6 @@ export class EditorViewModel {
 		this._uiState.hoveredElement = null;
 		this.notifyAll();
 	}
-
-	startMoveComponent(id: number, clickOffset: XYPair) {
-		this._uiState = {
-			editMode: "move",
-			editedId: id,
-			clickOffset: clickOffset,
-			draggedWireConnectionCount: null,
-			hoveredHandle: null,
-			draggedWire: null,
-			isModalOpen: this._uiState.isModalOpen,
-			hoveredElement: this._uiState.hoveredElement,
-			prevState: null,
-		};
-		this.notifyAll();
-	}
-	startMoveWire(wire: WireConnection, wireConnectionCount: number) {
-		this._uiState = {
-			editMode: "move",
-			draggedWire: wire,
-			draggedWireConnectionCount: wireConnectionCount,
-			hoveredHandle: null,
-			clickOffset: null,
-			editedId: null,
-			isModalOpen: this._uiState.isModalOpen,
-			hoveredElement: this._uiState.hoveredElement,
-			prevState: null,
-		};
-		this.notifyAll();
-	}
-	startAddComponent(id: number, clickOffset: XYPair) {
-		this._uiState = {
-			editMode: "add",
-			editedId: id,
-			clickOffset: clickOffset,
-			draggedWireConnectionCount: null,
-			hoveredHandle: null,
-			draggedWire: null,
-			isModalOpen: this._uiState.isModalOpen,
-			hoveredElement: this._uiState.hoveredElement,
-			prevState: null,
-		};
-		this.notifyAll();
-	}
-	startAddWire(wire: WireConnection, wireConnectionCount: number) {
-		this._uiState = {
-			editMode: "add",
-			draggedWire: wire,
-			draggedWireConnectionCount: wireConnectionCount,
-			editedId: null,
-			hoveredHandle: null,
-			clickOffset: null,
-			isModalOpen: this._uiState.isModalOpen,
-			hoveredElement: this._uiState.hoveredElement,
-			prevState: null,
-		};
-		this.notifyAll();
-	}
 	setHoveredHandle(handle: WireConnection | ComponentConnection) {
 		if (this._uiState.hoveredHandle !== null) {
 			console.warn("hovered handle already set");
@@ -225,27 +263,11 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 	startPanning() {
-		// Save the current state so we can return to it later
-		this._uiState = {
-			editMode: "pan",
-			prevState: structuredClone(this._uiState),
-			editedId: null,
-			clickOffset: null,
-			draggedWire: null,
-			hoveredHandle: null,
-			draggedWireConnectionCount: null,
-			isModalOpen: this._uiState.isModalOpen,
-			hoveredElement: this._uiState.hoveredElement,
-		};
+		this._uiState.isPanning = true;
 		this.notifyAll();
 	}
 	stopPanning() {
-		if (this._uiState.editMode !== "pan") {
-			return;
-		}
-		// Restore the previous state
-		// eg. if we were in delete mode before panning, we should return to delete mode
-		this._uiState = this._uiState.prevState;
+		this._uiState.isPanning = false;
 		this.notifyAll();
 	}
 }
