@@ -40,7 +40,12 @@
 			: "var(--component-outline-color)"}
 		onpointerdown={(e) => e.stopPropagation()}
 		onpointerup={() => {
-			EditorAction.togglePower(componentId);
+			if (
+				uiState.matches({ editType: "idle" }) ||
+				uiState.matches({ mode: "simulate" })
+			) {
+				EditorAction.togglePower(componentId);
+			}
 		}}
 		onkeypress={onEnter(() => {
 			EditorAction.togglePower(componentId);
