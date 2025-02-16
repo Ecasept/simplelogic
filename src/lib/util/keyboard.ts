@@ -207,12 +207,24 @@ const shortcuts: Shortcut[] = [
 		action: PersistenceAction.loadGraph,
 	},
 	{
-		name: "Undo",
+		name: "Undo edit",
 		pattern: {
 			key: "z",
 			mod: "ctrl",
 			env: "editor",
-			mode: P.union("edit", "delete"),
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
+		action: EditorAction.undo,
+	},
+	{
+		name: "Undo deletion",
+		pattern: {
+			key: "z",
+			mod: "ctrl",
+			env: "editor",
+			mode: "delete",
 			isPanning: false,
 		},
 		action: EditorAction.undo,
