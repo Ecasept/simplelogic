@@ -71,7 +71,7 @@
 		}
 
 		if (
-			uiState.matches({ editType: "draggingWire" }) &&
+			uiState.matches({ editType: P.union("draggingWire", "addingWire") }) &&
 			uiState.hoveredHandle !== null
 		) {
 			// A wire is being dragged, and it is hovering over a handle
