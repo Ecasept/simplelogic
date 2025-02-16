@@ -53,7 +53,6 @@
 			uiState.matches({ mode: P.union("simulate", "delete") }) ||
 			uiState.matches({ editType: "idle" })
 		) {
-			console.log("starting panning");
 			// Pan as usual when simulating, deleting or when no component is being edited
 			EditorAction.startPanning();
 			panType = "default";
@@ -112,8 +111,6 @@
 			event.stopPropagation();
 		}
 		stopPanning();
-
-		console.log("up ca");
 	}
 
 	function onPointerMove(event: PointerEvent) {

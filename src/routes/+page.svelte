@@ -61,8 +61,6 @@
 
 		cancelLongPress();
 
-		console.log("up");
-
 		const uiState = editorViewModel.uiState;
 
 		if (!uiState.matches({ mode: "edit", editType: P.not("idle") })) {
@@ -84,6 +82,7 @@
 				// uiState is a rune, so we need to snapshot it
 				$state.snapshot(uiState.hoveredHandle),
 			);
+			editorViewModel.removeHoveredHandle();
 		}
 
 		// commit the changes that were made while dragging
