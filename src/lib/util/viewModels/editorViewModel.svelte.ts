@@ -1,4 +1,4 @@
-import { isMatching, type P } from "ts-pattern";
+import { isMatching, P } from "ts-pattern";
 import type { PatternConstraint } from "../../../../node_modules/ts-pattern/dist/is-matching";
 import type { ComponentConnection, WireConnection, XYPair } from "../types";
 
@@ -67,8 +67,17 @@ export type Panning = {
 };
 export type PanningState = NotPanning | Panning;
 
+// ==== Selection states ====
+export type SelectionState = {
+	selected: number | null;
+};
+
 // ==== Editor state ====
-export type EditorUiState = (EditState | DeleteState | SimulationState) &
+export type EditorUiState = (
+	| (EditState & SelectionState)
+	| DeleteState
+	| (SimulationState & SelectionState)
+) &
 	BaseState &
 	PanningState & {
 		matches: matcher.MatchesFunction;
@@ -118,6 +127,7 @@ export class EditorViewModel {
 	private initialUiState: EditorUiState = {
 		mode: "edit",
 		editType: "idle",
+		selected: null,
 		hoveredHandle: null,
 		hoveredElement: null,
 		isModalOpen: false,
@@ -133,7 +143,9 @@ export class EditorViewModel {
 		this.uiState = makeUiStateClone(this._uiState);
 	}
 
-	/** Sets the UI state, preserving the persistent state */
+	/** Sets the UI state, preserving the persistent state.
+	 * Properties not provided will be deleted (except for persistent properties).
+	 */
 	private setUiState(
 		newState: DistributiveOmit<EditorUiState, PersistentProperties>,
 	) {
@@ -151,6 +163,7 @@ export class EditorViewModel {
 		this._uiState = {
 			mode: "edit",
 			editType: "idle",
+			selected: null,
 			hoveredHandle: this._uiState.hoveredHandle,
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
@@ -178,6 +191,7 @@ export class EditorViewModel {
 		this.setUiState({
 			mode: "edit",
 			editType: "idle",
+			selected: "selected" in this._uiState ? this._uiState.selected : null,
 		});
 		this.notifyAll();
 	}
@@ -190,6 +204,7 @@ export class EditorViewModel {
 	switchToSimulationMode() {
 		this.setUiState({
 			mode: "simulate",
+			selected: "selected" in this._uiState ? this._uiState.selected : null,
 		});
 		this.notifyAll();
 	}
@@ -200,6 +215,7 @@ export class EditorViewModel {
 			editType: "draggingComponent",
 			componentId: id,
 			clickOffset: clickOffset,
+			selected: id,
 		});
 		this.notifyAll();
 	}
@@ -209,6 +225,7 @@ export class EditorViewModel {
 			editType: "draggingWire",
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
+			selected: wire.id,
 		});
 		this.notifyAll();
 	}
@@ -223,6 +240,7 @@ export class EditorViewModel {
 			componentId: id,
 			clickOffset: clickOffset,
 			initiator: initiator,
+			selected: id,
 		});
 		this.notifyAll();
 	}
@@ -232,6 +250,7 @@ export class EditorViewModel {
 			editType: "addingWire",
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
+			selected: wire.id,
 		});
 		this.notifyAll();
 	}
@@ -268,6 +287,22 @@ export class EditorViewModel {
 	}
 	stopPanning() {
 		this._uiState.isPanning = false;
+		this.notifyAll();
+	}
+	setSelected(id: number) {
+		if (!this._uiState.matches({ mode: P.union("edit", "simulate") })) {
+			console.warn("Tried to select an element in an invalid mode");
+			return;
+		}
+		this._uiState.selected = id;
+		this.notifyAll();
+	}
+	clearSelection() {
+		if (!this._uiState.matches({ mode: P.union("edit", "simulate") })) {
+			console.warn("Tried to clear selection in an invalid mode");
+			return;
+		}
+		this._uiState.selected = null;
 		this.notifyAll();
 	}
 }
