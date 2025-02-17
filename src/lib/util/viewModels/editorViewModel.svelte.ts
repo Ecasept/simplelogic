@@ -18,6 +18,7 @@ export type EditAddingComponent = {
 	mode: "edit";
 	editType: "addingComponent";
 	componentId: number;
+	/** Offset from the top left corner of the component to the mouse position in svg coordinates */
 	clickOffset: XYPair;
 	/** Whether the component was added by dragging from the component toolbar, or by using the keyboard shortcut */
 	initiator: "drag" | "keyboard";
@@ -26,6 +27,7 @@ export type EditDraggingComponent = {
 	mode: "edit";
 	editType: "draggingComponent";
 	componentId: number;
+	/** Offset from the top left corner of the component to the mouse position in svg coordinates */
 	clickOffset: XYPair;
 };
 export type EditDraggingWire = {

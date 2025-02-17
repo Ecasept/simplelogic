@@ -162,6 +162,11 @@ export class EditorAction {
 			x: newClientPos.x,
 			y: newClientPos.y,
 		});
+		// The offset is where the user clicked on the component
+		// We don't just want to move the component to the new position (the current position of the mouse)
+		// because that would make the component jump to the mouse position, and it would be dragged from the top left corner.
+		// Instead, we want to slightly shift the component so that the point where the user clicked on the component
+		// stays under the mouse cursor.
 		const newPos = {
 			x: gridSnap(svgPos.x - offsetX),
 			y: gridSnap(svgPos.y - offsetY),
