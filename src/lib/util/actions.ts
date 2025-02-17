@@ -92,25 +92,20 @@ export class EditorAction {
 	) {
 		ChangesAction.abortEditing();
 		const cmpData = constructComponent(type, pos);
-		if (cmpData === undefined) {
-			return;
-		}
 
-		if (cmpData !== undefined) {
-			const offsetX = (cmpData.size.x * GRID_SIZE) / 2;
-			const offsetY = (cmpData.size.y * GRID_SIZE) / 2;
+		const offsetX = (cmpData.size.x * GRID_SIZE) / 2;
+		const offsetY = (cmpData.size.y * GRID_SIZE) / 2;
 
-			const clickOffset = {
-				x: offsetX,
-				y: offsetY,
-			};
+		const clickOffset = {
+			x: offsetX,
+			y: offsetY,
+		};
 
-			const cmd = new CreateComponentCommand(cmpData);
-			const id = graphManager.executeCommand(cmd);
-			graphManager.notifyAll();
+		const cmd = new CreateComponentCommand(cmpData);
+		const id = graphManager.executeCommand(cmd);
+		graphManager.notifyAll();
 
-			editorViewModel.startAddComponent(id, clickOffset, initiator);
-		}
+		editorViewModel.startAddComponent(id, clickOffset, initiator);
 	}
 
 	static addWire(

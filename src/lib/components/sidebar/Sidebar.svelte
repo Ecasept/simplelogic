@@ -33,8 +33,8 @@
 
 	sidebarViewModel.setLoggedInState(cookieLoggedIn);
 
-	function addComponent(type: ComponentType, e: MouseEvent) {
-		EditorAction.addComponent(type, e, "drag");
+	function addComponent(type: ComponentType, e: PointerEvent) {
+		EditorAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag");
 	}
 
 	function handleUndo() {

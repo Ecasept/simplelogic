@@ -146,10 +146,15 @@ export function calculateHandleOffset(
 	return pos;
 }
 
+/** Creates a component with important data pre-filled in
+ *
+ * @param type The type of component to create
+ * @param pos The position to create the component at, as a client position. The component will be centered around this position.
+ */
 export function constructComponent(
 	type: ComponentType,
 	pos: XYPair,
-): Omit<ComponentData, "id"> | undefined {
+): Omit<ComponentData, "id"> {
 	const data = COMPONENT_DATA[type];
 	const svgPos = canvasViewModel.clientToSVGCoords(pos);
 	return {
