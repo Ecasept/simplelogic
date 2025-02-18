@@ -211,6 +211,11 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 
+	/* Starts dragging a component
+	 *
+	 * @param id The ID of the component being dragged
+	 * @param clickOffset The offset from the top left corner of the component to the mouse position in SVG coordinates
+	 */
 	startMoveComponent(id: number, clickOffset: XYPair) {
 		this.setUiState({
 			mode: "edit",

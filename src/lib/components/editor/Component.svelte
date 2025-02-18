@@ -140,14 +140,13 @@
 		}
 
 		e.preventDefault();
-		// Calculate offset between click position and component origin
-		const clickPos = canvasViewModel.clientToSVGCoords({
-			x: e.clientX,
-			y: e.clientY,
-		});
+
+		const clickPosClient = { x: e.clientX, y: e.clientY };
+		const clickPosSvg = canvasViewModel.clientToSVGCoords(clickPosClient);
+		// Calculate offset between click position and top left corner of component
 		const offset = {
-			x: clickPos.x - position.x,
-			y: clickPos.y - position.y,
+			x: clickPosSvg.x - position.x,
+			y: clickPosSvg.y - position.y,
 		};
 		editorViewModel.startMoveComponent(id, offset);
 	}

@@ -23,6 +23,7 @@ export function startLongPressTimer(pos: XYPair, cb: () => void) {
 		if (callback) {
 			callback();
 		}
+		cancelLongPress();
 	}, LONG_PRESS_MS);
 }
 
