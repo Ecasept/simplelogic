@@ -222,6 +222,9 @@
 {/if}
 
 <style>
+	.wire {
+		stroke-linecap: round;
+	}
 	.selected {
 		stroke: var(--selected-outline-color);
 	}
