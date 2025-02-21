@@ -52,6 +52,17 @@
 		);
 	}
 
+	function onPointerDown(e: MouseEvent) {
+		if (e.button !== 0) {
+			return;
+		}
+
+		if (deletingThis) {
+			EditorAction.deleteWire(id);
+			return;
+		}
+	}
+
 	function onHandleDown(clickedHandle: HandleType, e: SVGPointerEvent) {
 		if (e.button !== 0) {
 			return;
@@ -150,15 +161,7 @@
 	onpointerleave={() => {
 		editorViewModel.removeHoveredElement();
 	}}
-	onpointerdown={(e: MouseEvent) => {
-		if (!deletingThis) {
-			return;
-		}
-		if (e.button !== 0) {
-			return;
-		}
-		EditorAction.deleteWire(id);
-	}}
+	onpointerdown={onPointerDown}
 ></path>
 
 <!-- Hide connected inputs -->
