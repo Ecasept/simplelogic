@@ -16,7 +16,6 @@
 		PanelRightOpen,
 		Save,
 		Trash2,
-		Undo,
 	} from "lucide-svelte";
 	import Button from "../reusable/Button.svelte";
 	import AuthentificationSection from "./AuthentificationSection.svelte";
@@ -25,11 +24,10 @@
 
 	type Props = {
 		uiState: SidebarUiState;
-		simulating: boolean;
 		disabled: boolean;
 		cookieLoggedIn: boolean;
 	};
-	let { uiState, cookieLoggedIn, disabled, simulating }: Props = $props();
+	let { uiState, cookieLoggedIn, disabled }: Props = $props();
 
 	sidebarViewModel.setLoggedInState(cookieLoggedIn);
 
@@ -37,9 +35,6 @@
 		EditorAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag");
 	}
 
-	function handleUndo() {
-		EditorAction.undo();
-	}
 	function handleClear() {
 		EditorAction.clear();
 	}
@@ -93,13 +88,6 @@
 			</Button>
 			<Button text="Load" onClick={loadGraph}>
 				{#snippet icon()}<Download />{/snippet}
-			</Button>
-			<Button
-				disabled={simulating || historyLength < 1}
-				text="Undo"
-				onClick={handleUndo}
-			>
-				{#snippet icon()}<Undo />{/snippet}
 			</Button>
 			<Button text="Clear" onClick={handleClear}>
 				{#snippet icon()}<Trash2 />{/snippet}

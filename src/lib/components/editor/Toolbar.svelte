@@ -1,10 +1,15 @@
 <script lang="ts">
-	import { ModeAction } from "$lib/util/actions";
+	import { EditorAction, graphManager, ModeAction } from "$lib/util/actions";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { MousePointer2, Play, Trash2 } from "lucide-svelte";
+	import { MousePointer2, Play, Trash2, Undo } from "lucide-svelte";
 
-	let { uiState }: { uiState: EditorUiState } = $props();
+	type Props = {
+		uiState: EditorUiState;
+		simulating: boolean;
+	};
+
+	let { uiState, simulating }: Props = $props();
 
 	const modes = [
 		{
@@ -25,7 +30,13 @@
 	];
 
 	let currentMode = $derived(uiState.mode);
+	let historyLength = $derived(graphManager.historyLength);
 </script>
+
+{#snippet divider()}
+	<!-- vertical bar to separate different sections in the toolbar -->
+	<div class="divider"></div>
+{/snippet}
 
 <div class="toolbar">
 	{#each modes as { icon: Icon, name, switchTo }, i}
@@ -43,6 +54,18 @@
 			<Icon />
 		</button>
 	{/each}
+	{@render divider()}
+	<button
+		aria-label="Undo"
+		onkeydown={onEnter(EditorAction.undo)}
+		tabindex={0}
+		title="Undo"
+		class="icon"
+		onclick={EditorAction.undo}
+		disabled={simulating || historyLength < 1}
+	>
+		<Undo />
+	</button>
 </div>
 
 <style>
@@ -68,11 +91,21 @@
 		color: var(--on-surface-color);
 		line-height: 0;
 	}
-	.icon:hover {
+	.icon:hover:not(:disabled) {
 		background-color: var(--surface-highlight-color);
 	}
 	.icon.selected {
 		background-color: var(--surface-highlight-color);
 		cursor: default;
+	}
+	.icon:disabled {
+		color: var(--primary-disabled-color);
+		cursor: default;
+	}
+
+	.divider {
+		width: 1px;
+		margin: 4px 2px;
+		background-color: var(--surface-border-color);
 	}
 </style>

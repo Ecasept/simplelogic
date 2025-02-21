@@ -135,7 +135,10 @@
 <div class="wrapper theme-host {themeClass}">
 	<OnCanvas>
 		{#snippet content()}
-			<Toolbar uiState={editorViewModel.uiState}></Toolbar>
+			<Toolbar
+				uiState={editorViewModel.uiState}
+				simulating={editorViewModel.uiState.matches({ mode: "simulate" })}
+			></Toolbar>
 			<CancelButton
 				shouldShow={addingComponent}
 				cancel={ChangesAction.abortEditing}
@@ -147,7 +150,6 @@
 		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
 		disabled={addingComponent}
-		simulating={editorViewModel.uiState.matches({ mode: "simulate" })}
 	></Sidebar>
 	{#if $circuitModalViewModel.mode !== null}
 		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
