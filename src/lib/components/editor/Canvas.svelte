@@ -7,7 +7,7 @@
 		editorViewModel,
 		graphManager,
 	} from "$lib/util/actions";
-	import { GRID_SIZE } from "$lib/util/global";
+	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/global";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 	import { P } from "ts-pattern";
 
@@ -189,8 +189,8 @@
 		<defs>
 			<pattern
 				id="dot-pattern"
-				x="-1"
-				y="-1"
+				x={-CANVAS_DOT_RADIUS}
+				y={-CANVAS_DOT_RADIUS}
 				width={GRID_SIZE}
 				height={GRID_SIZE}
 				patternUnits="userSpaceOnUse"

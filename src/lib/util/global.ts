@@ -14,9 +14,12 @@ export function setMousePosition(pos: XYPair) {
 	mousePosition = pos;
 }
 
+/** The distance between the centers of the dots in the grid in px */
 export const GRID_SIZE = 20;
 /** How long a long press should be in milliseconds */
 export const LONG_PRESS_MS = 500;
+/** The radius of the dots constituting the canvas grid in px */
+export const CANVAS_DOT_RADIUS = 1;
 
 export function gridSnap(val: number) {
 	return Math.round(val / GRID_SIZE) * GRID_SIZE;
