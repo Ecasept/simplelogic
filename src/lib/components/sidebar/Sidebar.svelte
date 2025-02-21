@@ -1,22 +1,11 @@
 <script lang="ts">
-	import {
-		EditorAction,
-		graphManager,
-		PersistenceAction,
-	} from "$lib/util/actions";
-	import { simulation } from "$lib/util/simulation.svelte";
+	import { EditorAction } from "$lib/util/actions";
 	import type { ComponentType } from "$lib/util/types";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
-	import {
-		Download,
-		PanelRightClose,
-		PanelRightOpen,
-		Save,
-		Trash2,
-	} from "lucide-svelte";
+	import { PanelRightClose, PanelRightOpen } from "lucide-svelte";
 	import Button from "../reusable/Button.svelte";
 	import AuthentificationSection from "./AuthentificationSection.svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
@@ -35,21 +24,9 @@
 		EditorAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag");
 	}
 
-	function handleClear() {
-		EditorAction.clear();
-	}
-	function saveGraph() {
-		PersistenceAction.saveGraph();
-	}
-	function loadGraph() {
-		PersistenceAction.loadGraph();
-	}
 	function toggleOpen() {
 		sidebarViewModel.toggleOpen();
 	}
-
-	let isSimulationRunning = $derived(simulation.isSimulationRunning());
-	let historyLength = $derived(graphManager.historyLength);
 </script>
 
 {#if !uiState.open}
@@ -79,22 +56,6 @@
 		<div id="fixed-margin"></div>
 
 		<ComponentToolbar onPointerDown={addComponent} />
-
-		<hr />
-
-		<div class="actions">
-			<Button text="Save" onClick={saveGraph}>
-				{#snippet icon()}<Save />{/snippet}
-			</Button>
-			<Button text="Load" onClick={loadGraph}>
-				{#snippet icon()}<Download />{/snippet}
-			</Button>
-			<Button text="Clear" onClick={handleClear}>
-				{#snippet icon()}<Trash2 />{/snippet}
-			</Button>
-		</div>
-
-		<hr />
 
 		<div id="space"></div>
 

@@ -1,8 +1,16 @@
 <script lang="ts">
-	import { EditorAction, graphManager, ModeAction } from "$lib/util/actions";
+	import { EditorAction, graphManager, ModeAction, PersistenceAction } from "$lib/util/actions";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { MousePointer2, Play, Trash2, Undo } from "lucide-svelte";
+	import {
+		Download,
+		MousePointer2,
+		Play,
+		Save,
+		Trash2,
+		Undo,
+		type Icon as IconType,
+	} from "lucide-svelte";
 
 	type Props = {
 		uiState: EditorUiState;
@@ -38,34 +46,50 @@
 	<div class="divider"></div>
 {/snippet}
 
+{#snippet toolbarButton(
+	title: string,
+	Icon: typeof IconType,
+	action: () => void,
+	disabled: boolean = false,
+	pressed: boolean | null = null,
+)}
+	<button
+		aria-label={title}
+		onkeydown={onEnter(action)}
+		tabindex={0}
+		{title}
+		class="icon"
+		onclick={action}
+		{disabled}
+		aria-pressed={pressed}
+	>
+		<Icon />
+	</button>
+{/snippet}
+
 <div class="toolbar">
 	{#each modes as { icon: Icon, name, switchTo }, i}
 		{@const cls = name === currentMode ? "selected" : ""}
 		{@const tooltip = `Switch to ${name ?? "default"} mode`}
-		<button
-			aria-label={tooltip}
-			aria-pressed={name === currentMode}
-			onkeydown={onEnter(switchTo)}
-			tabindex={0}
-			title={tooltip}
-			class={"icon " + cls}
-			onclick={() => switchTo()}
-		>
-			<Icon />
-		</button>
+		{@render toolbarButton(
+			"Switch to " + name + " mode",
+			Icon,
+			switchTo,
+			false,
+			name === currentMode,
+		)}
 	{/each}
 	{@render divider()}
-	<button
-		aria-label="Undo"
-		onkeydown={onEnter(EditorAction.undo)}
-		tabindex={0}
-		title="Undo"
-		class="icon"
-		onclick={EditorAction.undo}
-		disabled={simulating || historyLength < 1}
-	>
-		<Undo />
-	</button>
+	{@render toolbarButton(
+		"Undo",
+		Undo,
+		EditorAction.undo,
+		simulating || historyLength < 1,
+	)}
+
+	{@render toolbarButton("Save", Save, PersistenceAction.saveGraph)}
+	{@render toolbarButton("Load", Download, PersistenceAction.loadGraph)}
+	{@render toolbarButton("Clear", Trash2, EditorAction.clear)}
 </div>
 
 <style>
