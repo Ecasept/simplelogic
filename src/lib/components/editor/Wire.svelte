@@ -34,7 +34,7 @@
 		return simulating && isOutputPowered;
 	});
 
-	function onLongPress(handle: WireHandle, clickedHandle: HandleType) {
+	function onHandleLongPress(handle: WireHandle, clickedHandle: HandleType) {
 		// Add new wire instead of moving existing one on long press
 		// Abort the previous move wire action
 		editorViewModel.abortEditing();
@@ -72,7 +72,7 @@
 
 		if (clickedHandle === "output") {
 			startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
-				onLongPress(handle, clickedHandle);
+				onHandleLongPress(handle, clickedHandle);
 			});
 		}
 
