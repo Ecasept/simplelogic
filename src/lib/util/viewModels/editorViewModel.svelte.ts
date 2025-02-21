@@ -27,6 +27,8 @@ export type EditDraggingComponent = {
 	mode: "edit";
 	editType: "draggingComponent";
 	componentId: number;
+	/** If the component has actually been moved */
+	hasMoved: boolean;
 	/** Offset from the top left corner of the component to the mouse position in svg coordinates */
 	clickOffset: XYPair;
 };
@@ -35,6 +37,8 @@ export type EditDraggingWire = {
 	editType: "draggingWire";
 	draggedHandle: WireConnection;
 	connectionCount: number;
+	/** If the wire has actually been moved */
+	hasMoved: boolean;
 };
 export type EditAddingWire = {
 	mode: "edit";
@@ -223,7 +227,21 @@ export class EditorViewModel {
 			componentId: id,
 			clickOffset: clickOffset,
 			selected: id,
+			hasMoved: false,
 		});
+		this.notifyAll();
+	}
+	/* Tells the editor that a component/wire that is being dragged has actually been moved */
+	registerMove() {
+		if (
+			!this._uiState.matches({
+				editType: P.union("draggingComponent", "draggingWire"),
+			})
+		) {
+			console.warn("Tried to register move without starting it");
+			return;
+		}
+		this._uiState.hasMoved = true;
 		this.notifyAll();
 	}
 	startMoveWire(wire: WireConnection, wireConnectionCount: number) {
@@ -233,6 +251,7 @@ export class EditorViewModel {
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
 			selected: wire.id,
+			hasMoved: false,
 		});
 		this.notifyAll();
 	}

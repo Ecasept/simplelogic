@@ -239,8 +239,32 @@ test.describe("adding and dragging/moving", async () => {
 
 		await expect(editor.wires()).toHaveCount(6);
 	});
+	test("clicking but not dragging a component does not add a history entry", async ({
+		editor,
+		pointer,
+	}) => {
+		await editor.addComponent("AND", 100, 100);
+		await pointer.clickOn(editor.comps(), true);
+		// Expect component to not have moved
+		await expectPosToBe(editor.comps(), 100, 100);
+		await editor.undo();
+		// Expect the component addition to be undone, instead of any move
+		await expect(editor.comps()).toHaveCount(0);
+	});
+	test("clicking but not dragging a wire handle does not add a history entry", async ({
+		editor,
+		pointer,
+	}) => {
+		await editor.addComponent("AND", 100, 100);
+		await editor.dragTo(editor.getHandle("AND", "out").first(), 200, 200);
+		await pointer.clickOn(editor.getHandle("wire", "output").first());
+		// Expect wire to not have moved
+		await expect(editor.wires()).toHaveCount(1);
+		await editor.undo();
+		// Expect the wire addition to be undone, instead of any move
+		await expect(editor.wires()).toHaveCount(0);
+	});
 });
-
 test.describe("deleting", async () => {
 	test("deletes wire on top of component", async ({ editor }) => {
 		await editor.addComponent("AND", 100, 100);

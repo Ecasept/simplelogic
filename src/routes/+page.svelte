@@ -52,6 +52,15 @@
 	function onPointerMove(e: PointerEvent) {
 		updatePosition(e);
 		cancelLongPressIfMoved(mousePosition);
+		if (
+			editorViewModel.uiState.matches({
+				editType: P.union("draggingComponent", "draggingWire"),
+				hasMoved: false,
+			})
+		) {
+			// Notify that the component/wire has moved
+			editorViewModel.registerMove();
+		}
 	}
 
 	function onPointerUp(e: PointerEvent) {
@@ -83,6 +92,19 @@
 				$state.snapshot(uiState.hoveredHandle),
 			);
 			editorViewModel.removeHoveredHandle();
+		}
+
+		if (
+			uiState.matches({
+				editType: P.union("draggingComponent", "draggingWire"),
+				hasMoved: false,
+			})
+		) {
+			// The component/wire was clicked, but not moved
+			// -> select it
+			ChangesAction.abortEditing(); // discard the changes made while dragging
+			EditorAction.select(uiState.componentId);
+			return;
 		}
 
 		// commit the changes that were made while dragging
