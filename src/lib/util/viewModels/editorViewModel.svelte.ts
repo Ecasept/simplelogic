@@ -165,11 +165,16 @@ export class EditorViewModel {
 		this._uiState = { ...persistent, ...newState };
 	}
 
+	/** Returns the currently selected element, or null if nothing is selected */
+	private getSelected() {
+		return "selected" in this._uiState ? this._uiState.selected : null;
+	}
+
 	private softReset() {
 		this._uiState = {
 			mode: "edit",
 			editType: "idle",
-			selected: null,
+			selected: this.getSelected(),
 			hoveredHandle: this._uiState.hoveredHandle,
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
@@ -197,7 +202,7 @@ export class EditorViewModel {
 		this.setUiState({
 			mode: "edit",
 			editType: "idle",
-			selected: "selected" in this._uiState ? this._uiState.selected : null,
+			selected: this.getSelected(),
 		});
 		this.notifyAll();
 	}
@@ -210,7 +215,7 @@ export class EditorViewModel {
 	switchToSimulationMode() {
 		this.setUiState({
 			mode: "simulate",
-			selected: "selected" in this._uiState ? this._uiState.selected : null,
+			selected: this.getSelected(),
 		});
 		this.notifyAll();
 	}
@@ -226,7 +231,7 @@ export class EditorViewModel {
 			editType: "draggingComponent",
 			componentId: id,
 			clickOffset: clickOffset,
-			selected: id,
+			selected: this.getSelected(),
 			hasMoved: false,
 		});
 		this.notifyAll();
@@ -250,7 +255,7 @@ export class EditorViewModel {
 			editType: "draggingWire",
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
-			selected: wire.id,
+			selected: this.getSelected(),
 			hasMoved: false,
 		});
 		this.notifyAll();
@@ -266,7 +271,7 @@ export class EditorViewModel {
 			componentId: id,
 			clickOffset: clickOffset,
 			initiator: initiator,
-			selected: id,
+			selected: this.getSelected(),
 		});
 		this.notifyAll();
 	}
@@ -276,7 +281,7 @@ export class EditorViewModel {
 			editType: "addingWire",
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
-			selected: wire.id,
+			selected: this.getSelected(),
 		});
 		this.notifyAll();
 	}

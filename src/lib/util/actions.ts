@@ -210,6 +210,16 @@ export class EditorAction {
 		ChangesAction.abortEditing();
 		graphManager.undoLastCommand();
 	}
+	static select(id: number) {
+		if (
+			"selected" in editorViewModel.uiState &&
+			editorViewModel.uiState.selected === id
+		) {
+			editorViewModel.clearSelection();
+		} else {
+			editorViewModel.setSelected(id);
+		}
+	}
 }
 export class ModeAction {
 	static switchToDefaultMode() {

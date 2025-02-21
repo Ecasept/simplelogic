@@ -29,6 +29,8 @@
 
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
+	let isSelected = $derived("selected" in uiState && uiState.selected === id);
+
 	let isPowered = $derived.by(() => {
 		const isOutputPowered = simData?.outputs["output"] ?? false;
 		return simulating && isOutputPowered;
@@ -137,7 +139,7 @@
 </script>
 
 <path
-	class="wire"
+	class={{ wire: true, selected: isSelected }}
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	{stroke}
 	style="pointer-events: none;"
@@ -208,3 +210,9 @@
 		/>
 	{/if}
 {/if}
+
+<style>
+	.selected {
+		stroke: var(--selected-outline-color);
+	}
+</style>

@@ -49,6 +49,8 @@
 	let simulating = $derived(uiState.matches({ mode: "simulate" }));
 	let simData = $derived.by(() => simulation.getDataForComponent(id));
 
+	let isSelected = $derived("selected" in uiState && uiState.selected === id);
+
 	let isPowered = $derived.by(() => {
 		const isAnyOutputPowered = Object.values(simData?.outputs ?? {}).some(
 			(v) => v,
@@ -196,7 +198,7 @@
 	role="button"
 	tabindex="0"
 	aria-label={type}
-	class="component-body"
+	class={{ "component-body": true, selected: isSelected }}
 	data-testcomponenttype={type}
 	data-testcomponentid={id}
 	x={position.x}
@@ -261,3 +263,11 @@
 		{/if}
 	{/if}
 {/each}
+
+<style>
+	.selected {
+		outline: 2px solid var(--selected-outline-color);
+		border-radius: 2px;
+		rx: 2px;
+	}
+</style>

@@ -102,8 +102,11 @@
 		) {
 			// The component/wire was clicked, but not moved
 			// -> select it
+			const id = uiState.matches({ editType: "draggingComponent" })
+				? uiState.componentId
+				: uiState.draggedHandle.id;
 			ChangesAction.abortEditing(); // discard the changes made while dragging
-			EditorAction.select(uiState.componentId);
+			EditorAction.select(id);
 			return;
 		}
 

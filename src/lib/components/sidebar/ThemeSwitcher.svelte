@@ -71,6 +71,7 @@
 		--error-color: red;
 		--primary-border-color: black;
 		--primary-container-border-color: var(--primary-border-color);
+		--selected-outline-color: rgb(0, 159, 233);
 
 		--canvas-background-color: rgb(238, 255, 223);
 		--component-outline-color: black;
@@ -97,6 +98,7 @@
 		--error-color: #ff6e6e;
 		--primary-border-color: #738b43; // Darker version of on-primary-color
 		--primary-container-border-color: var(--primary-border-color);
+		--selected-outline-color: rgb(0, 159, 233);
 
 		--canvas-background-color: #2c2c2c;
 		--component-outline-color: rgb(189, 196, 171);
