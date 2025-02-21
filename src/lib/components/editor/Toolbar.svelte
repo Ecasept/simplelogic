@@ -1,8 +1,14 @@
 <script lang="ts">
-	import { EditorAction, graphManager, ModeAction, PersistenceAction } from "$lib/util/actions";
+	import {
+		EditorAction,
+		graphManager,
+		ModeAction,
+		PersistenceAction,
+	} from "$lib/util/actions";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import {
+		CopyX,
 		Download,
 		MousePointer2,
 		Play,
@@ -51,17 +57,17 @@
 	Icon: typeof IconType,
 	action: () => void,
 	disabled: boolean = false,
-	pressed: boolean | null = null,
+	selected: boolean | null = null,
 )}
 	<button
 		aria-label={title}
 		onkeydown={onEnter(action)}
 		tabindex={0}
 		{title}
-		class="icon"
+		class={{ icon: true, selected }}
 		onclick={action}
 		{disabled}
-		aria-pressed={pressed}
+		aria-pressed={selected}
 	>
 		<Icon />
 	</button>
@@ -87,9 +93,9 @@
 		simulating || historyLength < 1,
 	)}
 
-	{@render toolbarButton("Save", Save, PersistenceAction.saveGraph)}
-	{@render toolbarButton("Load", Download, PersistenceAction.loadGraph)}
-	{@render toolbarButton("Clear", Trash2, EditorAction.clear)}
+	{@render toolbarButton("Save circuit", Save, PersistenceAction.saveGraph)}
+	{@render toolbarButton("Load circuit", Download, PersistenceAction.loadGraph)}
+	{@render toolbarButton("Clear canvas", CopyX, EditorAction.clear)}
 </div>
 
 <style>
