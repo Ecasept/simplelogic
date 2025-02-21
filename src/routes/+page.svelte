@@ -1,8 +1,8 @@
 <script lang="ts">
 	import CancelButton from "$lib/components/editor/CancelButton.svelte";
 	import Canvas from "$lib/components/editor/Canvas.svelte";
-	import OnCanvas from "$lib/components/editor/OnCanvas.svelte";
-	import Toolbar from "$lib/components/editor/Toolbar.svelte";
+	import OnCanvas from "$lib/components/editor/overlay/OnCanvas.svelte";
+	import Toolbar from "$lib/components/editor/overlay/Toolbar.svelte";
 	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
 	import Sidebar from "$lib/components/sidebar/Sidebar.svelte";
 	import {
