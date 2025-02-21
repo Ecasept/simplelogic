@@ -100,6 +100,7 @@
 		}
 		if (deletingThis) {
 			EditorAction.deleteComponent(id);
+			e.stopPropagation();
 			return;
 		}
 		if (!uiState.matches({ editType: "idle" })) {
@@ -107,6 +108,8 @@
 		}
 		e.preventDefault();
 		e.currentTarget.releasePointerCapture(e.pointerId);
+		e.stopPropagation();
+
 
 		editorViewModel.removeHoveredHandle();
 
@@ -135,6 +138,7 @@
 
 		if (uiState.matches({ mode: "delete" })) {
 			EditorAction.deleteComponent(id);
+			e.stopPropagation();
 			return;
 		}
 		if (!uiState.matches({ editType: "idle" })) {
@@ -142,6 +146,7 @@
 		}
 
 		e.preventDefault();
+		e.stopPropagation();
 
 		const clickPosClient = { x: e.clientX, y: e.clientY };
 		const clickPosSvg = canvasViewModel.clientToSVGCoords(clickPosClient);
