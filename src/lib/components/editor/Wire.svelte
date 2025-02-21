@@ -54,7 +54,7 @@
 		);
 	}
 
-	function onPointerDown(e: MouseEvent) {
+	function onPointerDown(e: SVGPointerEvent) {
 		if (e.button !== 0) {
 			return;
 		}
@@ -63,6 +63,13 @@
 			EditorAction.deleteWire(id);
 			return;
 		}
+		if (!uiState.matches({ editType: "idle" })) {
+			return;
+		}
+		e.preventDefault();
+		e.currentTarget.releasePointerCapture(e.pointerId);
+
+		editorViewModel.startDragWireMiddle(id);
 	}
 
 	function onHandleDown(clickedHandle: HandleType, e: SVGPointerEvent) {
@@ -136,6 +143,11 @@
 			? "var(--component-delete-color)"
 			: "var(--component-outline-color)",
 	);
+
+	let hitboxEnabled = $derived(
+		uiState.matches({ mode: "delete" }) ||
+			uiState.matches({ editType: P.union("idle", "draggingWireMiddle") }),
+	);
 </script>
 
 <path
@@ -153,9 +165,7 @@
 	class="hitbox"
 	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
 	stroke="transparent"
-	style="pointer-events: {uiState.matches({ mode: 'delete' })
-		? 'inherit'
-		: 'none'};"
+	style="pointer-events: {hitboxEnabled ? 'inherit' : 'none'};"
 	stroke-width="10"
 	onpointerenter={() => {
 		editorViewModel.setHoveredElement(id);

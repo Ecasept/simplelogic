@@ -101,6 +101,20 @@
 			return;
 		}
 
+		if (uiState.matches({ editType: "draggingWireMiddle" })) {
+			// The middle of a wire was dragged/clicked
+			// -> select the wire
+			const wireId = uiState.wireId;
+			console.log(wireId, uiState.hoveredElement);
+			const stillHovered = uiState.hoveredElement === wireId;
+			ChangesAction.abortEditing(); // discard any changes made while dragging
+			if (stillHovered) {
+				// if the wire is still hovered, select it
+				EditorAction.select(wireId);
+			}
+			return;
+		}
+
 		// commit the changes that were made while dragging
 		ChangesAction.commitChanges();
 	}

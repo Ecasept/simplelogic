@@ -82,6 +82,6 @@ export type ComponentData = z.infer<typeof ZComponentData>;
 export type GraphData = z.infer<typeof ZGraphData>;
 export type ComponentType = z.infer<typeof ZComponentType>;
 
-export type SVGPointerEvent = PointerEvent & {
-	currentTarget: EventTarget & (SVGSVGElement | SVGCircleElement);
-};
+export interface SVGPointerEvent extends PointerEvent {
+	currentTarget: EventTarget & SVGElement;
+}

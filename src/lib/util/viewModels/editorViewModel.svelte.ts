@@ -46,13 +46,22 @@ export type EditAddingWire = {
 	draggedHandle: WireConnection;
 	connectionCount: number;
 };
+/** The ui state when the user is dragging a wire from the middle of an existing wire */
+export type EditDraggingWireMiddle = {
+	mode: "edit";
+	editType: "draggingWireMiddle";
+	wireId: number;
+	/** If the wire has actually been moved */
+	hasMoved: boolean;
+};
 
 export type EditState =
 	| EditIdle
 	| EditAddingComponent
 	| EditDraggingComponent
 	| EditDraggingWire
-	| EditAddingWire;
+	| EditAddingWire
+	| EditDraggingWireMiddle;
 
 // ==== Delete Mode states ====
 export type DeleteState = {
@@ -215,6 +224,17 @@ export class EditorViewModel {
 	switchToSimulationMode() {
 		this.setUiState({
 			mode: "simulate",
+			selected: this.getSelected(),
+		});
+		this.notifyAll();
+	}
+
+	startDragWireMiddle(wireId: number) {
+		this.setUiState({
+			mode: "edit",
+			editType: "draggingWireMiddle",
+			wireId: wireId,
+			hasMoved: false,
 			selected: this.getSelected(),
 		});
 		this.notifyAll();
