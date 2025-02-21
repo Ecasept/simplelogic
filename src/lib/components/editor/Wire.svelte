@@ -152,7 +152,7 @@
 
 <path
 	class={{ wire: true, selected: isSelected }}
-	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
+	d="M{input.x} {input.y} L{output.x} {output.y}"
 	{stroke}
 	style="pointer-events: none;"
 	data-testcomponenttype="wire"
@@ -163,7 +163,7 @@
 	role="button"
 	tabindex="0"
 	class="hitbox"
-	d="M{input.x + 1} {input.y + 1} L{output.x + 1} {output.y + 1}"
+	d="M{input.x} {input.y} L{output.x} {output.y}"
 	stroke="transparent"
 	style="pointer-events: {hitboxEnabled ? 'inherit' : 'none'};"
 	stroke-width="10"
