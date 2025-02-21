@@ -145,7 +145,24 @@ export class EditorAction {
 
 	// ==== Movement ====
 
-	static moveComponentReplaceable(newClientPos: XYPair, id: number) {
+	/** Moves a component to a new position
+	 *
+	 * While moving a component, this function can be called multiple times
+	 * to update the position of the component. This function is "replaceable",
+	 * which means that each time it is called, the previous move is undone
+	 * and replaced with the new move.
+	 *
+	 * @param mousePos - The current mouse position, in client coordinates.
+	 * The component will be moved to this position,
+	 * but the initial offset will be preserved.
+	 * (eg. if the user started dragging the component from the middle,
+	 * the component will stay under the mouse cursor)
+	 *
+	 * @param id - The id of the component that is being moved
+	 *
+	 *
+	 */
+	static moveComponentReplaceable(mousePos: XYPair, id: number) {
 		if (
 			!editorViewModel.uiState.matches({
 				editType: P.union("draggingComponent", "addingComponent"),
@@ -157,44 +174,54 @@ export class EditorAction {
 		const offsetX = editorViewModel.uiState.clickOffset.x;
 		const offsetY = editorViewModel.uiState.clickOffset.y;
 
-		// transform to svg coordinate system
-		const svgPos = canvasViewModel.clientToSVGCoords({
-			x: newClientPos.x,
-			y: newClientPos.y,
-		});
+		const svgMousePos = canvasViewModel.clientToSVGCoords(mousePos);
 		// The offset is where the user clicked on the component
-		// We don't just want to move the component to the new position (the current position of the mouse)
+		// We don't just want to move the component to the new mouse position
 		// because that would make the component jump to the mouse position, and it would be dragged from the top left corner.
 		// Instead, we want to slightly shift the component so that the point where the user clicked on the component
 		// stays under the mouse cursor.
 		const newPos = {
-			x: gridSnap(svgPos.x - offsetX),
-			y: gridSnap(svgPos.y - offsetY),
+			x: gridSnap(svgMousePos.x - offsetX),
+			y: gridSnap(svgMousePos.y - offsetY),
 		};
-		if (newPos === graphManager.getComponentData(id).position) {
+
+		const oldPos = graphManager.getComponentData(id).position;
+		if (newPos.x === oldPos.x && newPos.y === oldPos.y) {
+			// The component hasn't actually moved, so we don't need to do anything
 			return;
 		}
 
-		graphManager.moveComponentReplaceable(newPos, id);
+		if (editorViewModel.uiState.matches({ hasMoved: false })) {
+			// Tell the view model that the component has actually been moved
+			editorViewModel.registerMove();
+		}
 
+		// Actually update the component's position
+		graphManager.moveComponentReplaceable(newPos, id);
 		graphManager.notifyAll();
 	}
 
 	static moveWireConnectionReplaceable(
-		newClientPos: XYPair,
+		mousePos: XYPair,
 		id: number,
 		draggedHandle: HandleType,
 	) {
-		// transform to coordinate system of svg
-		const svgPos = canvasViewModel.clientToSVGCoords(newClientPos);
+		const svgMousePos = canvasViewModel.clientToSVGCoords(mousePos);
 		const newPos = {
-			x: gridSnap(svgPos.x),
-			y: gridSnap(svgPos.y),
+			x: gridSnap(svgMousePos.x),
+			y: gridSnap(svgMousePos.y),
 		};
 		const wireHandle = graphManager.getWireData(id)[draggedHandle];
 		if (newPos.x === wireHandle.x && newPos.y === wireHandle.y) {
+			// The wire hasn't actually moved, so we don't need to do anything
 			return;
 		}
+
+		if (editorViewModel.uiState.matches({ hasMoved: false })) {
+			// Tell the view model that the wire has actually been moved
+			editorViewModel.registerMove();
+		}
+
 		graphManager.moveWireReplaceable(newPos, draggedHandle, id);
 		graphManager.notifyAll();
 	}

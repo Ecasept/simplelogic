@@ -52,15 +52,6 @@
 	function onPointerMove(e: PointerEvent) {
 		updatePosition(e);
 		cancelLongPressIfMoved(mousePosition);
-		if (
-			editorViewModel.uiState.matches({
-				editType: P.union("draggingComponent", "draggingWire"),
-				hasMoved: false,
-			})
-		) {
-			// Notify that the component/wire has moved
-			editorViewModel.registerMove();
-		}
 	}
 
 	function onPointerUp(e: PointerEvent) {
