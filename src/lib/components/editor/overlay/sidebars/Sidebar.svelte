@@ -25,6 +25,7 @@
 		</div>
 	</button>
 	<div class={{ "sidebar-content": true, collapsed: !open }}>
+		<div class="fixed-margin"></div>
 		{@render children()}
 	</div>
 </div>
@@ -32,6 +33,10 @@
 <style lang="scss">
 	h3 {
 		margin: 5px;
+	}
+
+	.fixed-margin {
+		margin: 10px;
 	}
 
 	.sidebar {
