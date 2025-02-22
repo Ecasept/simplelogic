@@ -60,6 +60,11 @@
 
 		const uiState = editorViewModel.uiState;
 
+		if (uiState.matches({ isPanning: true })) {
+			console.warn("Panning should be handled by the canvas component");
+			return;
+		}
+
 		if (
 			uiState.matches({
 				selectionInProgressFor: P.number,
@@ -81,11 +86,6 @@
 				// The element is not selected yet
 				editorViewModel.setSelected(uiState.selectionInProgressFor);
 			}
-		}
-
-		if (!uiState.matches({ mode: "edit", editType: P.not("idle") })) {
-			// not in edit mode or not editing anything
-			return;
 		}
 
 		if (
@@ -114,8 +114,33 @@
 			return;
 		}
 
-		// commit the changes that were made while dragging
-		ChangesAction.commitChanges();
+		if (
+			uiState.matches({
+				mode: "edit",
+				editType: P.union("addingComponent", "addingWire"),
+			}) ||
+			uiState.matches({
+				mode: "edit",
+				editType: P.union("draggingComponent", "draggingWire"),
+				hasMoved: true,
+			})
+		) {
+			// The user is adding a component or wire, or dragging a component or wire
+			// and the element has actually been moved (it wasn't just a click)
+			// -> commit the changes
+			ChangesAction.commitChanges();
+		} else if (
+			uiState.matches({
+				mode: "edit",
+				editType: P.union("draggingComponent", "draggingWire"),
+				hasMoved: false,
+			})
+		) {
+			// The user is dragging a component or wire, but the element hasn't been moved
+			// so this was only a click
+			// -> undo the changes made while dragging in order to effectively have done nothing
+			ChangesAction.abortEditing();
+		}
 	}
 </script>
 
