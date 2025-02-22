@@ -8,6 +8,13 @@
 		onPointerDown: (type: ComponentType, e: SVGPointerEvent) => void;
 	};
 	let { onPointerDown }: Props = $props();
+
+	// Make a copy of the uiState to prevent reactivity
+	// (we can't snapshot functions so we just copy it over)
+	const uiState = {
+		...$state.snapshot(editorViewModel.uiState),
+		matches: editorViewModel.uiState.matches,
+	};
 </script>
 
 <div class="toolbar">
@@ -32,7 +39,7 @@
 					{type}
 					position={{ x: 0, y: 0 }}
 					handles={COMPONENT_DATA[type].handles}
-					uiState={editorViewModel.uiState}
+					{uiState}
 					isPoweredInitially={false}
 				/>
 			</g>
