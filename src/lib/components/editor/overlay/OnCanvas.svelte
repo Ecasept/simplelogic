@@ -1,8 +1,8 @@
 <script>
 	import { ChangesAction } from "$lib/util/actions";
 	import CancelButton from "../CancelButton.svelte";
-	import ModeSidebar from "./sidebars/ModeSidebar.svelte";
 	import SelectionSidebar from "./sidebars/SelectionSidebar.svelte";
+	import ToolsSidebar from "./sidebars/ToolsSidebar.svelte";
 	import Toolbar from "./Toolbar.svelte";
 
 	let { uiState } = $props();
@@ -17,7 +17,7 @@
 <div id="on-canvas-container" class="nointeract">
 	<Toolbar {uiState} simulating={uiState.matches({ mode: "simulate" })} />
 	<div class="sidebar-area nointeract">
-		<ModeSidebar {uiState} />
+		<ToolsSidebar {uiState} />
 		<div class={["cancel-button nointeract", { show: addingComponent }]}>
 			<CancelButton
 				shouldShow={addingComponent}
