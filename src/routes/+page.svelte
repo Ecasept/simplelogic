@@ -4,7 +4,7 @@
 	import OnCanvas from "$lib/components/editor/overlay/OnCanvas.svelte";
 	import ModeSidebar from "$lib/components/editor/overlay/sidebars/ModeSidebar.svelte";
 	import SelectionSidebar from "$lib/components/editor/overlay/sidebars/SelectionSidebar.svelte";
-	import Sidebar from "$lib/components/editor/overlay/sidebars/Sidebar.svelte";
+	import ThemeSwitcher from "$lib/components/editor/overlay/sidebars/ThemeSwitcher.svelte";
 	import Toolbar from "$lib/components/editor/overlay/Toolbar.svelte";
 	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
 	import {
@@ -18,7 +18,6 @@
 	import { handleKeyDown } from "$lib/util/keyboard";
 	import { cancelLongPress, cancelLongPressIfMoved } from "$lib/util/longpress";
 	import { getThemeClass } from "$lib/util/theme.svelte";
-	import { sidebarViewModel } from "$lib/util/viewModels/sidebarViewModel";
 	import { P } from "ts-pattern";
 
 	let { data }: { data: import("./$types").LayoutData } = $props();
@@ -151,11 +150,7 @@
 	</OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>
 
-	<Sidebar
-		cookieLoggedIn={data.loggedIn}
-		uiState={$sidebarViewModel}
-		disabled={addingComponent}
-	></Sidebar>
+	<ThemeSwitcher />
 
 	{#if $circuitModalViewModel.mode !== null}
 		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
