@@ -41,7 +41,7 @@ test.describe("adding and dragging/moving", async () => {
 		const handle = editor.handles().nth(2);
 		await pointer.moveTo(300, 300);
 		await expectPosToBe(handle, 300, 300);
-		await expect(page.locator(".wire").first()).toBeVisible();
+		await expect(editor.wires().first()).toBeVisible();
 
 		// Move handle
 		await pointer.moveTo(400, 400);
@@ -79,12 +79,12 @@ test.describe("adding and dragging/moving", async () => {
 		await pointer.moveTo(100, 100);
 		await pointer.up();
 
-		const d1 = await getAttr(page.locator(".wire"), "d");
+		const d1 = await getAttr(editor.wires(), "d");
 		await editor.comps().hover();
 		await pointer.down();
 		await pointer.moveTo(200, 300);
 		await pointer.up();
-		await expect(page.locator(".wire")).not.toHaveAttribute("d", d1);
+		await expect(editor.wires()).not.toHaveAttribute("d", d1);
 	});
 	test("drags and connects wires flow", async ({
 		page,
@@ -100,7 +100,7 @@ test.describe("adding and dragging/moving", async () => {
 		await editor.dragTo(sourceHandle, 500, 500);
 
 		// 1. Drag and release
-		const wire = page.locator(".wire");
+		const wire = editor.wires();
 		const handle = editor.handles().nth(2);
 		await editor.dragTo(handle, 400, 400);
 
@@ -129,7 +129,7 @@ test.describe("adding and dragging/moving", async () => {
 		const targetHandle = editor.getHandle("XOR", "in1").first();
 		await editor.drag(sourceHandle, targetHandle);
 
-		await expect(page.locator(".wire").last()).toHaveAttribute(
+		await expect(editor.wires().last()).toHaveAttribute(
 			"d",
 			"M121 81 L201 221",
 		);
@@ -158,7 +158,7 @@ test.describe("adding and dragging/moving", async () => {
 		// 7. Undo twice (should remove the wire)
 		await editor.undo();
 		await editor.undo();
-		await expect(page.locator(".wire")).toHaveCount(0);
+		await expect(editor.wires()).toHaveCount(0);
 	});
 	test("moves components correctly", async ({ page, editor, pointer }) => {
 		await editor.addComponent("AND", 100, 200);
@@ -194,17 +194,17 @@ test.describe("adding and dragging/moving", async () => {
 		await editor.dragTo(handle, 300, 100);
 		await editor.dragTo(handle, 300, 500);
 
-		await expect(page.locator(".wire")).toHaveCount(2);
+		await expect(editor.wires()).toHaveCount(2);
 
 		// Move component and check if wires move too
-		const d1 = await getAttr(page.locator(".wire").nth(0), "d");
-		const d2 = await getAttr(page.locator(".wire").nth(1), "d");
+		const d1 = await getAttr(editor.wires().nth(0), "d");
+		const d2 = await getAttr(editor.wires().nth(1), "d");
 
 		await editor.dragTo(editor.comps(), 100, 100);
 		await expectPosToBe(editor.comps(), 100, 100);
 
-		await expect(page.locator(".wire").nth(0)).not.toHaveAttribute("d", d1);
-		await expect(page.locator(".wire").nth(1)).not.toHaveAttribute("d", d2);
+		await expect(editor.wires().nth(0)).not.toHaveAttribute("d", d1);
+		await expect(editor.wires().nth(1)).not.toHaveAttribute("d", d2);
 	});
 	test("doesn't connect wire when under component", async ({ editor }) => {
 		await editor.addComponent("AND", 100, 100);
@@ -288,7 +288,7 @@ test.describe("deleting", async () => {
 		// Drag wire from first component
 		const sourceHandle = editor.handles().nth(2); // Output handle
 		await editor.dragTo(sourceHandle, 300, 300);
-		await expect(page.locator(".wire")).toHaveCount(1);
+		await expect(editor.wires()).toHaveCount(1);
 
 		// Create second component
 		await editor.addComponent("OR", 400, 400);
@@ -298,20 +298,20 @@ test.describe("deleting", async () => {
 		const secondSourceHandle = editor.handles().nth(3); // Second component input
 		const targetHandle = editor.handles().nth(2); // First wire output (after other inputs have disappeared)
 		await editor.drag(secondSourceHandle, targetHandle);
-		await expect(page.locator(".wire")).toHaveCount(2);
+		await expect(editor.wires()).toHaveCount(2);
 
 		// Switch to delete mode
 		await editor.toggleDelete();
 
 		// Delete first wire and confirm
-		const firstWire = page.locator(".wire").first();
+		const firstWire = editor.wires().first();
 		await firstWire.hover({ force: true }); // has pointer-events: none
 		await expect(firstWire).toHaveAttribute(
 			"stroke",
 			"var(--component-delete-color)",
 		);
 		await firstWire.click({ force: true });
-		await expect(page.locator(".wire")).toHaveCount(1);
+		await expect(editor.wires()).toHaveCount(1);
 
 		// Delete second component and confirm
 		const secondComponent = editor.comps().nth(1);
@@ -334,8 +334,8 @@ test.describe("deleting", async () => {
 
 		// Undo wire deletion and confirm
 		await editor.undo();
-		await expect(page.locator(".wire")).toHaveCount(2);
-		await expect(page.locator(".wire").first()).not.toHaveAttribute(
+		await expect(editor.wires()).toHaveCount(2);
+		await expect(editor.wires().first()).not.toHaveAttribute(
 			"stroke",
 			"var(--component-delete-color)",
 		);
@@ -945,19 +945,136 @@ test.describe("simulating", () => {
 	});
 });
 
-test.describe("sidebar", () => {
-	test("toggles sidebar correctly", async ({ page, editor }) => {
-		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
-		await editor.toggleSidebar();
-		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(0);
-		await editor.toggleSidebar();
-		await expect(page.locator(".sidebarWrapper.open")).toHaveCount(1);
+test.describe("sidebars", () => {
+	test("edit sidebar can be toggled", async ({ page, editor }) => {
+		await expect(editor.getSidebar("edit")).toBeExpanded();
+		await editor.toggleSidebar("edit");
+		await expect(editor.getSidebar("edit")).toBeCollapsed();
+		await editor.toggleSidebar("edit");
+		await expect(editor.getSidebar("edit")).toBeExpanded();
 	});
-	test("toggles component toolbar correctly", async ({ page, editor }) => {
-		await expect(page.locator(".buttons-container")).toBeVisible();
-		await editor.toggleComponentToolbar();
-		await expect(page.locator(".buttons-container")).not.toBeVisible();
-		await editor.toggleComponentToolbar();
-		await expect(page.locator(".buttons-container")).toBeVisible();
+	test("selection sidebar can be toggled", async ({ page, editor }) => {
+		await expect(editor.getSidebar("selection")).not.toBeVisible();
+		await editor.addComponent("AND", 100, 100);
+		await expect(editor.getSidebar("selection")).toBeExpanded();
+		await editor.toggleSidebar("selection");
+		await expect(editor.getSidebar("selection")).toBeCollapsed();
+		await editor.toggleSidebar("selection");
+		await expect(editor.getSidebar("selection")).toBeExpanded();
+	});
+	test("delete button works", async ({ editor, pointer }) => {
+		// Add component and verify it exists
+		await editor.addComponent("AND", 100, 200);
+		await expect(editor.comps()).toBeVisible();
+
+		// Delete and verify removal
+		await editor.deleteSelected();
+		await expect(editor.comps()).toHaveCount(0);
+	});
+});
+
+test.describe("selection", () => {
+	test("selection flow", async ({ page, editor, pointer }) => {
+		// ===== Component Selection Flow =====
+		// Add component, verify selected
+		await editor.addComponent("AND", 100, 200);
+		await expect(editor.comps()).toBeSelected();
+
+		// Click on canvas to deselect
+		await pointer.clickAt(10, 10);
+		await expect(editor.comps()).not.toBeSelected();
+
+		// Click on component to select
+		await pointer.clickOn(editor.comps());
+		await expect(editor.comps()).toBeSelected();
+
+		// Move canvas, verify not deselected
+		await pointer.down();
+		await pointer.moveTo(200, 200);
+		await expect(editor.comps()).toBeSelected();
+		await pointer.up();
+
+		// Click on component to deselect
+		await pointer.clickOn(editor.comps());
+		await expect(editor.comps()).not.toBeSelected();
+
+		// Move component, verify selected
+		await editor.dragTo(editor.comps(), 300, 300);
+		await expect(editor.comps()).toBeSelected();
+
+		// ===== Wire Selection Flow =====
+		// Add wire, verify selected, component not selected
+		const handle = editor.getHandle("AND", "out").first();
+		await editor.dragTo(handle, 400, 400);
+		await expect(editor.wires()).toBeSelected();
+		await expect(editor.comps()).not.toBeSelected();
+
+		// Click on canvas to deselect
+		await pointer.clickAt(10, 10);
+		await expect(editor.wires()).not.toBeSelected();
+
+		// Click on wire to select
+		await pointer.clickOn(editor.wires());
+		await expect(editor.wires()).toBeSelected();
+
+		// Move canvas, verify not deselected
+		await pointer.down();
+		await pointer.moveTo(500, 500);
+		await expect(editor.wires()).toBeSelected();
+		await pointer.up();
+
+		// Click on wire to deselect
+		await editor.wires().click();
+		await expect(editor.wires()).not.toBeSelected();
+
+		// Move wire, verify selected
+		await editor.dragTo(editor.wires(), 600, 600);
+		await expect(editor.wires()).toBeSelected();
+
+		// Click wire to deselect it
+		await editor.wires().click();
+		await expect(editor.wires()).not.toBeSelected();
+
+		// Click wire handle, verify wire selected
+		const wireHandle = editor.getHandle("wire", "output").first();
+		await pointer.clickOn(wireHandle);
+		await expect(editor.wires()).toBeSelected();
+
+		// Click wire handle again, verify wire deselected
+		await pointer.clickOn(wireHandle);
+		await expect(editor.wires()).not.toBeSelected();
+
+		// ===== Undo Operations =====
+		// Undo twice, verify wire disappeared
+		await editor.undo();
+		await editor.undo();
+		await expect(editor.wires()).toHaveCount(0);
+
+		// Undo twice, verify component disappeared
+		await editor.undo();
+		await editor.undo();
+		await expect(editor.comps()).toHaveCount(0);
+	});
+	test("selection doesn't work in simulation mode", async ({
+		editor,
+		pointer,
+	}) => {
+		// Add component and verify initial selection
+		await editor.addComponent("AND", 100, 200);
+		await expect(editor.comps()).toBeSelected();
+
+		// Move to simulate mode
+		await editor.setMode("simulate");
+
+		// Verify deselected when entering simulation mode
+		await expect(editor.comps()).not.toBeSelected();
+
+		// Click it, verify it stays unselected in simulation mode
+		await pointer.clickOn(editor.comps());
+		await expect(editor.comps()).not.toBeSelected();
+
+		// Switch back to edit mode and verify still unselected
+		await editor.setMode("edit");
+		await expect(editor.comps()).not.toBeSelected();
 	});
 });

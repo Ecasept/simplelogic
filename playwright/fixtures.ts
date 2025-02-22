@@ -14,17 +14,21 @@ export class Editor {
 		await this.page.waitForLoadState("networkidle");
 	}
 
-	/** Open/close the sidebar */
-	async toggleSidebar() {
-		if (await this.page.locator(".sidebarWrapper").isVisible()) {
-			await this.pointer.clickOn(
-				this.page.getByRole("button", { name: "Close Sidebar" }),
-			);
-		} else {
-			await this.pointer.clickOn(
-				this.page.getByRole("button", { name: "Open Sidebar" }),
-			);
-		}
+	/** Expand/collapse the specified sidebar */
+	async toggleSidebar(uniqueName: string) {
+		const button = this.page.locator(`[aria-controls="sidebar-${uniqueName}"]`);
+		await button.click();
+	}
+	/** Returns a locator to the specified sidebar */
+	getSidebar(uniqueName: string) {
+		return this.page.locator(`#sidebar-${uniqueName}`);
+	}
+
+	async deleteSelected() {
+		const button = this.getSidebar("selection").getByRole("button", {
+			name: "Delete",
+		});
+		await this.pointer.clickOn(button);
 	}
 
 	/** Clicks the toggle delete button */

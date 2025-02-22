@@ -322,4 +322,37 @@ export const expect = baseExpect.extend({
 			await expect.toHaveAttribute("aria-pressed", "true", options);
 		},
 	),
+	/** Passes when the sidebar is expanded */
+	toBeExpanded: createMatcher(
+		"toBeExpanded",
+		(l: Locator) => `Locator: ${l}`,
+		async function (locator: Locator, options?: { timeout?: number }) {
+			const content = locator.locator(".sidebar-content");
+			const expect = this.isNot ? baseExpect(content).not : baseExpect(content);
+			await expect.toHaveAttribute("aria-expanded", "true", options);
+		},
+	),
+	/** Passes when the sidebar is collapsed */
+	toBeCollapsed: createMatcher(
+		"toBeCollapsed",
+		(l: Locator) => `Locator: ${l}`,
+		async function (locator: Locator, options?: { timeout?: number }) {
+			const content = locator.locator(".sidebar-content");
+			const expect = this.isNot ? baseExpect(content).not : baseExpect(content);
+			await expect.toHaveAttribute("aria-expanded", "false", options);
+		},
+	),
+	/** Passes when the component has the correct stroke color for a selected component */
+	toBeSelected: createMatcher(
+		"toBeSelected",
+		(l: Locator) => `Locator: ${l}`,
+		async function (locator: Locator, options?: { timeout?: number }) {
+			const expect = this.isNot ? baseExpect(locator).not : baseExpect(locator);
+			await expect.toHaveAttribute(
+				"stroke",
+				"var(--selected-outline-color)",
+				options,
+			);
+		},
+	),
 });

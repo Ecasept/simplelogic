@@ -14,14 +14,14 @@
 	let { headerText, uniqueName, toggle, open, children }: Props = $props();
 </script>
 
-<div class="sidebar">
+<div class="sidebar sidebar-{uniqueName}">
 	<button
 		class="header"
 		aria-label={open ? "Collapse" : "Expand"}
 		title={open ? "Collapse" : "Expand"}
 		onclick={toggle}
 		aria-expanded={open}
-		aria-controls="sidebar-{uniqueName}"
+		aria-controls="sidebar-{uniqueName}-content"
 	>
 		<h3>{headerText}</h3>
 		<div class={["button-container", { open }]}>
@@ -29,8 +29,8 @@
 		</div>
 	</button>
 	<div
-		id="sidebar-{uniqueName}"
-		class={{ "sidebar-content": true, collapsed: !open }}
+		id="sidebar-{uniqueName}-content"
+		class={["sidebar-content", { collapsed: !open }]}
 	>
 		<div class="fixed-margin"></div>
 		{@render children()}
