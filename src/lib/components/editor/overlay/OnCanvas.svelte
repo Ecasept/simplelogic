@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
 	import { ChangesAction } from "$lib/util/actions";
+	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import CancelButton from "../CancelButton.svelte";
 	import SelectionSidebar from "./sidebars/SelectionSidebar.svelte";
 	import ToolsSidebar from "./sidebars/ToolsSidebar.svelte";
 	import Toolbar from "./Toolbar.svelte";
 
-	let { uiState } = $props();
+	let { uiState }: { uiState: EditorUiState } = $props();
 
 	let addingComponent = $derived(
 		uiState.matches({
@@ -18,7 +19,7 @@
 	<Toolbar {uiState} simulating={uiState.matches({ mode: "simulate" })} />
 	<div class="sidebar-area nointeract">
 		<ToolsSidebar {uiState} />
-		<div class={["cancel-button nointeract", { show: addingComponent }]}>
+		<div class="cancel-button nointeract">
 			<CancelButton
 				shouldShow={addingComponent}
 				cancel={ChangesAction.abortEditing}
