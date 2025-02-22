@@ -85,6 +85,8 @@ export type PanningState = NotPanning | Panning;
 // ==== Selection states ====
 export type SelectionState = {
 	selected: number | null;
+	/** The ID of the component/wire that wants to be selected after the next edit operation */
+	selectionInProgressFor: number | null;
 };
 
 // ==== Editor state ====
@@ -143,6 +145,7 @@ export class EditorViewModel {
 		mode: "edit",
 		editType: "idle",
 		selected: null,
+		selectionInProgressFor: null,
 		hoveredHandle: null,
 		hoveredElement: null,
 		isModalOpen: false,
@@ -183,7 +186,8 @@ export class EditorViewModel {
 		this._uiState = {
 			mode: "edit",
 			editType: "idle",
-			selected: this.getSelected(),
+			selected: this.getSelected(), // Preserve selected element
+			selectionInProgressFor: null, // Don't preserve any element that wanted to change the selection
 			hoveredHandle: this._uiState.hoveredHandle,
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
@@ -212,6 +216,7 @@ export class EditorViewModel {
 			mode: "edit",
 			editType: "idle",
 			selected: this.getSelected(),
+			selectionInProgressFor: null,
 		});
 		this.notifyAll();
 	}
@@ -225,6 +230,7 @@ export class EditorViewModel {
 		this.setUiState({
 			mode: "simulate",
 			selected: this.getSelected(),
+			selectionInProgressFor: null,
 		});
 		this.notifyAll();
 	}
@@ -236,6 +242,7 @@ export class EditorViewModel {
 			wireId: wireId,
 			hasMoved: false,
 			selected: this.getSelected(),
+			selectionInProgressFor: wireId,
 		});
 		this.notifyAll();
 	}
@@ -251,8 +258,9 @@ export class EditorViewModel {
 			editType: "draggingComponent",
 			componentId: id,
 			clickOffset: clickOffset,
-			selected: this.getSelected(),
 			hasMoved: false,
+			selected: this.getSelected(),
+			selectionInProgressFor: id,
 		});
 		this.notifyAll();
 	}
@@ -275,8 +283,9 @@ export class EditorViewModel {
 			editType: "draggingWire",
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
-			selected: this.getSelected(),
 			hasMoved: false,
+			selected: this.getSelected(),
+			selectionInProgressFor: wire.id,
 		});
 		this.notifyAll();
 	}
@@ -292,6 +301,7 @@ export class EditorViewModel {
 			clickOffset: clickOffset,
 			initiator: initiator,
 			selected: this.getSelected(),
+			selectionInProgressFor: id,
 		});
 		this.notifyAll();
 	}
@@ -302,6 +312,7 @@ export class EditorViewModel {
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
 			selected: this.getSelected(),
+			selectionInProgressFor: wire.id,
 		});
 		this.notifyAll();
 	}

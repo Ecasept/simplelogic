@@ -64,6 +64,29 @@
 
 		const uiState = editorViewModel.uiState;
 
+		if (
+			uiState.matches({
+				selectionInProgressFor: P.number,
+			})
+		) {
+			// An element wants to change the selection
+			const selected = "selected" in uiState ? uiState.selected : null;
+			if (uiState.selectionInProgressFor === selected) {
+				// The element is already selected
+				if (uiState.matches({ hasMoved: false })) {
+					// The element was already selected and only clicked
+					// -> deselect it
+					editorViewModel.clearSelection();
+				} else {
+					// A selected element was moved
+					// -> keep selection and do nothing
+				}
+			} else {
+				// The element is not selected yet
+				editorViewModel.setSelected(uiState.selectionInProgressFor);
+			}
+		}
+
 		if (!uiState.matches({ mode: "edit", editType: P.not("idle") })) {
 			// not in edit mode or not editing anything
 			return;
@@ -86,33 +109,12 @@
 			editorViewModel.removeHoveredHandle();
 		}
 
-		if (
-			uiState.matches({
-				editType: P.union("draggingComponent", "draggingWire"),
-				hasMoved: false,
-			})
-		) {
-			// The component/wire was clicked, but not moved
-			// -> select it
-			const id = uiState.matches({ editType: "draggingComponent" })
-				? uiState.componentId
-				: uiState.draggedHandle.id;
-			ChangesAction.abortEditing(); // discard the changes made while dragging
-			EditorAction.select(id);
-			return;
-		}
-
 		if (uiState.matches({ editType: "draggingWireMiddle" })) {
 			// The middle of a wire was dragged/clicked
-			// -> select the wire
-			const wireId = uiState.wireId;
-			console.log(wireId, uiState.hoveredElement);
-			const stillHovered = uiState.hoveredElement === wireId;
-			ChangesAction.abortEditing(); // discard any changes made while dragging
-			if (stillHovered) {
-				// if the wire is still hovered, select it
-				EditorAction.select(wireId);
-			}
+			// -> currently unimplemented
+			console.warn("Dragging wire middle is not implemented yet");
+			// undo any changes possibly made while dragging
+			ChangesAction.abortEditing();
 			return;
 		}
 
