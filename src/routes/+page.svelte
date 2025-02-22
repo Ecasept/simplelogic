@@ -2,9 +2,11 @@
 	import CancelButton from "$lib/components/editor/CancelButton.svelte";
 	import Canvas from "$lib/components/editor/Canvas.svelte";
 	import OnCanvas from "$lib/components/editor/overlay/OnCanvas.svelte";
+	import ModeSidebar from "$lib/components/editor/overlay/sidebars/ModeSidebar.svelte";
+	import SelectionSidebar from "$lib/components/editor/overlay/sidebars/SelectionSidebar.svelte";
+	import Sidebar from "$lib/components/editor/overlay/sidebars/Sidebar.svelte";
 	import Toolbar from "$lib/components/editor/overlay/Toolbar.svelte";
 	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
-	import Sidebar from "$lib/components/sidebar/Sidebar.svelte";
 	import {
 		canvasViewModel,
 		ChangesAction,
@@ -143,14 +145,18 @@
 				shouldShow={addingComponent}
 				cancel={ChangesAction.abortEditing}
 			/>
+			<ModeSidebar uiState={editorViewModel.uiState}></ModeSidebar>
+			<SelectionSidebar uiState={editorViewModel.uiState}></SelectionSidebar>
 		{/snippet}
 	</OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>
+
 	<Sidebar
 		cookieLoggedIn={data.loggedIn}
 		uiState={$sidebarViewModel}
 		disabled={addingComponent}
 	></Sidebar>
+
 	{#if $circuitModalViewModel.mode !== null}
 		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
 	{/if}

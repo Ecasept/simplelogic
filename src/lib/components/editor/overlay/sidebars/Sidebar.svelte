@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from "$lib/components/reusable/Button.svelte";
 	import { EditorAction } from "$lib/util/actions";
 	import type { ComponentType } from "$lib/util/types";
 	import {
@@ -6,7 +7,6 @@
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
 	import { PanelRightClose, PanelRightOpen } from "lucide-svelte";
-	import Button from "../reusable/Button.svelte";
 	import AuthentificationSection from "./AuthentificationSection.svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import ThemeSwitcher from "./ThemeSwitcher.svelte";

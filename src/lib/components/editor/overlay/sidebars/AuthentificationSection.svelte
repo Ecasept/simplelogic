@@ -1,11 +1,11 @@
 <script lang="ts">
+	import Button from "$lib/components/reusable/Button.svelte";
 	import { onEnter } from "$lib/util/keyboard";
 	import {
 		sidebarViewModel,
 		type SidebarUiState,
 	} from "$lib/util/viewModels/sidebarViewModel";
 	import type { FormEventHandler } from "svelte/elements";
-	import Button from "../reusable/Button.svelte";
 
 	let { uiState }: { uiState: SidebarUiState } = $props();
 	function login() {

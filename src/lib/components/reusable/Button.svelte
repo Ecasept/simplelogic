@@ -1,19 +1,19 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import { type Icon as IconType } from "lucide-svelte";
 
 	type Props = {
 		disabled?: boolean;
-		text: string;
+		text?: string | null;
 		title?: string | null;
 		onClick: (e: MouseEvent) => void;
-		icon?: Snippet | null;
+		icon?: typeof IconType | null;
 		margin?: string;
 		height?: string;
 	};
 	let {
-		icon = null,
+		icon: Icon = null,
 		disabled = false,
-		text,
+		text = null,
 		title = null,
 		onClick,
 		margin = "5px",
@@ -24,12 +24,14 @@
 <button
 	{disabled}
 	{title}
-	class={[icon && "icon"]}
+	class={[Icon && "icon"]}
 	aria-label={title}
 	onclick={onClick}
 	style={"margin:" + margin + "; height:" + height}
 >
-	{@render icon?.()}
+	{#if Icon}
+		<Icon />
+	{/if}
 	{#if text}{text}{/if}
 </button>
 

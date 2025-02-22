@@ -61,6 +61,7 @@
 
 		if (deletingThis) {
 			EditorAction.deleteWire(id);
+			e.stopPropagation();
 			return;
 		}
 		if (!uiState.matches({ editType: "idle" })) {
@@ -68,6 +69,7 @@
 		}
 		e.preventDefault();
 		e.currentTarget.releasePointerCapture(e.pointerId);
+		e.stopPropagation();
 
 		editorViewModel.startDragWireMiddle(id);
 	}
@@ -78,6 +80,7 @@
 		}
 		if (deletingThis) {
 			EditorAction.deleteWire(id);
+			e.stopPropagation();
 			return;
 		}
 		if (!uiState.matches({ editType: "idle" })) {
@@ -85,6 +88,7 @@
 		}
 		e.preventDefault();
 		e.currentTarget.releasePointerCapture(e.pointerId);
+		e.stopPropagation();
 
 		editorViewModel.removeHoveredHandle();
 
