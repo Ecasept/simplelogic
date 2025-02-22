@@ -8,7 +8,7 @@
 
 	const { uiState }: { uiState: EditorUiState } = $props();
 
-	let open = $state(false);
+	let open = $state(true);
 
 	function toggle() {
 		open = !open;

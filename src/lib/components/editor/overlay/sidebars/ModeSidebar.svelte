@@ -14,7 +14,7 @@
 		EditorAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag");
 	}
 
-	let open = $state(false);
+	let open = $state(true);
 
 	function toggle() {
 		open = !open;
