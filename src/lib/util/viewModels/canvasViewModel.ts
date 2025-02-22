@@ -1,23 +1,31 @@
 import type { XYPair } from "../types";
 import { ViewModel } from "./viewModel";
 
-export type CanvasUiState = {
-	isPanning: boolean;
-	viewBox: XYPair & { width: number; height: number };
-	originalViewBox: XYPair & { width: number; height: number };
+export type ViewBox = XYPair & { width: number; height: number };
+
+export type CanvasPanningState = {
+	isPanning: true;
+	hasMoved: boolean;
+	originalViewBox: ViewBox;
 };
+
+export type CanvasNotPanningState = {
+	isPanning: false;
+};
+
+export type CanvasUiState = {
+	viewBox: ViewBox;
+} & (CanvasPanningState | CanvasNotPanningState);
 
 export class CanvasViewModel extends ViewModel<CanvasUiState> {
 	protected _uiState: CanvasUiState = {
 		isPanning: false,
 		viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
-		originalViewBox: { x: 0, y: 0, width: 1000, height: 1000 },
 	};
 	protected resetUiState(): void {
 		this._uiState = {
 			isPanning: false,
 			viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
-			originalViewBox: { x: 0, y: 0, width: 1000, height: 1000 },
 		};
 	}
 
@@ -25,23 +33,38 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 
 	// ==== Canvas ====
 	startPanning() {
-		this._uiState.isPanning = true;
-		this._uiState.originalViewBox = { ...this._uiState.viewBox };
+		this._uiState = {
+			isPanning: true,
+			hasMoved: false,
+			viewBox: this._uiState.viewBox,
+			originalViewBox: { ...this._uiState.viewBox },
+		};
 		this.notifyAll();
 	}
 	stopPanning() {
-		this._uiState.isPanning = false;
-		this._uiState.originalViewBox = { ...this._uiState.viewBox };
+		this._uiState = {
+			isPanning: false,
+			viewBox: this._uiState.viewBox,
+		};
 		this.notifyAll();
 	}
 	abortPanning() {
-		this._uiState.viewBox = { ...this._uiState.originalViewBox };
-		this.stopPanning();
+		if (!this._uiState.isPanning) {
+			console.warn("abortPanning called when not panning");
+			return;
+		}
+		this._uiState = {
+			isPanning: false,
+			viewBox: this._uiState.originalViewBox,
+		};
+		this.notifyAll();
 	}
 	pan(movementX: number, movementY: number) {
 		if (!this._uiState.isPanning) {
+			console.warn("pan called when not panning");
 			return;
 		}
+		this._uiState.hasMoved = true;
 
 		let { x, y } = this.clientToSVGCoords({
 			x: -movementX,

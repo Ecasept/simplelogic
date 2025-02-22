@@ -104,6 +104,13 @@
 		}
 	}
 	function onPointerExit(event: PointerEvent) {
+		const cuiState = canvasViewModel.uiState;
+		if (cuiState.isPanning && "hasMoved" in cuiState && !cuiState.hasMoved) {
+			// If the user only clicked and didn't move the canvas,
+			// clear the selection
+			editorViewModel.clearSelection();
+		}
+
 		removeEvent(event);
 		if (editorViewModel.uiState.matches({ isPanning: true })) {
 			// Prevent the page from registering the pointer event
