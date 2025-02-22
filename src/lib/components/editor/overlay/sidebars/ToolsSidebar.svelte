@@ -22,11 +22,11 @@
 </script>
 
 {#if uiState.matches({ mode: "edit" })}
-	<Sidebar headerText="Tools" {toggle} {open}>
+	<Sidebar headerText="Tools" uniqueName={"tools"} {toggle} {open}>
 		<ComponentToolbar onPointerDown={addComponent} />
 	</Sidebar>
 {:else if uiState.matches({ mode: "simulate" })}
-	<Sidebar headerText="Tools" {toggle} {open}>
+	<Sidebar headerText="Tools" uniqueName={"tools"} {toggle} {open}>
 		<Button
 			title="Simulate"
 			text="Simulate"

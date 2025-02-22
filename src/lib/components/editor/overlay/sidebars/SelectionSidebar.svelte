@@ -17,7 +17,12 @@
 
 {#if uiState.matches({ selected: P.number })}
 	{#if uiState.matches({ mode: "edit" })}
-		<Sidebar headerText="Element Settings" {toggle} {open}>
+		<Sidebar
+			headerText="Element Settings"
+			uniqueName={"selection"}
+			{toggle}
+			{open}
+		>
 			<Button
 				title="Rotate clockwise 90 degrees"
 				onClick={() => EditorAction.rotateComponent(90)}

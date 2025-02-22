@@ -4,12 +4,14 @@
 
 	type Props = {
 		headerText: string;
+		/** A unique identifier for the sidebar */
+		uniqueName: string;
 		toggle: () => void;
 		open: boolean;
 		children: Snippet;
 	};
 
-	let { headerText, toggle, open, children }: Props = $props();
+	let { headerText, uniqueName, toggle, open, children }: Props = $props();
 </script>
 
 <div class="sidebar">
@@ -18,13 +20,18 @@
 		aria-label={open ? "Collapse" : "Expand"}
 		title={open ? "Collapse" : "Expand"}
 		onclick={toggle}
+		aria-expanded={open}
+		aria-controls="sidebar-{uniqueName}"
 	>
 		<h3>{headerText}</h3>
 		<div class={["button-container", { open }]}>
 			<ChevronDown size="24px" aria-label={open ? "Collapse" : "Expand"} />
 		</div>
 	</button>
-	<div class={{ "sidebar-content": true, collapsed: !open }}>
+	<div
+		id="sidebar-{uniqueName}"
+		class={{ "sidebar-content": true, collapsed: !open }}
+	>
 		<div class="fixed-margin"></div>
 		{@render children()}
 	</div>
