@@ -93,7 +93,7 @@ export type SelectionState = {
 export type EditorUiState = (
 	| (EditState & SelectionState)
 	| DeleteState
-	| (SimulationState & SelectionState)
+	| SimulationState
 ) &
 	BaseState &
 	PanningState & {
@@ -229,8 +229,6 @@ export class EditorViewModel {
 	switchToSimulationMode() {
 		this.setUiState({
 			mode: "simulate",
-			selected: this.getSelected(),
-			selectionInProgressFor: null,
 		});
 		this.notifyAll();
 	}
@@ -352,7 +350,7 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 	setSelected(id: number) {
-		if (!this._uiState.matches({ mode: P.union("edit", "simulate") })) {
+		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to select an element in an invalid mode");
 			return;
 		}
@@ -360,7 +358,7 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 	clearSelection() {
-		if (!this._uiState.matches({ mode: P.union("edit", "simulate") })) {
+		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to clear selection in an invalid mode");
 			return;
 		}

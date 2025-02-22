@@ -1,9 +1,8 @@
 <script lang="ts">
 	import Button from "$lib/components/reusable/Button.svelte";
 	import { EditorAction } from "$lib/util/actions";
-	import { simulation } from "$lib/util/simulation.svelte";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { Play, RotateCcw, RotateCw, Trash } from "lucide-svelte";
+	import { RotateCcw, RotateCw, Trash } from "lucide-svelte";
 	import { P } from "ts-pattern";
 	import Sidebar from "./Sidebar.svelte";
 
@@ -33,15 +32,6 @@
 				title="Delete"
 				onClick={() => EditorAction.deleteSelected()}
 				icon={Trash}
-			/>
-		</Sidebar>
-	{:else if uiState.matches({ mode: "simulate" })}
-		<Sidebar headerText="Element Settings" {toggle} {open}>
-			<Button
-				title="Simulate"
-				text="Simulate"
-				onClick={() => simulation.startSimulation()}
-				icon={Play}
 			/>
 		</Sidebar>
 	{/if}
