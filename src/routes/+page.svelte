@@ -1,11 +1,7 @@
 <script lang="ts">
-	import CancelButton from "$lib/components/editor/CancelButton.svelte";
 	import Canvas from "$lib/components/editor/Canvas.svelte";
 	import OnCanvas from "$lib/components/editor/overlay/OnCanvas.svelte";
-	import ModeSidebar from "$lib/components/editor/overlay/sidebars/ModeSidebar.svelte";
-	import SelectionSidebar from "$lib/components/editor/overlay/sidebars/SelectionSidebar.svelte";
 	import ThemeSwitcher from "$lib/components/editor/overlay/sidebars/ThemeSwitcher.svelte";
-	import Toolbar from "$lib/components/editor/overlay/Toolbar.svelte";
 	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
 	import {
 		canvasViewModel,
@@ -121,12 +117,6 @@
 		// commit the changes that were made while dragging
 		ChangesAction.commitChanges();
 	}
-
-	let addingComponent = $derived(
-		editorViewModel.uiState.matches({
-			editType: "addingComponent",
-		}),
-	);
 </script>
 
 <svelte:window
@@ -136,20 +126,7 @@
 />
 
 <div class="wrapper theme-host {themeClass}">
-	<OnCanvas>
-		{#snippet content()}
-			<Toolbar
-				uiState={editorViewModel.uiState}
-				simulating={editorViewModel.uiState.matches({ mode: "simulate" })}
-			></Toolbar>
-			<CancelButton
-				shouldShow={addingComponent}
-				cancel={ChangesAction.abortEditing}
-			/>
-			<ModeSidebar uiState={editorViewModel.uiState}></ModeSidebar>
-			<SelectionSidebar uiState={editorViewModel.uiState}></SelectionSidebar>
-		{/snippet}
-	</OnCanvas>
+	<OnCanvas uiState={editorViewModel.uiState}></OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>
 
 	<ThemeSwitcher />
@@ -158,3 +135,6 @@
 		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
 	{/if}
 </div>
+
+<style>
+</style>

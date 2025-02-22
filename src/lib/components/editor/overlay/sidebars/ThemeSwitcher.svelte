@@ -109,7 +109,7 @@
 		--component-delete-color: var(--delete-color);
 		--handle-connect-color: rgb(184, 0, 184);
 		--shadow-color: #333333;
-		--surface-border-color: #4b5046;
+		--surface-border-color: #3d4832;
 		--surface-highlight-color: var(--primary-color);
 	}
 

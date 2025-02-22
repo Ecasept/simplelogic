@@ -110,7 +110,6 @@
 		e.currentTarget.releasePointerCapture(e.pointerId);
 		e.stopPropagation();
 
-
 		editorViewModel.removeHoveredHandle();
 
 		// calculate position of handle
@@ -203,7 +202,7 @@
 	role="button"
 	tabindex="0"
 	aria-label={type}
-	class={{ "component-body": true, selected: isSelected }}
+	class={["component-body", { selected: isSelected }]}
 	data-testcomponenttype={type}
 	data-testcomponentid={id}
 	x={position.x}
@@ -269,10 +268,26 @@
 	{/if}
 {/each}
 
-<style>
+<style lang="scss">
+	@import "$lib/css/variables.scss";
+	$stroke-width: 2px;
+	$outline-width: 2px;
+	$corner-radius: 2px;
+
+	.component-body {
+		stroke-width: $stroke-width;
+		rx: $corner-radius;
+		border-radius: $corner-radius + $stroke-width / 2;
+	}
+
 	.selected {
-		outline: 2px solid var(--selected-outline-color);
-		border-radius: 2px;
-		rx: 2px;
+		outline: $outline-width solid var(--selected-outline-color);
+	}
+
+	@media (max-width: $mobile-breakpoint) {
+		.component-body {
+			// The border-radius is off by ~2px on mobile for some reason
+			border-radius: $corner-radius + $stroke-width / 2 - 2px;
+		}
 	}
 </style>
