@@ -27,16 +27,19 @@
 				title="Rotate clockwise 90 degrees"
 				onClick={() => EditorAction.rotateComponent(90)}
 				icon={RotateCw}
+				margin="0"
 			/>
 			<Button
 				title="Rotate counter-clockwise 90 degrees"
 				onClick={() => EditorAction.rotateComponent(-90)}
 				icon={RotateCcw}
+				margin="0"
 			/>
 			<Button
 				title="Delete"
 				onClick={() => EditorAction.deleteSelected()}
 				icon={Trash}
+				margin="0"
 			/>
 		</Sidebar>
 	{/if}

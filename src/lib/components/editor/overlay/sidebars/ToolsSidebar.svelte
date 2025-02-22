@@ -7,6 +7,7 @@
 	import { Play } from "lucide-svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import Sidebar from "./Sidebar.svelte";
+	import SidebarSection from "./SidebarSection.svelte";
 
 	const { uiState } = $props<{ uiState: EditorUiState }>();
 
@@ -23,7 +24,9 @@
 
 {#if uiState.matches({ mode: "edit" })}
 	<Sidebar headerText="Tools" uniqueName={"tools"} {toggle} {open}>
-		<ComponentToolbar onPointerDown={addComponent} />
+		<SidebarSection text="Components">
+			<ComponentToolbar onPointerDown={addComponent} />
+		</SidebarSection>
 	</Sidebar>
 {:else if uiState.matches({ mode: "simulate" })}
 	<Sidebar headerText="Tools" uniqueName={"tools"} {toggle} {open}>

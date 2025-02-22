@@ -32,8 +32,9 @@
 		id="sidebar-{uniqueName}-content"
 		class={["sidebar-content", { collapsed: !open }]}
 	>
-		<div class="fixed-margin"></div>
-		{@render children()}
+		<div class="content-container">
+			{@render children()}
+		</div>
 	</div>
 </div>
 
@@ -42,8 +43,11 @@
 		margin: 5px;
 	}
 
-	.fixed-margin {
-		margin: 10px;
+	.content-container {
+		margin-top: 10px;
+		margin-left: 5px;
+		margin-right: 5px;
+		margin-bottom: 5px;
 	}
 
 	.sidebar {
