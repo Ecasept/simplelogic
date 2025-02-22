@@ -60,6 +60,9 @@
 		}
 
 		if (deletingThis) {
+			// Because this element will be removed,
+			// we need to remove the hovered element (this one)
+			editorViewModel.removeHoveredElement();
 			EditorAction.deleteWire(id);
 			e.stopPropagation();
 			return;
@@ -79,6 +82,9 @@
 			return;
 		}
 		if (deletingThis) {
+			// Because this element will be removed,
+			// we need to remove the hovered element (this one)
+			editorViewModel.removeHoveredElement();
 			EditorAction.deleteWire(id);
 			e.stopPropagation();
 			return;

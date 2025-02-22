@@ -59,7 +59,6 @@ export class EditorAction {
 	}
 
 	static deleteComponent(id: number) {
-		editorViewModel.removeHoveredElement();
 		const cmd = new DeleteComponentCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
@@ -67,7 +66,6 @@ export class EditorAction {
 	}
 
 	static deleteWire(id: number) {
-		editorViewModel.removeHoveredElement();
 		const cmd = new DeleteWireCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
@@ -236,6 +234,34 @@ export class EditorAction {
 	static undo() {
 		ChangesAction.abortEditing();
 		graphManager.undoLastCommand();
+	}
+	/** Deletes the currently selected element */
+	static deleteSelected() {
+		const uiState = editorViewModel.uiState;
+		if (!("selected" in uiState)) {
+			console.warn(
+				"Tried to delete selected element without being in a mode that supports selection",
+			);
+			return;
+		}
+		const selected = uiState.selected;
+		if (selected === null) {
+			console.warn(
+				"Tried to delete selected element, but no element is selected",
+			);
+			return;
+		}
+		const type = graphManager.getElementType(selected);
+
+		if (type === "component") {
+			EditorAction.deleteComponent(selected);
+		} else if (type === "wire") {
+			EditorAction.deleteWire(selected);
+		} else {
+			console.error(
+				`Could not delete selected element with ID ${selected}: Element not found`,
+			);
+		}
 	}
 }
 export class ModeAction {

@@ -99,6 +99,9 @@
 			return;
 		}
 		if (deletingThis) {
+			// Because this element will be removed,
+			// we need to remove the hovered element (this one)
+			editorViewModel.removeHoveredElement();
 			EditorAction.deleteComponent(id);
 			e.stopPropagation();
 			return;
@@ -136,6 +139,9 @@
 		}
 
 		if (uiState.matches({ mode: "delete" })) {
+			// Because this element will be removed,
+			// we need to remove the hovered element (this one)
+			editorViewModel.removeHoveredElement();
 			EditorAction.deleteComponent(id);
 			e.stopPropagation();
 			return;
