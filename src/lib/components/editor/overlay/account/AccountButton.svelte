@@ -4,7 +4,7 @@
 		type AuthUiState,
 	} from "$lib/util/viewModels/authViewModel";
 	import { CircleUserRound } from "lucide-svelte";
-	import AuthentificationSection from "./AuthentificationSection.svelte";
+	import AuthentificationPopup from "./AuthentificationPopup.svelte";
 	let { uiState }: { uiState: AuthUiState } = $props();
 </script>
 
@@ -17,7 +17,7 @@
 	</button>
 	{#if uiState.open}
 		<div class="auth-wrapper">
-			<AuthentificationSection {uiState} />
+			<AuthentificationPopup {uiState} />
 		</div>
 	{/if}
 </div>

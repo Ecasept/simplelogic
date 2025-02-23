@@ -19,8 +19,8 @@
 	};
 </script>
 
-<div class="container">
-	<h2>Authentification</h2>
+<div class="editor-overlay container">
+	<h3>Authentification</h3>
 	<ThemeSwitcher />
 	{#if uiState.loggedIn}
 		<div style="margin-bottom: 5px;">You are logged in</div>
@@ -45,17 +45,16 @@
 </div>
 
 <style>
+	h3 {
+		margin: 5px;
+		margin-bottom: 10px;
+	}
 	.container {
 		position: absolute;
 		right: 0;
 		top: 0;
-		background-color: var(--surface-color);
-		color: var(--on-surface-color);
-		margin: 10px;
-		border-radius: var(--default-border-radius);
-		padding: 0px;
-		border: 1px solid var(--surface-border-color);
-		box-shadow: 0px 0px 10px var(--shadow-color);
+		margin-top: 10px;
+		padding: 10px;
 
 		input {
 			width: 100%;
