@@ -18,7 +18,7 @@
 		--canvas-background-color: rgb(238, 255, 223);
 		--component-outline-color: black;
 		--component-background-color: green;
-		--on-component-background-color: black;
+		--on-component-background-color: var(--component-outline-color);
 		--delete-color: red;
 		--on-delete-color: white;
 		--component-delete-color: var(--delete-color);
@@ -45,7 +45,7 @@
 		--canvas-background-color: #2c2c2c;
 		--component-outline-color: rgb(189, 196, 171);
 		--component-background-color: #4f7000;
-		--on-component-background-color: white;
+		--on-component-background-color: var(--component-outline-color);
 		--delete-color: red;
 		--on-delete-color: white;
 		--component-delete-color: var(--delete-color);
