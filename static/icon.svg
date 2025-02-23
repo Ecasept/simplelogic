@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 100 100">
+	<style>
+		.component {
+			fill: green;
+			stroke: black;
+		}
+
+		.handle {
+			fill: black;
+		}
+
+		.text {
+			fill: black;
+			font-family: sans-serif;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			.component {
+				fill: #4f7000 !important;
+				stroke: rgb(189, 196, 171) !important;
+			}
+
+			.handle {
+				fill: rgb(189, 196, 171) !important;
+			}
+
+			.text {
+				fill: rgb(189, 196, 171) !important;
+			}
+		}
+	</style>
+	<rect fill-opacity="70%" x="0" y="0" width="80" height="80" class="component" stroke-width="6" />
+	<text font-size="60" dy=".35em" text-anchor="middle" class="text" x="40" y="40">S</text>
+	<circle cx="0" cy="20" class="handle" r="10" />
+	<circle cx="0" cy="60" class="handle" r="10" />
+	<circle cx="80" cy="40" class="handle" r="10" />
+</svg>
