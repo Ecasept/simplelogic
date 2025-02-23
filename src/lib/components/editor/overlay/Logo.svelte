@@ -7,7 +7,6 @@
 		/* Match color of icon */
 		color: var(--on-component-background-color);
 
-		margin: 10px;
 		padding: 10px;
 		line-height: 0;
 

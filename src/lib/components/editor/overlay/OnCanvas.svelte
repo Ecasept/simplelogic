@@ -47,7 +47,12 @@
 		position: absolute;
 		top: 0;
 		left: 0;
+
 		width: 100%;
+		padding: 10px;
+		box-sizing: border-box;
+		gap: 10px;
+
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -62,15 +67,13 @@
 	}
 
 	.toolbar-area {
-		$margin: 20px;
 		display: grid;
 		grid-template-columns: 1fr auto 1fr;
 
 		justify-items: center;
 		align-items: center;
 
-		width: calc(100% - 2 * $margin);
-		margin: 0px $margin;
+		width: 100%;
 
 		gap: 10px;
 
@@ -83,12 +86,10 @@
 	}
 
 	.sidebar-area {
-		$margin: 20px;
 		display: grid;
 		grid-template-columns: 1fr auto 1fr;
 
-		width: calc(100% - 2 * $margin);
-		margin: 0px $margin;
+		width: 100%;
 
 		gap: 10px;
 

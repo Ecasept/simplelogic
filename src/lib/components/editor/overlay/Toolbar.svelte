@@ -102,7 +102,6 @@
 	.toolbar {
 		display: flex;
 		justify-content: space-around;
-		margin: 10px;
 		gap: 5px;
 		padding: 5px;
 	}

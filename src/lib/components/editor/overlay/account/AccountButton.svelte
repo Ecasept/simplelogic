@@ -24,7 +24,6 @@
 
 <style>
 	.toolbar {
-		margin: 10px;
 		border-radius: 100%;
 		padding: 0px;
 	}
