@@ -275,7 +275,9 @@
 {/each}
 
 <style lang="scss">
+	@use "sass:math";
 	@import "$lib/css/variables.scss";
+
 	$stroke-width: 2px;
 	$outline-width: 2px;
 	$corner-radius: 2px;
@@ -283,7 +285,7 @@
 	.component-body {
 		stroke-width: $stroke-width;
 		rx: $corner-radius;
-		border-radius: $corner-radius + $stroke-width / 2;
+		border-radius: $corner-radius + math.div($stroke-width, 2);
 	}
 
 	.selected {
@@ -293,7 +295,7 @@
 	@media (max-width: $mobile-breakpoint) {
 		.component-body {
 			// The border-radius is off by ~2px on mobile for some reason
-			border-radius: $corner-radius + $stroke-width / 2 - 2px;
+			border-radius: $corner-radius + math.div($stroke-width, 2) - 2px;
 		}
 	}
 </style>
