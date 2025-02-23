@@ -57,6 +57,7 @@
 		padding: 10px;
 		border: 1px solid var(--surface-border-color);
 		width: 250px;
+		box-shadow: 0px 0px 10px var(--shadow-color);
 	}
 
 	.button-container {

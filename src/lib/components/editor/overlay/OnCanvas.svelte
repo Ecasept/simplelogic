@@ -1,12 +1,20 @@
 <script lang="ts">
 	import { ChangesAction } from "$lib/util/actions";
+	import type { AuthUiState } from "$lib/util/viewModels/authViewModel";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import CancelButton from "../CancelButton.svelte";
+	import AccountButton from "./account/AccountButton.svelte";
+	import Logo from "./Logo.svelte";
 	import SelectionSidebar from "./sidebars/SelectionSidebar.svelte";
 	import ToolsSidebar from "./sidebars/ToolsSidebar.svelte";
 	import Toolbar from "./Toolbar.svelte";
 
-	let { uiState }: { uiState: EditorUiState } = $props();
+	type Props = {
+		uiState: EditorUiState;
+		authUiState: AuthUiState;
+	};
+
+	let { uiState, authUiState }: Props = $props();
 
 	let addingComponent = $derived(
 		uiState.matches({
@@ -16,7 +24,11 @@
 </script>
 
 <div id="on-canvas-container" class="nointeract">
-	<Toolbar {uiState} simulating={uiState.matches({ mode: "simulate" })} />
+	<div class="toolbar-area nointeract">
+		<Logo />
+		<Toolbar {uiState} simulating={uiState.matches({ mode: "simulate" })} />
+		<AccountButton uiState={authUiState} />
+	</div>
 	<div class="sidebar-area nointeract">
 		<ToolsSidebar {uiState} />
 		<div class="cancel-button nointeract">
@@ -45,8 +57,29 @@
 	.nointeract {
 		pointer-events: none;
 	}
-	:global(.nointeract > *) {
+	.nointeract > :global(*:not(.nointeract)) {
 		pointer-events: auto;
+	}
+
+	.toolbar-area {
+		$margin: 20px;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+
+		justify-items: center;
+		align-items: center;
+
+		width: calc(100% - 2 * $margin);
+		margin: 0px $margin;
+
+		gap: 10px;
+
+		& > :global(:first-child) {
+			justify-self: start;
+		}
+		& > :global(:last-child) {
+			justify-self: end;
+		}
 	}
 
 	.sidebar-area {
@@ -58,17 +91,16 @@
 		margin: 0px $margin;
 
 		gap: 10px;
-	}
 
-	:global(.sidebar-area > :first-child) {
-		justify-self: start;
-		// don't fill the whole height
-		align-self: start;
-	}
-	:global(.sidebar-area > :last-child) {
-		justify-self: end;
-		// don't fill the whole height
-		align-self: start;
+		// items don't fill the whole height
+		align-items: start;
+
+		& > :global(:first-child) {
+			justify-self: start;
+		}
+		& > :global(:last-child) {
+			justify-self: end;
+		}
 	}
 
 	@media (max-width: $mobile-breakpoint) {
@@ -81,15 +113,15 @@
 			grid-template-columns: 1fr;
 			grid-template-rows: auto auto auto;
 			width: auto;
+
+			& > :global(:first-child) {
+				justify-self: center;
+			}
+			& > :global(:last-child) {
+				justify-self: center;
+			}
 		}
-		// Center the sidebars
-		:global(.sidebar-area > :first-child) {
-			justify-self: center;
-		}
-		:global(.sidebar-area > :last-child) {
-			justify-self: center;
-		}
-		:global(.cancel-button) {
+		.cancel-button {
 			// Move cancel button to the top
 			grid-row: 1;
 			// Center it

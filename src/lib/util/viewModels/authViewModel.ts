@@ -1,23 +1,23 @@
 import { API } from "../api";
 import { ViewModel } from "./viewModel";
 
-export type SidebarUiState = {
+export type AuthUiState = {
 	open: boolean;
 	message: string | null;
 	loggedIn: boolean;
 	passwordInputValue: string;
 };
 
-export class _SidebarViewModel extends ViewModel<SidebarUiState> {
-	protected _uiState: SidebarUiState = {
-		open: true,
+export class AuthViewModel extends ViewModel<AuthUiState> {
+	protected _uiState: AuthUiState = {
+		open: false,
 		message: null,
 		loggedIn: false,
 		passwordInputValue: "",
 	};
 	protected resetUiState(): void {
 		this._uiState = {
-			open: true,
+			open: false,
 			message: null,
 			loggedIn: false,
 			passwordInputValue: "",
@@ -66,4 +66,4 @@ export class _SidebarViewModel extends ViewModel<SidebarUiState> {
 	}
 }
 
-export const sidebarViewModel = new _SidebarViewModel();
+export const authViewModel = new AuthViewModel();

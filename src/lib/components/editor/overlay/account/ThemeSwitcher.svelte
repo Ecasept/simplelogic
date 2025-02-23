@@ -35,26 +35,24 @@
 <style lang="scss">
 	#container {
 		display: inline-flex;
-		background-color: var(--surface-color);
-		box-shadow: 0px 0px 10px var(--shadow-color);
-		border: 1px solid var(--surface-border-color);
-		border-radius: var(--default-border-radius); //50vh;
-		padding: 5px;
+		background-color: var(--primary-container-color);
+		border-radius: calc(50vh);
+		padding: 2px;
 		align-items: center;
 
 		button {
 			border: none;
 			cursor: pointer;
-			border-radius: var(--default-border-radius);
+			border-radius: 100%;
 			background-color: transparent;
 			display: grid;
 			place-items: center;
-			padding: 5px;
+			padding: 2px;
 			color: var(--on-surface-color); // svg color
 
 			transition: background-color 0.3s;
 			&.selected {
-				background-color: var(--surface-highlight-color);
+				background-color: var(--primary-color);
 			}
 		}
 	}

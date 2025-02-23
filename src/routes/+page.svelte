@@ -13,6 +13,7 @@
 	import { handleKeyDown } from "$lib/util/keyboard";
 	import { cancelLongPress, cancelLongPressIfMoved } from "$lib/util/longpress";
 	import { getThemeClass } from "$lib/util/theme.svelte";
+	import { authViewModel } from "$lib/util/viewModels/authViewModel";
 	import { P } from "ts-pattern";
 
 	let { data }: { data: import("./$types").LayoutData } = $props();
@@ -150,7 +151,8 @@
 />
 
 <div class="wrapper theme-host {themeClass}">
-	<OnCanvas uiState={editorViewModel.uiState}></OnCanvas>
+	<OnCanvas uiState={editorViewModel.uiState} authUiState={$authViewModel}
+	></OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>
 
 	{#if $circuitModalViewModel.mode !== null}

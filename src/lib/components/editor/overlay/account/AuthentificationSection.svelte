@@ -2,27 +2,26 @@
 	import Button from "$lib/components/reusable/Button.svelte";
 	import { onEnter } from "$lib/util/keyboard";
 	import {
-		sidebarViewModel,
-		type SidebarUiState,
-	} from "$lib/util/viewModels/sidebarViewModel";
+		authViewModel,
+		type AuthUiState,
+	} from "$lib/util/viewModels/authViewModel";
 	import type { FormEventHandler } from "svelte/elements";
+	import ThemeSwitcher from "./ThemeSwitcher.svelte";
 
-	let { uiState }: { uiState: SidebarUiState } = $props();
+	let { uiState }: { uiState: AuthUiState } = $props();
 	function login() {
-		sidebarViewModel.login();
-	}
-	function logout() {
-		sidebarViewModel.logout();
+		authViewModel;
 	}
 	const onInput: FormEventHandler<HTMLInputElement> = function (e) {
-		sidebarViewModel.setPasswordInputValue(
+		authViewModel.setPasswordInpuauthViewModel(
 			(e.target as HTMLInputElement | null)?.value ?? "",
 		);
 	};
 </script>
 
-<div class="authentification">
+<div class="container">
 	<h2>Authentification</h2>
+	<ThemeSwitcher />
 	{#if uiState.loggedIn}
 		<div style="margin-bottom: 5px;">You are logged in</div>
 		<Button text="Log out" margin="0px" onClick={logout} />
@@ -46,7 +45,18 @@
 </div>
 
 <style>
-	.authentification {
+	.container {
+		position: absolute;
+		right: 0;
+		top: 0;
+		background-color: var(--surface-color);
+		color: var(--on-surface-color);
+		margin: 10px;
+		border-radius: var(--default-border-radius);
+		padding: 0px;
+		border: 1px solid var(--surface-border-color);
+		box-shadow: 0px 0px 10px var(--shadow-color);
+
 		input {
 			width: 100%;
 			padding: 8px;
