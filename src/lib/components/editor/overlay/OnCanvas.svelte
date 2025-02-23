@@ -43,13 +43,16 @@
 
 <style lang="scss">
 	@use "src/lib/css/variables.scss" as *;
+	/** How far away any overlay should be from the screen ede */
+	$screen-margin: 10px;
+
 	#on-canvas-container {
 		position: absolute;
 		top: 0;
 		left: 0;
 
 		width: 100%;
-		padding: 10px;
+		padding: $screen-margin;
 		box-sizing: border-box;
 		gap: 10px;
 
@@ -107,12 +110,14 @@
 	@media (max-width: $mobile-breakpoint) {
 		#on-canvas-container {
 			flex-direction: column-reverse;
+			// Move to bottom
 			bottom: 0;
 		}
-		// Make grid vertical
 		.sidebar-area {
-			grid-template-columns: 1fr;
-			grid-template-rows: auto auto auto;
+			// Make grid vertical
+			display: flex;
+			flex-direction: column-reverse;
+			align-items: center;
 			width: auto;
 
 			& > :global(:first-child) {
@@ -124,9 +129,24 @@
 		}
 		.cancel-button {
 			// Move cancel button to the top
-			grid-row: 1;
+			order: 1;
 			// Center it
 			justify-self: center;
+		}
+		.toolbar-area {
+			// Move Logo and AccountButton to the top,
+			// while keeping the toolbar at the bottom
+
+			grid-template-columns: 1fr;
+
+			& > :global(:first-child) {
+				position: absolute;
+				top: $screen-margin;
+			}
+			& > :global(:last-child) {
+				position: absolute;
+				top: $screen-margin;
+			}
 		}
 	}
 </style>
