@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Canvas from "$lib/components/editor/Canvas.svelte";
 	import OnCanvas from "$lib/components/editor/overlay/OnCanvas.svelte";
-	import ThemeSwitcher from "$lib/components/editor/overlay/sidebars/ThemeSwitcher.svelte";
 	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
 	import {
 		canvasViewModel,
@@ -153,8 +152,6 @@
 <div class="wrapper theme-host {themeClass}">
 	<OnCanvas uiState={editorViewModel.uiState}></OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>
-
-	<ThemeSwitcher />
 
 	{#if $circuitModalViewModel.mode !== null}
 		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
