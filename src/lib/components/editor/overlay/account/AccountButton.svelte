@@ -8,7 +8,7 @@
 	let { uiState }: { uiState: AuthUiState } = $props();
 </script>
 
-<div class="toolbar">
+<div class="editor-overlay toolbar">
 	<button
 		class={["icon", { open: uiState.open }]}
 		onclick={() => authViewModel.toggleOpen()}
@@ -24,13 +24,9 @@
 
 <style>
 	.toolbar {
-		background-color: var(--surface-color);
-		color: var(--on-surface-color);
 		margin: 10px;
 		border-radius: 100%;
 		padding: 0px;
-		border: 1px solid var(--surface-border-color);
-		box-shadow: 0px 0px 10px var(--shadow-color);
 	}
 	.icon {
 		cursor: pointer;

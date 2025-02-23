@@ -16,3 +16,12 @@ body {
 	--grid-dot-radius: 1px;
 	--default-border-radius: 12px;
 }
+
+// Default style for any overlay on the editor
+.editor-overlay {
+	background-color: var(--surface-color);
+	color: var(--on-surface-color);
+	border-radius: var(--default-border-radius);
+	border: 1px solid var(--surface-border-color);
+	box-shadow: 0px 0px 10px var(--shadow-color);
+}

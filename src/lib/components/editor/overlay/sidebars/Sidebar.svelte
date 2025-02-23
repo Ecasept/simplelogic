@@ -14,7 +14,7 @@
 	let { headerText, uniqueName, toggle, open, children }: Props = $props();
 </script>
 
-<div class="sidebar sidebar-{uniqueName}">
+<div class="editor-overlay sidebar sidebar-{uniqueName}">
 	<button
 		class="header"
 		aria-label={open ? "Collapse" : "Expand"}
@@ -51,13 +51,8 @@
 	}
 
 	.sidebar {
-		background-color: var(--surface-color);
-		color: var(--on-surface-color);
-		border-radius: var(--default-border-radius);
 		padding: 10px;
-		border: 1px solid var(--surface-border-color);
 		width: 250px;
-		box-shadow: 0px 0px 10px var(--shadow-color);
 	}
 
 	.button-container {

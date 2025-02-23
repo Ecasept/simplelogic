@@ -73,7 +73,7 @@
 	</button>
 {/snippet}
 
-<div class="toolbar">
+<div class="editor-overlay toolbar">
 	{#each modes as { icon: Icon, name, switchTo }, i}
 		{@const cls = name === currentMode ? "selected" : ""}
 		{@const tooltip = `Switch to ${name ?? "default"} mode`}
@@ -102,14 +102,9 @@
 	.toolbar {
 		display: flex;
 		justify-content: space-around;
-		background-color: var(--surface-color);
-		color: var(--on-surface-color);
 		margin: 10px;
-		border-radius: var(--default-border-radius);
 		gap: 5px;
 		padding: 5px;
-		border: 1px solid var(--surface-border-color);
-		box-shadow: 0px 0px 10px var(--shadow-color);
 	}
 	.icon {
 		cursor: pointer;
