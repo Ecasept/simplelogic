@@ -238,7 +238,7 @@ export function isVibrateSupported(): boolean {
 export function debugLog<T>(tag: string) {
 	return function (type: string, value: T) {
 		if (import.meta.env.DEV) {
-			console.log(tag, type, value);
+			console.debug(tag, type, value);
 		}
 	};
 }
