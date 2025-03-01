@@ -56,7 +56,10 @@ export class GraphManager {
 	private history: CommandGroup[] = [];
 	private changes: Command[] = [];
 
-	/** Publicly exposed rune state for the graph manager */
+	/** Publicly exposed rune state for the graph manager, that updates whenever a series of commands has been executed.
+	 * This ensures that edits to the graph that require multiple commands to be executed in one go
+	 * only update the UI once instead of multiple times.
+	 */
 	public graphData: GraphData = $state({
 		components: {},
 		wires: {},
@@ -192,11 +195,19 @@ export class GraphManager {
 		return this._currentData.wires[id];
 	}
 
-	getElementType(id: number) {
-		if (this._currentData.components[id]) {
+	getComponentDataReactive(id: number) {
+		return this.graphData.components[id];
+	}
+
+	getWireDataReactive(id: number) {
+		return this.graphData.wires[id];
+	}
+
+	getElementTypeReactive(id: number) {
+		if (this.graphData.components[id]) {
 			return "component";
 		}
-		if (this._currentData.wires[id]) {
+		if (this.graphData.wires[id]) {
 			return "wire";
 		}
 		return null;
