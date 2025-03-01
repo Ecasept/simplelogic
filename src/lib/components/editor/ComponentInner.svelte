@@ -3,7 +3,6 @@
 	import { onEnter } from "$lib/util/keyboard";
 	import type { ComponentType } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { P } from "ts-pattern";
 
 	type Props = {
 		componentId: number;
@@ -31,19 +30,15 @@
 		cy={middleY}
 		r="10"
 		style="pointer-events: {uiState.matches({
-			mode: P.union('simulate', 'edit'),
+			mode: 'simulate',
 		})
 			? 'inherit'
 			: 'none'};"
 		fill={isPowered
 			? "var(--component-delete-color)"
 			: "var(--component-outline-color)"}
-		onpointerdown={(e) => e.stopPropagation()}
-		onpointerup={() => {
-			if (
-				uiState.matches({ editType: "idle" }) ||
-				uiState.matches({ mode: "simulate" })
-			) {
+		onclick={() => {
+			if (uiState.matches({ mode: "simulate" })) {
 				EditorAction.togglePower(componentId);
 			}
 		}}
