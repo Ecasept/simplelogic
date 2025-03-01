@@ -130,7 +130,7 @@ export class Editor {
 
 	async initiateAddComponent(type: string) {
 		await this.pointer.downOn(
-			this.page.locator(".sidebarWrapper").getByLabel(`Add ${type}`),
+			this.page.getByLabel(`Add ${type}`),
 		);
 	}
 
