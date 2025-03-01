@@ -2,11 +2,11 @@ import {
 	CommandGroup,
 	MoveComponentCommand,
 	MoveWireConnectionCommand,
+	type Command,
 } from "./commands";
 import { calculateHandleOffset, isComponentConnection } from "./global.svelte";
 import {
 	ZGraphData,
-	type Command,
 	type GraphData,
 	type HandleType,
 	type XYPair,
@@ -103,8 +103,12 @@ export class GraphManager {
 
 	undoLastCommand() {
 		const command = this.history.pop();
-		command?.undo(this._currentData);
-		this.notifyAll();
+		if (command) {
+			const deletedIds = command.undo(this._currentData);
+			this.notifyAll();
+			return deletedIds;
+		}
+		return [];
 	}
 
 	discardChanges() {

@@ -35,17 +35,6 @@ export const ZXYPair = z.object({
 	y: z.number(),
 });
 
-export const ZCommand = z.object({
-	execute: z
-		.function()
-		.args(z.lazy(() => ZGraphData))
-		.returns(z.void().or(z.any())),
-	undo: z
-		.function()
-		.args(z.lazy(() => ZGraphData))
-		.returns(z.void()),
-});
-
 // ==== Graph Types ====
 export const ZWireData = z.object({
 	id: z.number(),
@@ -76,7 +65,6 @@ export type ComponentHandleList = z.infer<typeof ZComponentHandleList>;
 export type WireHandle = z.infer<typeof ZWireHandle>;
 export type ComponentHandle = z.infer<typeof ZComponentHandle>;
 export type XYPair = z.infer<typeof ZXYPair>;
-export type Command = z.infer<typeof ZCommand>;
 export type WireData = z.infer<typeof ZWireData>;
 export type ComponentData = z.infer<typeof ZComponentData>;
 export type GraphData = z.infer<typeof ZGraphData>;

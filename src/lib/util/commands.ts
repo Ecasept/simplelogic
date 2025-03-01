@@ -6,16 +6,24 @@ import {
 	isComponentConnection,
 	isWireConnection,
 } from "./global.svelte";
-import type {
-	Command,
-	ComponentConnection,
-	ComponentData,
-	GraphData,
-	HandleType,
-	WireConnection,
-	WireData,
-	XYPair,
+import {
+	type ComponentConnection,
+	type ComponentData,
+	type GraphData,
+	type HandleType,
+	type WireConnection,
+	type WireData,
+	type XYPair,
 } from "./types";
+
+export interface Command {
+	execute: (graphData: GraphData) => any;
+	/** Undoes the command on the given `graphData`.
+	 * If the command cannot be undone, it prints an error to the console and does nothing.
+	 * @returns An array of ids of elements that were **deleted** by the command, if any.
+	 */
+	undo: (graphData: GraphData) => number[];
+}
 
 export class CommandGroup implements Command {
 	constructor(private commands: Command[]) {}
@@ -25,16 +33,14 @@ export class CommandGroup implements Command {
 		}
 	}
 	undo(graphData: GraphData) {
+		const deletedIds = [];
 		for (let i = this.commands.length - 1; i >= 0; i--) {
-			this.commands[i].undo(graphData);
+			const res = this.commands[i].undo(graphData);
+			deletedIds.push(...res);
 		}
+		return deletedIds;
 	}
 }
-
-type ValidConnectConnections =
-	| { from: WireConnection; to: WireConnection }
-	| { from: WireConnection; to: ComponentConnection }
-	| { from: ComponentConnection; to: WireConnection };
 
 export class ConnectCommand implements Command {
 	constructor(
@@ -130,6 +136,7 @@ export class ConnectCommand implements Command {
 			this.connect(graphData, this.from, this.to);
 			throw e;
 		}
+		return [];
 	}
 }
 
@@ -152,11 +159,12 @@ export class MoveWireConnectionCommand implements Command {
 	undo(graphData: GraphData) {
 		if (this.oldPosition === null) {
 			console.error(`Tried to undo command that has not been executed`);
-			return;
+			return [];
 		}
 		graphData.wires[this.wireId][this.type].x = this.oldPosition.x;
 		graphData.wires[this.wireId][this.type].y = this.oldPosition.y;
 		this.oldPosition = null;
+		return [];
 	}
 }
 
@@ -178,10 +186,11 @@ export class MoveComponentCommand implements Command {
 	undo(graphData: GraphData) {
 		if (this.oldPosition === null) {
 			console.error(`Tried to undo command that has not been executed`);
-			return;
+			return [];
 		}
 		graphData.components[this.componentId].position = this.oldPosition;
 		this.oldPosition = null;
+		return [];
 	}
 }
 
@@ -202,13 +211,14 @@ export class CreateWireCommand implements Command {
 	undo(graphData: GraphData) {
 		if (this.oldNextId === null) {
 			console.error(`Tried to undo command that has not been executed`);
-			return;
+			return [];
 		}
 
 		graphData.nextId = this.oldNextId;
 		delete graphData.wires[this.oldNextId];
-
+		const deletedId = this.oldNextId;
 		this.oldNextId = null;
+		return [deletedId];
 	}
 }
 
@@ -229,12 +239,14 @@ export class CreateComponentCommand implements Command {
 	undo(graphData: GraphData) {
 		if (this.oldNextId === null) {
 			console.error(`Tried to undo command that has not been executed`);
-			return;
+			return [];
 		}
 
 		graphData.nextId = this.oldNextId;
 		delete graphData.components[this.oldNextId];
+		const deletedId = this.oldNextId;
 		this.oldNextId = null;
+		return [deletedId];
 	}
 }
 
@@ -271,7 +283,7 @@ export class DeleteComponentCommand implements Command {
 	undo(graphData: GraphData) {
 		if (this.deletedComponent === null) {
 			console.error(`Tried to undo command that has not been executed`);
-			return;
+			return [];
 		}
 
 		graphData.components[this.componentId] = this.deletedComponent;
@@ -288,6 +300,7 @@ export class DeleteComponentCommand implements Command {
 		this.deletedComponent = null;
 		this.changedWires = {};
 		this.changedComponents = {};
+		return [];
 	}
 }
 
@@ -337,7 +350,7 @@ export class DeleteWireCommand implements Command {
 	undo(graphData: GraphData) {
 		if (this.deletedWire === null) {
 			console.error(`Tried to undo command that has not been executed`);
-			return;
+			return [];
 		}
 
 		graphData.wires[this.wireId] = this.deletedWire;
@@ -354,6 +367,7 @@ export class DeleteWireCommand implements Command {
 		this.deletedWire = null;
 		this.changedWires = {};
 		this.changedComponents = {};
+		return [];
 	}
 }
 
@@ -368,5 +382,6 @@ export class ToggleInputPowerStateCommand implements Command {
 	undo(graphData: GraphData) {
 		graphData.components[this.componentId].isPoweredInitially =
 			!graphData.components[this.componentId].isPoweredInitially;
+		return [];
 	}
 }

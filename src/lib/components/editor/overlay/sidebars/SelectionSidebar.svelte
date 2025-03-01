@@ -15,11 +15,21 @@
 		const selectedId = uiState.matches({ selected: P.number })
 			? uiState.selected
 			: null;
-		if (selectedId === null)
+		if (selectedId === null) {
 			return { selectedId: null, type: null, data: null };
+		}
 		const type = graphManager.getElementTypeReactive(selectedId);
 		if (type === null) {
-			console.error("Selected element not found in graph");
+			// This is normal if the element was deleted,
+			// as the selection is not cleared immediately.
+			// Because the deleted component and the selection
+			// are stored in different states, they are updated
+			// after the other. This leads to a situation where
+			// the component is deleted and this reactive block is rerun
+			// before the selection is cleared. In this case (this if block)
+			// the selected element will be deleted soon, so we can just
+			// already return an empty object.
+			console.info("Selected element not found in graph");
 			return { selectedId: null, type: null, data: null };
 		}
 		return match(type)

@@ -63,6 +63,11 @@ export class EditorAction {
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
 		graphManager.notifyAll();
+
+		// If the component was selected, clear the selection
+		if (editorViewModel.uiState.matches({ selected: id })) {
+			editorViewModel.clearSelection();
+		}
 	}
 
 	static deleteWire(id: number) {
@@ -70,6 +75,11 @@ export class EditorAction {
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
 		graphManager.notifyAll();
+
+		// If the wire was selected, clear the selection
+		if (editorViewModel.uiState.matches({ selected: id })) {
+			editorViewModel.clearSelection();
+		}
 	}
 
 	static togglePower(id: number) {
@@ -233,7 +243,17 @@ export class EditorAction {
 	}
 	static undo() {
 		ChangesAction.abortEditing();
-		graphManager.undoLastCommand();
+		const deletedIds = graphManager.undoLastCommand();
+
+		// Ensure that if the selected element was deleted, it is no longer selected
+		if (
+			deletedIds.length > 0 &&
+			editorViewModel.uiState.matches({
+				selected: P.union(deletedIds[0], ...deletedIds.slice(1)),
+			})
+		) {
+			editorViewModel.clearSelection();
+		}
 	}
 	/** Deletes the currently selected element */
 	static deleteSelected() {
