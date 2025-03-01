@@ -8,7 +8,7 @@
 		calculateHandleOffset,
 		calculateHandlePosition,
 		GRID_SIZE,
-	} from "$lib/util/global";
+	} from "$lib/util/global.svelte";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type {
 		ComponentHandleList,

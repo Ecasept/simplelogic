@@ -1,4 +1,4 @@
-import { LONG_PRESS_MS } from "./global";
+import { LONG_PRESS_MS } from "./global.svelte";
 import type { XYPair } from "./types";
 
 let callback: (() => void) | null = null;

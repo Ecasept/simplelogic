@@ -3,7 +3,7 @@ import {
 	MoveComponentCommand,
 	MoveWireConnectionCommand,
 } from "./commands";
-import { calculateHandleOffset, isComponentConnection } from "./global";
+import { calculateHandleOffset, isComponentConnection } from "./global.svelte";
 import {
 	ZGraphData,
 	type Command,

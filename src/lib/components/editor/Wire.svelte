@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
-	import { isComponentConnection, isVibrateSupported } from "$lib/util/global";
+	import {
+		isComponentConnection,
+		isVibrateSupported,
+	} from "$lib/util/global.svelte";
 	import { startLongPressTimer } from "$lib/util/longpress";
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type {

@@ -7,7 +7,7 @@ import {
 	ModeAction,
 	PersistenceAction,
 } from "./actions";
-import { mousePosition } from "./global";
+import { mousePosition } from "./global.svelte";
 import type { EditorUiState } from "./viewModels/editorViewModel.svelte";
 
 type Environment = { env: "editor" | "modal" };

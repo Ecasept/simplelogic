@@ -5,7 +5,7 @@ import {
 	indexOfByValueMulti,
 	isComponentConnection,
 	isWireConnection,
-} from "./global";
+} from "./global.svelte";
 import type {
 	Command,
 	ComponentConnection,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Component from "$lib/components/editor/Component.svelte";
 	import { editorViewModel } from "$lib/util/actions";
-	import { COMPONENT_DATA, GRID_SIZE } from "$lib/util/global";
+	import { COMPONENT_DATA, GRID_SIZE } from "$lib/util/global.svelte";
 	import type { ComponentType, SVGPointerEvent } from "$lib/util/types";
 
 	type Props = {

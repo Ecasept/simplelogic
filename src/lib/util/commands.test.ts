@@ -9,7 +9,7 @@ import {
 	MoveComponentCommand,
 	MoveWireConnectionCommand,
 } from "./commands";
-import { GRID_SIZE } from "./global";
+import { GRID_SIZE } from "./global.svelte";
 import type {
 	ComponentConnection,
 	ComponentData,

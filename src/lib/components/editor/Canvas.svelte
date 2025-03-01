@@ -7,7 +7,7 @@
 		editorViewModel,
 		graphManager,
 	} from "$lib/util/actions";
-	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/global";
+	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/global.svelte";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 	import { P } from "ts-pattern";
 

@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { isComponentConnection, isWireConnection } from "$lib/util/global";
+	import {
+		isComponentConnection,
+		isWireConnection,
+	} from "$lib/util/global.svelte";
 	import type { SimulationData } from "$lib/util/simulation.svelte";
 	import type {
 		ComponentConnection,

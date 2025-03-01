@@ -1,5 +1,5 @@
 import { graph, graphManager } from "./actions";
-import { COMPONENT_DATA, isComponentConnection } from "./global";
+import { COMPONENT_DATA, isComponentConnection } from "./global.svelte";
 import type { ComponentData, ComponentType, WireData } from "./types";
 import { ViewModel } from "./viewModels/viewModel";
 

@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { calculateHandleOffset, GRID_SIZE, gridSnap } from "./global";
+import { describe, expect, it } from "vitest";
+import { calculateHandleOffset, GRID_SIZE, gridSnap } from "./global.svelte";
 
 describe("Global Tests", () => {
 	it("gridSnap", () => {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from "$lib/components/reusable/Button.svelte";
-	import { EditorAction } from "$lib/util/actions";
+	import { EditorAction, graphManager } from "$lib/util/actions";
+	import { debugLog } from "$lib/util/global.svelte";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import { RotateCcw, RotateCw, Trash } from "lucide-svelte";
 	import { P } from "ts-pattern";

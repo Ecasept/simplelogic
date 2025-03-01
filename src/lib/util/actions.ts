@@ -7,7 +7,7 @@ import {
 	DeleteWireCommand,
 	ToggleInputPowerStateCommand,
 } from "./commands";
-import { constructComponent, GRID_SIZE, gridSnap } from "./global";
+import { constructComponent, GRID_SIZE, gridSnap } from "./global.svelte";
 import { Graph, GraphManager } from "./graph.svelte";
 import { simulation } from "./simulation.svelte";
 import type {
