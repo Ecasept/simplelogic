@@ -235,10 +235,10 @@ export function isVibrateSupported(): boolean {
 	return typeof navigator.vibrate === "function";
 }
 
-export function debugLog<T>(tag: string, val: T) {
-	if (import.meta.env.DEV) {
-		return $inspect(val).with((type, value) => {
+export function debugLog<T>(tag: string) {
+	return function (type: string, value: T) {
+		if (import.meta.env.DEV) {
 			console.log(tag, type, value);
-		});
-	}
+		}
+	};
 }
