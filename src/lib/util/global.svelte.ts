@@ -234,3 +234,11 @@ export function includesByValueMulti(
 export function isVibrateSupported(): boolean {
 	return typeof navigator.vibrate === "function";
 }
+
+export function debugLog<T>(tag: string, val: T) {
+	if (import.meta.env.DEV) {
+		return $inspect(val).with((type, value) => {
+			console.log(tag, type, value);
+		});
+	}
+}

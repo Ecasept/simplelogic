@@ -10,6 +10,7 @@
 		editorViewModel,
 	} from "$lib/util/actions";
 	import { mousePosition, setMousePosition } from "$lib/util/global";
+	import { debugLog } from "$lib/util/global.svelte";
 	import { handleKeyDown } from "$lib/util/keyboard";
 	import { cancelLongPress, cancelLongPressIfMoved } from "$lib/util/longpress";
 	import { getThemeClass } from "$lib/util/theme.svelte";
@@ -18,6 +19,8 @@
 
 	let { data }: { data: import("./$types").LayoutData } = $props();
 	let themeClass = $derived.by(getThemeClass);
+
+	debugLog("UISTATE", editorViewModel.uiState);
 
 	function updatePosition(e: PointerEvent) {
 		const pos = { x: e.clientX, y: e.clientY };

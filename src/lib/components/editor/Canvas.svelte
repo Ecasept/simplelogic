@@ -20,8 +20,6 @@
 		canvasViewModel.svg = svg;
 	});
 
-	$inspect(editorViewModel.uiState);
-
 	function pan(movementX: number, movementY: number) {
 		canvasViewModel.pan(movementX, movementY);
 	}
