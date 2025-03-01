@@ -195,6 +195,16 @@ export class GraphManager {
 		return this._currentData.wires[id];
 	}
 
+	getElementType(id: number) {
+		if (this._currentData.components[id]) {
+			return "component";
+		}
+		if (this._currentData.wires[id]) {
+			return "wire";
+		}
+		return null;
+	}
+
 	getComponentDataReactive(id: number) {
 		return this.graphData.components[id];
 	}
