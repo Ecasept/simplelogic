@@ -154,4 +154,25 @@ test.describe("shortcut interactions", () => {
 			"var(--component-delete-color)",
 		);
 	});
+	test("clearing canvas while adding wire still clears canvas", async ({
+		editor,
+		page,
+		pointer,
+	}) => {
+		// add component
+		await editor.addComponent("AND", 500, 300);
+
+		// start adding wire
+		const handle = editor.getHandle("AND", "out").first();
+		await editor.dragToNoRelease(handle, 600, 400);
+
+		// clear canvas
+		await page.keyboard.press("Shift+C");
+
+		// Release pointer
+		await pointer.up();
+
+		// verify canvas is cleared
+		await expect(editor.comps()).toHaveCount(0);
+	});
 });
