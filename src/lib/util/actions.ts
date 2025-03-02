@@ -58,28 +58,30 @@ export class EditorAction {
 		editorViewModel.hardReset();
 	}
 
+	/** Delete the component with the given ID */
 	static deleteComponent(id: number) {
+		// If the component is selected, clear the selection
+		if (editorViewModel.uiState.matches({ selected: id })) {
+			editorViewModel.clearSelection();
+		}
+
 		const cmd = new DeleteComponentCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.commitChanges();
 		graphManager.notifyAll();
-
-		// If the component was selected, clear the selection
-		if (editorViewModel.uiState.matches({ selected: id })) {
-			editorViewModel.clearSelection();
-		}
 	}
 
+	/** Delete the wire with the given ID */
 	static deleteWire(id: number) {
-		const cmd = new DeleteWireCommand(id);
-		graphManager.executeCommand(cmd);
-		graphManager.commitChanges();
-		graphManager.notifyAll();
-
 		// If the wire was selected, clear the selection
 		if (editorViewModel.uiState.matches({ selected: id })) {
 			editorViewModel.clearSelection();
 		}
+
+		const cmd = new DeleteWireCommand(id);
+		graphManager.executeCommand(cmd);
+		graphManager.commitChanges();
+		graphManager.notifyAll();
 	}
 
 	static togglePower(id: number) {
@@ -243,17 +245,20 @@ export class EditorAction {
 	}
 	static undo() {
 		ChangesAction.abortEditing();
-		const deletedIds = graphManager.undoLastCommand();
-
+		
 		// Ensure that if the selected element was deleted, it is no longer selected
-		if (
-			deletedIds.length > 0 &&
-			editorViewModel.uiState.matches({
-				selected: P.union(deletedIds[0], ...deletedIds.slice(1)),
-			})
-		) {
-			editorViewModel.clearSelection();
-		}
+		const clearSelection = (deletedIds: number[]) => {
+			if (
+				deletedIds.length > 0 &&
+				editorViewModel.uiState.matches({
+					selected: P.union(deletedIds[0], ...deletedIds.slice(1)),
+				})
+			) {
+				editorViewModel.clearSelection();
+			}
+		};
+
+		graphManager.undoLastCommand(clearSelection);
 	}
 	/** Deletes the currently selected element */
 	static deleteSelected() {

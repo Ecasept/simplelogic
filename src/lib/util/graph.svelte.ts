@@ -101,14 +101,17 @@ export class GraphManager {
 		return res;
 	}
 
-	undoLastCommand() {
+	/** Undoes the last command in the history, if there is one.
+	 * Calls the callback with the IDs of the deleted components and wires
+	 * before notifying all subscribers of the change in the graph data.
+	 */
+	undoLastCommand(callback?: (deletedIds: number[]) => void) {
 		const command = this.history.pop();
 		if (command) {
 			const deletedIds = command.undo(this._currentData);
+			callback?.(deletedIds);
 			this.notifyAll();
-			return deletedIds;
 		}
-		return [];
 	}
 
 	discardChanges() {
