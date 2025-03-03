@@ -201,6 +201,12 @@ export class Editor {
 		const text = enable ? "Enable grid snap" : "Disable grid snap";
 		await this.pointer.clickOn(this.page.getByLabel(text));
 	}
+
+	async rotateSelected(dir: "cw" | "ccw") {
+		const dirText = dir === "cw" ? "clockwise" : "counter-clockwise";
+		const button = this.page.getByRole("button", { name: `Rotate ${dirText}` });
+		await this.pointer.clickOn(button);
+	}
 }
 
 export interface Pointer {

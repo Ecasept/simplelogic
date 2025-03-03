@@ -173,6 +173,7 @@ export function constructComponent(
 		},
 		handles: structuredClone(data.handles),
 		isPoweredInitially: false,
+		rotation: 0,
 	};
 }
 

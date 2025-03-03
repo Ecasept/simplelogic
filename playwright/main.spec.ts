@@ -1131,3 +1131,122 @@ test.describe("grid snap", () => {
 		expect(posAfterSecondSnapMove).toEqual(posAfterFirstSnapMove);
 	});
 });
+test.describe("rotation", () => {
+	test("rotation with wire connections", async ({ editor, pointer }) => {
+		// Add component
+		await editor.addComponent("AND", 400, 300);
+		const component = editor.comps();
+
+		// Get handles
+		const in1Handle = editor.getHandle("AND", "in1").first();
+		const in2Handle = editor.getHandle("AND", "in2").first();
+		const outHandle = editor.getHandle("AND", "out").first();
+
+		// Connect 3 wires
+		await editor.dragTo(in1Handle, 300, 200);
+		await editor.dragTo(in2Handle, 300, 400);
+		await editor.dragTo(outHandle, 500, 300);
+
+		// Get initial wire paths
+		const wire1 = editor.wires().nth(0);
+		const wire2 = editor.wires().nth(1);
+		const wire3 = editor.wires().nth(2);
+
+		const initialPath1 = await getAttr(wire1, "d");
+		const initialPath2 = await getAttr(wire2, "d");
+		const initialPath3 = await getAttr(wire3, "d");
+
+		// Select component again
+		await pointer.clickOn(component);
+
+		// Rotate cw with wires
+		await editor.rotateSelected("cw");
+		await expect(component).toBeRotated(90);
+
+		// Check wires adjusted correctly
+		await expect(wire1).toHaveAttribute("d", "M240 160 L340 200");
+		await expect(wire2).toHaveAttribute("d", "M240 320 L300 200");
+		await expect(wire3).toHaveAttribute("d", "M320 280 L400 240");
+
+		// Rotate ccw
+		await editor.rotateSelected("ccw");
+		await expect(component).toBeRotated(0);
+
+		// Check wires back to original
+		await expect(wire1).toHaveAttribute("d", initialPath1);
+		await expect(wire2).toHaveAttribute("d", initialPath2);
+		await expect(wire3).toHaveAttribute("d", initialPath3);
+
+		// Rotate ccw again
+		await editor.rotateSelected("ccw");
+		await expect(component).toBeRotated(270);
+
+		// Check wires in new position
+		await expect(wire1).toHaveAttribute("d", "M240 160 L300 280");
+		await expect(wire2).toHaveAttribute("d", "M240 320 L340 280");
+		await expect(wire3).toHaveAttribute("d", "M320 200 L400 240");
+
+		// Undo
+		await editor.undo();
+		await expect(component).toBeRotated(0);
+
+		// Check wires back to original after undo
+		await expect(wire1).toHaveAttribute("d", initialPath1);
+		await expect(wire2).toHaveAttribute("d", initialPath2);
+		await expect(wire3).toHaveAttribute("d", initialPath3);
+	});
+
+	test("should maintain wire connections after full rotations and undos", async ({
+		editor,
+		pointer,
+	}) => {
+		// Create component with multiple wire connections
+		await editor.addComponent("AND", 400, 200);
+		const component = editor.comps();
+
+		// Create wires connected to the output
+		await editor.dragTo(editor.getHandle("AND", "in1").first(), 400, 180);
+		await editor.dragTo(editor.getHandle("AND", "in1").first(), 400, 240);
+		await editor.dragTo(editor.getHandle("AND", "in1").first(), 400, 300);
+		const wire1 = editor.wires().first();
+		const wire2 = editor.wires().nth(1);
+		const wire3 = editor.wires().nth(2);
+
+		// Store initial paths
+		const initialPath1 = await wire1.getAttribute("d");
+		const initialPath2 = await wire2.getAttribute("d");
+		const initialPath3 = await wire3.getAttribute("d");
+
+		// Select the component
+		await pointer.clickOn(component);
+
+		await editor.rotateSelected("cw");
+		// expect that all wires changed
+		await expect(wire1).toHaveAttribute("d", "M320 140 L340 120");
+		await expect(wire2).toHaveAttribute("d", "M320 140 L300 120");
+		await expect(wire3).toHaveAttribute("d", "M320 140 L320 240");
+
+		// Rotate 3 more times
+		for (let i = 0; i < 3; i++) {
+			await editor.rotateSelected("cw");
+		}
+
+		// Check component is back at 0° rotation
+		await expect(component).toBeRotated(0);
+
+		// Check wires are still in correct position after full rotation
+		await expect(wire1).toHaveAttribute("d", initialPath1);
+		await expect(wire2).toHaveAttribute("d", initialPath2);
+		await expect(wire3).toHaveAttribute("d", initialPath3);
+
+		// Undo 4 times
+		for (let i = 0; i < 4; i++) {
+			await editor.undo();
+		}
+
+		// Verify wires maintained their positions
+		await expect(wire1).toHaveAttribute("d", initialPath1);
+		await expect(wire2).toHaveAttribute("d", initialPath2);
+		await expect(wire3).toHaveAttribute("d", initialPath3);
+	});
+});

@@ -12,10 +12,20 @@
 		height: number;
 		type: ComponentType;
 		isPowered: boolean;
+		rotateString: string;
 		uiState: EditorUiState;
 	};
-	let { componentId, x, y, width, height, type, isPowered, uiState }: Props =
-		$props();
+	let {
+		componentId,
+		x,
+		y,
+		width,
+		height,
+		type,
+		isPowered,
+		rotateString,
+		uiState,
+	}: Props = $props();
 
 	let middleX = $derived(x + width / 2);
 	let middleY = $derived(y + height / 2);
@@ -45,6 +55,7 @@
 		onkeypress={onEnter(() => {
 			EditorAction.togglePower(componentId);
 		})}
+		transform={rotateString}
 	/>
 {:else if type === "LED"}
 	<circle
@@ -56,6 +67,7 @@
 		fill={isPowered
 			? "var(--component-delete-color)"
 			: "var(--component-outline-color)"}
+		transform={rotateString}
 	/>
 {:else}
 	<text

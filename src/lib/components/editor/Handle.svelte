@@ -21,6 +21,7 @@
 		simData: SimulationData | null;
 		handleType: HandleType;
 		position: XYPair;
+		rotateString?: string;
 		onHandleDown: (event: SVGPointerEvent) => void;
 		onHandleEnter: () => void;
 		onHandleLeave: () => void;
@@ -36,6 +37,7 @@
 		position,
 		deletingThis,
 		onHandleDown,
+		rotateString = "",
 		onHandleEnter,
 		onHandleLeave,
 	}: Props = $props();
@@ -129,6 +131,7 @@
 	{r}
 	onpointerdown={(e) => onHandleDown(e)}
 	style="pointer-events: {editingThis ? 'none' : 'inherit'};"
+	transform={rotateString}
 ></circle>
 
 <style lang="scss">

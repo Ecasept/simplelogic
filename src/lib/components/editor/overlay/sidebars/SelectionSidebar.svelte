@@ -67,13 +67,13 @@
 				{/if}
 				<Button
 					title="Rotate clockwise 90 degrees"
-					onClick={() => EditorAction.rotateComponent(90)}
+					onClick={() => EditorAction.rotateComponent(info.selectedId, 90)}
 					icon={RotateCw}
 					margin="0"
 				/>
 				<Button
 					title="Rotate counter-clockwise 90 degrees"
-					onClick={() => EditorAction.rotateComponent(-90)}
+					onClick={() => EditorAction.rotateComponent(info.selectedId, -90)}
 					icon={RotateCcw}
 					margin="0"
 				/>

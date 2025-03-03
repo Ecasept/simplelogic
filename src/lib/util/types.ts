@@ -49,6 +49,7 @@ export const ZComponentData = z.object({
 	position: ZXYPair,
 	handles: ZComponentHandleList,
 	isPoweredInitially: z.boolean(),
+	rotation: z.number().gte(0).lt(360),
 });
 
 export const ZGraphData = z.object({

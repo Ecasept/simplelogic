@@ -385,3 +385,21 @@ export class ToggleInputPowerStateCommand implements Command {
 		return [];
 	}
 }
+
+export class RotateComponentCommand implements Command {
+	constructor(
+		private componentId: number,
+		private amount: number,
+	) {}
+
+	execute(graphData: GraphData) {
+		const component = graphData.components[this.componentId];
+		component.rotation = (component.rotation + this.amount + 360) % 360;
+	}
+
+	undo(graphData: GraphData) {
+		const component = graphData.components[this.componentId];
+		component.rotation = (component.rotation - this.amount + 360) % 360;
+		return [];
+	}
+}

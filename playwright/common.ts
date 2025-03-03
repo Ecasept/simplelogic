@@ -355,4 +355,20 @@ export const expect = baseExpect.extend({
 			await expect.toHaveClass(/selected/, options);
 		},
 	),
+	toBeRotated: createMatcher(
+		"toBeRotated",
+		(l: Locator) => `Locator: ${l}`,
+		async function (
+			locator: Locator,
+			degrees: number,
+			options?: { timeout?: number },
+		) {
+			const expect = this.isNot ? baseExpect(locator).not : baseExpect(locator);
+			await expect.toHaveAttribute(
+				"transform",
+				new RegExp(`rotate\\(${degrees}`),
+				options,
+			);
+		},
+	),
 });

@@ -28,6 +28,7 @@
 		size: XYPair;
 		type: ComponentType;
 		position: XYPair;
+		rotation: number;
 		handles: ComponentHandleList;
 		isPoweredInitially: boolean;
 		uiState: EditorUiState;
@@ -37,9 +38,10 @@
 		size,
 		type,
 		position,
+		rotation,
 		handles,
-		uiState,
 		isPoweredInitially,
+		uiState,
 	}: Props = $props();
 
 	let rect: SVGRectElement;
@@ -201,6 +203,10 @@
 			? "var(--component-delete-color)"
 			: "var(--component-outline-color)",
 	);
+
+	let rotateString = $derived(
+		`rotate(${rotation} ${position.x + width / 2} ${position.y + height / 2})`,
+	);
 </script>
 
 <rect
@@ -226,6 +232,7 @@
 	{fill}
 	{stroke}
 	fill-opacity="70%"
+	transform={rotateString}
 />
 
 <ComponentInner
@@ -237,6 +244,7 @@
 	{type}
 	{isPowered}
 	{uiState}
+	{rotateString}
 />
 
 {#each Object.entries(handles) as [identifier, handle]}
@@ -268,6 +276,7 @@
 						onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 					onHandleEnter={() => onHandleEnter(identifier)}
 					{onHandleLeave}
+					{rotateString}
 				/>
 			{/if}
 		{/if}

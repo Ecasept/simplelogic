@@ -41,6 +41,7 @@
 					handles={COMPONENT_DATA[type].handles}
 					{uiState}
 					isPoweredInitially={false}
+					rotation={0}
 				/>
 			</g>
 		</svg>

@@ -8,6 +8,7 @@ import {
 	DeleteWireCommand,
 	MoveComponentCommand,
 	MoveWireConnectionCommand,
+	RotateComponentCommand,
 } from "./commands";
 import { GRID_SIZE } from "./global.svelte";
 import type {
@@ -38,6 +39,7 @@ describe("Command Tests", () => {
 				position: { x: 0, y: 0 },
 				handles: {},
 				isPoweredInitially: false,
+				rotation: 0,
 			});
 			const cmd2 = new CreateComponentCommand({
 				type: "AND",
@@ -45,6 +47,7 @@ describe("Command Tests", () => {
 				position: { x: 20 * GRID_SIZE, y: 11 * GRID_SIZE },
 				handles: {},
 				isPoweredInitially: false,
+				rotation: 0,
 			});
 			const group = new CommandGroup([cmd1, cmd2]);
 
@@ -69,6 +72,7 @@ describe("Command Tests", () => {
 					in: { edge: "left", pos: 3, type: "input", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 			graphData.components[fromId] = {
 				id: fromId,
@@ -79,6 +83,7 @@ describe("Command Tests", () => {
 					out: { edge: "bottom", pos: 100, type: "output", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			const from: ComponentConnection = { id: fromId, handleId: "out" };
@@ -97,6 +102,7 @@ describe("Command Tests", () => {
 					out: { edge: "left", pos: 3, type: "output", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 			graphData.wires[toId] = {
 				id: toId,
@@ -160,6 +166,7 @@ describe("Command Tests", () => {
 					out: { edge: "left", pos: 3, type: "output", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			graphData.wires[wire1Id] = {
@@ -203,6 +210,7 @@ describe("Command Tests", () => {
 					out: { edge: "left", pos: 3, type: "output", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			graphData.wires[wireId] = {
@@ -220,6 +228,7 @@ describe("Command Tests", () => {
 					in: { edge: "left", pos: 3, type: "input", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			const from: ComponentConnection = { id: componentId, handleId: "out" };
@@ -249,6 +258,7 @@ describe("Command Tests", () => {
 					in: { edge: "left", pos: 3, type: "input", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			graphData.wires[wire1Id] = {
@@ -292,6 +302,7 @@ describe("Command Tests", () => {
 					out: { edge: "left", pos: 3, type: "output", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			graphData.wires[wire1Id] = {
@@ -354,6 +365,7 @@ describe("Command Tests", () => {
 					out: { edge: "left", pos: 3, type: "output", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			// Set up second component
@@ -366,6 +378,7 @@ describe("Command Tests", () => {
 					out: { edge: "left", pos: 3, type: "output", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			// Set up wire
@@ -405,6 +418,7 @@ describe("Command Tests", () => {
 					in: { edge: "left", pos: 3, type: "input", connections: [] },
 				},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 
 			// Set up first wire
@@ -623,6 +637,7 @@ describe("Command Tests", () => {
 				position: { x: GRID_SIZE, y: 45 * GRID_SIZE },
 				handles: {},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 			const newPosition: XYPair = { x: 8 * GRID_SIZE, y: 44 * GRID_SIZE };
 			const cmd = new MoveComponentCommand(newPosition, 3);
@@ -657,7 +672,6 @@ describe("Command Tests", () => {
 	});
 
 	describe("CreateComponentCommand", () => {
-		// TODO: rework
 		it("should create and remove component", () => {
 			const newComponent: Omit<ComponentData, "id"> = {
 				type: "AND",
@@ -665,6 +679,7 @@ describe("Command Tests", () => {
 				position: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				handles: {},
 				isPoweredInitially: false,
+				rotation: 0,
 			};
 			const cmd = new CreateComponentCommand(newComponent);
 
@@ -861,6 +876,40 @@ describe("Command Tests", () => {
 			]);
 		});
 	});
+	describe("Rotate Command", () => {
+		it("should rotate a component", () => {
+			graphData.components[1] = createMockComponent(1);
+			new RotateComponentCommand(1, 123).execute(graphData);
+			expect(graphData.components[1].rotation).toBe(123);
+
+			new RotateComponentCommand(1, 0).execute(graphData);
+			expect(graphData.components[1].rotation).toBe(123);
+
+			new RotateComponentCommand(1, 90).execute(graphData);
+			expect(graphData.components[1].rotation).toBe(213);
+
+			new RotateComponentCommand(1, 180).execute(graphData);
+			expect(graphData.components[1].rotation).toBe(33);
+
+			new RotateComponentCommand(1, -33).execute(graphData);
+			expect(graphData.components[1].rotation).toBe(0);
+
+			const c1 = new RotateComponentCommand(1, -90)
+			c1.execute(graphData);
+			expect(graphData.components[1].rotation).toBe(270);
+
+			const c2 = new RotateComponentCommand(1, 90)
+			c2.execute(graphData);
+			expect(graphData.components[1].rotation).toBe(0);
+
+			c2.undo(graphData);
+			expect(graphData.components[1].rotation).toBe(270);
+
+			c1.undo(graphData);
+			expect(graphData.components[1].rotation).toBe(0);
+
+		});
+	});
 });
 
 function createMockComponent(id: number): ComponentData {
@@ -875,6 +924,7 @@ function createMockComponent(id: number): ComponentData {
 			out: { edge: "left", pos: 3, type: "output", connections: [] },
 		},
 		isPoweredInitially: false,
+		rotation: 0,
 	};
 }
 

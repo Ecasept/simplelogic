@@ -1,11 +1,15 @@
 import { P } from "ts-pattern";
 import {
+	CommandGroup,
 	ConnectCommand,
 	CreateComponentCommand,
 	CreateWireCommand,
 	DeleteComponentCommand,
 	DeleteWireCommand,
+	MoveWireConnectionCommand,
+	RotateComponentCommand,
 	ToggleInputPowerStateCommand,
+	type Command,
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global.svelte";
 import { Graph, GraphManager } from "./graph.svelte";
@@ -245,7 +249,7 @@ export class EditorAction {
 	}
 	static undo() {
 		ChangesAction.abortEditing();
-		
+
 		// Ensure that if the selected element was deleted, it is no longer selected
 		const clearSelection = (deletedIds: number[]) => {
 			if (
@@ -287,6 +291,57 @@ export class EditorAction {
 				`Could not delete selected element with ID ${selected}: Element not found`,
 			);
 		}
+	}
+
+	/** Rotates the component with the given ID by the given angle
+	 *
+	 * The component will be rotated around its center,
+	 * and all wire connections will be rotated around the component's center as well.
+	 *
+	 * @param id - The ID of the component to rotate
+	 * @param rotateBy - The angle to rotate the component by, in degrees
+	 */
+	static rotateComponent(id: number, rotateBy: number) {
+		const commands: Command[] = [];
+		commands.push(new RotateComponentCommand(id, rotateBy));
+
+		const cmpData = graphManager.getComponentData(id);
+
+		const cx = cmpData.position.x + (cmpData.size.x * GRID_SIZE) / 2;
+		const cy = cmpData.position.y + (cmpData.size.y * GRID_SIZE) / 2;
+		const angle = (rotateBy / 180) * Math.PI;
+		const sin = Math.sin(angle);
+		const cos = Math.cos(angle);
+
+		// Rotate all wire connections
+		for (const handleId in cmpData.handles) {
+			const handle = cmpData.handles[handleId];
+			for (const conn of handle.connections) {
+				const wireId = conn.id;
+				const wireData = graphManager.getWireData(wireId);
+				const x = wireData[conn.handleType].x;
+				const y = wireData[conn.handleType].y;
+
+				// Rotate (x, y) (position of wire connection) around (cx, cy) (position of component)
+				const dx = x - cx;
+				const dy = y - cy;
+				const nx = dx * cos - dy * sin + cx;
+				const ny = dx * sin + dy * cos + cy;
+
+				const cmd = new MoveWireConnectionCommand(
+					{ x: nx, y: ny },
+					conn.handleType,
+					wireId,
+				);
+				commands.push(cmd);
+			}
+		}
+
+		const group = new CommandGroup(commands);
+
+		graphManager.executeCommand(group);
+		graphManager.commitChanges();
+		graphManager.notifyAll();
 	}
 }
 export class ModeAction {
