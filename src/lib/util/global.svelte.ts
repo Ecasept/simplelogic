@@ -1,4 +1,4 @@
-import { canvasViewModel } from "./actions";
+import { canvasViewModel, editorViewModel } from "./actions";
 import type {
 	ComponentConnection,
 	ComponentData,
@@ -22,7 +22,11 @@ export const LONG_PRESS_MS = 500;
 export const CANVAS_DOT_RADIUS = 1;
 
 export function gridSnap(val: number) {
-	return Math.round(val / GRID_SIZE) * GRID_SIZE;
+	if (editorViewModel.uiState.gridSnap) {
+		return Math.round(val / GRID_SIZE) * GRID_SIZE;
+	} else {
+		return val;
+	}
 }
 
 export const COMPONENT_DATA: {

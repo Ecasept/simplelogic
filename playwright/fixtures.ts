@@ -196,6 +196,11 @@ export class Editor {
 		await this.pointer.clickOn(button);
 		await expect(this.page).toHaveMode(mode);
 	}
+
+	async setGridSnap(enable: boolean) {
+		const text = enable ? "Enable grid snap" : "Disable grid snap";
+		await this.pointer.clickOn(this.page.getByLabel(text));
+	}
 }
 
 export interface Pointer {

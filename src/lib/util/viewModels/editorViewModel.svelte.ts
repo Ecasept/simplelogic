@@ -9,6 +9,11 @@ export type BaseState = {
 	isModalOpen: boolean;
 };
 
+export type SettingsState = {
+	/** Whether dragging elements should snap to the grid */
+	gridSnap: boolean;
+};
+
 // ==== Edit Mode states ====
 export type EditIdle = {
 	mode: "edit";
@@ -93,7 +98,11 @@ export type MatchesState = {
 	matches: matcher.MatchesFunction;
 };
 
-export type PersistentState = BaseState & MatchesState & PanningState;
+/** States unrelated to the current mode */
+export type PersistentState = BaseState &
+	MatchesState &
+	PanningState &
+	SettingsState;
 
 // ==== Editor state ====
 export type EditorUiState = (
@@ -127,9 +136,6 @@ export namespace matcher {
 }
 
 // ==== Helper types ====
-/** Properties that are always present in the UI state */
-export type PersistentProperties = keyof PersistentState;
-
 type DistributiveOmit<T, K extends keyof any> = T extends any
 	? Omit<T, K>
 	: never;
@@ -151,6 +157,7 @@ export class EditorViewModel {
 		hoveredElement: null,
 		isModalOpen: false,
 		isPanning: false,
+		gridSnap: true,
 		matches: matcher.matches,
 	};
 
@@ -166,13 +173,14 @@ export class EditorViewModel {
 	 * Properties not provided will be deleted (except for persistent properties).
 	 */
 	private setUiState(
-		newState: DistributiveOmit<EditorUiState, PersistentProperties>,
+		newState: DistributiveOmit<EditorUiState, keyof PersistentState>,
 	) {
-		const persistent = {
+		const persistent: PersistentState = {
 			hoveredHandle: this._uiState.hoveredHandle,
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
 			isPanning: this._uiState.isPanning,
+			gridSnap: this._uiState.gridSnap,
 			matches: this._uiState.matches,
 		};
 		this._uiState = { ...persistent, ...newState };
@@ -192,6 +200,7 @@ export class EditorViewModel {
 			hoveredHandle: this._uiState.hoveredHandle,
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
+			gridSnap: this._uiState.gridSnap,
 			isPanning: false,
 			matches: this._uiState.matches,
 		};
@@ -364,6 +373,10 @@ export class EditorViewModel {
 			return;
 		}
 		this._uiState.selected = null;
+		this.notifyAll();
+	}
+	setGridSnap(val: boolean) {
+		this._uiState.gridSnap = val;
 		this.notifyAll();
 	}
 }

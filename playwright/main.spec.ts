@@ -28,7 +28,7 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(editor.comps().nth(3)).toBeVisible();
 	});
 
-	test("drags and moves new wires", async ({ page, editor, pointer }) => {
+	test("drags and moves new wires", async ({ editor, pointer }) => {
 		await editor.addComponent("AND", 300, 300);
 
 		// Click handle
@@ -70,7 +70,7 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(handle).toHaveAttribute("cx", x1);
 		await expect(handle).toHaveAttribute("cy", y1);
 	});
-	test("drags wires with components", async ({ page, editor, pointer }) => {
+	test("drags wires with components", async ({ editor, pointer }) => {
 		await editor.addComponent("AND", 500, 500);
 
 		const handle = editor.handles().first();
@@ -642,11 +642,7 @@ test.describe("panning and zooming", () => {
 		await pointer.moveTo(100, 100);
 		await expectPosToBe(editor.comps(), 400, 300);
 	});
-	test("can pan and zoom while simulating", async ({
-		page,
-		editor,
-		pointer,
-	}) => {
+	test("can pan and zoom while simulating", async ({ editor, pointer }) => {
 		await editor.addComponent("AND", 100, 100);
 		await editor.toggleSimulate();
 		await pointer.moveTo(500, 500);
@@ -697,7 +693,6 @@ test.describe("panning and zooming", () => {
 		await expect(editor.comps()).toHaveCount(0);
 	});
 	test("simulation mode stays on while panning", async ({
-		page,
 		editor,
 		pointer,
 	}) => {
@@ -726,7 +721,7 @@ test.describe("simulating", () => {
 		await pointer.clickOn(editor.comps().first(), true);
 		await expect(editor.comps().first()).not.toBePowered();
 	});
-	test("can load while simulating", async ({ page, editor }) => {
+	test("can load while simulating", async ({ editor }) => {
 		await editor.toggleSimulate();
 		await editor.loadCircuit(circuits.singleAnd);
 		await expect(editor.comps()).toHaveCount(1);
@@ -1094,5 +1089,45 @@ test.describe("user button", () => {
 		await expect(editor.getUserDialog()).toBeVisible();
 		await editor.toggleUserButton();
 		await expect(editor.getUserDialog()).not.toBeVisible();
+	});
+});
+test.describe("grid snap", () => {
+	test("grid snap flow", async ({ editor }) => {
+		// Add component at 600, 300
+		await editor.addComponent("AND", 600, 300);
+		const component = editor.comps();
+
+		// Get initial position
+		const initialX = await getAttr(component, "x");
+
+		// Disable grid snap
+		await editor.setGridSnap(false);
+
+		// Move component by 1 pixel
+		await editor.dragTo(component, 601, 300);
+
+		// Ensure x attribute has changed after 1 pixel movement with grid snap off
+		const posAfterNoSnapMove = await getAttr(component, "x");
+		expect(posAfterNoSnapMove).not.toEqual(initialX);
+
+		// Enable grid snap
+		await editor.setGridSnap(true);
+
+		// Move by 1 pixel first time with snap on
+		const posBeforeFirstSnapMove = await getAttr(component, "x");
+		await editor.dragTo(component, 602, 300);
+
+		// This first 1 pixel move with grid snap on should still cause movement
+		// because it could reach the next grid position
+		const posAfterFirstSnapMove = await getAttr(component, "x");
+		expect(posAfterFirstSnapMove).not.toEqual(posBeforeFirstSnapMove);
+
+		// Move by 1 pixel again
+		await editor.dragTo(component, 603, 300);
+
+		// The second 1 pixel move shouldn't change position because
+		// grid snap prevents movement until reaching next grid position
+		const posAfterSecondSnapMove = await component.getAttribute("x");
+		expect(posAfterSecondSnapMove).toEqual(posAfterFirstSnapMove);
 	});
 });
