@@ -23,17 +23,21 @@
 		</div>
 	</button>
 	<div class={["container", { collapsed }]}>
+		<div class="fixed-margin"></div>
 		{@render children()}
 	</div>
 </div>
 
 <style lang="scss">
+	.fixed-margin {
+		height: 10px;
+	}
 	#collapse {
 		border-radius: 100vmin;
 		border: none;
 		background-color: var(--primary-container-color);
 		width: 100%;
-		margin-bottom: 10px;
+		// margin-bottom: 10px;
 		margin-top: 10px;
 		color: var(--on-primary-container-color);
 		padding: 5px;
