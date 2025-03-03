@@ -89,16 +89,19 @@ export type SelectionState = {
 	selectionInProgressFor: number | null;
 };
 
+export type MatchesState = {
+	matches: matcher.MatchesFunction;
+};
+
+export type PersistentState = BaseState & MatchesState & PanningState;
+
 // ==== Editor state ====
 export type EditorUiState = (
 	| (EditState & SelectionState)
 	| DeleteState
 	| SimulationState
 ) &
-	BaseState &
-	PanningState & {
-		matches: matcher.MatchesFunction;
-	};
+	PersistentState;
 
 export namespace matcher {
 	/** Ensures that UI state matches a given pattern
@@ -125,10 +128,8 @@ export namespace matcher {
 
 // ==== Helper types ====
 /** Properties that are always present in the UI state */
-export type PersistentProperties =
-	| keyof BaseState
-	| "matches"
-	| keyof PanningState;
+export type PersistentProperties = keyof PersistentState;
+
 type DistributiveOmit<T, K extends keyof any> = T extends any
 	? Omit<T, K>
 	: never;
