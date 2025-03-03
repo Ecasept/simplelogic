@@ -29,7 +29,7 @@ test.describe("adding and dragging/moving", async () => {
 	});
 
 	test("drags and moves new wires", async ({ page, editor, pointer }) => {
-		await editor.addComponent("AND", 100, 200);
+		await editor.addComponent("AND", 300, 300);
 
 		// Click handle
 		const originalHandle = editor.handles().nth(2);
@@ -39,31 +39,31 @@ test.describe("adding and dragging/moving", async () => {
 
 		// Move handle
 		const handle = editor.handles().nth(2);
-		await pointer.moveTo(300, 300);
-		await expectPosToBe(handle, 300, 300);
+		await pointer.moveTo(500, 400);
+		await expectPosToBe(handle, 500, 400);
 		await expect(editor.wires().first()).toBeVisible();
 
 		// Move handle
-		await pointer.moveTo(400, 400);
-		await expectPosToBe(handle, 400, 400);
+		await pointer.moveTo(600, 500);
+		await expectPosToBe(handle, 600, 500);
 
 		// Release and move mouse
 		await pointer.up();
-		await pointer.moveTo(200, 200);
-		await expectPosToBe(editor.handles().nth(3), 400, 400);
+		await pointer.moveTo(400, 300);
+		await expectPosToBe(editor.handles().nth(3), 600, 500);
 		await expect(editor.handles()).toHaveCount(4);
 	});
 	test("drags new wire and discards", async ({ page, editor, pointer }) => {
-		await editor.addComponent("AND", 100, 200);
+		await editor.addComponent("AND", 300, 300);
 		await expect(editor.comps()).toBeVisible();
 
-		const handle = page.locator("circle").nth(2);
+		const handle = editor.getHandle("AND", "out").first();
 		const [x1, y1] = await getAttrs(handle, "cx", "cy");
 
 		// Drag Wire
 		await handle.hover();
 		await pointer.down();
-		await pointer.moveTo(300, 300);
+		await pointer.moveTo(500, 400);
 
 		await page.keyboard.press("Escape");
 
@@ -93,7 +93,7 @@ test.describe("adding and dragging/moving", async () => {
 		hasTouch,
 	}) => {
 		// Setup: Add component
-		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("AND", 500, 400);
 
 		// Setup: Drag wire
 		let sourceHandle = editor.handles().first();
@@ -123,7 +123,7 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(wire).toHaveAttribute("d", initialD);
 
 		// 3.5 Drag and connect
-		await editor.addComponent("XOR", 300, 300);
+		await editor.addComponent("XOR", 500, 300);
 
 		sourceHandle = editor.getHandle("AND", "out").first();
 		const targetHandle = editor.getHandle("XOR", "in1").first();
@@ -131,7 +131,7 @@ test.describe("adding and dragging/moving", async () => {
 
 		await expect(editor.wires().last()).toHaveAttribute(
 			"d",
-			"M121 81 L201 221",
+			"M440 320 L360 220",
 		);
 		await editor.undo();
 		await editor.undo();
@@ -160,8 +160,8 @@ test.describe("adding and dragging/moving", async () => {
 		await editor.undo();
 		await expect(editor.wires()).toHaveCount(0);
 	});
-	test("moves components correctly", async ({ page, editor, pointer }) => {
-		await editor.addComponent("AND", 100, 200);
+	test("moves components correctly", async ({ editor, pointer }) => {
+		await editor.addComponent("AND", 400, 200);
 
 		await pointer.down();
 		await pointer.moveTo(500, 50);
@@ -173,12 +173,15 @@ test.describe("adding and dragging/moving", async () => {
 		await pointer.moveTo(100, 100);
 		await expectPosToBe(editor.comps(), 400, 300);
 	});
-	test("moves component and discards", async ({ page, editor }) => {
-		await editor.addComponent("AND", 100, 200);
+	test("moves component and discards", async ({ page, editor, pointer }) => {
+		await editor.addComponent("AND", 500, 200);
 		await expect(editor.comps()).toBeVisible();
 
 		const component = editor.comps();
 		const [x1, y1] = await getAttrs(component, "x", "y");
+
+		await pointer.clickOn(component, true);
+		await pointer.moveTo(300, 300);
 		await page.keyboard.press("Escape");
 
 		await expect(component).toHaveAttribute("x", x1);
@@ -188,7 +191,7 @@ test.describe("adding and dragging/moving", async () => {
 		page,
 		editor,
 	}) => {
-		await editor.addComponent("AND", 100, 300);
+		await editor.addComponent("AND", 400, 300);
 
 		const handle = editor.handles().nth(2);
 		await editor.dragTo(handle, 300, 100);
@@ -207,10 +210,11 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(editor.wires().nth(1)).not.toHaveAttribute("d", d2);
 	});
 	test("doesn't connect wire when under component", async ({ editor }) => {
-		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("AND", 100, 150);
 		await editor.addComponent("AND", 150, 120);
+		await editor.toggleSidebar("tools");
 		await editor.drag(
-			editor.getHandle("AND", "in1").first(),
+			editor.getHandle("AND", "in2").first(),
 			editor.getHandle("AND", "out").first(),
 			true,
 		);
@@ -221,7 +225,7 @@ test.describe("adding and dragging/moving", async () => {
 		// Move the first component away
 		await editor.dragTo(editor.getComponent("AND").first(), 300, 300);
 		// Expect wire to not have moved
-		await expect(editor.wires()).toHaveAttribute("d", "M121 81 L201 221");
+		await expect(editor.wires()).toHaveAttribute("d", "M120 120 L200 260");
 	});
 	test("can add wire from wire with shift", async ({
 		editor,
@@ -243,10 +247,10 @@ test.describe("adding and dragging/moving", async () => {
 		editor,
 		pointer,
 	}) => {
-		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("AND", 500, 100);
 		await pointer.clickOn(editor.comps(), true);
 		// Expect component to not have moved
-		await expectPosToBe(editor.comps(), 100, 100);
+		await expectPosToBe(editor.comps(), 500, 100);
 		await editor.undo();
 		// Expect the component addition to be undone, instead of any move
 		await expect(editor.comps()).toHaveCount(0);
@@ -255,8 +259,8 @@ test.describe("adding and dragging/moving", async () => {
 		editor,
 		pointer,
 	}) => {
-		await editor.addComponent("AND", 100, 100);
-		await editor.dragTo(editor.getHandle("AND", "out").first(), 200, 200);
+		await editor.addComponent("AND", 500, 100);
+		await editor.dragTo(editor.getHandle("AND", "out").first(), 500, 200);
 		await pointer.clickOn(editor.getHandle("wire", "output").first());
 		// Expect wire to not have moved
 		await expect(editor.wires()).toHaveCount(1);
@@ -267,7 +271,7 @@ test.describe("adding and dragging/moving", async () => {
 });
 test.describe("deleting", async () => {
 	test("deletes wire on top of component", async ({ editor }) => {
-		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("AND", 500, 100);
 		await editor.drag(
 			editor.getHandle("AND", "out").first(),
 			editor.getHandle("AND", "in1").first(),
@@ -281,9 +285,9 @@ test.describe("deleting", async () => {
 		await expect(editor.wires()).toHaveCount(1);
 		await expect(editor.comps()).toHaveCount(1);
 	});
-	test("delete flow", async ({ page, editor }) => {
+	test("delete flow", async ({ editor }) => {
 		// Create first component
-		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("AND", 500, 100);
 
 		// Drag wire from first component
 		const sourceHandle = editor.handles().nth(2); // Output handle
@@ -341,8 +345,8 @@ test.describe("deleting", async () => {
 		);
 	});
 	test("delete wire with handle", async ({ editor, pointer }) => {
-		await editor.addComponent("AND", 100, 100);
-		await editor.dragTo(editor.getHandle("AND", "out").first(), 200, 200);
+		await editor.addComponent("AND", 500, 100);
+		await editor.dragTo(editor.getHandle("AND", "out").first(), 400, 200);
 
 		await editor.toggleDelete();
 
@@ -357,8 +361,9 @@ test.describe("other", () => {
 		await expect(page).toHaveTitle("SimpleLogic");
 	});
 
-	test("snaps", async ({ page, editor, pointer }) => {
+	test("snaps", async ({ editor, pointer }) => {
 		await editor.addComponent("AND", 100, 200);
+		await editor.toggleSidebar("tools");
 
 		await pointer.downAt(100, 200);
 		await pointer.moveTo(20, 20);
@@ -368,64 +373,9 @@ test.describe("other", () => {
 		expect(boundingBox1).toStrictEqual(boundingBox2);
 	});
 
-	test("undo", async ({ page, editor, pointer, hasTouch }) => {
-		// Add components
-		await editor.addComponent("AND", 300, 300);
-		await editor.addComponent("AND", 500, 500);
-
-		// Move Component
-		await editor.comps().nth(1).hover();
-		await pointer.down();
-		await pointer.moveTo(100, 100);
-		await pointer.up();
-
-		const handle = page.locator("circle").nth(4);
-		const [x1, y1] = await getAttrs(handle, "cx", "cy");
-
-		// Drag Wire
-		await page.locator("circle").nth(4).hover();
-		await pointer.down();
-		await pointer.moveTo(300, 300);
-		await pointer.up();
-
-		// Undo Wire
-		await editor.undo();
-		await expect(handle).toHaveAttribute("cx", x1);
-		await expect(handle).toHaveAttribute("cy", y1);
-
-		// Undo Move
-		await expectPosToBe(editor.comps().nth(1), 100, 100);
-		await editor.undo();
-		await expectPosToBe(editor.comps().nth(1), 500, 500);
-
-		// Undo Components
-		await expect(editor.comps()).toHaveCount(2);
-		await editor.undo();
-		await expect(editor.comps()).toHaveCount(1);
-		await editor.undo();
-		await expect(editor.comps()).toHaveCount(0);
-
-		// Undo while adding
-		await editor.addComponent("AND", 100, 100); // Add component
-		if (!hasTouch) {
-			await page.keyboard.press("a"); // Start adding another component
-			await expect(editor.comps()).toHaveCount(2);
-			await page.keyboard.press("Control+KeyZ");
-			await expect(editor.comps()).toHaveCount(1);
-		}
-
-		// Undo while moving
-		await editor.comps().hover();
-		await pointer.down();
-		await pointer.moveTo(200, 200);
-		await page.keyboard.press("Control+KeyZ");
-		// Component should be back at 100, 100
-		await expectPosToBe(editor.comps(), 100, 100);
-	});
-
 	test("disable same handles", async ({ page, editor, pointer, hasTouch }) => {
 		// Create components
-		await editor.addComponent("AND", 200, 200);
+		await editor.addComponent("AND", 600, 200);
 		await editor.addComponent("OR", 600, 600);
 
 		// drag two wires from output
@@ -469,7 +419,6 @@ test.describe("other", () => {
 		await expect(editor.handles()).toHaveCount(8);
 	});
 	test("correctly disables component inputs for connected wire outputs", async ({
-		page,
 		pointer,
 		editor,
 	}) => {
@@ -486,7 +435,60 @@ test.describe("other", () => {
 	});
 });
 
-test.describe("sidebar actions", async () => {
+test.describe("toolbar actions", async () => {
+	test("undo", async ({ page, editor, pointer, hasTouch }) => {
+		// Add components
+		await editor.addComponent("AND", 350, 300);
+		await editor.addComponent("AND", 500, 500);
+
+		// Move Component
+		await editor.comps().nth(1).hover();
+		await pointer.down();
+		await pointer.moveTo(400, 400);
+		await pointer.up();
+
+		const handle = editor.getHandle("AND", "in2").nth(1);
+		const [x1, y1] = await getAttrs(handle, "cx", "cy");
+
+		// Create Wire
+		await pointer.downOn(handle);
+		await pointer.moveTo(300, 300);
+		await pointer.up();
+
+		// Undo Wire
+		await editor.undo();
+		await expect(handle).toHaveAttribute("cx", x1);
+		await expect(handle).toHaveAttribute("cy", y1);
+
+		// Undo component move
+		await expectPosToBe(editor.comps().nth(1), 400, 400);
+		await editor.undo();
+		await expectPosToBe(editor.comps().nth(1), 500, 500);
+
+		// Undo Components
+		await expect(editor.comps()).toHaveCount(2);
+		await editor.undo();
+		await expect(editor.comps()).toHaveCount(1);
+		await editor.undo();
+		await expect(editor.comps()).toHaveCount(0);
+
+		// Undo while adding
+		await editor.addComponent("AND", 300, 100); // Add component
+		if (!hasTouch) {
+			await page.keyboard.press("a"); // Start adding another component
+			await expect(editor.comps()).toHaveCount(2);
+			await page.keyboard.press("Control+KeyZ");
+			await expect(editor.comps()).toHaveCount(1);
+		}
+
+		// Undo while moving
+		await editor.comps().hover();
+		await pointer.down();
+		await pointer.moveTo(200, 200);
+		await page.keyboard.press("Control+KeyZ");
+		// Component should be back at 100, 100
+		await expectPosToBe(editor.comps(), 300, 100);
+	});
 	test("undo button is disabled when no actions to undo", async ({
 		page,
 		editor,
@@ -512,7 +514,9 @@ test.describe("sidebar actions", async () => {
 });
 
 test.describe("theme switcher", async () => {
-	test("theme switcher switches themes", async ({ page }) => {
+	test("theme switcher switches themes", async ({ page, editor }) => {
+		editor.toggleUserButton();
+
 		const lightTheme = page.getByLabel("Light theme");
 		const autoTheme = page.getByLabel("System");
 		const darkTheme = page.getByLabel("Dark theme");
@@ -626,7 +630,7 @@ test.describe("panning and zooming", () => {
 			await page.mouse.wheel(0, 1);
 		}
 
-		await editor.addComponent("AND", 100, 200);
+		await editor.addComponent("AND", 400, 200);
 
 		await pointer.down();
 		await pointer.moveTo(500, 50);
@@ -664,15 +668,15 @@ test.describe("panning and zooming", () => {
 		editor,
 		pointer,
 	}) => {
-		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("AND", 400, 100);
 		await pointer.down();
 		await pointer.moveTo(500, 500);
 		await page.keyboard.press("Escape");
-		await expectPosToBe(editor.comps(), 100, 100);
+		await expectPosToBe(editor.comps(), 400, 100);
 
 		const svgContents = await page.locator(".canvasWrapper svg").innerHTML();
 
-		await pointer.moveTo(100, 100);
+		await pointer.moveTo(400, 100);
 		await pointer.up();
 		await pointer.moveTo(500, 500);
 
@@ -697,13 +701,14 @@ test.describe("panning and zooming", () => {
 		editor,
 		pointer,
 	}) => {
-		await editor.addComponent("IN", 100, 100);
+		await editor.addComponent("IN", 400, 100);
+		await editor.toggleSimulate();
+
 		const component = editor.comps().first();
 		await pointer.clickOn(component, true);
 		// Component should be powered
 		await expect(component).toBePowered();
 
-		await editor.toggleSimulate();
 		await pointer.moveTo(500, 500);
 		await pointer.down();
 		await pointer.moveTo(600, 600);
@@ -716,6 +721,11 @@ test.describe("panning and zooming", () => {
 });
 
 test.describe("simulating", () => {
+	test("can't toggle power in edit mode", async ({ editor, pointer }) => {
+		await editor.addComponent("IN", 100, 100);
+		await pointer.clickOn(editor.comps().first(), true);
+		await expect(editor.comps().first()).not.toBePowered();
+	});
 	test("can load while simulating", async ({ page, editor }) => {
 		await editor.toggleSimulate();
 		await editor.loadCircuit(circuits.singleAnd);
@@ -723,18 +733,18 @@ test.describe("simulating", () => {
 	});
 	test("build half adder flow", async ({ editor, pointer }) => {
 		// Add inputs
-		await editor.addComponent("IN", 100, 100);
-		await editor.addComponent("IN", 100, 200);
+		await editor.addComponent("IN", 400, 100);
+		await editor.addComponent("IN", 400, 200);
 
 		// Add XOR gate for sum
-		await editor.addComponent("XOR", 200, 150);
+		await editor.addComponent("XOR", 500, 150);
 
 		// Add AND gate for carry
-		await editor.addComponent("AND", 200, 250);
+		await editor.addComponent("AND", 500, 250);
 
 		// Add LED gates for outputs
-		await editor.addComponent("LED", 300, 150); // Sum output
-		await editor.addComponent("LED", 300, 250); // Carry output
+		await editor.addComponent("LED", 600, 150); // Sum output
+		await editor.addComponent("LED", 600, 250); // Carry output
 
 		// Connect inputs to XOR gate
 		await editor.drag(
@@ -946,14 +956,14 @@ test.describe("simulating", () => {
 });
 
 test.describe("sidebars", () => {
-	test("edit sidebar can be toggled", async ({ page, editor }) => {
-		await expect(editor.getSidebar("edit")).toBeExpanded();
-		await editor.toggleSidebar("edit");
-		await expect(editor.getSidebar("edit")).toBeCollapsed();
-		await editor.toggleSidebar("edit");
-		await expect(editor.getSidebar("edit")).toBeExpanded();
+	test("tools sidebar can be toggled", async ({ editor }) => {
+		await expect(editor.getSidebar("tools")).toBeExpanded();
+		await editor.toggleSidebar("tools");
+		await expect(editor.getSidebar("tools")).toBeCollapsed();
+		await editor.toggleSidebar("tools");
+		await expect(editor.getSidebar("tools")).toBeExpanded();
 	});
-	test("selection sidebar can be toggled", async ({ page, editor }) => {
+	test("selection sidebar can be toggled", async ({ editor }) => {
 		await expect(editor.getSidebar("selection")).not.toBeVisible();
 		await editor.addComponent("AND", 100, 100);
 		await expect(editor.getSidebar("selection")).toBeExpanded();
@@ -962,7 +972,7 @@ test.describe("sidebars", () => {
 		await editor.toggleSidebar("selection");
 		await expect(editor.getSidebar("selection")).toBeExpanded();
 	});
-	test("delete button works", async ({ editor, pointer }) => {
+	test("delete button works", async ({ editor }) => {
 		// Add component and verify it exists
 		await editor.addComponent("AND", 100, 200);
 		await expect(editor.comps()).toBeVisible();
@@ -977,11 +987,11 @@ test.describe("selection", () => {
 	test("selection flow", async ({ page, editor, pointer }) => {
 		// ===== Component Selection Flow =====
 		// Add component, verify selected
-		await editor.addComponent("AND", 100, 200);
+		await editor.addComponent("AND", 400, 200);
 		await expect(editor.comps()).toBeSelected();
 
 		// Click on canvas to deselect
-		await pointer.clickAt(10, 10);
+		await pointer.clickAt(400, 100);
 		await expect(editor.comps()).not.toBeSelected();
 
 		// Click on component to select
@@ -989,7 +999,7 @@ test.describe("selection", () => {
 		await expect(editor.comps()).toBeSelected();
 
 		// Move canvas, verify not deselected
-		await pointer.down();
+		await pointer.downAt(400, 100);
 		await pointer.moveTo(200, 200);
 		await expect(editor.comps()).toBeSelected();
 		await pointer.up();
@@ -999,7 +1009,7 @@ test.describe("selection", () => {
 		await expect(editor.comps()).not.toBeSelected();
 
 		// Move component, verify selected
-		await editor.dragTo(editor.comps(), 300, 300);
+		await editor.dragTo(editor.comps(), 500, 300);
 		await expect(editor.comps()).toBeSelected();
 
 		// ===== Wire Selection Flow =====
@@ -1010,7 +1020,7 @@ test.describe("selection", () => {
 		await expect(editor.comps()).not.toBeSelected();
 
 		// Click on canvas to deselect
-		await pointer.clickAt(10, 10);
+		await pointer.clickAt(700, 100);
 		await expect(editor.wires()).not.toBeSelected();
 
 		// Click on wire to select
@@ -1019,7 +1029,7 @@ test.describe("selection", () => {
 
 		// Move canvas, verify not deselected
 		await pointer.down();
-		await pointer.moveTo(500, 500);
+		await pointer.moveTo(500, 600);
 		await expect(editor.wires()).toBeSelected();
 		await pointer.up();
 
@@ -1060,7 +1070,7 @@ test.describe("selection", () => {
 		pointer,
 	}) => {
 		// Add component and verify initial selection
-		await editor.addComponent("AND", 100, 200);
+		await editor.addComponent("AND", 400, 200);
 		await expect(editor.comps()).toBeSelected();
 
 		// Move to simulate mode
@@ -1076,5 +1086,13 @@ test.describe("selection", () => {
 		// Switch back to edit mode and verify still unselected
 		await editor.setMode("edit");
 		await expect(editor.comps()).not.toBeSelected();
+	});
+});
+test.describe("user button", () => {
+	test("can toggle user button", async ({ editor }) => {
+		await editor.toggleUserButton();
+		await expect(editor.getUserDialog()).toBeVisible();
+		await editor.toggleUserButton();
+		await expect(editor.getUserDialog()).not.toBeVisible();
 	});
 });

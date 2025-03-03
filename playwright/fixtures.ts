@@ -1,6 +1,8 @@
 import { Locator, Page } from "@playwright/test";
 import { expect } from "./common";
 
+type SidebarUniqueName = "tools" | "selection";
+
 /** Base Editor class implementing functions independent of the page being mobile or not */
 export class Editor {
 	constructor(
@@ -15,12 +17,21 @@ export class Editor {
 	}
 
 	/** Expand/collapse the specified sidebar */
-	async toggleSidebar(uniqueName: string) {
-		const button = this.page.locator(`[aria-controls="sidebar-${uniqueName}"]`);
+	async toggleSidebar(uniqueName: SidebarUniqueName) {
+		const button = this.page.locator(
+			`[aria-controls="sidebar-${uniqueName}-content"]`,
+		);
+		const expanded = await button.getAttribute("aria-expanded");
 		await button.click();
+		const sidebar = this.getSidebar(uniqueName);
+		if (expanded === "true") {
+			await expect(sidebar).toBeCollapsed();
+		} else {
+			await expect(sidebar).toBeExpanded();
+		}
 	}
 	/** Returns a locator to the specified sidebar */
-	getSidebar(uniqueName: string) {
+	getSidebar(uniqueName: SidebarUniqueName) {
 		return this.page.locator(`#sidebar-${uniqueName}`);
 	}
 
@@ -129,9 +140,7 @@ export class Editor {
 	}
 
 	async initiateAddComponent(type: string) {
-		await this.pointer.downOn(
-			this.page.getByLabel(`Add ${type}`),
-		);
+		await this.pointer.downOn(this.page.getByLabel(`Add ${type}`));
 	}
 
 	/** Adds a component with the specified type at the specified location */
@@ -148,8 +157,8 @@ export class Editor {
 		await this.pointer.up();
 	}
 
-	/** Drags a locator to the specified coordinates */
-	async dragTo(
+	/** Drags a locator to the specified coordinates without releasing the pointer */
+	async dragToNoRelease(
 		src: Locator,
 		x: number,
 		y: number,
@@ -157,6 +166,16 @@ export class Editor {
 	): Promise<void> {
 		await this.pointer.downOn(src, force);
 		await this.pointer.moveTo(x, y);
+	}
+
+	/** Drags a locator to the specified coordinates */
+	async dragTo(
+		src: Locator,
+		x: number,
+		y: number,
+		force?: boolean,
+	): Promise<void> {
+		await this.dragToNoRelease(src, x, y, force);
 		await this.pointer.up();
 	}
 

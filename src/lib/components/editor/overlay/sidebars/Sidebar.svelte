@@ -14,7 +14,7 @@
 	let { headerText, uniqueName, toggle, open, children }: Props = $props();
 </script>
 
-<div class="editor-overlay sidebar sidebar-{uniqueName}">
+<div class="editor-overlay sidebar" id="sidebar-{uniqueName}">
 	<button
 		class="header"
 		aria-label={open ? "Collapse" : "Expand"}

@@ -97,19 +97,19 @@ test.describe("shortcut interactions", () => {
 		pointer,
 	}) => {
 		// Add initial component
-		await editor.addComponent("AND", 100, 100);
+		await editor.addComponent("AND", 300, 300);
 
 		// Start moving component
 		const component = editor.comps().first();
 		await component.hover();
 		await pointer.down();
-		await pointer.moveTo(200, 200);
+		await pointer.moveTo(400, 400);
 
 		// Press A
 		await page.keyboard.press("A");
 
 		// Check that component is still the same
-		await expectPosToBe(component, 200, 200);
+		await expectPosToBe(component, 400, 400);
 		await expect(editor.comps()).toHaveCount(1);
 	});
 	test("correct highlighting when switching modes while hovering", async ({
@@ -117,7 +117,7 @@ test.describe("shortcut interactions", () => {
 		page,
 	}) => {
 		// add component
-		await editor.addComponent("AND", 200, 200);
+		await editor.addComponent("AND", 300, 300);
 
 		// hover over component
 		await editor.comps().hover();

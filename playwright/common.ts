@@ -87,7 +87,9 @@ const createHandleSelectorEngine = () => ({
 	getComponents(root: Element, type: string) {
 		// Find all components with the specified type, and extract their ids
 		return Array.from(
-			root.querySelectorAll(`[data-testcomponenttype="${type}"]`),
+			root.querySelectorAll(
+				`.canvasWrapper [data-testcomponenttype="${type}"]`,
+			),
 		).map((e) => e.getAttribute("data-testcomponentid"));
 	},
 	/** Returns all handles with the specified identifier
@@ -97,7 +99,7 @@ const createHandleSelectorEngine = () => ({
 		// and the component id, or, if it doesn't exist, use `null`.
 		return componentIds.map((id) =>
 			root.querySelector(
-				`[data-testconnectedcomponentid="${id}"][data-testhandleid="${handleId}"]`,
+				`.canvasWrapper [data-testconnectedcomponentid="${id}"][data-testhandleid="${handleId}"]`,
 			),
 		);
 	},
@@ -125,7 +127,9 @@ const createComponentSelectorEngine = () => ({
 		const [type, nth] = selector.split(":");
 
 		const components = Array.from(
-			root.querySelectorAll(`[data-testcomponenttype="${type}"]`),
+			root.querySelectorAll(
+				`.canvasWrapper [data-testcomponenttype="${type}"]`,
+			),
 		);
 
 		const component = components[parseInt(nth)];
@@ -329,7 +333,7 @@ export const expect = baseExpect.extend({
 		async function (locator: Locator, options?: { timeout?: number }) {
 			const content = locator.locator(".sidebar-content");
 			const expect = this.isNot ? baseExpect(content).not : baseExpect(content);
-			await expect.toHaveAttribute("aria-expanded", "true", options);
+			await expect.not.toHaveClass(/collapsed/, options);
 		},
 	),
 	/** Passes when the sidebar is collapsed */
@@ -339,7 +343,7 @@ export const expect = baseExpect.extend({
 		async function (locator: Locator, options?: { timeout?: number }) {
 			const content = locator.locator(".sidebar-content");
 			const expect = this.isNot ? baseExpect(content).not : baseExpect(content);
-			await expect.toHaveAttribute("aria-expanded", "false", options);
+			await expect.toHaveClass(/collapsed/, options);
 		},
 	),
 	/** Passes when the component has the correct stroke color for a selected component */
@@ -348,11 +352,7 @@ export const expect = baseExpect.extend({
 		(l: Locator) => `Locator: ${l}`,
 		async function (locator: Locator, options?: { timeout?: number }) {
 			const expect = this.isNot ? baseExpect(locator).not : baseExpect(locator);
-			await expect.toHaveAttribute(
-				"stroke",
-				"var(--selected-outline-color)",
-				options,
-			);
+			await expect.toHaveClass(/selected/, options);
 		},
 	),
 });
