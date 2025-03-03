@@ -211,19 +211,11 @@
 			fill="url(#dot-pattern)"
 		/>
 
-		{#each Object.entries(graphData.components) as [_, { id, size, position, type, handles, isPoweredInitially }] (id)}
-			<Component
-				{id}
-				{size}
-				{position}
-				{type}
-				{handles}
-				{isPoweredInitially}
-				uiState={editorViewModel.uiState}
-			></Component>
+		{#each Object.entries(graphData.components) as [id, data] (id)}
+			<Component {...data} uiState={editorViewModel.uiState}></Component>
 		{/each}
-		{#each Object.entries(graphData.wires) as [_, { id, input, output }]}
-			<Wire {id} {input} {output} uiState={editorViewModel.uiState}></Wire>
+		{#each Object.entries(graphData.wires) as [id, data] (id)}
+			<Wire {...data} uiState={editorViewModel.uiState}></Wire>
 		{/each}
 	</svg>
 </div>
