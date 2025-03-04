@@ -12,7 +12,7 @@ import {
 	type Command,
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global.svelte";
-import { Graph, GraphManager } from "./graph.svelte";
+import { GraphManager } from "./graph.svelte";
 import { simulation } from "./simulation.svelte";
 import type {
 	ComponentConnection,
@@ -26,20 +26,21 @@ import { CanvasViewModel } from "./viewModels/canvasViewModel";
 import { CircuitModalViewModel } from "./viewModels/circuitModalViewModel";
 import { EditorViewModel } from "./viewModels/editorViewModel.svelte";
 
-export const graph = new Graph();
-export const graphManager = new GraphManager(graph);
+export const graphManager = new GraphManager();
 export const editorViewModel = new EditorViewModel();
 export const canvasViewModel = new CanvasViewModel();
 export const circuitModalViewModel = new CircuitModalViewModel();
 
 export class ChangesAction {
 	static commitChanges() {
-		graphManager.commitChanges();
 		editorViewModel.abortEditing();
+		graphManager.applyChanges();
+		graphManager.notifyAll();
 	}
 	static abortEditing() {
-		graphManager.discardChanges();
 		editorViewModel.abortEditing();
+		graphManager.discardChanges();
+		graphManager.notifyAll();
 	}
 }
 
@@ -57,9 +58,10 @@ export class EditorAction {
 		editorViewModel.stopPanning();
 	}
 
-	static clear() {
-		graphManager.clear();
+	static clearCanvas() {
 		editorViewModel.hardReset();
+		graphManager.clear();
+		graphManager.notifyAll();
 	}
 
 	/** Delete the component with the given ID */
@@ -71,7 +73,7 @@ export class EditorAction {
 
 		const cmd = new DeleteComponentCommand(id);
 		graphManager.executeCommand(cmd);
-		graphManager.commitChanges();
+		graphManager.applyChanges();
 		graphManager.notifyAll();
 	}
 
@@ -84,14 +86,14 @@ export class EditorAction {
 
 		const cmd = new DeleteWireCommand(id);
 		graphManager.executeCommand(cmd);
-		graphManager.commitChanges();
+		graphManager.applyChanges();
 		graphManager.notifyAll();
 	}
 
 	static togglePower(id: number) {
 		const cmd = new ToggleInputPowerStateCommand(id);
 		graphManager.executeCommand(cmd);
-		graphManager.commitChanges();
+		graphManager.applyChanges();
 		graphManager.notifyAll();
 
 		if (editorViewModel.uiState.matches({ mode: "simulate" })) {
@@ -250,19 +252,24 @@ export class EditorAction {
 	static undo() {
 		ChangesAction.abortEditing();
 
-		// Ensure that if the selected element was deleted, it is no longer selected
-		const clearSelection = (deletedIds: number[]) => {
-			if (
-				deletedIds.length > 0 &&
-				editorViewModel.uiState.matches({
-					selected: P.union(deletedIds[0], ...deletedIds.slice(1)),
-				})
-			) {
-				editorViewModel.clearSelection();
-			}
-		};
+		const { didUndo, deletedIds } = graphManager.undoLastCommand();
 
-		graphManager.undoLastCommand(clearSelection);
+		// Ensure that if the selected element was deleted, it is no longer selected
+		if (
+			didUndo &&
+			deletedIds.length > 0 &&
+			editorViewModel.uiState.matches({
+				selected: P.union(deletedIds[0], ...deletedIds.slice(1)),
+			})
+		) {
+			editorViewModel.clearSelection();
+		}
+
+		// Notify listeners after clearing selection
+		// to prevent selection from pointing to a deleted element
+		if (didUndo) {
+			graphManager.notifyAll();
+		}
 	}
 	/** Deletes the currently selected element */
 	static deleteSelected() {
@@ -340,7 +347,7 @@ export class EditorAction {
 		const group = new CommandGroup(commands);
 
 		graphManager.executeCommand(group);
-		graphManager.commitChanges();
+		graphManager.applyChanges();
 		graphManager.notifyAll();
 	}
 }
@@ -399,7 +406,9 @@ export class PersistenceAction {
 		editorViewModel.setModalOpen(false);
 	}
 	static setNewGraph(newGraphData: GraphData) {
-		graph.setData(newGraphData, true);
 		editorViewModel.hardReset();
+		graphManager.clear();
+		graphManager.setGraphData(newGraphData);
+		graphManager.notifyAll();
 	}
 }

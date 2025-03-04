@@ -255,7 +255,7 @@ const shortcuts: Shortcut[] = [
 			mode: P.union("edit", "simulate", "delete"),
 			isPanning: false,
 		},
-		action: EditorAction.clear,
+		action: EditorAction.clearCanvas,
 	},
 ];
 

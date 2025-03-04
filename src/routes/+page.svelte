@@ -8,6 +8,7 @@
 		circuitModalViewModel,
 		EditorAction,
 		editorViewModel,
+		graphManager,
 	} from "$lib/util/actions";
 	import {
 		debugLog,

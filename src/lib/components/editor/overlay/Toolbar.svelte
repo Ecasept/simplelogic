@@ -44,7 +44,6 @@
 	];
 
 	let currentMode = $derived(uiState.mode);
-	let historyLength = $derived(graphManager.historyLength);
 </script>
 
 {#snippet divider()}
@@ -90,12 +89,12 @@
 		"Undo",
 		Undo,
 		EditorAction.undo,
-		simulating || historyLength < 1,
+		simulating || graphManager.historyEmpty,
 	)}
 
 	{@render toolbarButton("Save circuit", Save, PersistenceAction.saveGraph)}
 	{@render toolbarButton("Load circuit", Download, PersistenceAction.loadGraph)}
-	{@render toolbarButton("Clear canvas", CopyX, EditorAction.clear)}
+	{@render toolbarButton("Clear canvas", CopyX, EditorAction.clearCanvas)}
 </div>
 
 <style>

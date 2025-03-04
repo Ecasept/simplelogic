@@ -1,4 +1,4 @@
-import { graph, graphManager } from "./actions";
+import { graphManager } from "./actions";
 import { COMPONENT_DATA, isComponentConnection } from "./global.svelte";
 import type { ComponentData, ComponentType, WireData } from "./types";
 import { ViewModel } from "./viewModels/viewModel";
@@ -74,7 +74,7 @@ export namespace simulation {
 		}
 
 		private setupSimData() {
-			const data = graph.getData();
+			const data = graphManager.getGraphData();
 			this._uiState = {};
 			for (const [id, component] of Object.entries(data.components)) {
 				this._uiState[id] = this.computeComponentData(id, data.components[id]);

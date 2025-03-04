@@ -1,4 +1,4 @@
-import { graph, graphManager } from "../actions";
+import { graphManager } from "../actions";
 import { API } from "../api";
 import type { GraphData } from "../types";
 import { ViewModel } from "./viewModel";
@@ -60,7 +60,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		if (this._uiState.mode !== "save") {
 			throw new Error("Invalid mode");
 		}
-		const graphData = graph.getData();
+		const graphData = graphManager.getGraphData();
 		const json = JSON.stringify(graphData);
 		await navigator.clipboard.writeText(json);
 		this._uiState.callback();
@@ -96,7 +96,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		if (this._uiState.mode !== "save") {
 			throw new Error("Invalid mode");
 		}
-		const graphData = graph.getData();
+		const graphData = graphManager.getGraphData();
 		const data = await API.saveCircuit(currentName, graphData);
 		if (data.success) {
 			this._uiState.callback();

@@ -12,48 +12,14 @@ import {
 	type XYPair,
 } from "./types";
 
-export class Graph {
-	private data: GraphData = { components: {}, wires: {}, nextId: 0 };
-
-	getData() {
-		return this.data;
-	}
-
-	setData(newData: GraphData, invalidateHistory: boolean) {
-		this.data = newData;
-		this.notifyAll(invalidateHistory);
-	}
-
-	// ==== Store Contract ====
-
-	private subscribers: ((
-		graphData: GraphData,
-		invalidateHistory: boolean,
-	) => void)[] = [];
-
-	subscribe(
-		subscriber: (graphData: GraphData, invalidateHistory: boolean) => void,
-	): () => void {
-		this.subscribers.push(subscriber);
-		subscriber(this.data, false);
-		return () => {
-			const index = this.subscribers.indexOf(subscriber);
-			if (index !== -1) {
-				this.subscribers.splice(index, 1);
-			}
-		};
-	}
-
-	private notifyAll(invalidateHistory: boolean) {
-		for (const subscriberFunc of this.subscribers) {
-			subscriberFunc(this.data, invalidateHistory);
-		}
-	}
-}
 export class GraphManager {
 	/** Private state of the graph manager, that gets published with the notifyAll() method */
-	private _currentData: GraphData = { components: {}, wires: {}, nextId: 0 };
-	private history: CommandGroup[] = [];
+	private _graphData: GraphData = { components: {}, wires: {}, nextId: 0 };
+	/** All commands that have been executed on the graph */
+	private history: Command[] = [];
+	/** All commands that have been executed since the last time the changes were applied.
+	 * They can be applied to the graph or discarded.
+	 */
 	private changes: Command[] = [];
 
 	/** Publicly exposed rune state for the graph manager, that updates whenever a series of commands has been executed.
@@ -65,69 +31,75 @@ export class GraphManager {
 		wires: {},
 		nextId: 0,
 	});
-	public historyLength: number = $state(0);
 
-	get hasChanges(): Readonly<boolean> {
-		return this.changes.length > 0;
-	}
+	public historyEmpty: boolean = $state(true);
 
-	constructor(private graph: Graph) {
-		graph.subscribe((newData: GraphData, invalidateHistory: boolean) => {
-			this._currentData = newData;
-			if (invalidateHistory) {
-				this.history = [];
-				this.changes = [];
-			}
-			this.notifyAll();
-		});
-	}
-
+	/** Executes a specified command on the graph data and adds it to the current changes.
+	 *
+	 * @param command The command to execute
+	 * @param replace If true, the command will replace the last command in the history if it is of the same type.
+	 * This is useful for commands like moving components, where we don't want thousands of move commands in the history.
+	 * @returns The return value of the command's `execute` method
+	 */
 	executeCommand<C extends Command>(
 		command: C,
 		replace: boolean = false,
 	): ReturnType<C["execute"]> {
-		if (replace && this.hasChanges) {
+		// If the command is replaceable and a previous command of the same type exists, undo it
+		if (replace && this.changes.length > 0) {
 			const prevCommand = this.changes[this.changes.length - 1];
 			if (prevCommand instanceof command.constructor) {
-				prevCommand.undo(this._currentData);
+				prevCommand.undo(this._graphData);
 				this.changes.pop();
 			}
 		}
 
-		const res = command.execute(this._currentData);
-
+		const res = command.execute(this._graphData);
 		this.changes.push(command);
 
 		return res;
 	}
 
 	/** Undoes the last command in the history, if there is one.
-	 * Calls the callback with the IDs of the deleted components and wires
-	 * before notifying all subscribers of the change in the graph data.
+	 * @returns An object with the following properties:
+	 * - `didUndo`: Whether a command existed to undo
+	 * - `deletedIds`: An array of the IDs of the components and wires that were deleted by the command (empty if no command was undone)
 	 */
-	undoLastCommand(callback?: (deletedIds: number[]) => void) {
+	undoLastCommand() {
+		console.log(this.history);
 		const command = this.history.pop();
 		if (command) {
-			const deletedIds = command.undo(this._currentData);
-			callback?.(deletedIds);
-			this.notifyAll();
+			const deletedIds = command.undo(this._graphData);
+			return { didUndo: true, deletedIds };
 		}
+		return { didUndo: false, deletedIds: [] };
 	}
 
+	/** Discards all changes that have been made since the last time the changes were applied. */
 	discardChanges() {
 		for (let i = this.changes.length - 1; i >= 0; i--) {
-			this.changes[i].undo(this._currentData);
+			this.changes[i].undo(this._graphData);
 		}
 		this.changes = [];
-		this.notifyAll();
-	}
-	commitChanges() {
-		const group = new CommandGroup(this.changes);
-		this.history.push(group);
-		this.changes = [];
-		this.graph.setData(structuredClone(this._currentData), false);
 	}
 
+	/** Applies all changes that have been made since the last time the changes were applied.
+	 * This will add a new history entry with all the changes that have been made.
+	 * This also means that these changes can't be discarded anymore but have to be undone.
+	 */
+	applyChanges() {
+		const command =
+			this.changes.length > 1
+				? new CommandGroup(this.changes)
+				: this.changes[0];
+		this.history.push(command);
+		this.changes = [];
+	}
+
+	/** Issues the correct commands
+	 * to move the component with the given `componentId` to the new position `newComponentPos`.
+	 * This will also move all connected wires to the new position.
+	 */
 	moveComponentReplaceable(newComponentPos: XYPair, componentId: number) {
 		const cmds = [];
 		const moveCmpCmd = new MoveComponentCommand(newComponentPos, componentId);
@@ -157,6 +129,10 @@ export class GraphManager {
 		this.executeCommand(cmd, true);
 	}
 
+	/** Issues the correct commands
+	 * to move the `draggedHandle` of the wire with the given `wireId` to the new position `newWirePos`.
+	 * This will also move all connected wires to the new position.
+	 */
 	moveWireReplaceable(
 		newWirePos: XYPair,
 		draggedHandle: HandleType,
@@ -195,18 +171,18 @@ export class GraphManager {
 	}
 
 	getComponentData(id: number) {
-		return this._currentData.components[id];
+		return this._graphData.components[id];
 	}
 
 	getWireData(id: number) {
-		return this._currentData.wires[id];
+		return this._graphData.wires[id];
 	}
 
 	getElementType(id: number) {
-		if (this._currentData.components[id]) {
+		if (this._graphData.components[id]) {
 			return "component";
 		}
-		if (this._currentData.wires[id]) {
+		if (this._graphData.wires[id]) {
 			return "wire";
 		}
 		return null;
@@ -230,16 +206,31 @@ export class GraphManager {
 		return null;
 	}
 
+	/** Parses the given data with zod and returns a valid graph data object if it is valid */
 	validateData(data: GraphData) {
 		return ZGraphData.safeParse(data);
 	}
 
+	/** Resets the current circuit to the initial state */
 	clear() {
-		this.graph.setData({ components: {}, wires: {}, nextId: 0 }, true);
+		this._graphData = { components: {}, wires: {}, nextId: 0 };
+		this.history = [];
+		this.changes = [];
 	}
 
 	notifyAll() {
-		this.graphData = structuredClone(this._currentData);
-		this.historyLength = structuredClone(this.history.length);
+		this.graphData = structuredClone(this._graphData);
+
+		const val = this.history.length === 0;
+		if (this.historyEmpty !== val) {
+			this.historyEmpty = val;
+		}
+	}
+
+	setGraphData(data: GraphData) {
+		this._graphData = data;
+	}
+	getGraphData() {
+		return this._graphData;
 	}
 }
