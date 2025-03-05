@@ -169,6 +169,18 @@
 			});
 		}
 	}
+	// let graphData = $state({ handles: {}, componentBodies: {}, wireBodies: {} });
+
+	// $effect(() => {
+	// 	const data = graphManager.graphData;
+	// 	const changedIds = [0, 1, 2];
+
+	// 	for (const id of changedIds) {
+	// 		const {handle, body} = createComponent(data.components[id]);
+	// 		graphData.handles[id] = handle;
+	// 		graphData.componentBodies[id] = body;
+	// 	}
+	// });
 
 	let graphData = $derived(graphManager.graphData);
 </script>
@@ -211,11 +223,11 @@
 			fill="url(#dot-pattern)"
 		/>
 
-		{#each Object.entries(graphData.components) as [id, data] (id)}
-			<Component {...data} uiState={editorViewModel.uiState}></Component>
-		{/each}
 		{#each Object.entries(graphData.wires) as [id, data] (id)}
 			<Wire {...data} uiState={editorViewModel.uiState}></Wire>
+		{/each}
+		{#each Object.entries(graphData.components) as [id, data] (id)}
+			<Component {...data} uiState={editorViewModel.uiState}></Component>
 		{/each}
 	</svg>
 </div>
