@@ -49,7 +49,7 @@
 	let editingThis = $derived(uiState.matches({ componentId: id }));
 
 	let simulating = $derived(uiState.matches({ mode: "simulate" }));
-	let simData = $derived.by(() => simulation.getDataForComponent(id));
+	let simData = $derived(simulation.getDataForComponent(id));
 
 	let isSelected = $derived("selected" in uiState && uiState.selected === id);
 
