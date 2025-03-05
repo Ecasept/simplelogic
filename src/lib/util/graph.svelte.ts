@@ -66,7 +66,6 @@ export class GraphManager {
 	 * - `deletedIds`: An array of the IDs of the components and wires that were deleted by the command (empty if no command was undone)
 	 */
 	undoLastCommand() {
-		console.log(this.history);
 		const command = this.history.pop();
 		if (command) {
 			const deletedIds = command.undo(this._graphData);
