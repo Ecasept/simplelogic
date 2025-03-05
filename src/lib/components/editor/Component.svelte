@@ -9,7 +9,7 @@
 		calculateHandlePosition,
 		GRID_SIZE,
 	} from "$lib/util/global.svelte";
-	import { simulation } from "$lib/util/simulation.svelte";
+	import { getSimData } from "$lib/util/simulation.svelte";
 	import type {
 		ComponentHandleList,
 		ComponentType,
@@ -49,7 +49,7 @@
 	let editingThis = $derived(uiState.matches({ componentId: id }));
 
 	let simulating = $derived(uiState.matches({ mode: "simulate" }));
-	let simData = $derived(simulation.getDataForComponent(id));
+	let simData = $derived(getSimData(id));
 
 	let isSelected = $derived("selected" in uiState && uiState.selected === id);
 

@@ -4,7 +4,7 @@
 	import { simulation } from "$lib/util/simulation.svelte";
 	import type { ComponentType } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { Magnet, Play } from "lucide-svelte";
+	import { Magnet } from "lucide-svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import Sidebar from "./Sidebar.svelte";
 	import SidebarSection from "./SidebarSection.svelte";
@@ -43,11 +43,10 @@
 	</Sidebar>
 {:else if uiState.matches({ mode: "simulate" })}
 	<Sidebar headerText="Tools" uniqueName={"tools"} {toggle} {open}>
-		<Button
-			title="Simulate"
-			text="Simulate"
-			onClick={() => simulation.startSimulation()}
-			icon={Play}
-		/>
+		{#if simulation.processing}
+			Processing...
+		{:else}
+			Waiting for user input...
+		{/if}
 	</Sidebar>
 {/if}

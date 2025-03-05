@@ -5,7 +5,7 @@
 		isVibrateSupported,
 	} from "$lib/util/global.svelte";
 	import { startLongPressTimer } from "$lib/util/longpress";
-	import { simulation } from "$lib/util/simulation.svelte";
+	import { getSimData } from "$lib/util/simulation.svelte";
 	import type {
 		HandleType,
 		SVGPointerEvent,
@@ -30,7 +30,7 @@
 
 	let simulating = $derived(uiState.matches({ mode: "simulate" }));
 
-	let simData = $derived.by(() => simulation.getDataForComponent(id));
+	let simData = $derived(getSimData(id));
 
 	let isSelected = $derived("selected" in uiState && uiState.selected === id);
 
