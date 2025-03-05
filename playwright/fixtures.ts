@@ -91,8 +91,7 @@ export class Editor {
 	}
 
 	async waitForSimulationFinished() {
-		console.warn("waitForSimulationFinished is not implemented, using timeout");
-		await this.page.waitForTimeout(1000);
+		await expect(this.page.getByText("Processing...")).not.toBeVisible();
 	}
 
 	/**
@@ -104,7 +103,7 @@ export class Editor {
 	 * Important note for returned methods:
 	 * You select the nth **component**, not handle
 	 * This means that if you pass type="AND", id="in1", n=0, but the first AND gate
-	 * has the "in1" gate hidden, **it will return null** instead of selecting the second AND gate.
+	 * has the "in1" gate hidden, **the locator won't resolve** instead of selecting the second AND gate.
 	 */
 	getHandle(type: string, id: string) {
 		// relay over to selector engine

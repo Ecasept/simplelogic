@@ -32,25 +32,25 @@ test.describe("adding and dragging/moving", async () => {
 		await editor.addComponent("AND", 300, 300);
 
 		// Click handle
-		const originalHandle = editor.handles().nth(2);
+		const originalHandle = editor.getHandle("AND", "out").first();
 		await originalHandle.hover();
 		await expect(originalHandle).toHaveAttribute("r", "10");
 		await pointer.down();
 
 		// Move handle
-		const handle = editor.handles().nth(2);
 		await pointer.moveTo(500, 400);
-		await expectPosToBe(handle, 500, 400);
+		const handle = editor.getHandle("wire", "output").first();
+		await expect(handle).toBeAt(500, 400);
 		await expect(editor.wires().first()).toBeVisible();
 
 		// Move handle
 		await pointer.moveTo(600, 500);
-		await expectPosToBe(handle, 600, 500);
+		await expect(handle).toBeAt(600, 500);
 
 		// Release and move mouse
 		await pointer.up();
 		await pointer.moveTo(400, 300);
-		await expectPosToBe(editor.handles().nth(3), 600, 500);
+		await expect(handle).toBeAt(600, 500);
 		await expect(editor.handles()).toHaveCount(4);
 	});
 	test("drags new wire and discards", async ({ page, editor, pointer }) => {
@@ -95,20 +95,21 @@ test.describe("adding and dragging/moving", async () => {
 		// Setup: Add component
 		await editor.addComponent("AND", 500, 400);
 
-		// Setup: Drag wire
-		let sourceHandle = editor.handles().first();
+		// Setup: Drag a wire
+		let sourceHandle = editor.getHandle("AND", "in1").first();
 		await editor.dragTo(sourceHandle, 500, 500);
 
-		// 1. Drag and release
-		const wire = editor.wires();
-		const handle = editor.handles().nth(2);
+		// 1. Drag a new wire and release
+		let handle = editor.getHandle("AND", "out").first();
 		await editor.dragTo(handle, 400, 400);
 
-		// 2. Drag but not release
+		// 2. Drag that wire again but don't release
+		const wire = editor.wires().nth(1);
+		handle = editor.getHandle("wire", "output").nth(1);
 		const initialD = await getAttr(wire, "d");
 		await pointer.downOn(handle);
 		await pointer.moveTo(150, 150);
-		await expectPosToBe(editor.handles().nth(1), 150, 150);
+		await expect(handle).toBeAt(150, 150);
 		await expect(wire).not.toHaveAttribute("d", initialD);
 
 		// 3. Press escape (or undo if on mobile)
