@@ -10,6 +10,8 @@ import {
 	MoveComponentCommand,
 	MoveWireConnectionCommand,
 	RotateComponentCommand,
+	type ValidComponentData,
+	type ValidWireData,
 } from "./commands";
 import { GRID_SIZE } from "./global.svelte";
 import type {
@@ -698,7 +700,7 @@ describe("Command Tests", () => {
 
 	describe("CreateWireCommand", () => {
 		it("should create and remove wire", () => {
-			const newWire = {
+			const newWire: ValidWireData = {
 				input: { x: 5 * GRID_SIZE, y: 7 * GRID_SIZE, connections: [] },
 				output: { x: 2 * GRID_SIZE, y: GRID_SIZE, connections: [] },
 			};
@@ -716,7 +718,7 @@ describe("Command Tests", () => {
 
 	describe("CreateComponentCommand", () => {
 		it("should create and remove component", () => {
-			const newComponent: Omit<ComponentData, "id"> = {
+			const newComponent: ValidComponentData = {
 				type: "AND",
 				size: { x: 30 * GRID_SIZE, y: GRID_SIZE },
 				position: { x: 30 * GRID_SIZE, y: GRID_SIZE },

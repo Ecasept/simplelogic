@@ -1,7 +1,7 @@
 import { canvasViewModel, editorViewModel } from "./actions";
+import type { EmptyComponentHandleList, ValidComponentData } from "./commands";
 import type {
 	ComponentConnection,
-	ComponentData,
 	ComponentHandleList,
 	ComponentType,
 	HandleEdge,
@@ -31,7 +31,7 @@ export function gridSnap(val: number) {
 
 export const COMPONENT_DATA: {
 	[T in ComponentType]: {
-		handles: ComponentHandleList;
+		handles: ComponentHandleList & EmptyComponentHandleList<string>;
 		height: number;
 		width: number;
 		description: string;
@@ -161,7 +161,7 @@ export function calculateHandleOffset(
 export function constructComponent(
 	type: ComponentType,
 	pos: XYPair,
-): Omit<ComponentData, "id"> {
+): ValidComponentData {
 	const data = COMPONENT_DATA[type];
 	const svgPos = canvasViewModel.clientToSVGCoords(pos);
 	return {

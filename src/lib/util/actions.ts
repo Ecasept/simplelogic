@@ -10,6 +10,7 @@ import {
 	RotateComponentCommand,
 	ToggleInputPowerStateCommand,
 	type Command,
+	type ValidWireData,
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global.svelte";
 import { GraphManager } from "./graph.svelte";
@@ -129,7 +130,7 @@ export class EditorAction {
 		clickedHandle: HandleType,
 		connection: ComponentConnection | WireConnection,
 	) {
-		const wireData = {
+		const wireData: ValidWireData = {
 			input: {
 				x: position.x,
 				y: position.y,
