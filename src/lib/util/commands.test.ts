@@ -6,6 +6,7 @@ import {
 	CreateWireCommand,
 	DeleteComponentCommand,
 	DeleteWireCommand,
+	DisconnectCommand,
 	MoveComponentCommand,
 	MoveWireConnectionCommand,
 	RotateComponentCommand,
@@ -600,6 +601,48 @@ describe("Command Tests", () => {
 			expect(graphData.wires[sourceWire2Id].output.connections).toHaveLength(0);
 		});
 	});
+	describe("DisconnectCommand", () => {
+		it("should disconnect a wire from a component", () => {
+			const componentId = 1;
+			const wireId = 2;
+
+			graphData.components[componentId] = createMockComponent(componentId);
+			graphData.wires[wireId] = createMockWire(wireId);
+
+			const from: ComponentConnection = { id: componentId, handleId: "out" };
+			const to: WireConnection = { id: wireId, handleType: "input" };
+
+			const cmd = new ConnectCommand(from, to);
+			cmd.execute(graphData);
+
+			const disconnectCmd = new DisconnectCommand(from, to);
+			disconnectCmd.execute(graphData);
+
+			expect(
+				graphData.components[componentId].handles["out"].connections,
+			).toHaveLength(0);
+			expect(graphData.wires[wireId].input.connections).toHaveLength(0);
+		});
+		it("should disconnect two wires from each other", () => {
+			const wire1Id = 1;
+			const wire2Id = 2;
+
+			graphData.wires[wire1Id] = createMockWire(wire1Id);
+			graphData.wires[wire2Id] = createMockWire(wire2Id);
+
+			const from: WireConnection = { id: wire1Id, handleType: "output" };
+			const to: WireConnection = { id: wire2Id, handleType: "input" };
+
+			const cmd = new ConnectCommand(from, to);
+			cmd.execute(graphData);
+
+			const disconnectCmd = new DisconnectCommand(from, to);
+			disconnectCmd.execute(graphData);
+
+			expect(graphData.wires[wire1Id].output.connections).toHaveLength(0);
+			expect(graphData.wires[wire2Id].input.connections).toHaveLength(0);
+		});
+	});
 
 	describe("MoveWireConnectionCommand", () => {
 		it("should move wire connection", () => {
@@ -708,7 +751,7 @@ describe("Command Tests", () => {
 			graphData.wires[wire4Id] = createMockWire(wire4Id);
 
 			// Connect wires to component inputs and outputs
-			const fromComponent: ComponentConnection = {
+			const componentOut: ComponentConnection = {
 				id: componentId,
 				handleId: "out",
 			};
@@ -734,8 +777,8 @@ describe("Command Tests", () => {
 			// Execute all connections
 			new ConnectCommand(fromWire1, toComponentIn1).execute(graphData);
 			new ConnectCommand(fromWire2, toComponentIn2).execute(graphData);
-			new ConnectCommand(fromComponent, toWire3).execute(graphData);
-			new ConnectCommand(fromComponent, toWire4).execute(graphData);
+			new ConnectCommand(componentOut, toWire3).execute(graphData);
+			new ConnectCommand(componentOut, toWire4).execute(graphData);
 
 			// Delete component
 			const deleteComponent = new DeleteComponentCommand(componentId);
@@ -743,6 +786,9 @@ describe("Command Tests", () => {
 
 			// Verify all connections are removed
 			expect(graphData.components[componentId]).toBeUndefined();
+
+			expect(graphData.wires[wire1Id].output.connections).toHaveLength(0);
+			expect(graphData.wires[wire2Id].output.connections).toHaveLength(0);
 			expect(graphData.wires[wire3Id].input.connections).toHaveLength(0);
 			expect(graphData.wires[wire4Id].input.connections).toHaveLength(0);
 
@@ -761,10 +807,10 @@ describe("Command Tests", () => {
 				graphData.components[componentId].handles["out"].connections,
 			).toEqual([toWire3, toWire4]);
 			expect(graphData.wires[wire3Id].input.connections).toEqual([
-				fromComponent,
+				componentOut,
 			]);
 			expect(graphData.wires[wire4Id].input.connections).toEqual([
-				fromComponent,
+				componentOut,
 			]);
 		});
 		it("should only remove specific wire connection when deleting wire from multi-connected component output", () => {
@@ -894,11 +940,11 @@ describe("Command Tests", () => {
 			new RotateComponentCommand(1, -33).execute(graphData);
 			expect(graphData.components[1].rotation).toBe(0);
 
-			const c1 = new RotateComponentCommand(1, -90)
+			const c1 = new RotateComponentCommand(1, -90);
 			c1.execute(graphData);
 			expect(graphData.components[1].rotation).toBe(270);
 
-			const c2 = new RotateComponentCommand(1, 90)
+			const c2 = new RotateComponentCommand(1, 90);
 			c2.execute(graphData);
 			expect(graphData.components[1].rotation).toBe(0);
 
@@ -907,7 +953,6 @@ describe("Command Tests", () => {
 
 			c1.undo(graphData);
 			expect(graphData.components[1].rotation).toBe(0);
-
 		});
 	});
 });
