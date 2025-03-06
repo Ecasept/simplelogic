@@ -357,8 +357,9 @@ export class DeleteComponentCommand implements Command {
 
 		graphData.components[this.componentId] = this.deletedComponent;
 
-		for (const disconnect of this.disconnects) {
-			disconnect.undo(graphData);
+		// Undo disconnects in reverse order to restore connections properly
+		for (let i = this.disconnects.length - 1; i >= 0; i--) {
+			this.disconnects[i].undo(graphData);
 		}
 
 		this.deletedComponent = null;
@@ -375,6 +376,7 @@ export class DeleteWireCommand implements Command {
 	execute(graphData: GraphData) {
 		const wire = graphData.wires[this.wireId];
 
+		// Disconnect all connections
 		const HANDLE_TYPES: HandleType[] = ["input", "output"];
 		for (const type of HANDLE_TYPES) {
 			// Connection to this handle
@@ -403,8 +405,9 @@ export class DeleteWireCommand implements Command {
 
 		graphData.wires[this.wireId] = this.deletedWire;
 
-		for (const disconnect of this.disconnects) {
-			disconnect.undo(graphData);
+		// Undo disconnects in reverse order to restore connections properly
+		for (let i = this.disconnects.length - 1; i >= 0; i--) {
+			this.disconnects[i].undo(graphData);
 		}
 
 		this.deletedWire = null;
