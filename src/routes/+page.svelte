@@ -8,7 +8,6 @@
 		circuitModalViewModel,
 		EditorAction,
 		editorViewModel,
-		graphManager,
 	} from "$lib/util/actions";
 	import {
 		debugLog,
@@ -102,10 +101,7 @@
 			// A wire is being dragged, and it is hovering over a handle
 			// -> connect the wire to the handle
 			EditorAction.connect(
-				{
-					id: uiState.draggedHandle.id,
-					handleType: uiState.draggedHandle.handleType,
-				},
+				uiState.draggedHandle,
 				// uiState is a rune, so we need to snapshot it
 				$state.snapshot(uiState.hoveredHandle),
 			);
