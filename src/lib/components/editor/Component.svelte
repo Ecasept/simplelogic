@@ -44,7 +44,7 @@
 		uiState,
 	}: Props = $props();
 
-	let rect: SVGRectElement;
+	let rect = $state<SVGRectElement>();
 
 	let editingThis = $derived(uiState.matches({ componentId: id }));
 
