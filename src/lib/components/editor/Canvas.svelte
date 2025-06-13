@@ -7,7 +7,11 @@
 		editorViewModel,
 		graphManager,
 	} from "$lib/util/actions";
-	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/global.svelte";
+	import {
+		CANVAS_DOT_RADIUS,
+		debugLog,
+		GRID_SIZE,
+	} from "$lib/util/global.svelte";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 	import { P } from "ts-pattern";
 
@@ -169,20 +173,10 @@
 			});
 		}
 	}
-	// let graphData = $state({ handles: {}, componentBodies: {}, wireBodies: {} });
-
-	// $effect(() => {
-	// 	const data = graphManager.graphData;
-	// 	const changedIds = [0, 1, 2];
-
-	// 	for (const id of changedIds) {
-	// 		const {handle, body} = createComponent(data.components[id]);
-	// 		graphData.handles[id] = handle;
-	// 		graphData.componentBodies[id] = body;
-	// 	}
-	// });
 
 	let graphData = $derived(graphManager.graphData);
+
+	$inspect(graphData).with(debugLog("GRAPH DATA"));
 </script>
 
 <div class="canvasWrapper">

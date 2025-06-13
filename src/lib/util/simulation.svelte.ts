@@ -1,5 +1,5 @@
 import { graphManager } from "./actions";
-import { COMPONENT_DATA, isComponentConnection } from "./global.svelte";
+import { COMPONENT_DATA, isComponentHandleRef } from "./global.svelte";
 import type { ComponentData, ComponentType } from "./types";
 
 /** The simulation data for a component or wire. */
@@ -181,7 +181,7 @@ class Simulator {
 	/** Same as `stepComponent`, but for wires. */
 	private stepWire(id: number, data: SimulationData) {
 		const wire = graphManager.getWireData(id);
-		const output = wire.output;
+		const output = wire.handles.output;
 
 		const outputPower = executeGate(data, "output");
 		const powerChanged = this._state[id].outputs["output"] !== outputPower;
@@ -191,7 +191,7 @@ class Simulator {
 			for (const connection of output.connections) {
 				const targetId = connection.id;
 
-				const targetHandleId = isComponentConnection(connection)
+				const targetHandleId = isComponentHandleRef(connection)
 					? connection.handleId
 					: connection.handleType;
 

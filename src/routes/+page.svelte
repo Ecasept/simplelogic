@@ -101,8 +101,7 @@
 			// A wire is being dragged, and it is hovering over a handle
 			// -> connect the wire to the handle
 			EditorAction.connect(
-				uiState.draggedHandle,
-				// uiState is a rune, so we need to snapshot it
+				$state.snapshot(uiState.draggedHandle),
 				$state.snapshot(uiState.hoveredHandle),
 			);
 			editorViewModel.removeHoveredHandle();

@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
 	import {
-		isComponentConnection,
+		isComponentHandleRef,
 		isVibrateSupported,
 	} from "$lib/util/global.svelte";
 	import { startLongPressTimer } from "$lib/util/longpress";
 	import { getSimData } from "$lib/util/simulation.svelte";
-	import type {
-		HandleType,
-		SVGPointerEvent,
-		WireHandle,
+	import {
+		newWireHandleRef,
+		type HandleType,
+		type SVGPointerEvent,
+		type WireHandle,
 	} from "$lib/util/types";
 	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import { P } from "ts-pattern";
@@ -17,16 +18,21 @@
 
 	type Props = {
 		id: number;
-		input: WireHandle;
-		output: WireHandle;
+		handles: {
+			input: WireHandle;
+			output: WireHandle;
+		};
 		uiState: EditorUiState;
 	};
 
-	let { id, input, output, uiState }: Props = $props();
+	let { id, handles, uiState }: Props = $props();
 
 	let editingThis = $derived(
 		"draggedHandle" in uiState && uiState.draggedHandle.id === id,
 	);
+
+	let input = $derived(handles.input);
+	let output = $derived(handles.output);
 
 	let simulating = $derived(uiState.matches({ mode: "simulate" }));
 
@@ -39,7 +45,7 @@
 		return simulating && isOutputPowered;
 	});
 
-	function onHandleLongPress(handle: WireHandle, clickedHandle: HandleType) {
+	function onHandleLongPress(handle: WireHandle, handleType: HandleType) {
 		// Add new wire instead of moving existing one on long press
 		// Abort the previous move wire action
 		editorViewModel.abortEditing();
@@ -52,8 +58,7 @@
 				x: handle.x,
 				y: handle.y,
 			},
-			clickedHandle,
-			{ id: id, handleType: clickedHandle },
+			newWireHandleRef(id, handleType),
 		);
 	}
 
@@ -115,12 +120,11 @@
 					x: handle.x,
 					y: handle.y,
 				},
-				clickedHandle,
-				{ id: id, handleType: clickedHandle },
+				newWireHandleRef(id, clickedHandle),
 			);
 		} else {
 			editorViewModel.startMoveWire(
-				{ id: id, handleType: clickedHandle },
+				newWireHandleRef(id, clickedHandle),
 				handle.connections.length,
 			);
 		}
@@ -136,7 +140,7 @@
 			return;
 		}
 
-		editorViewModel.setHoveredHandle({ handleType: handleType, id: id });
+		editorViewModel.setHoveredHandle(newWireHandleRef(id, handleType));
 	}
 
 	function onHandleLeave() {
@@ -195,10 +199,7 @@
 	{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle.handleType === "input")}
 		<Handle
 			{uiState}
-			connection={{
-				id: id,
-				handleType: "input",
-			}}
+			ref={newWireHandleRef(id, "input")}
 			{editingThis}
 			{deletingThis}
 			{simulating}
@@ -212,15 +213,12 @@
 	{/if}
 {/if}
 <!-- Hide outputs connected to components -->
-{#if !isComponentConnection(output.connections[0] ?? null)}
+{#if !isComponentHandleRef(output.connections[0] ?? null)}
 	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
 	{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle?.handleType === "output")}
 		<Handle
 			{uiState}
-			connection={{
-				id: id,
-				handleType: "output",
-			}}
+			ref={newWireHandleRef(id, "output")}
 			{editingThis}
 			{deletingThis}
 			{simulating}

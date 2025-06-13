@@ -6,22 +6,22 @@ import {
 	CreateWireCommand,
 	DeleteComponentCommand,
 	DeleteWireCommand,
-	MoveWireConnectionCommand,
+	MoveWireHandleCommand,
 	RotateComponentCommand,
 	ToggleInputPowerStateCommand,
 	type Command,
-	type ValidWireData,
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global.svelte";
 import { GraphManager } from "./graph.svelte";
 import { simulation } from "./simulation.svelte";
-import type {
-	ComponentConnection,
-	ComponentType,
-	GraphData,
-	HandleType,
-	WireConnection,
-	XYPair,
+import {
+	newWireHandleRef,
+	type ComponentType,
+	type GraphData,
+	type HandleReference,
+	type HandleType,
+	type ValidWireInitData,
+	type XYPair,
 } from "./types";
 import { CanvasViewModel } from "./viewModels/canvasViewModel";
 import { CircuitModalViewModel } from "./viewModels/circuitModalViewModel";
@@ -125,34 +125,42 @@ export class EditorAction {
 		editorViewModel.startAddComponent(id, clickOffset, initiator);
 	}
 
-	static addWire(
-		position: XYPair,
-		clickedHandle: HandleType,
-		connection: ComponentConnection | WireConnection,
-	) {
-		const wireData: ValidWireData = {
-			input: {
-				x: position.x,
-				y: position.y,
-				connections: [],
-			},
-			output: {
-				x: position.x,
-				y: position.y,
-				connections: [],
+	/**
+	 * Adds a wire to the graph when a handle was clicked,
+	 * and connects the wire to the clicked handle.
+	 * @param position The position where the clicked handle is located,
+	 * @param clickedHandle The handle that was clicked, which will be connected to the wire.
+	 */
+	static addWire(position: XYPair, clickedHandle: HandleReference) {
+		const wireData: ValidWireInitData = {
+			handles: {
+				input: {
+					x: position.x,
+					y: position.y,
+					type: "input",
+					connections: [],
+				},
+				output: {
+					x: position.x,
+					y: position.y,
+					type: "output",
+					connections: [],
+				},
 			},
 		};
 
 		const wireId = graphManager.executeCommand(new CreateWireCommand(wireData));
 
-		const connectedHandle: WireConnection = {
-			id: wireId,
-			handleType: clickedHandle === "input" ? "output" : "input",
-		};
-		const draggedHandle = { id: wireId, handleType: clickedHandle };
+		// The type of the handle that will be connected to the clicked handle
+		const handleType =
+			clickedHandle.handleType === "input" ? "output" : "input";
+		// The handle connected to the clicked handle
+		const connectedHandle = newWireHandleRef(wireId, handleType);
+		// The handle that will be dragged (opposite of the connected handle)
+		const draggedHandle = newWireHandleRef(wireId, clickedHandle.handleType);
 
 		graphManager.executeCommand(
-			new ConnectCommand(connectedHandle, connection),
+			new ConnectCommand(connectedHandle, clickedHandle),
 		);
 		graphManager.notifyAll();
 
@@ -228,7 +236,7 @@ export class EditorAction {
 			x: gridSnap(svgMousePos.x),
 			y: gridSnap(svgMousePos.y),
 		};
-		const wireHandle = graphManager.getWireData(id)[draggedHandle];
+		const wireHandle = graphManager.getWireData(id).handles[draggedHandle];
 		if (newPos.x === wireHandle.x && newPos.y === wireHandle.y) {
 			// The wire hasn't actually moved, so we don't need to do anything
 			return;
@@ -242,10 +250,7 @@ export class EditorAction {
 		graphManager.moveWireReplaceable(newPos, draggedHandle, id);
 		graphManager.notifyAll();
 	}
-	static connect(
-		conn1: WireConnection | ComponentConnection,
-		conn2: WireConnection | ComponentConnection,
-	) {
+	static connect(conn1: HandleReference, conn2: HandleReference) {
 		const cmd = new ConnectCommand(conn1, conn2);
 		graphManager.executeCommand(cmd);
 		graphManager.notifyAll();
@@ -327,8 +332,8 @@ export class EditorAction {
 			for (const conn of handle.connections) {
 				const wireId = conn.id;
 				const wireData = graphManager.getWireData(wireId);
-				const x = wireData[conn.handleType].x;
-				const y = wireData[conn.handleType].y;
+				const x = wireData.handles[conn.handleId].x;
+				const y = wireData.handles[conn.handleId].y;
 
 				// Rotate (x, y) (position of wire connection) around (cx, cy) (position of component)
 				const dx = x - cx;
@@ -336,7 +341,7 @@ export class EditorAction {
 				const nx = dx * cos - dy * sin + cx;
 				const ny = dx * sin + dy * cos + cy;
 
-				const cmd = new MoveWireConnectionCommand(
+				const cmd = new MoveWireHandleCommand(
 					{ x: nx, y: ny },
 					conn.handleType,
 					wireId,

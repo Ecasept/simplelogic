@@ -1,23 +1,24 @@
 import {
-	includesByValue,
-	includesByValueMulti,
-	indexOfByValue,
-	indexOfByValueMulti,
-	isComponentConnection,
+	entries,
+	includesHandle,
+	indexOfHandle,
+	isComponentHandleRef,
+	isWireHandleRef,
 } from "./global.svelte";
 import {
-	type ComponentConnection,
+	newWireHandleRef,
 	type ComponentData,
-	type ComponentHandle,
 	type GraphData,
+	type HandleReference,
 	type HandleType,
-	type WireConnection,
+	type ValidComponentInitData,
+	type ValidWireInitData,
 	type WireData,
-	type WireHandle,
 	type XYPair,
 } from "./types";
 
 export interface Command {
+	/** Executes the command on the given `graphData`. */
 	execute: (graphData: GraphData) => any;
 	/** Undoes the command on the given `graphData`.
 	 * If the command cannot be undone, it prints an error to the console and does nothing.
@@ -49,104 +50,80 @@ export class CommandGroup implements Command {
  */
 function connect(
 	graphData: GraphData,
-	from: ComponentConnection | WireConnection,
-	to: ComponentConnection | WireConnection,
+	from: HandleReference,
+	to: HandleReference,
 	index?: number,
 ) {
-	if (isComponentConnection(from)) {
-		if (isComponentConnection(to)) {
-			throw new Error("Cannot connect component to component");
+	// Don't allow connecting two components
+	if (isComponentHandleRef(from) && isComponentHandleRef(to)) {
+		throw new Error("Cannot connect two components");
+	}
+	// Don't allow connecting an already connected wire to a component
+	if (isWireHandleRef(from) && isComponentHandleRef(to)) {
+		const wireHandle = graphData.wires[from.id].handles[from.handleId];
+		if (wireHandle.connections.length > 0) {
+			throw new Error(
+				"Can't connect component to wire with multiple connections (wire can either have multiple wires or 1 component connected to it)",
+			);
 		}
-		const handle = graphData.components[from.id].handles[from.handleId];
-		if (includesByValue(handle.connections, to)) {
-			throw new Error("Connection already exists");
-		}
-		if (handle.type === "input" && handle.connections.length > 0) {
-			throw new Error("Input may only have one connection");
-		}
-		if (handle.type === to.handleType) {
-			throw new Error("Cannot connect two inputs or two outputs");
-		}
-		if (index !== undefined) {
-			handle.connections.splice(index, 0, to);
-		} else {
-			handle.connections.push(to);
-		}
+	}
+
+	const list = isWireHandleRef(from) ? graphData.wires : graphData.components;
+	const fromHandle = list[from.id].handles[from.handleId];
+	if (includesHandle(fromHandle.connections, to)) {
+		throw new Error("Connection already exists");
+	}
+	if (from.handleType === "input" && fromHandle.connections.length > 0) {
+		throw new Error("Input may only have one connection");
+	}
+	if (from.handleType === to.handleType) {
+		throw new Error("Cannot connect two inputs or two outputs");
+	}
+	if (index !== undefined) {
+		fromHandle.connections.splice(index, 0, to);
 	} else {
-		const handle = graphData.wires[from.id][from.handleType];
-		if (isComponentConnection(to)) {
-			if (handle.connections.length > 0) {
-				throw new Error(
-					"Can't connect component to wire with multiple connections (wire can either have multiple wires or 1 component connected to it)",
-				);
-			}
-			// Can't check if the connections are the same type
-			// `to` is a componentConnection and doesn't have a handleType (only a handleId)
-			if (index !== undefined) {
-				handle.connections.splice(index, 0, to);
-			} else {
-				handle.connections.push(to);
-			}
-		} else {
-			if (includesByValueMulti(handle.connections, to)) {
-				throw new Error("Connection already exists");
-			}
-			if (from.handleType == to.handleType) {
-				throw new Error("Cannot connect two inputs or two outputs");
-			}
-			if (from.handleType === "input" && handle.connections.length > 0) {
-				throw new Error("Input may only have one connection");
-			}
-			if (index !== undefined) {
-				handle.connections.splice(index, 0, to);
-			} else {
-				handle.connections.push(to);
-			}
-		}
+		// `to` can point to a component and therefore be a ComponentHandleRef,
+		//  and if `fromHandle` also points to a component, `fromHandle.connections`
+		// is a WireHandleRef[] (as components can only be connected to wires),
+		// so a type error would occur.
+		// However we ensure at runtime that `from` and `to` can't both point to components,
+		// so we can safely assert the type here.
+		(fromHandle.connections as HandleReference[]).push(to);
 	}
 }
 
 /** Removes the connection entry from `from` that goes to `to`.
  * **This does not remove the connection on the `to` side**.
+ *
  * @returns The index the connection was removed from.
  */
 function disconnect(
 	graphData: GraphData,
-	from: ComponentConnection | WireConnection,
-	to: ComponentConnection | WireConnection,
+	from: HandleReference,
+	to: HandleReference,
 ) {
-	if (isComponentConnection(from)) {
-		if (isComponentConnection(to)) {
+	if (isComponentHandleRef(from)) {
+		if (isComponentHandleRef(to)) {
 			throw new Error("Two components can't be connected");
 		}
-		const handle = graphData.components[from.id].handles[from.handleId];
-		const index = indexOfByValue(handle.connections, to);
-		if (index === -1) {
-			throw new Error("Connection does not exist");
-		}
-		handle.connections.splice(index, 1);
-		return index;
-	} else {
-		const handle = graphData.wires[from.id][from.handleType];
-		const index = indexOfByValueMulti(handle.connections, to);
-		if (index === -1) {
-			throw new Error("Connection does not exist");
-		}
-		handle.connections.splice(index, 1);
-		return index;
 	}
+	const list = isWireHandleRef(from) ? graphData.wires : graphData.components;
+	const fromHandle = list[from.id].handles[from.handleId];
+	const index = indexOfHandle(fromHandle.connections, to);
+	if (index === -1) {
+		throw new Error("Connection does not exist");
+	}
+	fromHandle.connections.splice(index, 1);
+	return index;
 }
 
 export class ConnectCommand implements Command {
-	fromIndex: number | null = null;
-	toIndex: number | null = null;
-
 	constructor(
-		private from: ComponentConnection | WireConnection,
-		private to: ComponentConnection | WireConnection,
+		private from: HandleReference,
+		private to: HandleReference,
 	) {
 		// disallow two components
-		if (isComponentConnection(from) && isComponentConnection(to)) {
+		if (isComponentHandleRef(from) && isComponentHandleRef(to)) {
 			throw new Error("Cannot connect two components");
 		}
 	}
@@ -174,23 +151,23 @@ export class ConnectCommand implements Command {
 }
 
 export class DisconnectCommand implements Command {
-	fromIndex: number | null = null;
-	toIndex: number | null = null;
+	toRefIndex: number | null = null;
+	fromRefIndex: number | null = null;
 
 	constructor(
-		private from: ComponentConnection | WireConnection,
-		private to: ComponentConnection | WireConnection,
+		private from: HandleReference,
+		private to: HandleReference,
 	) {
 		// disallow two components
-		if (isComponentConnection(from) && isComponentConnection(to)) {
+		if (isComponentHandleRef(from) && isComponentHandleRef(to)) {
 			throw new Error("Cannot connect two components");
 		}
 	}
 
 	execute(graphData: GraphData) {
-		this.fromIndex = disconnect(graphData, this.from, this.to);
+		this.toRefIndex = disconnect(graphData, this.from, this.to);
 		try {
-			this.toIndex = disconnect(graphData, this.to, this.from);
+			this.fromRefIndex = disconnect(graphData, this.to, this.from);
 		} catch (e) {
 			connect(graphData, this.from, this.to);
 			throw e;
@@ -198,13 +175,13 @@ export class DisconnectCommand implements Command {
 	}
 
 	undo(graphData: GraphData) {
-		if (this.fromIndex === null || this.toIndex === null) {
+		if (this.toRefIndex === null || this.fromRefIndex === null) {
 			console.error(`Tried to undo command that has not been executed`);
 			return [];
 		}
-		connect(graphData, this.from, this.to, this.fromIndex);
+		connect(graphData, this.from, this.to, this.toRefIndex);
 		try {
-			connect(graphData, this.to, this.from, this.toIndex);
+			connect(graphData, this.to, this.from, this.fromRefIndex);
 		} catch (e) {
 			disconnect(graphData, this.from, this.to);
 			throw e;
@@ -213,7 +190,7 @@ export class DisconnectCommand implements Command {
 	}
 }
 
-export class MoveWireConnectionCommand implements Command {
+export class MoveWireHandleCommand implements Command {
 	oldPosition: XYPair | null = null;
 
 	constructor(
@@ -223,10 +200,10 @@ export class MoveWireConnectionCommand implements Command {
 	) {}
 
 	execute(graphData: GraphData) {
-		const wireConnection = graphData.wires[this.wireId][this.type];
-		this.oldPosition = { x: wireConnection.x, y: wireConnection.y };
-		wireConnection.x = this.newPosition.x;
-		wireConnection.y = this.newPosition.y;
+		const wireRef = graphData.wires[this.wireId].handles[this.type];
+		this.oldPosition = { x: wireRef.x, y: wireRef.y };
+		wireRef.x = this.newPosition.x;
+		wireRef.y = this.newPosition.y;
 	}
 
 	undo(graphData: GraphData) {
@@ -234,8 +211,10 @@ export class MoveWireConnectionCommand implements Command {
 			console.error(`Tried to undo command that has not been executed`);
 			return [];
 		}
-		graphData.wires[this.wireId][this.type].x = this.oldPosition.x;
-		graphData.wires[this.wireId][this.type].y = this.oldPosition.y;
+
+		// Set the wire handle back to its old position
+		graphData.wires[this.wireId].handles[this.type].x = this.oldPosition.x;
+		graphData.wires[this.wireId].handles[this.type].y = this.oldPosition.y;
 		this.oldPosition = null;
 		return [];
 	}
@@ -250,6 +229,7 @@ export class MoveComponentCommand implements Command {
 	) {}
 
 	execute(graphData: GraphData) {
+		// Store the old position and set the new position
 		this.oldPosition = structuredClone(
 			graphData.components[this.componentId].position,
 		);
@@ -266,29 +246,6 @@ export class MoveComponentCommand implements Command {
 		return [];
 	}
 }
-
-/** A list of wire handles that have no connections */
-export type EmptyWireHandleList<HandleName extends string> = {
-	[handle in HandleName]: WireHandle & {
-		connections: [];
-	};
-};
-
-/** A list of component handles that have no connections */
-export type EmptyComponentHandleList<HandleName extends string> = {
-	[handle in HandleName]: ComponentHandle & {
-		connections: [];
-	};
-};
-
-// Wire data but without id or any connections
-export type ValidWireData = Omit<WireData, "id"> &
-	EmptyWireHandleList<"input" | "output">;
-
-// Component data but without id or any connections
-export type ValidComponentData = Omit<ComponentData, "id"> & {
-	handles: EmptyComponentHandleList<string>;
-};
 export class CreateWireCommand implements Command {
 	oldNextId: number | null = null;
 
@@ -297,9 +254,11 @@ export class CreateWireCommand implements Command {
 	 * Additionally, the "input" and "output" fields must not contain any connections
 	 * They should be added in a separate ConnectCommand.
 	 */
-	constructor(private newWireData: ValidWireData) {}
+	constructor(private newWireData: ValidWireInitData) {}
 	execute(graphData: GraphData) {
 		this.oldNextId = graphData.nextId;
+
+		// Add the wire to the graph data
 		graphData.wires[graphData.nextId] = {
 			...this.newWireData,
 			id: graphData.nextId,
@@ -315,6 +274,8 @@ export class CreateWireCommand implements Command {
 		}
 
 		graphData.nextId = this.oldNextId;
+
+		// Delete the wire
 		delete graphData.wires[this.oldNextId];
 		const deletedId = this.oldNextId;
 		this.oldNextId = null;
@@ -330,13 +291,17 @@ export class CreateComponentCommand implements Command {
 	 * Additionally, no handle is allowed to have a connection. Any connections
 	 * should be added in a separate ConnectCommand.
 	 */
-	constructor(private newComponentData: ValidComponentData) {}
+	constructor(private newComponentData: ValidComponentInitData) {}
 	execute(graphData: GraphData) {
 		this.oldNextId = graphData.nextId;
+
+		// Add the component to the graph data
 		graphData.components[graphData.nextId] = {
 			...this.newComponentData,
 			id: graphData.nextId,
 		};
+
+		// Increment the next id
 		graphData.nextId++;
 		return this.oldNextId;
 	}
@@ -348,105 +313,89 @@ export class CreateComponentCommand implements Command {
 		}
 
 		graphData.nextId = this.oldNextId;
+
+		// Delete the component
 		delete graphData.components[this.oldNextId];
+
 		const deletedId = this.oldNextId;
 		this.oldNextId = null;
 		return [deletedId];
 	}
 }
 
-export class DeleteComponentCommand implements Command {
-	deletedComponent: ComponentData | null = null;
+/** A superclass for commands that delete an element from the graph data.
+ * The type of the element deletet must be specified in the constructor.
+ */
+export class DeleteElementCommand implements Command {
+	deletedElement: ComponentData | WireData | null = null;
 	disconnects: DisconnectCommand[] = [];
 
-	constructor(private componentId: number) {}
+	constructor(
+		private elementId: number,
+		private elementType: "component" | "wire",
+	) {}
 	execute(graphData: GraphData) {
-		const component = graphData.components[this.componentId];
+		const list =
+			this.elementType === "component" ? graphData.components : graphData.wires;
+		const element = list[this.elementId];
 
 		// Disconnect all connections
-		for (const [handleId, handle] of Object.entries(component.handles)) {
+		for (const [handleId, handle] of entries(element.handles)) {
 			// Connection to this handle
-			const thisConnection = {
-				id: this.componentId,
-				handleId,
-			};
+			const thisRef: HandleReference =
+				this.elementType == "component"
+					? {
+							id: this.elementId,
+							handleId,
+							handleType: handle.type,
+							type: this.elementType,
+						}
+					: newWireHandleRef(this.elementId, handle.type);
 			// Create a copy of connections to avoid modification during iteration
 			const connections = [...handle.connections];
 			for (const connection of connections) {
-				const command = new DisconnectCommand(thisConnection, connection);
+				const command = new DisconnectCommand(thisRef, connection);
 				command.execute(graphData);
 				this.disconnects.push(command);
 			}
 		}
 
-		this.deletedComponent = component;
-		delete graphData.components[this.componentId];
+		// Delete the component
+		this.deletedElement = element;
+		delete list[this.elementId];
 	}
 
 	undo(graphData: GraphData) {
-		if (this.deletedComponent === null) {
+		if (this.deletedElement === null) {
 			console.error(`Tried to undo command that has not been executed`);
 			return [];
 		}
 
-		graphData.components[this.componentId] = this.deletedComponent;
+		// Add the component back to the graph data
+		const list =
+			this.elementType === "component" ? graphData.components : graphData.wires;
+		list[this.elementId] = this.deletedElement;
 
 		// Undo disconnects in reverse order to restore connections properly
-		for (let i = this.disconnects.length - 1; i >= 0; i--) {
-			this.disconnects[i].undo(graphData);
+		for (const command of this.disconnects.toReversed()) {
+			command.undo(graphData);
 		}
 
-		this.deletedComponent = null;
+		this.deletedElement = null;
 		this.disconnects = [];
 		return [];
 	}
 }
 
-export class DeleteWireCommand implements Command {
-	deletedWire: WireData | null = null;
-	disconnects: DisconnectCommand[] = [];
-
-	constructor(private wireId: number) {}
-	execute(graphData: GraphData) {
-		const wire = graphData.wires[this.wireId];
-
-		// Disconnect all connections
-		const HANDLE_TYPES: HandleType[] = ["input", "output"];
-		for (const type of HANDLE_TYPES) {
-			// Connection to this handle
-			const thisConnection = {
-				id: this.wireId,
-				handleType: type,
-			};
-			// Create a copy of connections to avoid modification during iteration
-			const connections = [...wire[type].connections];
-			for (const connection of connections) {
-				const command = new DisconnectCommand(thisConnection, connection);
-				command.execute(graphData);
-				this.disconnects.push(command);
-			}
-		}
-
-		this.deletedWire = wire;
-		delete graphData.wires[this.wireId];
+export class DeleteComponentCommand extends DeleteElementCommand {
+	constructor(componentId: number) {
+		super(componentId, "component");
 	}
+}
 
-	undo(graphData: GraphData) {
-		if (this.deletedWire === null) {
-			console.error(`Tried to undo command that has not been executed`);
-			return [];
-		}
-
-		graphData.wires[this.wireId] = this.deletedWire;
-
-		// Undo disconnects in reverse order to restore connections properly
-		for (let i = this.disconnects.length - 1; i >= 0; i--) {
-			this.disconnects[i].undo(graphData);
-		}
-
-		this.deletedWire = null;
-		this.disconnects = [];
-		return [];
+export class DeleteWireCommand extends DeleteElementCommand {
+	constructor(wireId: number) {
+		super(wireId, "wire");
 	}
 }
 

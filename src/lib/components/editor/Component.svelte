@@ -11,6 +11,7 @@
 	} from "$lib/util/global.svelte";
 	import { getSimData } from "$lib/util/simulation.svelte";
 	import type {
+		ComponentHandle,
 		ComponentHandleList,
 		ComponentType,
 		HandleEdge,
@@ -125,9 +126,11 @@
 			y: position.y + handleOffset.y,
 		};
 
-		EditorAction.addWire(wirePos, handleType, {
-			id: id,
-			handleId: handleId,
+		EditorAction.addWire(wirePos, {
+			id,
+			handleId,
+			handleType,
+			type: "component",
 		});
 	}
 
@@ -165,7 +168,7 @@
 		editorViewModel.startMoveComponent(id, offset);
 	}
 
-	function onHandleEnter(identifier: string) {
+	function onHandleEnter(handle: ComponentHandle, identifier: string) {
 		if (
 			!uiState.matches({
 				mode: P.union("edit", "simulate", "delete"),
@@ -174,7 +177,12 @@
 		) {
 			return;
 		}
-		editorViewModel.setHoveredHandle({ handleId: identifier, id: id });
+		editorViewModel.setHoveredHandle({
+			handleId: identifier,
+			id: id,
+			handleType: handle.type,
+			type: "component",
+		});
 	}
 
 	function onHandleLeave() {
@@ -257,9 +265,11 @@
 			{#if !("draggedHandle" in uiState && uiState.draggedHandle.handleType === "output" && (uiState.connectionCount ?? 0) > 0)}
 				<Handle
 					{uiState}
-					connection={{
+					ref={{
 						id: id,
 						handleId: identifier,
+						handleType: handle.type,
+						type: "component",
 					}}
 					{editingThis}
 					{deletingThis}
@@ -274,7 +284,7 @@
 					)}
 					onHandleDown={(e) =>
 						onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
-					onHandleEnter={() => onHandleEnter(identifier)}
+					onHandleEnter={() => onHandleEnter(handle, identifier)}
 					{onHandleLeave}
 					{rotateString}
 				/>

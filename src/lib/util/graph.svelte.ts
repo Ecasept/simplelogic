@@ -1,10 +1,10 @@
 import {
 	CommandGroup,
 	MoveComponentCommand,
-	MoveWireConnectionCommand,
+	MoveWireHandleCommand,
 	type Command,
 } from "./commands";
-import { calculateHandleOffset, isComponentConnection } from "./global.svelte";
+import { calculateHandleOffset, isComponentHandleRef } from "./global.svelte";
 import {
 	ZGraphData,
 	type GraphData,
@@ -113,7 +113,7 @@ export class GraphManager {
 					handle.pos,
 					cmp.size,
 				);
-				const moveWireCmd = new MoveWireConnectionCommand(
+				const moveWireCmd = new MoveWireHandleCommand(
 					{
 						x: newComponentPos.x + handleOffset.x,
 						y: newComponentPos.y + handleOffset.y,
@@ -138,7 +138,7 @@ export class GraphManager {
 		wireId: number,
 	) {
 		const cmds = [];
-		const moveWireCmd = new MoveWireConnectionCommand(
+		const moveWireCmd = new MoveWireHandleCommand(
 			newWirePos,
 			draggedHandle,
 			wireId,
@@ -147,15 +147,15 @@ export class GraphManager {
 
 		const wire = this.getWireData(wireId);
 
-		const handle = wire[draggedHandle];
+		const handle = wire.handles[draggedHandle];
 		for (const connection of handle.connections) {
-			if (isComponentConnection(connection)) {
+			if (isComponentHandleRef(connection)) {
 				console.warn(
 					"Tried to move wire handle connected to component - should not exist",
 				);
 				return;
 			}
-			const moveWireCmd = new MoveWireConnectionCommand(
+			const moveWireCmd = new MoveWireHandleCommand(
 				{
 					x: newWirePos.x,
 					y: newWirePos.y,

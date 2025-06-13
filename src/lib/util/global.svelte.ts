@@ -1,11 +1,14 @@
 import { canvasViewModel, editorViewModel } from "./actions";
-import type { EmptyComponentHandleList, ValidComponentData } from "./commands";
 import type {
-	ComponentConnection,
+	ComponentHandle,
 	ComponentHandleList,
+	ComponentHandleReference,
 	ComponentType,
+	EmptyHandleList,
 	HandleEdge,
-	WireConnection,
+	HandleReference,
+	ValidComponentInitData,
+	WireHandleReference,
 	XYPair,
 } from "./types";
 
@@ -31,7 +34,7 @@ export function gridSnap(val: number) {
 
 export const COMPONENT_DATA: {
 	[T in ComponentType]: {
-		handles: ComponentHandleList & EmptyComponentHandleList<string>;
+		handles: ComponentHandleList;
 		height: number;
 		width: number;
 		description: string;
@@ -41,7 +44,7 @@ export const COMPONENT_DATA: {
 			isPoweredInitially: boolean,
 			output: string,
 		) => boolean;
-	};
+	} & EmptyHandleList<string, ComponentHandle>;
 } = {
 	AND: {
 		handles: {
@@ -161,7 +164,7 @@ export function calculateHandleOffset(
 export function constructComponent(
 	type: ComponentType,
 	pos: XYPair,
-): ValidComponentData {
+): ValidComponentInitData {
 	const data = COMPONENT_DATA[type];
 	const svgPos = canvasViewModel.clientToSVGCoords(pos);
 	return {
@@ -177,57 +180,42 @@ export function constructComponent(
 	};
 }
 
-export function isComponentConnection(
-	connection: WireConnection | ComponentConnection | null,
-): connection is ComponentConnection {
-	return connection !== null && "handleId" in connection;
+/** Checks if the given handle reference `ref` is a reference to the handle of **a component**. */
+export function isComponentHandleRef(
+	ref: HandleReference | null,
+): ref is ComponentHandleReference {
+	return ref !== null && ref.type === "component";
 }
 
-export function isWireConnection(
-	connection: WireConnection | ComponentConnection | null,
-): connection is WireConnection {
-	return connection !== null && "handleType" in connection;
+/** Checks if the given handle reference `ref` is a reference to the handle of **a wire**. */
+export function isWireHandleRef(
+	ref: HandleReference | null,
+): ref is WireHandleReference {
+	return ref !== null && ref.type === "wire";
 }
 
-export function indexOfByValue(arr: WireConnection[], value: WireConnection) {
+/** Returns the index of the first occurrence of a handle reference in an array of handle references.
+ * This function is necessary because two handle references might be different underlying js objects,
+ * and so technically not equal, but still point to the same handle.
+ */
+export function indexOfHandle(arr: HandleReference[], value: HandleReference) {
 	for (let i = 0; i < arr.length; i++) {
-		if (arr[i].id === value.id && arr[i].handleType === value.handleType) {
+		// Test if all of these properties are equal
+		const vals: (keyof HandleReference)[] = [
+			"id",
+			"handleType",
+			"handleId",
+			"type",
+		];
+		if (vals.every((prop) => arr[i][prop] === value[prop])) {
 			return i;
 		}
 	}
 	return -1;
 }
 
-export function includesByValue(arr: WireConnection[], value: WireConnection) {
-	return indexOfByValue(arr, value) !== -1;
-}
-
-export function indexOfByValueMulti(
-	arr: (WireConnection | ComponentConnection)[],
-	value: WireConnection | ComponentConnection,
-) {
-	for (let i = 0; i < arr.length; i++) {
-		if (arr[i].id === value.id) {
-			const val = arr[i];
-			if (isComponentConnection(val) && isComponentConnection(value)) {
-				if (val.id === value.id && val.handleId === value.handleId) {
-					return i;
-				}
-			} else if (isWireConnection(val) && isWireConnection(value)) {
-				if (val.id === value.id && val.handleType === value.handleType) {
-					return i;
-				}
-			}
-		}
-	}
-	return -1;
-}
-
-export function includesByValueMulti(
-	arr: (WireConnection | ComponentConnection)[],
-	value: WireConnection | ComponentConnection,
-) {
-	return indexOfByValueMulti(arr, value) !== -1;
+export function includesHandle(arr: HandleReference[], value: HandleReference) {
+	return indexOfHandle(arr, value) !== -1;
 }
 
 /** The Vibrate API is not available in all browsers,
@@ -246,4 +234,12 @@ export function debugLog<T>(tag: string) {
 			console.debug(tag, type, value);
 		}
 	};
+}
+
+type Entries<T> = {
+	[K in keyof T]: [K, T[K]];
+}[keyof T][];
+/** `Object.entries` but with types */
+export function entries<T extends object>(object: T): Entries<T> {
+	return Object.entries(object) as Entries<T>;
 }

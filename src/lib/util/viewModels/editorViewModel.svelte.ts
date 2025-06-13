@@ -1,10 +1,10 @@
 import { isMatching, P } from "ts-pattern";
 import type { PatternConstraint } from "../../../../node_modules/ts-pattern/dist/is-matching";
-import type { ComponentConnection, WireConnection, XYPair } from "../types";
+import type { HandleReference, WireHandleReference, XYPair } from "../types";
 
 // Base properties that are always present
 export type BaseState = {
-	hoveredHandle: WireConnection | ComponentConnection | null;
+	hoveredHandle: HandleReference | null;
 	hoveredElement: number | null;
 	isModalOpen: boolean;
 };
@@ -40,7 +40,7 @@ export type EditDraggingComponent = {
 export type EditDraggingWire = {
 	mode: "edit";
 	editType: "draggingWire";
-	draggedHandle: WireConnection;
+	draggedHandle: WireHandleReference;
 	connectionCount: number;
 	/** If the wire has actually been moved */
 	hasMoved: boolean;
@@ -48,7 +48,7 @@ export type EditDraggingWire = {
 export type EditAddingWire = {
 	mode: "edit";
 	editType: "addingWire";
-	draggedHandle: WireConnection;
+	draggedHandle: WireHandleReference;
 	connectionCount: number;
 };
 /** The ui state when the user is dragging a wire from the middle of an existing wire */
@@ -285,7 +285,7 @@ export class EditorViewModel {
 		this._uiState.hasMoved = true;
 		this.notifyAll();
 	}
-	startMoveWire(wire: WireConnection, wireConnectionCount: number) {
+	startMoveWire(wire: WireHandleReference, wireConnectionCount: number) {
 		this.setUiState({
 			mode: "edit",
 			editType: "draggingWire",
@@ -313,7 +313,7 @@ export class EditorViewModel {
 		});
 		this.notifyAll();
 	}
-	startAddWire(wire: WireConnection, wireConnectionCount: number) {
+	startAddWire(wire: WireHandleReference, wireConnectionCount: number) {
 		this.setUiState({
 			mode: "edit",
 			editType: "addingWire",
@@ -340,7 +340,7 @@ export class EditorViewModel {
 		this._uiState.hoveredElement = null;
 		this.notifyAll();
 	}
-	setHoveredHandle(handle: WireConnection | ComponentConnection) {
+	setHoveredHandle(handle: HandleReference) {
 		if (this._uiState.hoveredHandle !== null) {
 			console.warn("hovered handle already set");
 		}

@@ -1,20 +1,19 @@
 <script lang="ts">
 	import {
-		isComponentConnection,
-		isWireConnection,
+		isComponentHandleRef,
+		isWireHandleRef,
 	} from "$lib/util/global.svelte";
 	import type { SimulationData } from "$lib/util/simulation.svelte";
 	import type {
-		ComponentConnection,
+		HandleReference,
 		HandleType,
 		SVGPointerEvent,
-		WireConnection,
 		XYPair,
 	} from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	type Props = {
 		uiState: EditorUiState;
-		connection: WireConnection | ComponentConnection;
+		ref: HandleReference;
 		editingThis: boolean;
 		deletingThis: boolean;
 		simulating: boolean;
@@ -29,7 +28,7 @@
 
 	let {
 		uiState,
-		connection,
+		ref: connection,
 		editingThis,
 		simulating,
 		simData,
@@ -43,15 +42,15 @@
 	}: Props = $props();
 
 	let isHoveredHandle = $derived.by(() => {
-		if (isComponentConnection(connection)) {
+		if (isComponentHandleRef(connection)) {
 			return (
-				isComponentConnection(uiState.hoveredHandle) &&
+				isComponentHandleRef(uiState.hoveredHandle) &&
 				uiState.hoveredHandle.id == connection.id &&
 				uiState.hoveredHandle.handleId == connection.handleId
 			);
 		} else {
 			return (
-				isWireConnection(uiState.hoveredHandle) &&
+				isWireHandleRef(uiState.hoveredHandle) &&
 				uiState.hoveredHandle.id == connection.id &&
 				uiState.hoveredHandle.handleType == connection.handleType
 			);
@@ -73,7 +72,7 @@
 	let draggingThisOnToOther = $derived(hoveringOtherWire && editingThis);
 
 	let identifier = $derived(
-		isComponentConnection(connection)
+		isComponentHandleRef(connection)
 			? connection.handleId
 			: connection.handleType,
 	);
@@ -96,7 +95,7 @@
 		draggingOtherOnToThis || draggingThisOnToOther
 			? "var(--handle-connect-color)"
 			: (simulating && isHandlePowered) ||
-				  (deletingThis && isWireConnection(connection))
+				  (deletingThis && isWireHandleRef(connection))
 				? "var(--component-delete-color)"
 				: "var(--component-outline-color)",
 	);
