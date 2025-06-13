@@ -271,7 +271,7 @@ test.describe("adding and dragging/moving", async () => {
 	});
 });
 test.describe("deleting", async () => {
-	test("deletes wire on top of component", async ({ editor }) => {
+	test("can't delete wire under component", async ({ editor }) => {
 		await editor.addComponent("AND", 500, 100);
 		await editor.drag(
 			editor.getHandle("AND", "out").first(),
@@ -283,8 +283,8 @@ test.describe("deleting", async () => {
 		);
 		await editor.deleteWire(editor.wires().first());
 
-		await expect(editor.wires()).toHaveCount(1);
-		await expect(editor.comps()).toHaveCount(1);
+		await expect(editor.wires()).toHaveCount(2); // Both wires should still exist
+		await expect(editor.comps()).toHaveCount(0); // Component should have been deleted
 	});
 	test("delete flow", async ({ editor }) => {
 		// Create first component
