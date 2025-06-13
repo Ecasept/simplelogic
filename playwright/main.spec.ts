@@ -300,8 +300,8 @@ test.describe("deleting", async () => {
 		await expect(editor.comps()).toHaveCount(2);
 
 		// Connect wire from second to first component
-		const secondSourceHandle = editor.handles().nth(3); // Second component input
-		const targetHandle = editor.handles().nth(2); // First wire output (after other inputs have disappeared)
+		const secondSourceHandle = editor.getHandle("OR", "in1").first(); // Second component input
+		const targetHandle = editor.getHandle("AND", "out").first(); // First component output
 		await editor.drag(secondSourceHandle, targetHandle);
 		await expect(editor.wires()).toHaveCount(2);
 
@@ -327,7 +327,8 @@ test.describe("deleting", async () => {
 		);
 		await secondComponent.click();
 		await expect(editor.comps()).toHaveCount(1);
-		await expect(editor.handles()).toHaveCount(5); // 3 for first component, 2 for second wire
+		await expect(editor.wires()).toHaveCount(1);
+		await expect(editor.handles()).toHaveCount(4); // 3 for first component + 1 for wire
 
 		// Undo component deletion and confirm
 		await editor.undo();
