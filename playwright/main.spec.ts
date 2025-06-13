@@ -740,8 +740,8 @@ test.describe("simulating", () => {
 		await editor.addComponent("AND", 500, 250);
 
 		// Add LED gates for outputs
-		await editor.addComponent("LED", 600, 150); // Sum output
-		await editor.addComponent("LED", 600, 250); // Carry output
+		await editor.addComponent("LED", 650, 150); // Sum output
+		await editor.addComponent("LED", 650, 250); // Carry output
 
 		// Connect inputs to XOR gate
 		await editor.drag(
@@ -1207,9 +1207,9 @@ test.describe("rotation", () => {
 		const component = editor.comps();
 
 		// Create wires connected to the output
-		await editor.dragTo(editor.getHandle("AND", "in1").first(), 400, 180);
-		await editor.dragTo(editor.getHandle("AND", "in1").first(), 400, 240);
-		await editor.dragTo(editor.getHandle("AND", "in1").first(), 400, 300);
+		await editor.dragTo(editor.getHandle("AND", "out").first(), 400, 180);
+		await editor.dragTo(editor.getHandle("AND", "out").first(), 400, 240);
+		await editor.dragTo(editor.getHandle("AND", "out").first(), 400, 300);
 		const wire1 = editor.wires().first();
 		const wire2 = editor.wires().nth(1);
 		const wire3 = editor.wires().nth(2);
@@ -1224,9 +1224,9 @@ test.describe("rotation", () => {
 
 		await editor.rotateSelected("cw");
 		// expect that all wires changed
-		await expect(wire1).toHaveAttribute("d", "M320 140 L340 120");
-		await expect(wire2).toHaveAttribute("d", "M320 140 L300 120");
-		await expect(wire3).toHaveAttribute("d", "M320 140 L320 240");
+		await expect(wire1).toHaveAttribute("d", "M320 200 L320 140");
+		await expect(wire2).toHaveAttribute("d", "M320 200 L320 180");
+		await expect(wire3).toHaveAttribute("d", "M320 200 L320 240");
 
 		// Rotate 3 more times
 		for (let i = 0; i < 3; i++) {
