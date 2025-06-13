@@ -381,7 +381,7 @@ test.describe("other", () => {
 		await editor.addComponent("OR", 600, 600);
 
 		// drag two wires from output
-		const outputHandle = editor.handles().nth(2);
+		const outputHandle = editor.getHandle("AND", "out").first();
 		await editor.dragTo(outputHandle, 400, 100);
 		await editor.dragTo(outputHandle, 400, 300);
 		await expect(editor.handles()).toHaveCount(8); // 2 inputs + 1 output + 2 wire endpoints, + 3 from second component
@@ -425,11 +425,15 @@ test.describe("other", () => {
 		editor,
 	}) => {
 		await editor.loadCircuit(circuits.multiconnected);
-		let middleHandle = editor.handles().nth(8);
+		// Move canvas to the right
+		await pointer.downAt(500, 500);
+		await pointer.moveTo(600, 600);
+		await pointer.up();
+
+		let middleHandle = editor.getHandle("wire", "output").nth(3);
 		await middleHandle.hover();
 		await pointer.down();
 		await expect(editor.handles()).toHaveCount(2);
-		middleHandle = editor.handles().first();
 		const targetHandle = editor.handles().nth(1);
 		await targetHandle.hover();
 		await pointer.up();
