@@ -68,7 +68,7 @@
 	}
 
 	/* ==== System theme selection ==== */
-	/* for when no theme is selected */
+	/* for when the javascript has not run yet */
 
 	// System dark theme preference
 	@media (prefers-color-scheme: dark) {

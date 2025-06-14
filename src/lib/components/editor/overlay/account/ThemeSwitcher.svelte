@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { getTheme, setTheme } from "$lib/util/theme.svelte";
+	import { getThemeSetting, setThemeSetting } from "$lib/util/theme.svelte";
 	import { Moon, SunDim, SunMoon } from "lucide-svelte";
 
-	let theme = $derived.by(getTheme);
+	let theme = $derived.by(getThemeSetting);
 </script>
 
 <span id="container">
 	<button
 		class={{ selected: theme === "light" }}
-		onclick={() => setTheme("light")}
+		onclick={() => setThemeSetting("light")}
 		title="Light theme"
 		aria-label="Light theme"
 	>
@@ -16,7 +16,7 @@
 	</button>
 	<button
 		class={{ selected: theme === "auto" }}
-		onclick={() => setTheme("auto")}
+		onclick={() => setThemeSetting("auto")}
 		title="System"
 		aria-label="System"
 	>
@@ -24,7 +24,7 @@
 	</button>
 	<button
 		class={{ selected: theme === "dark" }}
-		onclick={() => setTheme("dark")}
+		onclick={() => setThemeSetting("dark")}
 		title="Dark theme"
 		aria-label="Dark theme"
 	>
