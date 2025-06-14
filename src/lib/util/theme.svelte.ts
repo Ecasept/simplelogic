@@ -1,6 +1,8 @@
-let theme = $state("auto");
+type Theme = "auto" | "light" | "dark";
 
-export function setTheme(value: string) {
+let theme: Theme = $state("auto");
+
+export function setTheme(value: Theme) {
 	theme = value;
 }
 
