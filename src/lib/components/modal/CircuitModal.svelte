@@ -38,7 +38,7 @@
 					<Save size="32" />
 					<h2>Save your circuit</h2>
 				</div>
-				<button title="Close" class="close-button" onclick={close}>
+				<button title="Close" aria-label="Close" class="close-button" onclick={close}>
 					<X />
 				</button>
 			</div>
@@ -75,7 +75,7 @@
 						{/if}
 					</h2>
 				</div>
-				<button title="Close" class="close-button" onclick={close}>
+				<button title="Close" aria-label="Close" class="close-button" onclick={close}>
 					<X></X>
 				</button>
 			</div>
