@@ -42,6 +42,17 @@
 	$inspect(info).with(debugLog("INFO"));
 </script>
 
+{#snippet deleteButton()}
+	<Button
+		title="Delete selected element"
+		text="Delete"
+		onClick={() => EditorAction.deleteSelected()}
+		icon={Trash}
+		margin="0"
+		type="danger"
+	/>
+{/snippet}
+
 {#if info.selectedId !== null}
 	{#if uiState.matches({ mode: "edit" })}
 		<Sidebar
@@ -50,43 +61,87 @@
 			{toggle}
 			{open}
 		>
-			{#if info.type === "component"}
-				{info.data.type} Gate selected
-				{#if info.data.type === "IN"}
-					{@const powered = info.data.isPoweredInitially}
-					{@const powerText = powered ? "On" : "Off"}
-					{@const icon = powered ? ZapOff : Zap}
-					<Button
-						title="Turn {powerText}"
-						onClick={() => EditorAction.togglePower(info.selectedId)}
-						{icon}
-						margin="0"
-					/>
-				{:else if info.data.type === "LED"}
-					LED selected
+			<div class="sidebar-content">
+				{#if info.type === "component"}
+					{@const mapping: Record<string, string> = {
+						IN: "Input",
+						LED: "LED",
+					}}
+					{@const type = info.data.type}
+					{@const infoText = mapping[type] || type + " Gate"}
+					<p class="selected-element-text">
+						Selected: <strong>{infoText}</strong>
+					</p>
+					<div class="actions-container">
+						{#if info.data.type === "IN"}
+							{@const powered = info.data.isPoweredInitially}
+							{@const powerText = powered ? "Turn Off" : "Turn On"}
+							{@const icon = powered ? ZapOff : Zap}
+							<Button
+								text={powerText}
+								onClick={() => EditorAction.togglePower(info.selectedId)}
+								{icon}
+								margin="0"
+							/>
+						{/if}
+						<div class="button-group">
+							<Button
+								title="Rotate clockwise 90 degrees"
+								onClick={() =>
+									EditorAction.rotateComponent(info.selectedId, 90)}
+								icon={RotateCw}
+								margin="0"
+							/>
+							<Button
+								title="Rotate counter-clockwise 90 degrees"
+								onClick={() =>
+									EditorAction.rotateComponent(info.selectedId, -90)}
+								icon={RotateCcw}
+								margin="0"
+							/>
+						</div>
+						{@render deleteButton()}
+					</div>
+				{:else if info.type === "wire"}
+					<p class="selected-element-text">Selected: <strong>Wire</strong></p>
+					{@render deleteButton()}
 				{/if}
-				<Button
-					title="Rotate clockwise 90 degrees"
-					onClick={() => EditorAction.rotateComponent(info.selectedId, 90)}
-					icon={RotateCw}
-					margin="0"
-				/>
-				<Button
-					title="Rotate counter-clockwise 90 degrees"
-					onClick={() => EditorAction.rotateComponent(info.selectedId, -90)}
-					icon={RotateCcw}
-					margin="0"
-				/>
-			{:else if info.type === "wire"}
-				Wire selected
-			{/if}
-
-			<Button
-				title="Delete"
-				onClick={() => EditorAction.deleteSelected()}
-				icon={Trash}
-				margin="0"
-			/>
+			</div>
 		</Sidebar>
 	{/if}
 {/if}
+
+<style>
+	.sidebar-content {
+		display: flex;
+		flex-direction: column;
+		gap: 10px; /* Reduced spacing */
+		/* padding: 8px; */
+	}
+
+	.selected-element-text {
+		font-size: 0.9em;
+		text-align: center;
+		margin-top: 8px;
+	}
+
+	.actions-container {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 8px;
+	}
+
+	.button-group {
+		display: flex;
+		gap: 8px;
+	}
+
+	.button-group > :global(button) {
+		flex-grow: 1;
+	}
+
+	p {
+		margin: 0;
+	}
+</style>

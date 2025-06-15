@@ -15,6 +15,11 @@
 		--primary-container-border-color: var(--primary-border-color);
 		--selected-outline-color: rgb(0, 159, 233);
 
+		--danger-color: var(--error-color);
+		--on-danger-color: black;
+		--danger-border-color: darkred;
+		--danger-highlight-color: #ff3333;
+
 		--canvas-background-color: rgb(238, 255, 223);
 		--component-outline-color: black;
 		--component-background-color: green;
@@ -41,6 +46,11 @@
 		--primary-border-color: #738b43; // Darker version of on-primary-color
 		--primary-container-border-color: var(--primary-border-color);
 		--selected-outline-color: rgb(0, 159, 233);
+
+		--danger-color: #ff3333;
+		--on-danger-color: black;
+		--danger-border-color: #990000;
+		--danger-highlight-color: #ff8585;
 
 		--canvas-background-color: #2c2c2c;
 		--component-outline-color: rgb(189, 196, 171);
