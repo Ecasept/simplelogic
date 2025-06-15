@@ -40,7 +40,7 @@ export const {
 	];
 
 	if (import.meta.env.DEV) {
-		providers = ["github"].map((id) => createTestingProvider(id));
+		providers.push(createTestingProvider("google"));
 	}
 
 	return {
