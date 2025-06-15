@@ -1,15 +1,17 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices, PlaywrightTestConfig } from "@playwright/test";
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 dotenv.config({ path: "./.dev.vars" });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+
+type WebServer = PlaywrightTestConfig["webServer"];
 
 export default defineConfig({
 	testDir: "./playwright",
@@ -86,11 +88,23 @@ export default defineConfig({
 	],
 
 	/* Run your local dev server before starting the tests */
-	webServer: process.env.CI
-		? {
-				command: `npx wrangler pages dev`,
+	webServer: (() => {
+		const servers: WebServer = [
+			{
+				// OAuth2 mock server
+				command: "npm run oauth",
+				url: "http://localhost:8080/userinfo",
+				reuseExistingServer: !process.env.CI,
+			},
+		];
+		if (process.env.CI) {
+			servers.push({
+				// local D1 database server
+				command: "npm run db",
 				url: "http://127.0.0.1:8788",
 				reuseExistingServer: !process.env.CI,
-			}
-		: undefined,
+			});
+		}
+		return servers;
+	})(),
 });

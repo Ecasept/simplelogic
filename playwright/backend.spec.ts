@@ -2,6 +2,35 @@ import { expect } from "@playwright/test";
 import { spawn } from "child_process";
 import { getAttr, test } from "./common";
 
+test.describe("basic login", async () => {
+	test("login", async ({ editor }) => {
+		await editor.toggleAccountButton();
+		const menu = editor.getAccountMenu();
+		await expect(menu).toBeVisible();
+		await expect(
+			menu.getByRole("button", { name: "Continue with GitHub" }),
+		).toBeVisible();
+		await expect(
+			menu.getByRole("button", { name: "Continue with Google" }),
+		).toBeVisible();
+		await editor.toggleAccountButton();
+		await editor.signIn();
+		await editor.toggleAccountButton();
+		await expect(editor.getAccountMenu().getByText("John Doe")).toBeVisible();
+		await expect(
+			editor.getAccountMenu().getByRole("button", { name: "Sign out" }),
+		).toBeVisible();
+		await editor.toggleAccountButton();
+		await editor.signOut();
+		await editor.toggleAccountButton();
+		await expect(
+			editor
+				.getAccountMenu()
+				.getByRole("button", { name: "Continue with GitHub" }),
+		).toBeVisible();
+	});
+});
+
 test.describe("modal", async () => {
 	test.beforeAll(async () => {
 		// Clear database to prevent circuit list from being too long and needing multiple pages
@@ -168,6 +197,9 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await expect(editor.comps()).toHaveCount(1);
 	});
+});
+
+test.describe("clipboard", () => {
 	test("copy and paste", async ({ page, editor }) => {
 		// Create 2 components connected by a wire
 		await editor.addComponent("AND", 100, 200);

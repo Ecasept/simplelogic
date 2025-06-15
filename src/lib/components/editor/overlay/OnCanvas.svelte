@@ -26,10 +26,15 @@
 <div id="on-canvas-container" class="nointeract">
 	<div class="toolbar-area nointeract">
 		<Logo />
-		<Toolbar {uiState} simulating={uiState.matches({ mode: "simulate" })} />
+		<div class="top-toolbar">
+			<Toolbar {uiState} simulating={uiState.matches({ mode: "simulate" })} />
+		</div>
 		<AccountButton uiState={authUiState} />
 	</div>
 	<div class="sidebar-area nointeract">
+		<div class="bottom-toolbar">
+			<Toolbar {uiState} simulating={uiState.matches({ mode: "simulate" })} />
+		</div>
 		<ToolsSidebar {uiState} />
 		<div class="cancel-button nointeract">
 			<CancelButton
@@ -72,13 +77,17 @@
 	.toolbar-area {
 		display: grid;
 		grid-template-columns: 1fr auto 1fr;
+		grid-template-rows: auto;
+		grid-template-areas:
+			"logo toolbar account"
+			"none none auth-popup";
 
 		justify-items: center;
 		align-items: center;
 
 		width: 100%;
 
-		gap: 10px;
+		gap: 0px 10px;
 
 		& > :global(:first-child) {
 			justify-self: start;
@@ -99,6 +108,10 @@
 		// items don't fill the whole height
 		align-items: start;
 
+		.bottom-toolbar {
+			display: none;
+		}
+
 		& > :global(:first-child) {
 			justify-self: start;
 		}
@@ -109,9 +122,8 @@
 
 	@media (max-width: $mobile-breakpoint) {
 		#on-canvas-container {
-			flex-direction: column-reverse;
-			// Move to bottom
-			bottom: 0;
+			height: 100%;
+			justify-content: space-between;
 		}
 		.sidebar-area {
 			// Make grid vertical
@@ -120,10 +132,11 @@
 			align-items: center;
 			width: auto;
 
-			& > :global(:first-child) {
-				justify-self: center;
+			.bottom-toolbar {
+				display: block;
 			}
-			& > :global(:last-child) {
+
+			& > * {
 				justify-self: center;
 			}
 		}
@@ -134,18 +147,14 @@
 			justify-self: center;
 		}
 		.toolbar-area {
-			// Move Logo and AccountButton to the top,
-			// while keeping the toolbar at the bottom
+			// remove middle column (top toolbar)
+			grid-template-columns: 1fr 1fr;
+			grid-template-areas:
+				"logo account"
+				"none auth-popup";
 
-			grid-template-columns: 1fr;
-
-			& > :global(:first-child) {
-				position: absolute;
-				top: $screen-margin;
-			}
-			& > :global(:last-child) {
-				position: absolute;
-				top: $screen-margin;
+			.top-toolbar {
+				display: none;
 			}
 		}
 	}

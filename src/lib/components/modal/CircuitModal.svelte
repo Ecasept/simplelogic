@@ -3,8 +3,8 @@
 	import type { CircuitModalUiState } from "$lib/util/viewModels/circuitModalViewModel";
 	import { Download, Save, X } from "lucide-svelte";
 	import Button from "../reusable/Button.svelte";
-	import CircuitList from "./CircuitList.svelte";
 	import HrText from "../reusable/HRText.svelte";
+	import CircuitList from "./CircuitList.svelte";
 
 	let enteredName = $state("");
 
@@ -153,6 +153,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		z-index: 1000;
 	}
 	.modal-bg {
 		width: 50%;

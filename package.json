@@ -16,16 +16,18 @@
 		"vitest": "vitest run",
 		"vitest:ui": "vitest --ui",
 		"vitest:watch": "vitest",
-		"playwright": "playwright test",
-		"playwright:headed": "playwright test --headed",
-		"playwright:ui": "playwright test --ui",
-		"cleardb": "wrangler d1 execute MAIN_DB --local --command 'DELETE FROM Graph;'"
+		"playwright": "node playwright/run.js",
+		"playwright:headed": "node playwright/run.js --headed",
+		"playwright:ui": "node playwright/run.js --ui",
+		"cleardb": "wrangler d1 execute MAIN_DB --local --command 'DELETE FROM Graph;'",
+		"db": "wrangler pages dev",
+		"oauth": "ts-node playwright/oauth/mock_server.ts"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240815.0",
 		"@playwright/test": "^1.46.1",
 		"@sveltejs/adapter-auto": "^3.0.0",
-		"@sveltejs/adapter-cloudflare": "^4.7.2",
+		"@sveltejs/adapter-cloudflare": "^7.0.4",
 		"@sveltejs/kit": "^2.5.27",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@testing-library/jest-dom": "^6.4.8",
@@ -42,6 +44,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.45.1",
 		"jsdom": "^24.1.1",
+		"oauth2-mock-server": "^8.1.0",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.2.6",
 		"prisma": "^5.19.0",
@@ -51,10 +54,13 @@
 		"tslib": "^2.4.1",
 		"typescript": "^5.5.4",
 		"vite": "^5.4.4",
-		"vitest": "^2.0.5"
+		"vitest": "^2.0.5",
+		"wrangler": "^4.20.0"
 	},
 	"type": "module",
 	"dependencies": {
+		"@auth/prisma-adapter": "^2.9.1",
+		"@auth/sveltekit": "^1.8.0",
 		"@prisma/adapter-d1": "^5.19.0",
 		"@prisma/client": "^5.19.0",
 		"jose": "^5.8.0",

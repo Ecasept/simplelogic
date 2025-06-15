@@ -521,7 +521,7 @@ test.describe("toolbar actions", async () => {
 
 test.describe("theme switcher", async () => {
 	test("theme switcher switches themes", async ({ page, editor }) => {
-		editor.toggleUserButton();
+		await editor.toggleAccountButton();
 
 		const lightTheme = page.getByLabel("Light theme");
 		const autoTheme = page.getByLabel("System");
@@ -1091,10 +1091,10 @@ test.describe("selection", () => {
 });
 test.describe("user button", () => {
 	test("can toggle user button", async ({ editor }) => {
-		await editor.toggleUserButton();
-		await expect(editor.getUserDialog()).toBeVisible();
-		await editor.toggleUserButton();
-		await expect(editor.getUserDialog()).not.toBeVisible();
+		await editor.toggleAccountButton();
+		await expect(editor.getAccountMenu()).toBeVisible();
+		await editor.toggleAccountButton();
+		await expect(editor.getAccountMenu()).not.toBeVisible();
 	});
 });
 test.describe("grid snap", () => {

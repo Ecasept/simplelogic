@@ -5,7 +5,6 @@ on:
   pull_request:
     branches: [master]
 env:
-  PASSWORD: fake_password
   SECRET_KEY: fake_key
 jobs:
   playwright:
@@ -43,7 +42,6 @@ jobs:
       - name: "Create .dev.vars file"
         run: |
           touch .dev.vars
-          echo PASSWORD=$PASSWORD >> .dev.vars
           echo SECRET_KEY=$SECRET_KEY >> .dev.vars
       - name: Run Playwright tests
         run: npx playwright test

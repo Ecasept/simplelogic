@@ -16,6 +16,40 @@ export class Editor {
 		await this.page.waitForLoadState("networkidle");
 	}
 
+	async signIn() {
+		await this.toggleAccountButton();
+		const btn = this.page.getByRole("button", { name: "Continue with GitHub" });
+		await btn.click();
+		await this.page.waitForURL("/");
+		await this.page.waitForLoadState("networkidle");
+	}
+
+	async signOut() {
+		await this.toggleAccountButton();
+		const btn = this.page.getByRole("button", { name: "Sign out" });
+		await btn.click();
+		await this.page.waitForURL("/");
+		await this.page.waitForLoadState("networkidle");
+	}
+
+	/** Returns a locator to the account menu that is opened by the account button */
+	getAccountMenu() {
+		return this.page.locator("#auth-popup");
+	}
+
+	/** Clicks the user button in the header */
+	async toggleAccountButton() {
+		const button = this.page.getByRole("button", { name: "Open account menu" });
+		const popup = this.getAccountMenu();
+		if (await popup.isVisible()) {
+			await button.click();
+			await expect(popup).not.toBeVisible();
+		} else {
+			await button.click();
+			await expect(popup).toBeVisible();
+		}
+	}
+
 	/** Expand/collapse the specified sidebar */
 	async toggleSidebar(uniqueName: SidebarUniqueName) {
 		const button = this.page.locator(
@@ -44,7 +78,9 @@ export class Editor {
 
 	/** Clicks the toggle delete button */
 	async toggleDelete() {
-		const button = this.page.getByLabel("Switch to delete mode");
+		const button = this.page.getByRole("button", {
+			name: "Switch to delete mode",
+		});
 		// get aria pressed
 		const ariaPressed = await button.getAttribute("aria-pressed");
 		if (ariaPressed === "false") {
@@ -180,7 +216,9 @@ export class Editor {
 
 	/** Toggles the simulation mode on the page */
 	async toggleSimulate(): Promise<void> {
-		const simulateButton = this.page.getByLabel("Switch to simulate mode");
+		const simulateButton = this.page.getByRole("button", {
+			name: "Switch to simulate mode",
+		});
 		const ariaPressed = await simulateButton.getAttribute("aria-pressed");
 		if (ariaPressed === "false") {
 			await this.setMode("simulate");
@@ -190,7 +228,9 @@ export class Editor {
 	}
 
 	async setMode(mode: "edit" | "delete" | "simulate") {
-		const button = this.page.getByLabel(`Switch to ${mode} mode`);
+		const button = this.page.getByRole("button", {
+			name: `Switch to ${mode} mode`,
+		});
 		expect(await button.getAttribute("aria-pressed")).toBe("false");
 		await this.pointer.clickOn(button);
 		await expect(this.page).toHaveMode(mode);

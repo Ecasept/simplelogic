@@ -4,7 +4,7 @@
 		type AuthUiState,
 	} from "$lib/util/viewModels/authViewModel";
 	import { CircleUserRound } from "lucide-svelte";
-	import AuthentificationPopup from "./AuthentificationPopup.svelte";
+	import AuthenticationPopup from "./AuthenticationPopup.svelte";
 	let { uiState }: { uiState: AuthUiState } = $props();
 </script>
 
@@ -12,20 +12,24 @@
 	<button
 		class={["icon", { open: uiState.open }]}
 		onclick={() => authViewModel.toggleOpen()}
+		title="Open account menu"
+		aria-label="Open account menu"
+		aria-expanded={uiState.open}
+		aria-haspopup="true"
+		aria-controls="auth-popup"
 	>
 		<CircleUserRound size="24px" />
 	</button>
-	{#if uiState.open}
-		<div class="auth-wrapper">
-			<AuthentificationPopup {uiState} />
-		</div>
-	{/if}
 </div>
+{#if uiState.open}
+	<AuthenticationPopup {uiState} />
+{/if}
 
 <style>
 	.toolbar {
 		border-radius: 100%;
 		padding: 0px;
+		justify-self: end;
 	}
 	.icon {
 		cursor: pointer;
@@ -40,9 +44,5 @@
 	.icon:hover,
 	.icon.open {
 		background-color: var(--primary-highlight-color);
-	}
-
-	.auth-wrapper {
-		position: relative;
 	}
 </style>

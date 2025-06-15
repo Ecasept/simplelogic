@@ -386,10 +386,10 @@ export const expect = baseExpect.extend({
 		) {
 			const boundingBox = (await locator.boundingBox())!;
 			expect(boundingBox).not.toBeNull();
-		
+
 			const centerX = boundingBox.x + boundingBox.width / 2;
 			const centerY = boundingBox.y + boundingBox.height / 2;
-		
+
 			// 30 because of snapping + 5 for other inaccuracies
 			expect(Math.abs(centerX - x)).toBeLessThan(35);
 			expect(Math.abs(centerY - y)).toBeLessThan(35);

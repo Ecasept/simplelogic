@@ -1,20 +1,8 @@
-import { env } from "$env/dynamic/private";
-import { jwtVerify } from "jose";
+import type { LayoutServerLoad } from "./$types";
 
-/** @type {import('./$types').PageServerLoad} */
-export async function load({ cookies }) {
-	let loggedIn = false;
-	const token = cookies.get("auth");
-	if (typeof token === "string") {
-		try {
-			const secret = new TextEncoder().encode(env.SECRET_KEY);
-			await jwtVerify(token, secret);
-			loggedIn = true;
-		} catch (e) {
-			// Invalid token
-		}
-	}
+export const load: LayoutServerLoad = async (event) => {
+	const session = await event.locals.auth();
 	return {
-		loggedIn,
+		session: session,
 	};
-}
+};
