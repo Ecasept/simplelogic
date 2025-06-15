@@ -8,6 +8,7 @@
 		circuitModalViewModel,
 		EditorAction,
 		editorViewModel,
+		graphManager,
 	} from "$lib/util/actions";
 	import {
 		debugLog,
@@ -18,10 +19,24 @@
 	import { cancelLongPress, cancelLongPressIfMoved } from "$lib/util/longpress";
 	import { getThemeClass } from "$lib/util/theme.svelte";
 	import { authViewModel } from "$lib/util/viewModels/authViewModel";
+	import { onMount } from "svelte";
 	import { P } from "ts-pattern";
 
 	let { data }: { data: import("./$types").LayoutData } = $props();
 	let themeClass = $derived.by(getThemeClass);
+
+	onMount(() => {
+		// Check if there is a circuit in the session storage from a previous sign in
+		const sessionCircuit = sessionStorage.getItem("currentCircuit");
+		if (sessionCircuit) {
+			// If there is, load it into the editor
+			const circuit = JSON.parse(sessionCircuit);
+			graphManager.setGraphData(circuit);
+			graphManager.notifyAll();
+			sessionStorage.removeItem("currentCircuit");
+			console.log("Loaded circuit from session storage");
+		}
+	});
 
 	$inspect(editorViewModel.uiState).with(debugLog("UISTATE"));
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { graphManager } from "$lib/util/actions";
 	import { getTheme } from "$lib/util/theme.svelte";
 	import { signIn } from "@auth/sveltekit/client";
 
@@ -7,8 +8,13 @@
 	const { provider }: { provider: Provider } = $props();
 
 	function _signIn(provider: Provider) {
-		// Implement your sign-in logic here
-		console.log(`Signing in with ${provider}`);
+		// Temporarily save current circuit to session storage
+		// to restore it after sign-in
+		sessionStorage.setItem(
+			"currentCircuit",
+			JSON.stringify(graphManager.getGraphData()),
+		);
+
 		signIn(provider);
 	}
 
