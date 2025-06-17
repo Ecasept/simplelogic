@@ -26,7 +26,7 @@
 	}
 </script>
 
-{#if uiState.matches({ mode: "edit" })}
+{#if uiState.matches({ mode: "edit", editType: "idle" })}
 	<Sidebar headerText="Tools" uniqueName={"tools"} {toggle} {open}>
 		<SidebarSection text="Components">
 			<ComponentToolbar onPointerDown={addComponent} />

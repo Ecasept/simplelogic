@@ -97,9 +97,15 @@
 		}
 	}
 
+	.cancel-button {
+		// Keep centered even if the sidebars disappear
+		grid-area: cancel;
+	}
+
 	.sidebar-area {
 		display: grid;
 		grid-template-columns: 1fr auto 1fr;
+		grid-template-areas: "tools cancel selection";
 
 		width: 100%;
 

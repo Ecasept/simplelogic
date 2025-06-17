@@ -54,7 +54,7 @@
 {/snippet}
 
 {#if info.selectedId !== null}
-	{#if uiState.matches({ mode: "edit" })}
+	{#if uiState.matches({ mode: "edit", editType: "idle" })}
 		<Sidebar
 			headerText="Element Settings"
 			uniqueName={"selection"}
