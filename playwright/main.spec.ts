@@ -194,7 +194,7 @@ test.describe("adding and dragging/moving", async () => {
 	}) => {
 		await editor.addComponent("AND", 400, 300);
 
-		const handle = editor.handles().nth(2);
+		const handle = editor.getHandle("AND", "out").first();
 		await editor.dragTo(handle, 300, 100);
 		await editor.dragTo(handle, 300, 500);
 
@@ -204,11 +204,31 @@ test.describe("adding and dragging/moving", async () => {
 		const d1 = await getAttr(editor.wires().nth(0), "d");
 		const d2 = await getAttr(editor.wires().nth(1), "d");
 
-		await editor.dragTo(editor.comps(), 100, 100);
-		await expectPosToBe(editor.comps(), 100, 100);
+		await editor.dragTo(editor.comps(), 500, 500);
+		await expectPosToBe(editor.comps(), 500, 500);
 
 		await expect(editor.wires().nth(0)).not.toHaveAttribute("d", d1);
 		await expect(editor.wires().nth(1)).not.toHaveAttribute("d", d2);
+
+		await editor.deleteSelected();
+
+		// Move wire to check that they are disconnected
+		await editor.dragTo(
+			editor.getHandle("wire", "input").first(),
+			200,
+			200,
+			true,
+		);
+
+		// Expect correct d attributes for the wires after moving
+		await expect(editor.wires().nth(0)).toHaveAttribute(
+			"d",
+			"M440 400 L240 80",
+		);
+		await expect(editor.wires().nth(1)).toHaveAttribute(
+			"d",
+			"M160 160 L240 400",
+		);
 	});
 	test("doesn't connect wire when under component", async ({ editor }) => {
 		await editor.addComponent("AND", 100, 150);
