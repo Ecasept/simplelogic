@@ -45,8 +45,7 @@ export const {
 			clientSecret: env.GH_CLIENT_SECRET,
 		}),
 	];
-
-	if (import.meta.env.DEV) {
+	if (import.meta.env.DEV || env.TESTING === "true") {
 		providers.push(
 			createTestingProvider(
 				"google",

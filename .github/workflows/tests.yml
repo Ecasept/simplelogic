@@ -6,6 +6,7 @@ on:
     branches: [master]
 env:
   SECRET_KEY: fake_key
+  TESTING: true
 jobs:
   playwright:
     name: Playwright
@@ -43,6 +44,7 @@ jobs:
         run: |
           touch .dev.vars
           echo SECRET_KEY=$SECRET_KEY >> .dev.vars
+          echo TESTING=$TESTING >> .dev.vars
       - name: Run Playwright tests
         run: npm run playwright
       - uses: actions/upload-artifact@v4
