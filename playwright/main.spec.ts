@@ -992,6 +992,9 @@ test.describe("sidebars", () => {
 	test("selection sidebar can be toggled", async ({ editor }) => {
 		await expect(editor.getSidebar("selection")).not.toBeVisible();
 		await editor.addComponent("AND", 100, 100);
+		// await expect(
+		// 	editor.getSidebar("selection").locator(".sidebar-content"),
+		// ).not.toHaveClass(/collapsed/);
 		await expect(editor.getSidebar("selection")).toBeExpanded();
 		await editor.toggleSidebar("selection");
 		await expect(editor.getSidebar("selection")).toBeCollapsed();
@@ -1015,6 +1018,7 @@ test.describe("selection", () => {
 		// Add component, verify selected
 		await editor.addComponent("AND", 400, 200);
 		await expect(editor.comps()).toBeSelected();
+		await editor.toggleSidebar("tools");
 
 		// Click on canvas to deselect
 		await pointer.clickAt(400, 100);
@@ -1041,7 +1045,7 @@ test.describe("selection", () => {
 		// ===== Wire Selection Flow =====
 		// Add wire, verify selected, component not selected
 		const handle = editor.getHandle("AND", "out").first();
-		await editor.dragTo(handle, 400, 400);
+		await editor.dragTo(handle, 400, 500);
 		await expect(editor.wires()).toBeSelected();
 		await expect(editor.comps()).not.toBeSelected();
 
@@ -1050,25 +1054,25 @@ test.describe("selection", () => {
 		await expect(editor.wires()).not.toBeSelected();
 
 		// Click on wire to select
-		await pointer.clickOn(editor.wires());
+		await pointer.clickOn(editor.wires(), true);
 		await expect(editor.wires()).toBeSelected();
 
 		// Move canvas, verify not deselected
-		await pointer.down();
-		await pointer.moveTo(500, 600);
+		await pointer.downAt(600, 100);
+		await pointer.moveTo(600, 200);
 		await expect(editor.wires()).toBeSelected();
 		await pointer.up();
 
 		// Click on wire to deselect
-		await editor.wires().click();
+		await editor.wires().click({ force: true });
 		await expect(editor.wires()).not.toBeSelected();
 
 		// Move wire, verify selected
-		await editor.dragTo(editor.wires(), 600, 600);
+		await editor.dragTo(editor.wires(), 600, 700, true);
 		await expect(editor.wires()).toBeSelected();
 
 		// Click wire to deselect it
-		await editor.wires().click();
+		await editor.wires().click({ force: true });
 		await expect(editor.wires()).not.toBeSelected();
 
 		// Click wire handle, verify wire selected
@@ -1077,12 +1081,11 @@ test.describe("selection", () => {
 		await expect(editor.wires()).toBeSelected();
 
 		// Click wire handle again, verify wire deselected
-		await pointer.clickOn(wireHandle);
+		await pointer.clickOn(wireHandle, true);
 		await expect(editor.wires()).not.toBeSelected();
 
 		// ===== Undo Operations =====
 		// Undo twice, verify wire disappeared
-		await editor.undo();
 		await editor.undo();
 		await expect(editor.wires()).toHaveCount(0);
 

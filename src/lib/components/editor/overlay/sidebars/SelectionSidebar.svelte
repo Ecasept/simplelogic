@@ -61,7 +61,7 @@
 			{toggle}
 			{open}
 		>
-			<div class="sidebar-content">
+			<div class="selection-sidebar-content">
 				{#if info.type === "component"}
 					{@const mapping: Record<string, string> = {
 						IN: "Input",
@@ -112,11 +112,10 @@
 {/if}
 
 <style>
-	.sidebar-content {
+	.selection-sidebar-content {
 		display: flex;
 		flex-direction: column;
-		gap: 10px; /* Reduced spacing */
-		/* padding: 8px; */
+		gap: 10px;
 	}
 
 	.selected-element-text {

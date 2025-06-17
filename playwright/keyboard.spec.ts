@@ -30,12 +30,13 @@ test.describe("editor shortcuts", () => {
 		await expectPosToBe(component, 300, 300);
 	});
 
-	test("ctrl+s opens save dialog and escape closes it", async ({ page }) => {
+	test("ctrl+s opens save dialog and escape closes it", async ({
+		page,
+		editor,
+	}) => {
 		await page.keyboard.press("Control+S");
 		await expect(page.locator(".modal-bg")).toBeVisible();
-		await expect(
-			page.getByRole("button", { name: "Save" }).nth(1),
-		).toBeVisible();
+		await expect(editor.getModal()).toBeVisible();
 		await page.keyboard.press("Escape");
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 	});

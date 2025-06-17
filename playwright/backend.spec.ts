@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-import { spawn } from "child_process";
 import { circuits } from "./circuits";
 import { getAttr, test } from "./common";
 
@@ -322,8 +321,8 @@ test.describe("basic login", async () => {
 test.describe("clipboard", () => {
 	test("copy and paste", async ({ page, editor }) => {
 		// Create 2 components connected by a wire
-		await editor.addComponent("AND", 100, 200);
-		await editor.addComponent("OR", 200, 300);
+		await editor.addComponent("AND", 300, 400);
+		await editor.addComponent("OR", 400, 500);
 		const sourceHandle = editor.handles().nth(2);
 		const targetHandle = editor.handles().nth(3);
 		await editor.drag(sourceHandle, targetHandle);
@@ -331,7 +330,7 @@ test.describe("clipboard", () => {
 		// Copy to clipboard
 		await page.getByRole("button", { name: "Save" }).click();
 		await page.getByRole("button", { name: "Copy to clipboard" }).click();
-		await expect(page.locator(".modal-bg")).not.toBeVisible();
+		await expect(page.getByText("Copied to clipboard")).toBeVisible();
 
 		// Reload page
 		await editor.reload();
@@ -339,7 +338,8 @@ test.describe("clipboard", () => {
 		// Paste from clipboard
 		await page.getByRole("button", { name: "Load" }).click();
 		await page.getByRole("button", { name: "Paste from clipboard" }).click();
-		await expect(page.locator(".modal-bg")).not.toBeVisible();
+		await expect(page.getByText("Circuit pasted from clipboard")).toBeVisible();
+		await editor.closeModal();
 
 		// Check that the components were copied
 		await expect(editor.comps()).toHaveCount(2);

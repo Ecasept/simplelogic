@@ -167,6 +167,7 @@ export class Editor {
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Paste from clipboard" }),
 		);
+		await this.closeModal();
 	}
 
 	/** Saves the current circuit to the clipboard and returns the circuit data as a string */
@@ -178,6 +179,7 @@ export class Editor {
 		const text = await this.page.evaluate(() => {
 			return navigator.clipboard.readText();
 		});
+		await this.closeModal();
 		return text;
 	}
 
