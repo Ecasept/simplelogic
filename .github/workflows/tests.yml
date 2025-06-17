@@ -44,7 +44,7 @@ jobs:
           touch .dev.vars
           echo SECRET_KEY=$SECRET_KEY >> .dev.vars
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npm run playwright
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
