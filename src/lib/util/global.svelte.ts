@@ -23,6 +23,8 @@ export const GRID_SIZE = 20;
 export const LONG_PRESS_MS = 500;
 /** The radius of the dots constituting the canvas grid in px */
 export const CANVAS_DOT_RADIUS = 1;
+/** How many pixels the user has to move the mouse on the canvas before a click is considered a pan */
+export const PAN_THRESHOLD = 5;
 
 export function gridSnap(val: number) {
 	if (editorViewModel.uiState.gridSnap) {

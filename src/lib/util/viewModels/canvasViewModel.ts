@@ -5,7 +5,9 @@ export type ViewBox = XYPair & { width: number; height: number };
 
 export type CanvasPanningState = {
 	isPanning: true;
-	hasMoved: boolean;
+	/** How much the user has moved the viewBox
+	 * since the start of panning */
+	moveAmount: number;
 	originalViewBox: ViewBox;
 };
 
@@ -35,7 +37,7 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 	startPanning() {
 		this._uiState = {
 			isPanning: true,
-			hasMoved: false,
+			moveAmount: 0,
 			viewBox: this._uiState.viewBox,
 			originalViewBox: { ...this._uiState.viewBox },
 		};
@@ -64,7 +66,6 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 			console.warn("pan called when not panning");
 			return;
 		}
-		this._uiState.hasMoved = true;
 
 		let { x, y } = this.clientToSVGCoords({
 			x: -movementX,
@@ -73,6 +74,7 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 
 		this._uiState.viewBox.x = x;
 		this._uiState.viewBox.y = y;
+		this._uiState.moveAmount += Math.sqrt(movementX ** 2 + movementY ** 2);
 		this.notifyAll();
 	}
 	zoom(factor: number, clientPos: XYPair) {

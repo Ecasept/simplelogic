@@ -11,6 +11,7 @@
 		CANVAS_DOT_RADIUS,
 		debugLog,
 		GRID_SIZE,
+		PAN_THRESHOLD,
 	} from "$lib/util/global.svelte";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 	import { P } from "ts-pattern";
@@ -107,7 +108,7 @@
 	}
 	function onPointerExit(event: PointerEvent) {
 		const cuiState = canvasViewModel.uiState;
-		if (cuiState.isPanning && "hasMoved" in cuiState && !cuiState.hasMoved) {
+		if (cuiState.isPanning && cuiState.moveAmount < PAN_THRESHOLD) {
 			// If the user only clicked and didn't move the canvas,
 			// clear the selection
 			editorViewModel.clearSelection();

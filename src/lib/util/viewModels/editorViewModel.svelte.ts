@@ -32,7 +32,8 @@ export type EditDraggingComponent = {
 	mode: "edit";
 	editType: "draggingComponent";
 	componentId: number;
-	/** If the component has actually been moved */
+	/** If the component has actually been moved enough that
+	 * it changed position on the grid */
 	hasMoved: boolean;
 	/** Offset from the top left corner of the component to the mouse position in svg coordinates */
 	clickOffset: XYPair;
