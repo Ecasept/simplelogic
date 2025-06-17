@@ -43,6 +43,7 @@ export class Editor {
 		});
 		await expect(button).toBeVisible();
 		await button.click();
+		await expect(button).not.toBeVisible();
 		await this.page.waitForURL("/");
 		await this.page.waitForLoadState("networkidle");
 	}
@@ -68,6 +69,7 @@ export class Editor {
 		await this.toggleAccountButton();
 		const btn = this.page.getByRole("button", { name: "Sign out" });
 		await btn.click();
+		await expect(btn).not.toBeVisible();
 		await this.page.waitForURL("/");
 		await this.page.waitForLoadState("networkidle");
 	}
