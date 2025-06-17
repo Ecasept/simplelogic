@@ -3,12 +3,13 @@ import { spawn } from "child_process";
 import { circuits } from "./circuits";
 import { getAttr, test } from "./common";
 
-
 test.describe("modal login", () => {
 	test("save modal login flow", async ({ page, editor }) => {
 		await editor.openSaveModal();
 		await expect(page.getByText("Sign in to")).toBeVisible();
 		await editor.clickGoogleLoginButton();
+		await expect(page.getByText("Sign in to")).not.toBeVisible();
+		await editor.closeModal();
 		await editor.openLoadModal();
 		await expect(page.getByText("Sign in to")).not.toBeVisible();
 		await editor.closeModal();
@@ -20,6 +21,8 @@ test.describe("modal login", () => {
 		await editor.openLoadModal();
 		await expect(page.getByText("Sign in to")).toBeVisible();
 		await editor.clickGoogleLoginButton();
+		await expect(page.getByText("Sign in to")).not.toBeVisible();
+		await editor.closeModal();
 		await editor.openSaveModal();
 		await expect(page.getByText("Sign in to")).not.toBeVisible();
 		await editor.closeModal();
@@ -32,6 +35,7 @@ test.describe("modal login", () => {
 test.describe("load modal", () => {
 	test.beforeEach(async ({ editor }) => {
 		await editor.signIn();
+		await editor.toggleAccountButton();
 	});
 
 	test("click the load button with no circuits", async ({ page, editor }) => {
@@ -151,6 +155,7 @@ test.describe("load modal", () => {
 test.describe("save modal", () => {
 	test.beforeEach(async ({ editor }) => {
 		await editor.signIn();
+		await editor.toggleAccountButton();
 	});
 
 	test("no circuit & can close error message", async ({ page, editor }) => {
@@ -278,7 +283,6 @@ test.describe("basic login", async () => {
 		).toBeVisible();
 		await editor.toggleAccountButton();
 		await editor.signIn();
-		await editor.toggleAccountButton();
 		await expect(editor.getAccountMenu().getByText("John Doe")).toBeVisible();
 		await expect(
 			editor.getAccountMenu().getByRole("button", { name: "Sign out" }),
@@ -291,6 +295,27 @@ test.describe("basic login", async () => {
 				.getAccountMenu()
 				.getByRole("button", { name: "Continue with GitHub" }),
 		).toBeVisible();
+	});
+	test("login source should stay open after login", async ({
+		page,
+		editor,
+	}) => {
+		// Save modal should stay open
+		await editor.openSaveModal();
+		await editor.clickGoogleLoginButton();
+		await expect(editor.getModal()).toBeVisible();
+		await editor.closeModal();
+		await editor.signOut();
+		// Load modal should stay open
+		await editor.openLoadModal();
+		await editor.clickGoogleLoginButton();
+		await expect(editor.getModal()).toBeVisible();
+		await editor.closeModal();
+		await editor.signOut();
+		// Account menu should stay open
+		await editor.toggleAccountButton();
+		await editor.clickGoogleLoginButton();
+		await expect(editor.getAccountMenu()).toBeVisible();
 	});
 });
 

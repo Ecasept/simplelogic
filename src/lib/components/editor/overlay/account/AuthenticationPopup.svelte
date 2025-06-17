@@ -34,8 +34,8 @@
 		{:else}
 			<div class="login-prompt">Sign in to access all features</div>
 			<div class="signin-buttons">
-				<SignInButton provider="github" />
-				<SignInButton provider="google" />
+				<SignInButton source="authPopup" provider="github" />
+				<SignInButton source="authPopup" provider="google" />
 			</div>
 		{/if}
 	</div>

@@ -9,6 +9,7 @@
 		EditorAction,
 		editorViewModel,
 		graphManager,
+		PersistenceAction,
 	} from "$lib/util/actions";
 	import {
 		debugLog,
@@ -35,6 +36,21 @@
 			graphManager.notifyAll();
 			sessionStorage.removeItem("currentCircuit");
 			console.log("Loaded circuit from session storage");
+		}
+		const source = sessionStorage.getItem("signInSource");
+		if (source) {
+			sessionStorage.removeItem("signInSource");
+			switch (source) {
+				case "saveModal":
+					PersistenceAction.saveGraph();
+					break;
+				case "loadModal":
+					PersistenceAction.loadGraph();
+					break;
+				case "authPopup":
+					authViewModel.toggleOpen();
+					break;
+			}
 		}
 	});
 
