@@ -21,6 +21,10 @@ declare global {
 			};
 			caches: CacheStorage & { default: Cache };
 		}
+		interface Error {
+			success: false;
+			error: string;
+		}
 	}
 }
 

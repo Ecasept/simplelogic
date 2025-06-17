@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { circuitModalViewModel } from "$lib/util/actions";
 	import type { ListRequestData } from "$lib/util/api";
 	import { onEnter } from "$lib/util/keyboard";
 
@@ -9,15 +8,11 @@
 	};
 
 	let { listData, onSelect }: Props = $props();
-
-	function loadCircuitList() {
-		circuitModalViewModel.loadCircuitList(1);
-	}
 </script>
 
 <div class="list-container">
 	{#if listData !== null}
-		{#each listData.graphs as circuitInfo (circuitInfo.id)}
+		{#each listData.circuits as circuitInfo (circuitInfo.id)}
 			<div
 				role="menuitem"
 				tabindex="0"

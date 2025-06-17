@@ -24,7 +24,12 @@
 					<img src={img} alt="User Avatar" />
 					<span>{name}</span>
 				</span>
-				<Button text="Sign out" onClick={() => signOut()} margin="0px" />
+				<Button
+					text="Sign out"
+					type="danger"
+					onClick={() => signOut()}
+					margin="0px"
+				/>
 			</div>
 		{:else}
 			<div class="login-prompt">Sign in to access all features</div>

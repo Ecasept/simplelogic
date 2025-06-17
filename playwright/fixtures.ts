@@ -16,12 +16,52 @@ export class Editor {
 		await this.page.waitForLoadState("networkidle");
 	}
 
-	async signIn() {
-		await this.toggleAccountButton();
-		const btn = this.page.getByRole("button", { name: "Continue with GitHub" });
-		await btn.click();
+	getNameInput() {
+		return this.getModal().getByPlaceholder("Enter a descriptive name");
+	}
+
+	getSaveButton() {
+		return this.getModal().getByRole("button", { name: "Save online" });
+	}
+
+	getLoadButton() {
+		return this.getModal().getByRole("button", { name: "Load saved circuits" });
+	}
+
+	async closeModal() {
+		await this.getModal().getByRole("button", { name: "Close" }).click();
+		await expect(this.getModal()).not.toBeVisible();
+	}
+
+	getModal() {
+		return this.page.locator(".modal-bg");
+	}
+
+	async clickGoogleLoginButton() {
+		const button = this.page.getByRole("button", {
+			name: "Continue with Google",
+		});
+		await expect(button).toBeVisible();
+		await button.click();
 		await this.page.waitForURL("/");
 		await this.page.waitForLoadState("networkidle");
+	}
+
+	async openLoadModal() {
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Load circuit" }),
+		);
+	}
+
+	async openSaveModal() {
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Save circuit" }),
+		);
+	}
+
+	async signIn() {
+		await this.toggleAccountButton();
+		await this.clickGoogleLoginButton();
 	}
 
 	async signOut() {
@@ -115,15 +155,28 @@ export class Editor {
 		await this.setMode("edit");
 	}
 
-	async loadCircuit(circuit: string) {
+	/** Loads `circuit` using the clipboard functionality */
+	async loadCircuitUsingClipboard(circuit: string) {
 		await this.page.evaluate((text) => {
 			return navigator.clipboard.writeText(text);
 		}, circuit);
 
-		await this.pointer.clickOn(this.page.getByRole("button", { name: "Load" }));
+		await this.openLoadModal();
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Paste from clipboard" }),
 		);
+	}
+
+	/** Saves the current circuit to the clipboard and returns the circuit data as a string */
+	async saveCircuitUsingClipboard() {
+		await this.openSaveModal();
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Copy to clipboard" }),
+		);
+		const text = await this.page.evaluate(() => {
+			return navigator.clipboard.readText();
+		});
+		return text;
 	}
 
 	async waitForSimulationFinished() {

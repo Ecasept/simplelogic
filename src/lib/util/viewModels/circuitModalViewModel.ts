@@ -3,17 +3,22 @@ import { API } from "../api";
 import type { GraphData } from "../types";
 import { ViewModel } from "./viewModel";
 
+export type FeedbackMessage = {
+	type: "error" | "success";
+	message: string;
+};
+
 export type CircuitModalUiState =
 	| {
 			mode: null;
 			callback: null;
-			errorMessage: null;
+			message: null;
 			listRequestData: null;
 			loadMode: null;
 	  }
 	| {
 			mode: "load";
-			errorMessage: string | null;
+			message: FeedbackMessage | null;
 			callback: (graphData: GraphData) => void;
 			listRequestData: ListRequestData | null;
 			isLoadingList: boolean;
@@ -21,7 +26,7 @@ export type CircuitModalUiState =
 	  }
 	| {
 			mode: "save";
-			errorMessage: string | null;
+			message: FeedbackMessage | null;
 			callback: () => void;
 			listRequestData: null;
 			isLoadingList: false;
@@ -29,7 +34,7 @@ export type CircuitModalUiState =
 	  };
 
 type ListRequestData = {
-	graphs: { name: string; id: number }[];
+	circuits: { name: string; id: number }[];
 	pagination: {
 		page: number;
 		perPage: number;
@@ -40,7 +45,7 @@ type ListRequestData = {
 export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 	protected _uiState: CircuitModalUiState = {
 		mode: null,
-		errorMessage: null,
+		message: null,
 		callback: null,
 		listRequestData: null,
 		loadMode: null,
@@ -49,7 +54,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 	protected resetUiState() {
 		this._uiState = {
 			mode: null,
-			errorMessage: null,
+			message: null,
 			callback: null,
 			listRequestData: null,
 			loadMode: null,
@@ -63,6 +68,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		const graphData = graphManager.getGraphData();
 		const json = JSON.stringify(graphData);
 		await navigator.clipboard.writeText(json);
+		this.setSuccess("Circuit copied to clipboard");
 		this._uiState.callback();
 	}
 	async pasteCircuitFromClipboard() {
@@ -79,6 +85,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 				this.setError("Invalid data: " + validationResult.error.message);
 				return;
 			}
+			this.setSuccess("Circuit pasted from clipboard");
 			this._uiState.callback(graphData);
 		} catch (e: unknown) {
 			if (e instanceof Error) {
@@ -99,6 +106,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		const graphData = graphManager.getGraphData();
 		const data = await API.saveCircuit(currentName, graphData);
 		if (data.success) {
+			this.setSuccess("Circuit saved successfully");
 			this._uiState.callback();
 		} else {
 			this.setError(data.error);
@@ -111,8 +119,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		const data = await API.loadCircuitList(page);
 		if (data.success) {
 			this._uiState.listRequestData = data.data;
-			this.setError(null);
-			this.notifyAll();
+			this.closeFeedback();
 		} else {
 			this.setError(data.error);
 		}
@@ -124,7 +131,22 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		}
 		const data = await API.loadCircuit(id);
 		if (data.success) {
+			this.setSuccess("Circuit loaded successfully");
 			this._uiState.callback(data.data);
+		} else {
+			this.setError(data.error);
+		}
+	}
+
+	async deleteCircuit(id: number) {
+		if (this._uiState.mode !== "load") {
+			throw new Error("Invalid mode");
+		}
+		const data = await API.deleteCircuit(id);
+		if (data.success) {
+			this.setSuccess("Circuit deleted successfully");
+			const page = this._uiState.listRequestData?.pagination.page;
+			this.loadCircuitList(page ?? 1);
 		} else {
 			this.setError(data.error);
 		}
@@ -147,8 +169,22 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		this.notifyAll();
 	}
 
-	setError(msg: string | null) {
-		this._uiState.errorMessage = msg;
+	setError(msg: string) {
+		this._uiState.message = {
+			type: "error",
+			message: msg,
+		};
+		this.notifyAll();
+	}
+	setSuccess(msg: string) {
+		this._uiState.message = {
+			type: "success",
+			message: msg,
+		};
+		this.notifyAll();
+	}
+	closeFeedback() {
+		this._uiState.message = null;
 		this.notifyAll();
 	}
 }

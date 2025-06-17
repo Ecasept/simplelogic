@@ -19,6 +19,9 @@
 		--on-danger-color: black;
 		--danger-border-color: darkred;
 		--danger-highlight-color: #ff3333;
+		--success-color: rgba(39, 92, 3, 0.1);
+		--on-success-color: #334703;
+		--highlight-filter: rgba(0, 0, 0, 0.1);
 
 		--canvas-background-color: rgb(238, 255, 223);
 		--component-outline-color: black;
@@ -47,10 +50,14 @@
 		--primary-container-border-color: var(--primary-border-color);
 		--selected-outline-color: rgb(0, 159, 233);
 
-		--danger-color: #ff3333;
-		--on-danger-color: black;
-		--danger-border-color: #990000;
-		--danger-highlight-color: #ff8585;
+		--danger-color: rgba(255, 110, 110, 0.1);
+		--on-danger-color: #ff6e6e;
+		--danger-border-color: var(--on-danger-color);
+		--danger-highlight-color: rgba(255, 110, 110, 0.2);
+		--success-color: rgba(50, 120, 4, 0.1);
+		--on-success-color: #6b9606;
+
+		--highlight-filter: rgba(255, 255, 255, 0.1);
 
 		--canvas-background-color: #2c2c2c;
 		--component-outline-color: rgb(189, 196, 171);

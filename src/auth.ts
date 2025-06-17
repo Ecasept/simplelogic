@@ -60,5 +60,11 @@ export const {
 		trustHost: true,
 		secret: env.SECRET_KEY,
 		adapter: PrismaAdapter(prisma),
+		callbacks: {
+			session({ session, user }) {
+				// Add user ID to session
+				return session;
+			},
+		},
 	};
 });

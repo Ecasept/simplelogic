@@ -394,9 +394,7 @@ export class PersistenceAction {
 		ChangesAction.abortEditing();
 		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
-		circuitModalViewModel.open("save", () => {
-			PersistenceAction.closeModal();
-		});
+		circuitModalViewModel.open("save", () => {});
 	}
 	static loadGraph() {
 		ChangesAction.abortEditing();
@@ -404,7 +402,6 @@ export class PersistenceAction {
 		editorViewModel.setModalOpen(true);
 		circuitModalViewModel.open("load", (newGraphData: GraphData) => {
 			PersistenceAction.setNewGraph(newGraphData);
-			PersistenceAction.closeModal();
 		});
 	}
 	static closeModal() {

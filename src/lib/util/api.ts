@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { err } from "./error";
 import { type GraphData, ZGraphData } from "./types";
 
 const PaginationSchema = z.object({
@@ -7,13 +8,13 @@ const PaginationSchema = z.object({
 	hasNextPage: z.boolean(),
 });
 
-const GraphListItemSchema = z.object({
+const CircuitListItemSchema = z.object({
 	name: z.string(),
 	id: z.number(),
 });
 
 const ListRequestDataSchema = z.object({
-	graphs: z.array(GraphListItemSchema),
+	circuits: z.array(CircuitListItemSchema),
 	pagination: PaginationSchema,
 });
 
@@ -28,6 +29,12 @@ const APIResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
 				success: z.literal(false),
 				error: z.string(),
 			}),
+		)
+		.and(
+			// SvelteKit error handling requires a message field
+			z.object({
+				message: z.string().optional(),
+			}),
 		);
 
 export type ListRequestData = z.infer<typeof ListRequestDataSchema>;
@@ -37,11 +44,17 @@ export type APIResponse<T> = z.infer<
 >;
 export namespace API {
 	interface FetchOptions {
-		method: "GET" | "POST";
+		method: "GET" | "POST" | "DELETE";
 		body?: any;
 		headers?: HeadersInit;
 	}
 
+	/** Makes a request to the API and validates the response
+	 * @param url - The API endpoint to call
+	 * @param schema - The Zod schema to validate the response data
+	 * @param options - The request options including method, body, and headers
+	 * @returns A promise that resolves to the validated API response
+	 */
 	async function makeAPIRequest<T>(
 		url: string,
 		schema: z.ZodType<T>,
@@ -67,13 +80,13 @@ export namespace API {
 
 			if (!validationResult.success) {
 				console.error(validationResult.error);
-				return { success: false, error: "Invalid API response format" };
+				return err("Invalid API response format");
 			}
 
 			return validationResult.data;
 		} catch (error) {
 			console.error(error);
-			return { success: false, error: "Network error" };
+			return err("Network error");
 		}
 	}
 
@@ -81,7 +94,7 @@ export namespace API {
 		name: string,
 		circuitData: GraphData,
 	): Promise<APIResponse<null>> {
-		return makeAPIRequest("/api/graphs", z.null(), {
+		return makeAPIRequest("/api/circuits", z.null(), {
 			method: "POST",
 			body: { name, data: circuitData },
 		});
@@ -91,24 +104,19 @@ export namespace API {
 		page: number,
 	): Promise<APIResponse<ListRequestData>> {
 		return makeAPIRequest(
-			`/api/graphs?page=${page}&perPage=10`,
+			`/api/circuits?page=${page}&perPage=10`,
 			ListRequestDataSchema,
 			{ method: "GET" },
 		);
 	}
 
 	export function loadCircuit(id: number): Promise<APIResponse<GraphData>> {
-		return makeAPIRequest(`/api/graphs/${id}`, ZGraphData, { method: "GET" });
+		return makeAPIRequest(`/api/circuits/${id}`, ZGraphData, { method: "GET" });
 	}
 
-	export function login(password: string): Promise<APIResponse<null>> {
-		return makeAPIRequest("/api/auth/login", z.null(), {
-			method: "POST",
-			body: { password },
+	export function deleteCircuit(id: number): Promise<APIResponse<null>> {
+		return makeAPIRequest(`/api/circuits/${id}`, z.null(), {
+			method: "DELETE",
 		});
-	}
-
-	export function logout(): Promise<APIResponse<null>> {
-		return makeAPIRequest("/api/auth/logout", z.null(), { method: "POST" });
 	}
 }

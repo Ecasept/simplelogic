@@ -42,13 +42,20 @@ export const ZWireHandle = z.object({
 });
 
 export const ZComponentHandleList = z.record(z.string(), ZComponentHandle);
-// Require input and output handles, but allow any other handles to prevent type errors
+// Require input and output handles,
+// but allow other handles on typescript level to prevent type errors
 export const ZWireHandleList = z
 	.object({
 		input: ZWireHandle,
 		output: ZWireHandle,
 	})
-	.and(z.record(z.string(), ZWireHandle));
+	.and(
+		z.record(
+			// refinement is not recognized by typescript
+			z.string().refine((val) => ["input", "output"].includes(val)),
+			ZWireHandle,
+		),
+	);
 
 // ==== Graph Types ====
 export const ZWireData = z.object({

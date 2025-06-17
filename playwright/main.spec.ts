@@ -188,7 +188,7 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(component).toHaveAttribute("x", x1);
 		await expect(component).toHaveAttribute("y", y1);
 	});
-	test("can connect multiple wires from component output", async ({
+	test("can connect multiple wires from component output, and delete it", async ({
 		page,
 		editor,
 	}) => {
@@ -381,6 +381,11 @@ test.describe("deleting", async () => {
 test.describe("other", () => {
 	test("has title", async ({ page }) => {
 		await expect(page).toHaveTitle("SimpleLogic");
+	});
+
+	test("sidebar disappears when editing", async ({ page, editor }) => {
+		await editor.initiateAddComponent("AND");
+		await expect(page.locator(".sidebar")).not.toBeVisible();
 	});
 
 	test("snaps", async ({ editor, pointer }) => {

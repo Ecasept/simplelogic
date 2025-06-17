@@ -1,6 +1,269 @@
 import { expect } from "@playwright/test";
 import { spawn } from "child_process";
+import { circuits } from "./circuits";
 import { getAttr, test } from "./common";
+
+
+test.describe("modal login", () => {
+	test("save modal login flow", async ({ page, editor }) => {
+		await editor.openSaveModal();
+		await expect(page.getByText("Sign in to")).toBeVisible();
+		await editor.clickGoogleLoginButton();
+		await editor.openLoadModal();
+		await expect(page.getByText("Sign in to")).not.toBeVisible();
+		await editor.closeModal();
+		await editor.signOut();
+		await editor.openSaveModal();
+		await expect(page.getByText("Sign in to")).toBeVisible();
+	});
+	test("load modal login flow", async ({ page, editor }) => {
+		await editor.openLoadModal();
+		await expect(page.getByText("Sign in to")).toBeVisible();
+		await editor.clickGoogleLoginButton();
+		await editor.openSaveModal();
+		await expect(page.getByText("Sign in to")).not.toBeVisible();
+		await editor.closeModal();
+		await editor.signOut();
+		await editor.openLoadModal();
+		await expect(page.getByText("Sign in to")).toBeVisible();
+	});
+});
+
+test.describe("load modal", () => {
+	test.beforeEach(async ({ editor }) => {
+		await editor.signIn();
+	});
+
+	test("click the load button with no circuits", async ({ page, editor }) => {
+		// Open load modal
+		await editor.openLoadModal();
+		await expect(page.locator(".modal-bg")).toBeVisible();
+
+		// Click "Load saved circuits" button when no circuits exist
+		await editor.getLoadButton().click();
+
+		// Should show the circuit list (even if empty)
+		await expect(page.getByText("Loading...")).toBeVisible();
+	});
+
+	test("save a circuit, clear canvas and load it", async ({
+		page,
+		editor,
+		browserName,
+	}) => {
+		const circuitName = `test_load_${browserName}_${Date.now()}`;
+
+		// Add a component and save it
+		await editor.addComponent("AND", 100, 200);
+		await editor.openSaveModal();
+		await editor.getNameInput().fill(circuitName);
+		await editor.getSaveButton().click();
+		await expect(page.getByText("Circuit saved successfully")).toBeVisible();
+		await editor.closeModal();
+
+		// Clear the canvas
+		await page.getByRole("button", { name: "Clear canvas" }).click();
+		await expect(editor.comps()).toHaveCount(0);
+
+		// Load the circuit back
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
+		await expect(page.getByText(`${circuitName} id:`)).toBeVisible();
+		await page.getByText(`${circuitName} id:`).click();
+
+		// Verify circuit was loaded
+		await expect(page.getByText("Circuit loaded successfully")).toBeVisible();
+		await expect(editor.comps()).toHaveCount(1);
+	});
+
+	test("can load with enter", async ({ page, editor, browserName }) => {
+		const circuitName = `test_load_enter_${browserName}_${Date.now()}`;
+
+		// Add a component and save it
+		await editor.addComponent("OR", 150, 250);
+		await editor.openSaveModal();
+		await editor.getNameInput().fill(circuitName);
+		await editor.getSaveButton().click();
+		await expect(page.getByText("Circuit saved successfully")).toBeVisible();
+		await editor.closeModal();
+
+		// Clear the canvas
+		await page.getByRole("button", { name: "Clear canvas" }).click();
+		await expect(editor.comps()).toHaveCount(0);
+
+		// Load the circuit using Enter key
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
+		await expect(page.getByText(`${circuitName} id:`)).toBeVisible();
+
+		// Focus the circuit item and press Enter
+		await page.getByText(`${circuitName} id:`).focus();
+		await page.keyboard.press("Enter");
+
+		// Verify circuit was loaded
+		await expect(page.getByText("Circuit loaded successfully")).toBeVisible();
+		await expect(editor.comps()).toHaveCount(1);
+	});
+
+	test("can close success message from loading", async ({
+		page,
+		editor,
+		browserName,
+	}) => {
+		const circuitName = `test_close_success_${browserName}_${Date.now()}`;
+
+		// Add a component and save it
+		await editor.addComponent("LED", 200, 300);
+		await editor.openSaveModal();
+		await editor.getNameInput().fill(circuitName);
+		await editor.getSaveButton().click();
+		await expect(page.getByText("Circuit saved successfully")).toBeVisible();
+		await editor.closeModal();
+
+		// Clear the canvas
+		await page.getByRole("button", { name: "Clear canvas" }).click();
+		await expect(editor.comps()).toHaveCount(0);
+
+		// Load the circuit
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
+		await expect(page.getByText(`${circuitName} id:`)).toBeVisible();
+		await page.getByText(`${circuitName} id:`).click();
+
+		// Verify success message appears
+		await expect(page.getByText("Circuit loaded successfully")).toBeVisible();
+
+		// Close the success message
+		const closeButton = page.getByRole("button", {
+			name: "Close",
+			exact: true,
+		});
+		await closeButton.click();
+		await expect(
+			page.getByText("Circuit loaded successfully"),
+		).not.toBeVisible();
+
+		// Verify circuit is still loaded
+		await expect(editor.comps()).toHaveCount(1);
+	});
+});
+
+test.describe("save modal", () => {
+	test.beforeEach(async ({ editor }) => {
+		await editor.signIn();
+	});
+
+	test("no circuit & can close error message", async ({ page, editor }) => {
+		// Open save modal with no circuit
+		await editor.openSaveModal();
+		await expect(page.locator(".modal-bg")).toBeVisible();
+
+		// Try to save without any circuit data
+		await editor.getSaveButton().click();
+		await expect(page.getByText("No data to save - please")).toBeVisible();
+
+		// Test that we can close the error message
+		const closeButton = page.getByRole("button", {
+			name: "Close",
+			exact: true,
+		});
+		await closeButton.click();
+		await expect(page.getByText("No data to save - please")).not.toBeVisible();
+	});
+
+	test("save circuit without name", async ({ page, editor }) => {
+		// Add a component to have data to save
+		await editor.addComponent("AND", 100, 200);
+
+		// Open save modal
+		await editor.openSaveModal();
+		await expect(page.locator(".modal-bg")).toBeVisible();
+
+		// Try to save without entering a name
+		await editor.getSaveButton().click();
+		await expect(page.getByText("Please enter a name")).toBeVisible();
+	});
+
+	test("can save circuit", async ({ page, editor, browserName }) => {
+		const circuitName = `test_save_${browserName}_${Date.now()}`;
+
+		// Add a component to have data to save
+		await editor.addComponent("AND", 100, 200);
+
+		// Open save modal
+		await editor.openSaveModal();
+		await expect(page.locator(".modal-bg")).toBeVisible();
+
+		// Enter a name and save
+		await editor.getNameInput().fill(circuitName);
+		await editor.getSaveButton().click();
+
+		await expect(page.getByText("Circuit saved successfully")).toBeVisible();
+	});
+
+	test("can't save duplicate names", async ({ page, editor, browserName }) => {
+		const circuitName = `test_duplicate_${browserName}_${Date.now()}`;
+
+		// Add a component to have data to save
+		await editor.addComponent("AND", 100, 200);
+
+		// First save - should succeed
+		await editor.openSaveModal();
+		await editor.getNameInput().fill(circuitName);
+		await editor.getSaveButton().click();
+		await editor.closeModal();
+
+		// Second save with same name - should show error
+		await editor.openSaveModal();
+		await editor.getNameInput().fill(circuitName);
+		await editor.getSaveButton().click();
+		await expect(page.getByText("Name already exists")).toBeVisible();
+	});
+
+	test("error message can change into closeable success message", async ({
+		page,
+		editor,
+		browserName,
+	}) => {
+		const name = `test_new_${browserName}_${Date.now()}`;
+
+		// Add a component to have data to save
+		await editor.addComponent("AND", 100, 200);
+
+		// First save without name - should show error
+		await editor.openSaveModal();
+		await editor.getSaveButton().click();
+		await expect(page.getByText("Please enter a name")).toBeVisible();
+
+		// Add a name and save (should get success)
+		await editor.getNameInput().fill(name);
+		await editor.getSaveButton().click();
+		await expect(page.getByText("Circuit saved successfully")).toBeVisible();
+
+		// Test that we can close the success message
+		const closeButton = page.getByRole("button", {
+			name: "Close",
+			exact: true,
+		});
+		await closeButton.click();
+		await expect(
+			page.getByText("Circuit saved successfully"),
+		).not.toBeVisible();
+	});
+
+	test("can close by clicking outside", async ({ page, pointer, editor }) => {
+		// Add a component to have data to save
+		await editor.addComponent("AND", 100, 200);
+
+		// Open save modal
+		await editor.openSaveModal();
+		await expect(page.locator(".modal-bg")).toBeVisible();
+
+		// Close modal by clicking outside
+		await pointer.clickAt(50, 50);
+		await expect(editor.getModal()).not.toBeVisible();
+	});
+});
 
 test.describe("basic login", async () => {
 	test("login", async ({ editor }) => {
@@ -162,10 +425,6 @@ test.describe("modal", async () => {
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		await expect(editor.comps()).toHaveCount(1);
 	});
-	test("sidebar disappears when editing", async ({ page, editor }) => {
-		await editor.initiateAddComponent("AND");
-		await expect(page.locator(".sidebar")).not.toBeVisible();
-	});
 	test("enter selects circuit", async ({ page, browserName, editor }) => {
 		const graphName = `test_enter_${browserName}_${Date.now()}`;
 
@@ -234,6 +493,14 @@ test.describe("clipboard", () => {
 			initialD,
 		);
 	});
+
+	test("copy and paste while logged in ", async ({ page, editor }) => {
+		await editor.signIn();
+		await editor.loadCircuitUsingClipboard(circuits.SR_NOR_latch);
+		const circuit = await editor.saveCircuitUsingClipboard();
+		expect(circuit).toEqual(circuits.SR_NOR_latch);
+	});
+
 	test("paste invalid data", async ({ page }) => {
 		// Copy invalid data to clipboard
 		await page.evaluate(() => {

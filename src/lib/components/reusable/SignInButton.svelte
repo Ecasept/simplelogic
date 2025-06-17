@@ -5,7 +5,7 @@
 
 	type Provider = "github" | "google";
 
-	const { provider }: { provider: Provider } = $props();
+	const { provider, source }: { provider: Provider; source: string } = $props();
 
 	function _signIn(provider: Provider) {
 		// Temporarily save current circuit to session storage
@@ -14,6 +14,7 @@
 			"currentCircuit",
 			JSON.stringify(graphManager.getGraphData()),
 		);
+		sessionStorage.setItem("signInSource", source);
 
 		signIn(provider);
 	}
@@ -53,6 +54,7 @@
 		border-radius: var(--default-border-radius);
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		gap: 10px;
 		padding: 8px 12px;
 		cursor: pointer;
