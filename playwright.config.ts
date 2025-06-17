@@ -44,19 +44,29 @@ export default defineConfig({
 					permissions: ["clipboard-read", "clipboard-write"],
 				},
 				...devices["Desktop Chrome"],
+				userAgent:
+					`client_chrome_${testId} ` + devices["Desktop Chrome"].userAgent,
 			},
 			testIgnore: "**/mobile/**",
 		},
 
 		{
 			name: "firefox",
-			use: { ...devices["Desktop Firefox"] },
+			use: {
+				...devices["Desktop Firefox"],
+				userAgent:
+					`client_firefox_${testId} ` + devices["Desktop Chrome"].userAgent,
+			},
 			testIgnore: "**/mobile/**",
 		},
 
 		{
 			name: "webkit",
-			use: { ...devices["Desktop Safari"] },
+			use: {
+				...devices["Desktop Safari"],
+				userAgent:
+					`client_safari_${testId} ` + devices["Desktop Chrome"].userAgent,
+			},
 			testIgnore: "**/mobile/**",
 		},
 
