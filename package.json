@@ -19,7 +19,6 @@
 		"playwright": "node playwright/run.js",
 		"playwright:headed": "node playwright/run.js --headed",
 		"playwright:ui": "node playwright/run.js --ui",
-		"cleardb": "wrangler d1 execute MAIN_DB --local --command 'DELETE FROM Graph;'",
 		"db": "wrangler pages dev",
 		"oauth": "ts-node playwright/oauth/mock_server.ts"
 	},
