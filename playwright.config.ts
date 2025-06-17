@@ -1,4 +1,4 @@
-import { defineConfig, devices, PlaywrightTestConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Read environment variables from file.
@@ -11,7 +11,7 @@ dotenv.config({ path: "./.dev.vars" });
  * See https://playwright.dev/docs/test-configuration.
  */
 
-type WebServer = PlaywrightTestConfig["webServer"];
+type WebServer = ReturnType<typeof defineConfig>["webServer"];
 
 // Create a unique uuid for each test run
 // to differentiate users in tests
