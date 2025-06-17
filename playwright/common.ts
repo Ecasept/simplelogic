@@ -262,36 +262,44 @@ const createMatcher = <TReceived extends unknown, TArgs extends unknown[]>(
 	return async function (this, received, ...args) {
 		let pass: boolean;
 		let matcherResult: MatcherReturnType | undefined;
+		let error: Error | undefined;
 		try {
 			await matcher.call(this, received, ...args);
 			pass = true;
-			matcherResult = undefined;
 		} catch (e) {
 			// If the assertion failed, we need to catch the error and set pass to false
 			pass = false;
 			matcherResult = e.matcherResult;
+			error = e;
 		}
 
-		const message = pass
-			? () => "idk what to put here"
-			: () =>
-					this.utils.matcherHint(assertionName, undefined, undefined, {
+		const message = () =>
+			pass
+				? "Test passed"
+				: this.utils.matcherHint(assertionName, undefined, undefined, {
 						isNot: this.isNot,
 					}) +
 					"\n\n" +
 					`${toString(received)}\n` +
-					(matcherResult
-						? `Expected: ${this.utils.printExpected((this.isNot ? "not " : "") + matcherResult.expected)}\n` +
-							`Received: ${this.utils.printReceived(matcherResult.actual)}`
-						: "");
+					`Expected: ${this.utils.printExpected((this.isNot ? "not " : "") + matcherResult?.expected)}\n` +
+					`Received: ${this.utils.printReceived(matcherResult?.actual)}`;
 
-		// if `this.isNot` is true, then we need to return
-		// pass: false if the assertion passed
-		const passReturnValue = pass !== this.isNot;
+		if (this.isNot) {
+			pass = !pass;
+		}
+
+		if (!pass) {
+			// Try to show original error
+			if (error) {
+				throw error;
+			} else if (matcherResult) {
+				return matcherResult;
+			}
+		}
 
 		return {
 			message,
-			pass: passReturnValue,
+			pass,
 			name: assertionName,
 			expected: matcherResult?.expected,
 			actual: matcherResult?.actual,
