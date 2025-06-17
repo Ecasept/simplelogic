@@ -253,7 +253,7 @@ test.describe("adding and dragging/moving", async () => {
 		pointer,
 		page,
 	}) => {
-		await editor.loadCircuit(circuits.multiconnected);
+		await editor.loadCircuitUsingClipboard(circuits.multiconnected);
 
 		await page.keyboard.down("Shift");
 		await pointer.downOn(editor.getHandle("wire", "output").nth(3));
@@ -449,7 +449,7 @@ test.describe("other", () => {
 		pointer,
 		editor,
 	}) => {
-		await editor.loadCircuit(circuits.multiconnected);
+		await editor.loadCircuitUsingClipboard(circuits.multiconnected);
 		// Move canvas to the right
 		await pointer.downAt(500, 500);
 		await pointer.moveTo(600, 600);
@@ -754,7 +754,7 @@ test.describe("simulating", () => {
 	});
 	test("can load while simulating", async ({ editor }) => {
 		await editor.toggleSimulate();
-		await editor.loadCircuit(circuits.singleAnd);
+		await editor.loadCircuitUsingClipboard(circuits.singleAnd);
 		await expect(editor.comps()).toHaveCount(1);
 	});
 	test("build half adder flow", async ({ editor, pointer }) => {
@@ -840,7 +840,7 @@ test.describe("simulating", () => {
 	});
 
 	test("simulate 2-bit ripple carry adder", async ({ editor, pointer }) => {
-		await editor.loadCircuit(circuits.rippleCarryAdder);
+		await editor.loadCircuitUsingClipboard(circuits.rippleCarryAdder);
 
 		const b1 = editor.getComponent("IN").first(); // first bit of second number
 		const b2 = editor.getComponent("IN").nth(1); // second bit of second number
@@ -914,7 +914,7 @@ test.describe("simulating", () => {
 	});
 
 	test("simulate SR NOR latch", async ({ editor, pointer }) => {
-		await editor.loadCircuit(circuits.SR_NOR_latch);
+		await editor.loadCircuitUsingClipboard(circuits.SR_NOR_latch);
 
 		const r = editor.getComponent("IN").first(); // reset
 		const s = editor.getComponent("IN").nth(1); // set

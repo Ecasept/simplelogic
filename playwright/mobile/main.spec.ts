@@ -43,7 +43,7 @@ test.describe("panning", async () => {
 		pointer,
 		page,
 	}) => {
-		await editor.loadCircuit(circuits.multiconnected);
+		await editor.loadCircuitUsingClipboard(circuits.multiconnected);
 
 		await pointer.downOn(editor.getHandle("wire", "output").nth(3));
 		await page.waitForTimeout(500); // long press

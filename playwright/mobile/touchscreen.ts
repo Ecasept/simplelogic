@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { JSHandle, Locator, Page } from "@playwright/test";
 import { Pointer } from "../fixtures";
 
