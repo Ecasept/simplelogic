@@ -205,6 +205,22 @@ test.describe("save modal", () => {
 		await expect(page.getByText("Circuit saved successfully")).toBeVisible();
 	});
 
+	test("can save with enter", async ({ page, editor, browserName }) => {
+		const circuitName = `test_save_enter_${browserName}_${Date.now()}`;
+
+		// Add a component to have data to save
+		await editor.addComponent("AND", 100, 200);
+
+		// Open save modal
+		await editor.openSaveModal();
+
+		// Enter a name and press enter to save
+		await editor.getNameInput().fill(circuitName);
+		await editor.getNameInput().press("Enter");
+
+		await expect(page.getByText("Circuit saved successfully")).toBeVisible();
+	});
+
 	test("can't save duplicate names", async ({ page, editor, browserName }) => {
 		const circuitName = `test_duplicate_${browserName}_${Date.now()}`;
 

@@ -58,6 +58,7 @@
 			bind:value={enteredName}
 			autocomplete="off"
 			spellcheck="false"
+			onkeydown={onEnter((e) => saveCircuit())}
 		/>
 		<Button
 			text="Save online"

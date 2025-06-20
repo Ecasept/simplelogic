@@ -52,12 +52,14 @@ export class Editor {
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Load circuit" }),
 		);
+		await expect(this.getModal()).toBeVisible();
 	}
 
 	async openSaveModal() {
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Save circuit" }),
 		);
+		await expect(this.getModal()).toBeVisible();
 	}
 
 	async signIn() {
