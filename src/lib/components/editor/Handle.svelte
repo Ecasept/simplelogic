@@ -67,9 +67,15 @@
 			!editingThis,
 	);
 
+	let editingThisHandle = $derived(
+		"draggedHandle" in uiState &&
+			uiState.draggedHandle.id === connection.id &&
+			uiState.draggedHandle.handleId === connection.handleId,
+	);
+
 	let draggingOtherOnToThis = $derived(isHoveredHandle && editingOtherWire);
 	// Can only be true for wires
-	let draggingThisOnToOther = $derived(hoveringOtherWire && editingThis);
+	let draggingThisOnToOther = $derived(hoveringOtherWire && editingThisHandle);
 
 	let identifier = $derived(
 		isComponentHandleRef(connection)
