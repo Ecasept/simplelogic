@@ -230,6 +230,18 @@ const shortcuts: Shortcut[] = [
 		action: EditorAction.undo,
 	},
 	{
+		name: "Delete selected",
+		pattern: {
+			key: "delete",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			selected: P.not(null),
+		},
+		action: EditorAction.deleteSelected,
+	},
+	{
 		name: "Cancel editing when undoing while editing",
 		pattern: {
 			key: "z",

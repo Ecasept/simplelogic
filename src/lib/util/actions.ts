@@ -293,6 +293,7 @@ export class EditorAction {
 			);
 			return;
 		}
+		ChangesAction.abortEditing();
 		const type = graphManager.getElementType(selected);
 
 		if (type === "component") {

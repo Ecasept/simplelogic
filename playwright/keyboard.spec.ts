@@ -90,7 +90,23 @@ test.describe("editor shortcuts", () => {
 		// verify not in delete mode
 		await expect(page).toHaveMode("edit");
 	});
+
+	test("delete selected element", async ({ page, editor }) => {
+		// Add a component
+		await editor.addComponent("AND", 500, 500);
+		await expect(editor.comps()).toHaveCount(1);
+
+		// Component should already be selected
+		await expect(editor.comps()).toBeSelected();
+
+		// Press delete
+		await page.keyboard.press("Delete");
+
+		// Verify component is deleted
+		await expect(editor.comps()).toHaveCount(0);
+	});
 });
+
 test.describe("shortcut interactions", () => {
 	test("moving component then pressing a does nothing", async ({
 		page,
