@@ -34,6 +34,8 @@
 		--shadow-color: gray;
 		--surface-border-color: #596858;
 		--surface-highlight-color: var(--primary-container-color);
+
+		--circuit-item-separator-color: #00000020;
 	}
 
 	@mixin theme-dark {
@@ -70,6 +72,8 @@
 		--shadow-color: #181818;
 		--surface-border-color: #3d4832;
 		--surface-highlight-color: var(--primary-color);
+
+		--circuit-item-separator-color: #ffffff20;
 	}
 
 	/* ==== Apply theme ==== */

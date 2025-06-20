@@ -16,6 +16,24 @@ export class Editor {
 		await this.page.waitForLoadState("networkidle");
 	}
 
+	/** Clicks the delete button of a specific circuit in the load modal */
+	async deleteCircuit(name: string) {
+		const entry = this.getModal().getByRole("menuitem", {
+			name,
+		});
+		await entry.getByRole("button", { name: "Delete circuit" }).click();
+		await expect(entry).not.toBeVisible();
+	}
+
+	/** Saves the current circuit with the specified name */
+	async saveAs(name: string) {
+		await this.openSaveModal();
+		await this.getNameInput().fill(name);
+		await this.getSaveButton().click();
+		await expect(this.getModal().getByText("Circuit saved")).toBeVisible();
+		await this.closeModal();
+	}
+
 	getNameInput() {
 		return this.getModal().getByPlaceholder("Enter a descriptive name");
 	}

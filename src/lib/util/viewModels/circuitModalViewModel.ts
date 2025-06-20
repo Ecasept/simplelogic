@@ -34,7 +34,13 @@ export type CircuitModalUiState =
 	  };
 
 type ListRequestData = {
-	circuits: { name: string; id: number }[];
+	circuits: {
+		name: string;
+		id: number;
+		wireCount: number;
+		componentCount: number;
+		createdAt: string;
+	}[];
 	pagination: {
 		page: number;
 		perPage: number;

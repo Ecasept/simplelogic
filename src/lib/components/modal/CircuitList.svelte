@@ -1,6 +1,8 @@
 <script lang="ts">
-	import type { ListRequestData } from "$lib/util/api";
+	import { circuitModalViewModel } from "$lib/util/actions";
+	import { type ListRequestData } from "$lib/util/api";
 	import { onEnter } from "$lib/util/keyboard";
+	import { Calendar, Cpu, Trash2, Waypoints } from "lucide-svelte";
 
 	type Props = {
 		listData: ListRequestData | null;
@@ -8,25 +10,64 @@
 	};
 
 	let { listData, onSelect }: Props = $props();
+
+	async function deleteCircuit(id: number) {
+		await circuitModalViewModel.deleteCircuit(id);
+	}
 </script>
 
-<div class="list-container">
+<div class="list-container" role="menu">
 	{#if listData !== null}
 		{#each listData.circuits as circuitInfo (circuitInfo.id)}
 			<div
+				class="circuit-item-container"
 				role="menuitem"
+				aria-label={circuitInfo.name}
 				tabindex="0"
 				onclick={(_) => onSelect(circuitInfo.id)}
 				onkeypress={onEnter((_) => onSelect(circuitInfo.id))}
-				class="circuit-item"
 			>
-				{circuitInfo.name}
-				<br />
-				<span style="color: brown;">id: {circuitInfo.id}</span>
+				<div class="circuit-item">
+					<div class="circuit-info">
+						<div class="circuit-name">{circuitInfo.name}</div>
+						<div class="circuit-details">
+							<div class="detail-item" aria-label="Wire count">
+								<Waypoints size={16} />
+								<span>{circuitInfo.wireCount}</span>
+							</div>
+							<div class="detail-item" aria-label="Component count">
+								<Cpu size={16} />
+								<span>{circuitInfo.componentCount}</span>
+							</div>
+							<div class="detail-item" aria-label="Created at">
+								<Calendar size={16} />
+								<span
+									>{new Date(circuitInfo.createdAt).toLocaleDateString()}</span
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+				<button
+					class="delete-button"
+					title="Delete circuit"
+					onclick={(e) => {
+						e.stopPropagation();
+						deleteCircuit(circuitInfo.id);
+					}}
+				>
+					<Trash2 size={20} />
+				</button>
 			</div>
 		{/each}
+		{#if listData.circuits.length === 0}
+			<div class="text-span">
+				No circuits found.<br />
+				Save a circuit to see it here.
+			</div>
+		{/if}
 	{:else}
-		<div id="loading-span">Loading...</div>
+		<div class="text-span">Loading...</div>
 	{/if}
 </div>
 
@@ -48,16 +89,70 @@
 		background-color: var(--primary-container-color);
 	}
 
-	.circuit-item {
-		padding: 10px;
-		width: calc(100% - 20px);
-		&:hover {
-			background-color: #00000020;
-			cursor: pointer;
-		}
+	.circuit-item-container {
+		display: flex;
+		align-items: center;
+		padding: 10px 20px;
+		border-bottom: 1px solid var(--circuit-item-separator-color);
+		cursor: pointer;
+	}
+	.circuit-item-container:last-child {
+		border-bottom: none;
 	}
 
-	#loading-span {
+	.circuit-item-container:hover:not(:has(.delete-button:hover)) {
+		background-color: #00000020;
+	}
+
+	.circuit-item {
+		flex-grow: 1;
+	}
+
+	.circuit-info {
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+	}
+
+	.circuit-name {
+		font-weight: bold;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.circuit-details {
+		display: flex;
+		gap: 15px;
+		color: var(--on-primary-container-color);
+		opacity: 0.8;
+		flex-shrink: 0;
+	}
+
+	.detail-item {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+	}
+
+	.delete-button {
+		background: none;
+		border: none;
+		color: var(--on-primary-container-color);
+		cursor: pointer;
+		padding: 5px;
+		border-radius: var(--default-border-radius);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.delete-button:hover {
+		background-color: #00000040;
+	}
+
+	.text-span {
 		margin: 10px auto;
+		text-align: center;
 	}
 </style>

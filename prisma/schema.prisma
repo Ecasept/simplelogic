@@ -19,6 +19,9 @@ model Circuits {
   userId String
   name String
   data String
+  wireCount Int
+  componentCount Int
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

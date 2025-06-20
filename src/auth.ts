@@ -8,8 +8,15 @@ import GitHub from "@auth/sveltekit/providers/github";
  * It is connected to a locally running OAuth server
  * and returns a mock user profile based on the user agent.
  */
-function createTestingProvider(provider: string, ua: string): Provider {
-	const testingClient = ua.split(" ")[0].toLowerCase();
+function createTestingProvider(
+	provider: string,
+	userAgent: string,
+	testId: string,
+): Provider {
+	// Each project can configure its own ID to get a unique account,
+	// and each test inside of the project get its own account through the testId.
+	const projectId = userAgent.split(" ")[0].toLowerCase();
+	const testingClient = `${projectId}_${testId}`;
 	return {
 		id: provider,
 		name: `${provider} Testing`,
@@ -49,7 +56,8 @@ export const {
 		providers.push(
 			createTestingProvider(
 				"google",
-				event.request.headers.get("user-agent") || "unknown",
+				event.request.headers.get("user-agent") || "default",
+				event.request.headers.get("test-id") || "default",
 			),
 		);
 	}

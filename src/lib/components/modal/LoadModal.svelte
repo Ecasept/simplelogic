@@ -80,7 +80,6 @@
 
 	.circuit-list-container {
 		flex: 1;
-		min-height: 200px;
 	}
 
 	.sign-in-prompt {

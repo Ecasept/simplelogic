@@ -11,6 +11,9 @@ const PaginationSchema = z.object({
 const CircuitListItemSchema = z.object({
 	name: z.string(),
 	id: z.number(),
+	wireCount: z.number(),
+	componentCount: z.number(),
+	createdAt: z.string(), // ISO date string
 });
 
 const ListRequestDataSchema = z.object({

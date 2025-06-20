@@ -71,8 +71,8 @@ test.describe("load modal", () => {
 		// Load the circuit back
 		await editor.openLoadModal();
 		await editor.getLoadButton().click();
-		await expect(page.getByText(`${circuitName} id:`)).toBeVisible();
-		await page.getByText(`${circuitName} id:`).click();
+		await expect(page.getByText(circuitName)).toBeVisible();
+		await page.getByText(circuitName).click();
 
 		// Verify circuit was loaded
 		await expect(page.getByText("Circuit loaded successfully")).toBeVisible();
@@ -97,10 +97,10 @@ test.describe("load modal", () => {
 		// Load the circuit using Enter key
 		await editor.openLoadModal();
 		await editor.getLoadButton().click();
-		await expect(page.getByText(`${circuitName} id:`)).toBeVisible();
+		await expect(page.getByText(circuitName)).toBeVisible();
 
 		// Focus the circuit item and press Enter
-		await page.getByText(`${circuitName} id:`).focus();
+		await page.getByText(circuitName).focus();
 		await page.keyboard.press("Enter");
 
 		// Verify circuit was loaded
@@ -130,8 +130,8 @@ test.describe("load modal", () => {
 		// Load the circuit
 		await editor.openLoadModal();
 		await editor.getLoadButton().click();
-		await expect(page.getByText(`${circuitName} id:`)).toBeVisible();
-		await page.getByText(`${circuitName} id:`).click();
+		await expect(page.getByText(circuitName)).toBeVisible();
+		await page.getByText(circuitName).click();
 
 		// Verify success message appears
 		await expect(page.getByText("Circuit loaded successfully")).toBeVisible();
@@ -282,6 +282,53 @@ test.describe("save modal", () => {
 		// Close modal by clicking outside
 		await pointer.clickAt(50, 50);
 		await expect(editor.getModal()).not.toBeVisible();
+	});
+});
+
+test.describe("deleting circuits", () => {
+	// Ensure empty circuit list
+	test.use({
+		extraHTTPHeaders: {
+			"test-id": "deleting-circuits",
+		},
+	});
+	test.beforeEach(async ({ page, editor }) => {
+		await editor.signIn();
+		await editor.toggleAccountButton();
+	});
+	test("no circuits at beginning", async ({ page, editor }) => {
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
+		await expect(page.getByText("No circuits found")).toBeVisible();
+	});
+	test("can delete a circuit", async ({ page, editor }) => {
+		const circuitName = "test_delete_";
+		for (let i = 0; i < 3; i++) {
+			await editor.addComponent("AND", 100 + i * 50, 200 + i * 50);
+			await editor.saveAs(circuitName + i);
+		}
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
+		await expect(page.getByText(circuitName)).toHaveCount(3);
+		await editor.deleteCircuit(circuitName + "1");
+		await expect(page.getByText(circuitName + "1")).not.toBeVisible();
+		await editor.deleteCircuit(circuitName + "2");
+		await editor.deleteCircuit(circuitName + "0");
+		await expect(page.getByText("No circuits found")).toBeVisible();
+	});
+	test("deleting circuit wraps page", async ({ page, editor, browserName }) => {
+		const PER_PAGE = 10; // Number of circuits per page
+		const circuitName = "test_delete_wrap_";
+		for (let i = 0; i < PER_PAGE * 2; i++) {
+			await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
+			await editor.saveAs(circuitName + i);
+		}
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
+
+		// Delete a circuit and expect a circuit from the next page to be visible
+		await editor.deleteCircuit(circuitName + "5");
+		await expect(page.getByText(circuitName + PER_PAGE)).toBeVisible();
 	});
 });
 

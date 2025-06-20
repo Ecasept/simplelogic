@@ -49,6 +49,8 @@ export async function POST({ request, locals: { prisma, auth } }) {
 			name,
 			data: JSON.stringify(data),
 			userId,
+			componentCount: Object.keys(data.components).length,
+			wireCount: Object.keys(data.wires).length,
 		},
 	});
 
@@ -75,6 +77,9 @@ export async function GET({ url, locals: { prisma, auth } }) {
 		select: {
 			id: true,
 			name: true,
+			createdAt: true,
+			wireCount: true,
+			componentCount: true,
 		},
 		where: { userId },
 		skip: offset,
