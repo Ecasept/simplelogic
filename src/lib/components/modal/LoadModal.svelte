@@ -9,6 +9,7 @@
 	import SignInButton from "../reusable/SignInButton.svelte";
 	import CircuitList from "./CircuitList.svelte";
 	import FeedbackCard from "./FeedbackCard.svelte";
+	import PaginationControls from "./PaginationControls.svelte";
 
 	type Props = {
 		loadMode: "select" | "list";
@@ -65,6 +66,17 @@
 	<div class="circuit-list-container">
 		<CircuitList listData={listRequestData} {onSelect} />
 	</div>
+	{#if listRequestData}
+		{@const currentPage = listRequestData.pagination.page}
+		{@const hasNextPage = listRequestData.pagination.hasNextPage}
+		{@const hasPrevPage = currentPage > 1}
+		<PaginationControls
+			{currentPage}
+			{hasNextPage}
+			{hasPrevPage}
+			onPageChange={(page) => circuitModalViewModel.loadCircuitList(page)}
+		/>
+	{/if}
 {/if}
 
 <FeedbackCard feedback={message} />

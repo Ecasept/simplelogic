@@ -144,15 +144,16 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		}
 	}
 
-	async deleteCircuit(id: number) {
+	async deleteCircuit(id: number, goToPrevPage: boolean) {
+		const correction = goToPrevPage ? -1 : 0;
 		if (this._uiState.mode !== "load") {
 			throw new Error("Invalid mode");
 		}
 		const data = await API.deleteCircuit(id);
 		if (data.success) {
 			this.setSuccess("Circuit deleted successfully");
-			const page = this._uiState.listRequestData?.pagination.page;
-			this.loadCircuitList(page ?? 1);
+			const page = this._uiState.listRequestData?.pagination.page ?? 1;
+			this.loadCircuitList(page + correction);
 		} else {
 			this.setError(data.error);
 		}

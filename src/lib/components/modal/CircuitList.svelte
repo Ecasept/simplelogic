@@ -11,8 +11,8 @@
 
 	let { listData, onSelect }: Props = $props();
 
-	async function deleteCircuit(id: number) {
-		await circuitModalViewModel.deleteCircuit(id);
+	async function deleteCircuit(id: number, goToPrevPage: boolean) {
+		await circuitModalViewModel.deleteCircuit(id, goToPrevPage);
 	}
 </script>
 
@@ -53,7 +53,11 @@
 					title="Delete circuit"
 					onclick={(e) => {
 						e.stopPropagation();
-						deleteCircuit(circuitInfo.id);
+						// If this is the last circuit on the current page,
+						// we need to navigate to the previous page after deletion
+						const goToPrevPage =
+							listData.circuits.length == 1 && listData.pagination.page > 1;
+						deleteCircuit(circuitInfo.id, goToPrevPage);
 					}}
 				>
 					<Trash2 size={20} />
@@ -100,7 +104,8 @@
 		border-bottom: none;
 	}
 
-	.circuit-item-container:hover:not(:has(.delete-button:hover)) {
+	.circuit-item-container:hover:not(:has(.delete-button:hover)),
+	.circuit-item-container:focus {
 		background-color: #00000020;
 	}
 

@@ -100,7 +100,7 @@ test.describe("load modal", () => {
 		await expect(page.getByText(circuitName)).toBeVisible();
 
 		// Focus the circuit item and press Enter
-		await page.getByText(circuitName).focus();
+		await page.getByLabel(circuitName).focus();
 		await page.keyboard.press("Enter");
 
 		// Verify circuit was loaded
@@ -286,13 +286,9 @@ test.describe("save modal", () => {
 });
 
 test.describe("deleting circuits", () => {
-	// Ensure empty circuit list
-	test.use({
-		extraHTTPHeaders: {
-			"test-id": "deleting-circuits",
-		},
-	});
-	test.beforeEach(async ({ page, editor }) => {
+	test.accountId("deleting-circuits");
+
+	test.beforeEach(async ({ editor }) => {
 		await editor.signIn();
 		await editor.toggleAccountButton();
 	});
@@ -316,7 +312,7 @@ test.describe("deleting circuits", () => {
 		await editor.deleteCircuit(circuitName + "0");
 		await expect(page.getByText("No circuits found")).toBeVisible();
 	});
-	test("deleting circuit wraps page", async ({ page, editor, browserName }) => {
+	test("deleting circuit wraps page", async ({ page, editor }) => {
 		const PER_PAGE = 10; // Number of circuits per page
 		const circuitName = "test_delete_wrap_";
 		for (let i = 0; i < PER_PAGE * 2; i++) {
@@ -329,6 +325,165 @@ test.describe("deleting circuits", () => {
 		// Delete a circuit and expect a circuit from the next page to be visible
 		await editor.deleteCircuit(circuitName + "5");
 		await expect(page.getByText(circuitName + PER_PAGE)).toBeVisible();
+	});
+
+	test.describe("account wrapper", () => {
+		test.accountId("delete-circuit-1");
+		test("click delete on page when next page only has one, next page button goes to disabled", async ({
+			page,
+			editor,
+		}) => {
+			const PER_PAGE = 10;
+			const circuitName = "test_delete_next_disable_";
+			// Create exactly 11 circuits (10 on first page, 1 on second page)
+			for (let i = 0; i < PER_PAGE + 1; i++) {
+				await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
+				await editor.saveAs(circuitName + i);
+			}
+			await editor.openLoadModal();
+			await editor.getLoadButton().click();
+
+			const nextButton = page.getByRole("button", { name: "Next page" });
+			await expect(nextButton).not.toBeDisabled();
+
+			// Delete a circuit
+			await editor.deleteCircuit(circuitName + 1);
+
+			// Only one page left
+			await expect(nextButton).toBeDisabled();
+		});
+	});
+
+	test.describe("account wrapper", () => {
+		test.accountId("delete-circuit-2");
+		test("click delete on page when page only has one circuit, goes to prev page", async ({
+			page,
+			editor,
+		}) => {
+			const PER_PAGE = 10;
+			const circuitName = "test_delete_prev_page_";
+			// Create exactly 11 circuits (10 on first page, 1 on second page)
+			for (let i = 0; i < PER_PAGE + 1; i++) {
+				await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
+				await editor.saveAs(circuitName + i);
+			}
+			await editor.openLoadModal();
+			await editor.getLoadButton().click();
+
+			// Go to second page
+			const nextButton = page.getByRole("button", { name: "Next page" });
+			await nextButton.click();
+			await expect(page.getByLabel("Pagination").getByText("2")).toBeVisible(); // Current page indicator
+			await expect(page.getByText(circuitName + PER_PAGE)).toBeVisible();
+
+			// Delete the only circuit on page 2 - should go back to page 1
+			await editor.deleteCircuit(circuitName + PER_PAGE);
+
+			// Should now be on page 1
+			await expect(page.getByLabel("Pagination").getByText("1")).toBeVisible(); // Current page indicator
+			await expect(page.getByText(circuitName + "0")).toBeVisible(); // First circuit should be visible
+		});
+	});
+});
+
+test.describe("pagination", () => {
+	// Ensure empty circuit list
+	test.use({
+		extraHTTPHeaders: {
+			"test-id": "pagination",
+		},
+	});
+	test.beforeEach(async ({ editor }) => {
+		await editor.signIn();
+		await editor.toggleAccountButton();
+	});
+
+	test("pagination controls disabled when no circuits", async ({
+		page,
+		editor,
+	}) => {
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
+		await expect(page.getByText("No circuits found")).toBeVisible();
+
+		// Pagination controls should not be enabled when there are no circuits
+		const prevButton = page.getByRole("button", { name: "Previous page" });
+		const nextButton = page.getByRole("button", { name: "Next page" });
+		await expect(prevButton).toBeDisabled();
+		await expect(nextButton).toBeDisabled();
+	});
+
+	test("pagination flow", async ({ page, editor }) => {
+		const circuitName = "test_pagination_";
+		// Add 11 circuits to test pagination
+		for (let i = 0; i < 11; i++) {
+			await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
+			await editor.saveAs(circuitName + i);
+		}
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
+
+		// Initial state: left disabled, page 1 and right enabled
+		const prevButton = page.getByRole("button", { name: "Previous page" });
+		const nextButton = page.getByRole("button", { name: "Next page" });
+
+		await expect(prevButton).toBeDisabled();
+		await expect(
+			page.getByLabel("Pagination controls").getByText("1"),
+		).toBeVisible(); // Current page indicator
+		await expect(nextButton).not.toBeDisabled();
+
+		// Next page: left enabled, page 2 and right disabled (since we only have 11 items)
+		await nextButton.click();
+		await expect(prevButton).not.toBeDisabled();
+		await expect(
+			page.getByLabel("Pagination controls").getByText("2"),
+		).toBeVisible(); // Current page indicator
+		await expect(nextButton).toBeDisabled(); // Only 11 items total, so no page 3
+
+		// Page 1 again: left disabled, page 1 and right enabled
+		await prevButton.click();
+		await expect(prevButton).toBeDisabled();
+		await expect(
+			page.getByLabel("Pagination controls").getByText("1"),
+		).toBeVisible(); // Current page indicator
+		await expect(nextButton).not.toBeDisabled();
+	});
+
+	test.describe("account wrapper", () => {
+		test.accountId("pagination-1");
+		test("pagination state resets on modal re-open", async ({
+			page,
+			editor,
+		}) => {
+			const circuitName = "test_pagination_reset_";
+			// Add 11 circuits to test pagination
+			for (let i = 0; i < 11; i++) {
+				await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
+				await editor.saveAs(circuitName + i);
+			}
+			await editor.openLoadModal();
+			await editor.getLoadButton().click();
+
+			// Go to second page
+			const nextButton = page.getByRole("button", { name: "Next page" });
+			await nextButton.click();
+			await expect(
+				page.getByLabel("Pagination controls").getByText("2"),
+			).toBeVisible(); // Current page indicator
+
+			// Close and reopen modal
+			await editor.closeModal();
+			await editor.openLoadModal();
+			await editor.getLoadButton().click();
+
+			// Should be back on page 1
+			await expect(
+				page.getByLabel("Pagination controls").getByText("1"),
+			).toBeVisible(); // Current page indicator
+			const prevButton = page.getByRole("button", { name: "Previous page" });
+			await expect(prevButton).toBeDisabled();
+		});
 	});
 });
 

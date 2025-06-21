@@ -142,7 +142,7 @@ export type MockClipboard = {
 	content: string;
 };
 
-export const test = base.extend<
+const customTest = base.extend<
 	{
 		page: Page;
 		clipboard: MockClipboard;
@@ -205,6 +205,19 @@ export const test = base.extend<
 	editor: async ({ page, pointer }, use) => {
 		await use(new Editor(page, pointer));
 	},
+});
+
+function configureAccountId(id: string) {
+	customTest.use({
+		extraHTTPHeaders: {
+			"test-id": id,
+		},
+	});
+}
+
+export const test = Object.assign(customTest, {
+	/** Ensures that the test gets its own account without any circuits from other tests */
+	accountId: configureAccountId,
 });
 
 /**A matcher function.

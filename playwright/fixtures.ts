@@ -20,6 +20,7 @@ export class Editor {
 	async deleteCircuit(name: string) {
 		const entry = this.getModal().getByRole("menuitem", {
 			name,
+			exact: true,
 		});
 		await entry.getByRole("button", { name: "Delete circuit" }).click();
 		await expect(entry).not.toBeVisible();
