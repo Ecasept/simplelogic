@@ -45,8 +45,7 @@ test.describe("load modal", () => {
 		// Click "Load saved circuits" button when no circuits exist
 		await editor.getLoadButton().click();
 
-		// Should show the circuit list (even if empty)
-		await expect(page.getByText("Loading...")).toBeVisible();
+		await expect(page.getByText("No circuits found")).toBeVisible();
 	});
 
 	test("save a circuit, clear canvas and load it", async ({
