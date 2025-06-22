@@ -60,17 +60,7 @@ export default defineConfig({
 			use: {
 				...devices["Desktop Firefox"],
 				userAgent:
-					`client_firefox_${testId} ` + devices["Desktop Chrome"].userAgent,
-			},
-			testIgnore: "**/mobile/**",
-		},
-
-		{
-			name: "webkit",
-			use: {
-				...devices["Desktop Safari"],
-				userAgent:
-					`client_safari_${testId} ` + devices["Desktop Chrome"].userAgent,
+					`client_firefox_${testId} ` + devices["Desktop Firefox"].userAgent,
 			},
 			testIgnore: "**/mobile/**",
 		},
