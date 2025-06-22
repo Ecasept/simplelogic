@@ -76,6 +76,15 @@ export default defineConfig({
 		},
 
 		// {
+		// 	name: "webkit",
+		// 	use: {
+		// 		...devices["Desktop Safari"],
+		// 		userAgent:
+		// 			`client_safari_${testId} ` + devices["Desktop Chrome"].userAgent,
+		// 	},
+		// 	testIgnore: "**/mobile/**",
+		// },
+		// {
 		// 	name: "Mobile Chrome",
 		// 	use: {
 		// 		...devices["Pixel 5"],
