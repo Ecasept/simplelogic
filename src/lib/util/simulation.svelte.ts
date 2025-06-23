@@ -10,26 +10,130 @@ export type SimulationData = {
 	outputs: Record<string, boolean>;
 	type: ComponentType | "wire";
 	isPoweredInitially: boolean;
+	/** True if the component is an LED and is currently powered. */
+	ledPowered: boolean;
 };
 export type SimulationState = Record<string, SimulationData>;
 
 export function getSimData(id: number): SimulationData | null {
-	return simulation.state[id] ?? null;
+	return simController.state[id] ?? null;
 }
 
-class Simulator {
+class SimulationController {
+	public mode: "run" | "step" = $state("run");
+	public notifyOnUpdateSetting: boolean = $state(true);
+
+	/** The time that the simulation was started */
+	private simulationStart: Date | null = null;
+	/** How long the simulation ran */
+	public simulationDuration: number = $state(0);
+
+	/** Whether the simulation is currently processing the queue. */
+	public loopRunning: boolean = $state(false);
+
+	private onStopped: (() => void) | null = null;
+
+	/** Whether the simulation should notify the UI on every update.
+	 * This is true for the "step" mode and can also be set manually
+	 */
+	private get _notifyOnUpdate() {
+		return this.notifyOnUpdateSetting || this.mode === "step";
+	}
+
+	public async setMode(mode: "run" | "step") {
+		if (this.mode === mode) {
+			return;
+		}
+		if (this.loopRunning) {
+			await this.stopLoop();
+		}
+		this.mode = mode;
+	}
+
+	public start() {
+		simulation.reset();
+		if (this._notifyOnUpdate) {
+			this.notifyAll();
+		}
+		if (this.mode === "run") {
+			this.startLoop();
+		}
+	}
+
+	public async stopLoop() {
+		if (!this.loopRunning) {
+			return;
+		}
+		this.loopRunning = false;
+		return new Promise<void>((resolve) => {
+			this.onStopped = resolve;
+		});
+	}
+
+	public step() {
+		const hasMoreWork = simulation.step();
+		if (this._notifyOnUpdate) {
+			this.notifyAll();
+		}
+		return hasMoreWork;
+	}
+
+	public async startLoop() {
+		console.log("Starting simulation loop");
+		this.loopRunning = true;
+		this.simulationStart = new Date();
+
+		while (true) {
+			const hasMoreWork = this.step();
+			if (!hasMoreWork) {
+				break;
+			}
+
+			if (this.onStopped) {
+				// If the processing was stopped, exit the loop
+				this.loopRunning = false;
+				this.onStopped();
+				this.onStopped = null;
+				break;
+			}
+
+			// Don't block the event loop
+			await new Promise((resolve) => setTimeout(resolve, 0));
+		}
+
+		this.simulationDuration =
+			new Date().getTime() - this.simulationStart.getTime();
+		this.simulationStart = null;
+		this.loopRunning = false;
+
+		this.notifyAll();
+	}
+
+	public recomputeComponent(id: number) {
+		simulation.recomputeComponent(id);
+		if (this._notifyOnUpdate) {
+			this.notifyAll();
+		}
+	}
+
+	public state: SimulationState = $state({});
+	public queue: number[] = $state([]);
+
+	private notifyAll() {
+		this.state = simulation._state;
+		this.queue = simulation._queue;
+	}
+}
+
+class Simulation {
 	/** The current state of the simulation.
 	 * Every component and wire has an entry in this object
 	 * that determines eg. whether it is powered or not.
 	 */
-	private _state: SimulationState = {};
-	public state: SimulationState = $state({});
-
-	/** Whether the simulation is currently processing the queue. */
-	public processing: boolean = $state(false);
+	public _state: SimulationState = {};
 
 	/* The queue of elements that need to be reprocessed. */
-	private queue: number[] = [];
+	public _queue: number[] = [];
 
 	/** Returns the initial simulation data for `component`. */
 	private getComponentInitData(component: ComponentData) {
@@ -50,6 +154,7 @@ class Simulator {
 					}),
 			),
 			isPoweredInitially: component.isPoweredInitially,
+			ledPowered: false,
 		};
 		return data;
 	}
@@ -61,6 +166,7 @@ class Simulator {
 			inputs: { input: false },
 			outputs: { output: false },
 			isPoweredInitially: false,
+			ledPowered: false,
 		};
 		return data;
 	}
@@ -80,10 +186,10 @@ class Simulator {
 		}
 	}
 
-	/** Resets the simulation state to the initial state and restarts it. */
-	public restart() {
+	/** Resets the simulation state to the initial state */
+	public reset() {
 		this.setupSimState();
-		this.queue = Object.entries(this._state)
+		this._queue = Object.entries(this._state)
 			// Optimization: only recompute components that could output power
 			// even if none of their inputs are powered
 			.filter(([_, data]) =>
@@ -93,28 +199,6 @@ class Simulator {
 			)
 			.map(([id, _]) => parseInt(id));
 		// Start processing the queue in the background
-		this.processQueue();
-	}
-
-	// Runs in the background and processes the queue
-	private async processQueue() {
-		if (this.processing) {
-			console.error("Tried to process queue while already processing");
-			return;
-		}
-		this.processing = true;
-
-		while (true) {
-			const finished = !this.step();
-			if (finished) {
-				break;
-			}
-
-			// Don't block the event loop
-			await new Promise((resolve) => setTimeout(resolve, 0));
-		}
-		this.notifyAll();
-		this.processing = false;
 	}
 
 	/** If a components initial power state was toggled,
@@ -123,18 +207,14 @@ class Simulator {
 	public recomputeComponent(id: number) {
 		const data = graphManager.getComponentData(id);
 		this._state[id].isPoweredInitially = data.isPoweredInitially;
-
-		this.queue.push(id);
-		if (!this.processing) {
-			this.processQueue();
-		}
+		this._queue.push(id);
 	}
 
 	/** Process the next element in the queue.
 	 * @returns Whether the queue is empty and the processing can stop.
 	 */
-	private step(): boolean {
-		const id = this.queue.shift();
+	public step(): boolean {
+		const id = this._queue.shift();
 		if (id === undefined) {
 			// Queue is empty
 			return false;
@@ -147,7 +227,6 @@ class Simulator {
 		} else {
 			this.stepWire(id, data);
 		}
-		this.notifyAll();
 		return true;
 	}
 
@@ -172,9 +251,13 @@ class Simulator {
 				for (const connection of handle.connections) {
 					const targetId = connection.id;
 					this._state[targetId].inputs[connection.handleType] = outputPower;
-					this.queue.push(targetId);
+					this._queue.push(targetId);
 				}
 			}
+		}
+		if (component.type === "LED") {
+			// Special handling for LEDs
+			this._state[id].ledPowered = executeGate(data, "");
 		}
 	}
 
@@ -196,14 +279,9 @@ class Simulator {
 					: connection.handleType;
 
 				this._state[targetId].inputs[targetHandleId] = outputPower;
-				this.queue.push(targetId);
+				this._queue.push(targetId);
 			}
 		}
-	}
-
-	/** Update the UI with the new simulation state. */
-	private notifyAll() {
-		this.state = this._state;
 	}
 }
 
@@ -218,4 +296,5 @@ function executeGate(simData: SimulationData, outputId: string) {
 	);
 }
 
-export const simulation = new Simulator();
+export const simulation = new Simulation();
+export const simController = new SimulationController();

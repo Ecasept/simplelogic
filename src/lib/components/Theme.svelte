@@ -36,6 +36,14 @@
 		--surface-highlight-color: var(--primary-container-color);
 
 		--circuit-item-separator-color: #00000020;
+
+		/* Simulation sidebar colors */
+		--surface-variant-color: #f0f4ed;
+		--on-surface-variant-color: #6a6a6a;
+		--outline-variant-color: #c8d1c0;
+		--success-container-color: #e8f5e8;
+		--processing-background-color: #f8f9fa;
+		--processing-border-color: #e0e0e0;
 	}
 
 	@mixin theme-dark {
@@ -74,6 +82,14 @@
 		--surface-highlight-color: var(--primary-color);
 
 		--circuit-item-separator-color: #ffffff20;
+
+		/* Simulation sidebar colors */
+		--surface-variant-color: #232823;
+		--on-surface-variant-color: #8a9580;
+		--outline-variant-color: #3d4832;
+		--success-container-color: rgba(50, 120, 4, 0.15);
+		--processing-background-color: #1f251e;
+		--processing-border-color: #3d4832;
 	}
 
 	/* ==== Apply theme ==== */

@@ -58,8 +58,7 @@ export const COMPONENT_DATA: {
 		width: 4,
 		description: "Outputs true if both inputs are true",
 		canBePoweredWithoutAnyInputBeingPowered: false,
-		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
-			inputs.in1 && inputs.in2,
+		execute: (inputs, _, __) => inputs.in1 && inputs.in2,
 	},
 	OR: {
 		handles: {
@@ -71,8 +70,7 @@ export const COMPONENT_DATA: {
 		width: 4,
 		description: "Outputs true if either input is true",
 		canBePoweredWithoutAnyInputBeingPowered: false,
-		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
-			inputs.in1 || inputs.in2,
+		execute: (inputs, _, __) => inputs.in1 || inputs.in2,
 	},
 	NOT: {
 		handles: {
@@ -83,8 +81,7 @@ export const COMPONENT_DATA: {
 		width: 4,
 		description: "Outputs the opposite of the input",
 		canBePoweredWithoutAnyInputBeingPowered: true,
-		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
-			!inputs.in,
+		execute: (inputs, _, __) => !inputs.in,
 	},
 	XOR: {
 		handles: {
@@ -96,8 +93,7 @@ export const COMPONENT_DATA: {
 		width: 4,
 		description: "Outputs true if only one input is true",
 		canBePoweredWithoutAnyInputBeingPowered: false,
-		execute: (inputs: Record<string, boolean>, _: boolean, __: string) =>
-			inputs.in1 != inputs.in2,
+		execute: (inputs, _, __) => inputs.in1 != inputs.in2,
 	},
 	IN: {
 		handles: {
@@ -107,11 +103,7 @@ export const COMPONENT_DATA: {
 		width: 2,
 		description: "Toggleable power source",
 		canBePoweredWithoutAnyInputBeingPowered: true,
-		execute: (
-			_: Record<string, boolean>,
-			isPoweredInitially: boolean,
-			__: string,
-		) => {
+		execute: (_, isPoweredInitially, __) => {
 			return isPoweredInitially;
 		},
 	},
@@ -123,9 +115,7 @@ export const COMPONENT_DATA: {
 		width: 2,
 		description: "Displays the input as a light",
 		canBePoweredWithoutAnyInputBeingPowered: false,
-		execute: (inputs: Record<string, boolean>, _: boolean, __: string) => {
-			throw new Error("Cannot execute LED");
-		},
+		execute: (inputs, _, __) => inputs.in,
 	},
 };
 

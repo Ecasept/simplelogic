@@ -16,7 +16,7 @@ type Key = { key: string; mod: string | null };
 type Shortcut = {
 	name: string;
 	pattern: Pattern<EditorUiState & Environment & Key>;
-	action: () => void;
+	action: () => Promise<void> | void;
 };
 
 const shortcuts: Shortcut[] = [
@@ -290,7 +290,7 @@ function constructValue(e: KeyboardEvent) {
 	};
 }
 
-export function handleKeyDown(e: KeyboardEvent) {
+export async function handleKeyDown(e: KeyboardEvent) {
 	if (e.target instanceof HTMLInputElement) {
 		return;
 	}
@@ -306,7 +306,7 @@ export function handleKeyDown(e: KeyboardEvent) {
 	if (matchingShortcuts.length > 0) {
 		e.preventDefault();
 		for (const shortcut of matchingShortcuts) {
-			shortcut.action();
+			await shortcut.action();
 		}
 	}
 }

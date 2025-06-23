@@ -13,7 +13,7 @@ import {
 } from "./commands";
 import { constructComponent, GRID_SIZE, gridSnap } from "./global.svelte";
 import { GraphManager } from "./graph.svelte";
-import { simulation } from "./simulation.svelte";
+import { simController } from "./simulation.svelte";
 import {
 	newWireHandleRef,
 	type ComponentType,
@@ -98,7 +98,7 @@ export class EditorAction {
 		graphManager.notifyAll();
 
 		if (editorViewModel.uiState.matches({ mode: "simulate" })) {
-			simulation.recomputeComponent(id);
+			simController.recomputeComponent(id);
 		}
 	}
 
@@ -359,33 +359,35 @@ export class EditorAction {
 	}
 }
 export class ModeAction {
-	static switchToDefaultMode() {
+	static async switchToDefaultMode() {
+		await simController.stopLoop();
 		ChangesAction.abortEditing();
 		editorViewModel.switchToEditMode();
 	}
 
-	static switchToDeleteMode() {
+	static async switchToDeleteMode() {
+		await simController.stopLoop();
 		ChangesAction.abortEditing();
 		editorViewModel.switchToDeleteMode();
 	}
 
-	static switchToSimulateMode() {
+	static async switchToSimulateMode() {
 		ChangesAction.abortEditing();
 		editorViewModel.switchToSimulationMode();
-		simulation.restart();
+		simController.start();
 	}
-	static toggleDelete() {
+	static async toggleDelete() {
 		if (editorViewModel.uiState.matches({ mode: "delete" })) {
-			ModeAction.switchToDefaultMode();
+			await ModeAction.switchToDefaultMode();
 		} else {
-			ModeAction.switchToDeleteMode();
+			await ModeAction.switchToDeleteMode();
 		}
 	}
-	static toggleSimulate() {
+	static async toggleSimulate() {
 		if (editorViewModel.uiState.matches({ mode: "simulate" })) {
-			ModeAction.switchToDefaultMode();
+			await ModeAction.switchToDefaultMode();
 		} else {
-			ModeAction.switchToSimulateMode();
+			await ModeAction.switchToSimulateMode();
 		}
 	}
 }

@@ -54,7 +54,7 @@
 {#snippet toolbarButton(
 	title: string,
 	Icon: typeof IconType,
-	action: () => void,
+	action: () => Promise<void> | void,
 	disabled: boolean = false,
 	selected: boolean | null = null,
 )}

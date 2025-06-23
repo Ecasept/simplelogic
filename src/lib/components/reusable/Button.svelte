@@ -10,6 +10,7 @@
 		margin?: string;
 		height?: string;
 		type?: "danger" | "primary";
+		reversed?: boolean;
 	};
 	let {
 		icon: Icon = null,
@@ -20,6 +21,7 @@
 		margin = "5px",
 		height = "auto",
 		type = "primary",
+		reversed = false,
 	}: Props = $props();
 </script>
 
@@ -30,6 +32,7 @@
 		icon: Icon !== null,
 		danger: type === "danger",
 		primary: type === "primary",
+		reversed
 	}}
 	aria-label={title}
 	onclick={onClick}
@@ -59,6 +62,10 @@
 			align-items: center;
 			justify-content: center;
 			gap: 5px;
+		}
+
+		&.reversed {
+			flex-direction: row-reverse;
 		}
 	}
 

@@ -55,15 +55,16 @@
 	let isSelected = $derived("selected" in uiState && uiState.selected === id);
 
 	let isPowered = $derived.by(() => {
-		const isAnyOutputPowered = Object.values(simData?.outputs ?? {}).some(
-			(v) => v,
-		);
 		if (simulating) {
+			const isAnyOutputPowered = Object.values(simData?.outputs ?? {}).some(
+				(v) => v,
+			);
+			// A component is "powered" if it sends power to any output
 			if (isAnyOutputPowered) {
 				return true;
 			}
-			if (type === "LED" && simData?.inputs["in"]) {
-				// LED does not have output and is powered if input is true
+			// LEDs don't have outputs, so there is an extra property
+			if (simData?.ledPowered) {
 				return true;
 			}
 		}
