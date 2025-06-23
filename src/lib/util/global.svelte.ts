@@ -245,3 +245,57 @@ type Entries<T> = {
 export function entries<T extends object>(object: T): Entries<T> {
 	return Object.entries(object) as Entries<T>;
 }
+
+/**
+ * Animates the collapse or extension of a sidebar content element.
+ *
+ * @param sidebarContent The HTML element to animate
+ * @param collapse Whether to collapse (true) or extend (false) the sidebar content
+ * @returns An Animation object that can be used to control the animation
+ */
+export function collapseAnimation(
+	sidebarContent: HTMLElement,
+	collapse: boolean,
+) {
+	const reducedMotion = window.matchMedia(
+		"(prefers-reduced-motion: reduce)",
+	).matches;
+
+	const animationOptions = {
+		duration: reducedMotion ? 0 : 200,
+		fill: "forwards" as const,
+		easing: "ease-in-out",
+	};
+
+	const collapseAnim = [
+		{
+			maxHeight: `${sidebarContent.scrollHeight}px`,
+			opacity: 1,
+		},
+		{ maxHeight: "0px", opacity: 0 },
+	];
+	const extendAnim = [
+		{ maxHeight: "0px", opacity: 0 },
+		{
+			maxHeight: `${sidebarContent.scrollHeight}px`,
+			opacity: 1,
+			offset: 1,
+		},
+		{ maxHeight: "none", opacity: 1, offset: 1 }, // Don't apply a max-height after the animation
+	];
+
+	if (collapse) {
+		return sidebarContent.animate(collapseAnim, animationOptions);
+	} else {
+		return sidebarContent.animate(extendAnim, animationOptions);
+	}
+}
+
+/** Returns the initial style for a collapsible element based on whether it is open or closed.
+ *
+ * @param open Whether element is currently open or closed
+ * @returns The CSS style string to apply to the element
+ */
+export function collapseAnimationInit(open: boolean) {
+	return `max-height: ${open ? "none" : "0px"}; opacity: ${open ? 1 : 0};`;
+}

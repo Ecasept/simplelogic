@@ -1,4 +1,8 @@
 <script lang="ts">
+	import {
+		collapseAnimation,
+		collapseAnimationInit,
+	} from "$lib/util/global.svelte";
 	import { ChevronDown } from "lucide-svelte";
 	import type { Snippet } from "svelte";
 
@@ -12,25 +16,52 @@
 	};
 
 	let { headerText, uniqueName, toggle, open, children }: Props = $props();
+
+	let sidebarContent: HTMLDivElement | null = null;
+	let currentAnimation: Animation | null = null;
+
+	function onToggle() {
+		if (currentAnimation) {
+			currentAnimation.cancel();
+			currentAnimation = null;
+		}
+
+		if (sidebarContent) {
+			const animation = collapseAnimation(sidebarContent, open);
+			currentAnimation = animation;
+			animation.onfinish = () => {
+				currentAnimation = null;
+			};
+		}
+		toggle();
+	}
 </script>
 
-<div class="editor-overlay sidebar" id="sidebar-{uniqueName}">
+<div
+	class="editor-overlay sidebar"
+	id="sidebar-{uniqueName}"
+	role="region"
+	aria-label={headerText}
+>
 	<button
 		class="header"
 		aria-label={open ? "Collapse" : "Expand"}
 		title={open ? "Collapse" : "Expand"}
-		onclick={toggle}
+		onclick={onToggle}
 		aria-expanded={open}
 		aria-controls="sidebar-{uniqueName}-content"
 	>
 		<h3>{headerText}</h3>
-		<div class={["button-container", { open }]}>
-			<ChevronDown size="24px" aria-label={open ? "Collapse" : "Expand"} />
+		<div class={["button-container", { open }]} aria-hidden="true">
+			<ChevronDown size="24px" />
 		</div>
 	</button>
 	<div
 		id="sidebar-{uniqueName}-content"
 		class={["sidebar-content", { collapsed: !open }]}
+		bind:this={sidebarContent}
+		style={collapseAnimationInit(open)}
+		aria-hidden={!open}
 	>
 		<div class="content-container">
 			{@render children()}
@@ -58,7 +89,7 @@
 	.button-container {
 		line-height: 0;
 		transform: rotate(0deg);
-		transition: transform 0.3s;
+		transition: transform 0.2s;
 
 		&.open {
 			transform: rotate(180deg);
@@ -66,21 +97,7 @@
 	}
 
 	.sidebar-content {
-		transition:
-			height 0.3s,
-			display 0.3s;
-		transition-behavior: allow-discrete;
-		interpolate-size: allow-keywords;
 		overflow: hidden;
-
-		@starting-style {
-			height: 0;
-		}
-
-		&.collapsed {
-			height: 0;
-			display: none;
-		}
 	}
 
 	.header {

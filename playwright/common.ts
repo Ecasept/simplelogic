@@ -355,6 +355,7 @@ export const expect = baseExpect.extend({
 			const content = locator.locator(".sidebar-content");
 			const expect = this.isNot ? baseExpect(content).not : baseExpect(content);
 			await expect.not.toHaveClass(/collapsed/, options);
+			await expect.toHaveCSS("max-height", "none", options);
 		},
 	),
 	/** Passes when the sidebar is collapsed */
@@ -365,6 +366,7 @@ export const expect = baseExpect.extend({
 			const content = locator.locator(".sidebar-content");
 			const expect = this.isNot ? baseExpect(content).not : baseExpect(content);
 			await expect.toHaveClass(/collapsed/, options);
+			await expect.toHaveCSS("max-height", "0px", options);
 		},
 	),
 	/** Passes when the component has the correct stroke color for a selected component */

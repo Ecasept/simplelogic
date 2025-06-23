@@ -992,9 +992,6 @@ test.describe("sidebars", () => {
 	test("selection sidebar can be toggled", async ({ editor }) => {
 		await expect(editor.getSidebar("selection")).not.toBeVisible();
 		await editor.addComponent("AND", 100, 100);
-		// await expect(
-		// 	editor.getSidebar("selection").locator(".sidebar-content"),
-		// ).not.toHaveClass(/collapsed/);
 		await expect(editor.getSidebar("selection")).toBeExpanded();
 		await editor.toggleSidebar("selection");
 		await expect(editor.getSidebar("selection")).toBeCollapsed();
@@ -1009,6 +1006,45 @@ test.describe("sidebars", () => {
 		// Delete and verify removal
 		await editor.deleteSelected();
 		await expect(editor.comps()).toHaveCount(0);
+	});
+	test("sidebar shrinks when content collapses, and content stays collapsed after closing and reopening sidebar", async ({
+		editor,
+	}) => {
+		const sidebar = editor.getSidebar("tools");
+		await expect(sidebar).toBeExpanded();
+		const initialHeight = await sidebar.evaluate((el) => el.scrollHeight);
+
+		// Collapse section
+		await sidebar.getByText("Components").click();
+		await expect(sidebar).toBeExpanded();
+		await expect(sidebar).toBeVisible(); // Wait for animation to finish = element to be stable
+
+		// Verify sidebar has shrunk
+		const sectionCollapsedHeight = await sidebar.evaluate(
+			(el) => el.scrollHeight,
+		);
+		expect(sectionCollapsedHeight).toBeLessThan(initialHeight);
+
+		// Close and reopen sidebar
+		await editor.toggleSidebar("tools");
+		await editor.toggleSidebar("tools");
+
+		// Verify section is still collapsed
+		const finalHeight = await sidebar.evaluate((el) => el.scrollHeight);
+		expect(finalHeight).toEqual(sectionCollapsedHeight);
+	});
+	test("handles rapid sidebar toggling", async ({ editor, pointer }) => {
+		const sidebar = editor.getSidebar("tools");
+		await sidebar.getByText("Tools").hover();
+
+		// Rapidly toggle multiple times
+		for (let i = 0; i < 5; i++) {
+			await pointer.down();
+			await pointer.up();
+		}
+
+		// Wait for any pending animations to complete
+		await expect(sidebar).toBeCollapsed();
 	});
 });
 
