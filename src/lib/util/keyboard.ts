@@ -242,6 +242,40 @@ const shortcuts: Shortcut[] = [
 		action: EditorAction.deleteSelected,
 	},
 	{
+		name: "Rotate selected clockwise",
+		pattern: {
+			key: "r",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			selected: P.not(null),
+		},
+		action: () => {
+			const uiState = editorViewModel.uiState;
+			if ("selected" in uiState && uiState.selected !== null) {
+				EditorAction.rotateComponent(uiState.selected, 90);
+			}
+		},
+	},
+	{
+		name: "Rotate selected counter-clockwise",
+		pattern: {
+			key: "r",
+			mod: "shift",
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			selected: P.not(null),
+		},
+		action: () => {
+			const uiState = editorViewModel.uiState;
+			if ("selected" in uiState && uiState.selected !== null) {
+				EditorAction.rotateComponent(uiState.selected, -90);
+			}
+		},
+	},
+	{
 		name: "Cancel editing when undoing while editing",
 		pattern: {
 			key: "z",

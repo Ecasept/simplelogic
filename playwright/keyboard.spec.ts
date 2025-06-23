@@ -193,3 +193,150 @@ test.describe("shortcut interactions", () => {
 		await expect(editor.comps()).toHaveCount(0);
 	});
 });
+
+test.describe("rotation shortcuts", () => {
+	test("r rotates selected component clockwise", async ({ page, editor }) => {
+		// Add a component
+		await editor.addComponent("AND", 300, 300);
+		const component = editor.comps();
+
+		// Component should already be selected
+		await expect(component).toBeSelected();
+
+		// Press R to rotate clockwise
+		await page.keyboard.press("r");
+
+		// Verify component is rotated 90 degrees
+		await expect(component).toBeRotated(90);
+	});
+
+	test("shift+r rotates selected component counter-clockwise", async ({
+		page,
+		editor,
+	}) => {
+		// Add a component
+		await editor.addComponent("AND", 400, 400);
+		const component = editor.comps();
+
+		// Component should already be selected
+		await expect(component).toBeSelected();
+
+		// Press Shift+R to rotate counter-clockwise
+		await page.keyboard.press("Shift+R");
+
+		// Verify component is rotated -90 degrees (270 degrees)
+		await expect(component).toBeRotated(270);
+	});
+
+	test("multiple rotations work correctly", async ({ page, editor }) => {
+		// Add a component
+		await editor.addComponent("OR", 200, 200);
+		const component = editor.comps();
+
+		// Component should already be selected
+		await expect(component).toBeSelected();
+
+		// Rotate clockwise 3 times
+		await page.keyboard.press("r");
+		await expect(component).toBeRotated(90);
+
+		await page.keyboard.press("r");
+		await expect(component).toBeRotated(180);
+
+		await page.keyboard.press("r");
+		await expect(component).toBeRotated(270);
+
+		// One more rotation should bring it back to 0
+		await page.keyboard.press("r");
+		await expect(component).toBeRotated(0);
+	});
+
+	test("rotation shortcuts do nothing when no component is selected", async ({
+		page,
+		editor,
+		pointer,
+	}) => {
+		// Add a component but don't select it
+		await editor.addComponent("AND", 300, 300);
+		const component = editor.comps();
+
+		// Deselect component
+		await pointer.clickOn(component);
+		await expect(component).not.toBeSelected();
+
+		// Get initial rotation
+		const initialRotation = await component.getAttribute("transform");
+
+		// Press R - should do nothing
+		await page.keyboard.press("r");
+
+		// Verify rotation hasn't changed
+		await expect(component).toHaveAttribute("transform", initialRotation);
+
+		// Press Shift+R - should also do nothing
+		await page.keyboard.press("Shift+R");
+
+		// Verify rotation still hasn't changed
+		await expect(component).toHaveAttribute("transform", initialRotation);
+	});
+
+	test("rotation works with wire connections", async ({ page, editor }) => {
+		// Add component and connect wires
+		await editor.addComponent("AND", 400, 300);
+		const component = editor.comps();
+
+		// Connect wires to test rotation with connections
+		const inputHandle = editor.getHandle("AND", "in1").first();
+		const outputHandle = editor.getHandle("AND", "out").first();
+
+		await editor.dragTo(inputHandle, 300, 200);
+		await editor.dragTo(outputHandle, 500, 350);
+
+		// Verify wires are created
+		await expect(editor.wires()).toHaveCount(2);
+
+		// Get initial wire paths
+		const wire1 = editor.wires().first();
+		const wire2 = editor.wires().nth(1);
+		const initialPath1 = await wire1.getAttribute("d");
+		const initialPath2 = await wire2.getAttribute("d");
+
+		// Select component and rotate
+		await component.click();
+		await page.keyboard.press("r");
+
+		// Verify component is rotated
+		await expect(component).toBeRotated(90);
+
+		// Verify wires have moved with the rotation
+		await expect(wire1).not.toHaveAttribute("d", initialPath1);
+		await expect(wire2).not.toHaveAttribute("d", initialPath2);
+	});
+
+	test("rotation shortcuts don't work while editing", async ({
+		page,
+		editor,
+		pointer,
+	}) => {
+		// Add a component
+		await editor.addComponent("AND", 300, 300);
+		const component = editor.comps();
+
+		// Start dragging the component
+		await component.hover();
+		await pointer.down();
+		await pointer.moveTo(400, 400);
+
+		// Get current rotation
+		const currentRotation = await component.getAttribute("transform");
+
+		// Press R while dragging - should not rotate
+		await page.keyboard.press("r");
+
+		// Verify rotation hasn't changed
+		await expect(component).toHaveAttribute("transform", currentRotation);
+
+		// Finish the drag
+		await pointer.up();
+	});
+});
