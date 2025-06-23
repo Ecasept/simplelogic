@@ -1017,7 +1017,7 @@ test.describe("sidebars", () => {
 		// Collapse section
 		await sidebar.getByText("Components").click();
 		await expect(sidebar).toBeExpanded();
-		await expect(sidebar).toBeVisible(); // Wait for animation to finish = element to be stable
+		await sidebar.locator(".sidebar-content").hover(); // Wait for animation to finish = element to be stable
 
 		// Verify sidebar has shrunk
 		const sectionCollapsedHeight = await sidebar.evaluate(
