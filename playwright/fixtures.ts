@@ -13,7 +13,7 @@ export class Editor {
 
 	async waitForNetworkIdle() {
 		// Only wait on chromium
-		if (this.browserName === "chromium") {
+		if (this.browserName !== "firefox" || process.env.CI) {
 			await this.page.waitForLoadState("networkidle");
 		}
 	}

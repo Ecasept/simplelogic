@@ -180,7 +180,7 @@ const customTest = base.extend<
 		await mockWebkitClipboard(page, browserName, clipboard);
 
 		await page.goto(baseURL);
-		if (browserName === "chromium") {
+		if (browserName !== "firefox" || process.env.CI) {
 			await page.waitForLoadState("networkidle");
 		}
 		await use(page);
