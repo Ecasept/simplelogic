@@ -1319,4 +1319,57 @@ test.describe("rotation", () => {
 		await expect(wire2).toHaveAttribute("d", initialPath2);
 		await expect(wire3).toHaveAttribute("d", initialPath3);
 	});
+
+	test("rotation flow", async ({ editor }) => {
+		// Add component at specific position
+		await editor.addComponent("AND", 400, 300);
+		const component = editor.comps();
+
+		// Select and rotate the component 90 degrees clockwise
+		await editor.rotateSelected("cw");
+		await expect(component).toBeRotated(90);
+
+		// Get the rotated output handle position
+		const rotatedOutputHandle = editor.getHandle("AND", "out").first();
+		const [rotatedCx, rotatedCy] = await rotatedOutputHandle.evaluate((el) => [
+			el.getAttribute("cx"),
+			el.getAttribute("cy"),
+		]);
+
+		// Create a new wire from the rotated handle
+		await editor.dragTo(rotatedOutputHandle, 500, 400);
+
+		// Verify the wire starts from the rotated handle position, not the original position
+		const newWire = editor.wires().first();
+		const wireD = await newWire.getAttribute("d");
+
+		// The wire should start from the rotated handle position
+		// For a 90-degree clockwise rotation of an AND gate at (400, 300),
+		// the output handle should be at approximately (320, 280)
+		expect(wireD).toMatch(/^M320 280 L/);
+
+		// Now move the rotated component and verify wires stay correctly positioned
+		await editor.dragTo(component, 600, 500);
+		await expectPosToBe(component, 600, 500);
+
+		// Verify the component is still rotated after moving
+		await expect(component).toBeRotated(90);
+
+		// Get the handle position after moving
+		const movedHandle = editor.getHandle("AND", "out").first();
+		const [movedCx, movedCy] = await movedHandle.evaluate((el) => [
+			el.getAttribute("cx"),
+			el.getAttribute("cy"),
+		]);
+
+		// Verify the handle itself moved to the correct rotated position
+		expect(parseInt(movedCx)).toBe(500);
+		expect(parseInt(movedCy)).toBe(400);
+
+		// Verify the wire moved with the component and maintains correct rotated relationship
+		const movedWireD = await newWire.getAttribute("d");
+
+		// The wire should start from the new rotated handle position
+		expect(movedWireD).toMatch(/^M460 440 L/);
+	});
 });

@@ -120,16 +120,43 @@ export const COMPONENT_DATA: {
 };
 
 export function calculateHandlePosition(
-	componentPos: XYPair,
 	handleEdge: HandleEdge,
-	handlePos: number,
+	handlePosOnComponent: number,
 	componentSize: XYPair,
+	componentPos: XYPair,
+	componentRotation: number,
+	rotated: boolean = true,
 ) {
-	const offset = calculateHandleOffset(handleEdge, handlePos, componentSize);
-	return {
+	// Calculate offset of handlef rom the component position
+	const offset = calculateHandleOffset(
+		handleEdge,
+		handlePosOnComponent,
+		componentSize,
+	);
+
+	// Calculate actual position of handle
+	const handlePos = {
 		x: componentPos.x + offset.x,
 		y: componentPos.y + offset.y,
 	};
+
+	if (!rotated) {
+		return handlePos;
+	}
+
+	// Rotate the handle around the center of the component
+	const componentCenter = {
+		x: componentPos.x + (componentSize.x * GRID_SIZE) / 2,
+		y: componentPos.y + (componentSize.y * GRID_SIZE) / 2,
+	};
+
+	const rotatedPos = rotateAroundBy(
+		handlePos,
+		componentCenter,
+		componentRotation,
+	);
+
+	return rotatedPos;
 }
 
 export function calculateHandleOffset(
@@ -288,4 +315,20 @@ export function collapseAnimation(
  */
 export function collapseAnimationInit(open: boolean) {
 	return `max-height: ${open ? "none" : "0px"}; opacity: ${open ? 1 : 0};`;
+}
+
+export function rotateAroundBy(
+	position: XYPair,
+	center: XYPair,
+	angle: number,
+): XYPair {
+	const radians = (angle * Math.PI) / 180;
+	const cos = Math.cos(radians);
+	const sin = Math.sin(radians);
+	const dx = position.x - center.x;
+	const dy = position.y - center.y;
+	return {
+		x: dx * cos - dy * sin + center.x,
+		y: dx * sin + dy * cos + center.y,
+	};
 }

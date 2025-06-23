@@ -4,11 +4,7 @@
 		EditorAction,
 		editorViewModel,
 	} from "$lib/util/actions";
-	import {
-		calculateHandleOffset,
-		calculateHandlePosition,
-		GRID_SIZE,
-	} from "$lib/util/global.svelte";
+	import { calculateHandlePosition, GRID_SIZE } from "$lib/util/global.svelte";
 	import { getSimData } from "$lib/util/simulation.svelte";
 	import type {
 		ComponentHandle,
@@ -120,12 +116,13 @@
 		editorViewModel.removeHoveredHandle();
 
 		// calculate position of handle
-		let handleOffset = calculateHandleOffset(handleEdge, handlePos, size);
-
-		const wirePos = {
-			x: position.x + handleOffset.x,
-			y: position.y + handleOffset.y,
-		};
+		const wirePos = calculateHandlePosition(
+			handleEdge,
+			handlePos,
+			size,
+			position,
+			rotation,
+		);
 
 		EditorAction.addWire(wirePos, {
 			id,
@@ -264,6 +261,15 @@
 			<!-- Hide inputs if the dragged handle already has outgoing wires
 			 (wire outputs may only be connected to either 1 component input, or multiple wire inputs) -->
 			{#if !("draggedHandle" in uiState && uiState.draggedHandle.handleType === "output" && (uiState.connectionCount ?? 0) > 0)}
+				{@const handlePosition = calculateHandlePosition(
+					handle.edge,
+					handle.pos,
+					size,
+					position,
+					rotation,
+					false
+				)}
+
 				<Handle
 					{uiState}
 					ref={{
@@ -277,12 +283,7 @@
 					{simulating}
 					{simData}
 					handleType={handle.type}
-					position={calculateHandlePosition(
-						position,
-						handle.edge,
-						handle.pos,
-						size,
-					)}
+					position={handlePosition}
 					onHandleDown={(e) =>
 						onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 					onHandleEnter={() => onHandleEnter(handle, identifier)}

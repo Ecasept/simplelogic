@@ -11,7 +11,12 @@ import {
 	ToggleInputPowerStateCommand,
 	type Command,
 } from "./commands";
-import { constructComponent, GRID_SIZE, gridSnap } from "./global.svelte";
+import {
+	constructComponent,
+	GRID_SIZE,
+	gridSnap,
+	rotateAroundBy,
+} from "./global.svelte";
 import { GraphManager } from "./graph.svelte";
 import { simController } from "./simulation.svelte";
 import {
@@ -321,11 +326,10 @@ export class EditorAction {
 
 		const cmpData = graphManager.getComponentData(id);
 
-		const cx = cmpData.position.x + (cmpData.size.x * GRID_SIZE) / 2;
-		const cy = cmpData.position.y + (cmpData.size.y * GRID_SIZE) / 2;
-		const angle = (rotateBy / 180) * Math.PI;
-		const sin = Math.sin(angle);
-		const cos = Math.cos(angle);
+		const componentPos = {
+			x: cmpData.position.x + (cmpData.size.x * GRID_SIZE) / 2,
+			y: cmpData.position.y + (cmpData.size.y * GRID_SIZE) / 2,
+		};
 
 		// Rotate all wire connections
 		for (const handleId in cmpData.handles) {
@@ -333,17 +337,15 @@ export class EditorAction {
 			for (const conn of handle.connections) {
 				const wireId = conn.id;
 				const wireData = graphManager.getWireData(wireId);
-				const x = wireData.handles[conn.handleId].x;
-				const y = wireData.handles[conn.handleId].y;
+				const wirePos = {
+					x: wireData.handles[conn.handleId].x,
+					y: wireData.handles[conn.handleId].y,
+				};
 
-				// Rotate (x, y) (position of wire connection) around (cx, cy) (position of component)
-				const dx = x - cx;
-				const dy = y - cy;
-				const nx = dx * cos - dy * sin + cx;
-				const ny = dx * sin + dy * cos + cy;
+				const rotatedPos = rotateAroundBy(wirePos, componentPos, rotateBy);
 
 				const cmd = new MoveWireHandleCommand(
-					{ x: nx, y: ny },
+					rotatedPos,
 					conn.handleType,
 					wireId,
 				);

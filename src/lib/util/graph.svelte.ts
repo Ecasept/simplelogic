@@ -4,7 +4,7 @@ import {
 	MoveWireHandleCommand,
 	type Command,
 } from "./commands";
-import { calculateHandleOffset, isComponentHandleRef } from "./global.svelte";
+import { calculateHandlePosition, isComponentHandleRef } from "./global.svelte";
 import {
 	ZGraphData,
 	type GraphData,
@@ -108,16 +108,15 @@ export class GraphManager {
 
 		for (const [id, handle] of Object.entries(cmp.handles)) {
 			for (const connection of handle.connections) {
-				const handleOffset = calculateHandleOffset(
+				const handlePos = calculateHandlePosition(
 					handle.edge,
 					handle.pos,
 					cmp.size,
+					newComponentPos,
+					cmp.rotation,
 				);
 				const moveWireCmd = new MoveWireHandleCommand(
-					{
-						x: newComponentPos.x + handleOffset.x,
-						y: newComponentPos.y + handleOffset.y,
-					},
+					handlePos,
 					connection.handleType,
 					connection.id,
 				);
