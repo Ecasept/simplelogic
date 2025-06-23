@@ -8,12 +8,20 @@ export class Editor {
 	constructor(
 		private readonly page: Page,
 		private readonly pointer: Pointer,
+		private readonly browserName: string,
 	) {}
+
+	async waitForNetworkIdle() {
+		// Only wait on chromium
+		if (this.browserName === "chromium") {
+			await this.page.waitForLoadState("networkidle");
+		}
+	}
 
 	/** Reloads the editor, resetting all components and everyhing else in the UI */
 	async reload() {
 		await this.page.goto("/");
-		await this.page.waitForLoadState("networkidle");
+		await this.waitForNetworkIdle();
 	}
 
 	/** Clicks the delete button of a specific circuit in the load modal */
@@ -64,7 +72,7 @@ export class Editor {
 		await button.click();
 		await expect(button).not.toBeVisible();
 		await this.page.waitForURL("/");
-		await this.page.waitForLoadState("networkidle");
+		await this.waitForNetworkIdle();
 	}
 
 	async openLoadModal() {
@@ -92,7 +100,7 @@ export class Editor {
 		await btn.click();
 		await expect(btn).not.toBeVisible();
 		await this.page.waitForURL("/");
-		await this.page.waitForLoadState("networkidle");
+		await this.waitForNetworkIdle();
 	}
 
 	/** Returns a locator to the account menu that is opened by the account button */

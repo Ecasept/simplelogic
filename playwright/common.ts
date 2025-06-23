@@ -180,7 +180,9 @@ const customTest = base.extend<
 		await mockWebkitClipboard(page, browserName, clipboard);
 
 		await page.goto(baseURL);
-		await page.waitForLoadState("networkidle");
+		if (browserName === "chromium") {
+			await page.waitForLoadState("networkidle");
+		}
 		await use(page);
 	},
 	touchscreen: async ({ page, hasTouch }, use) => {
@@ -202,8 +204,8 @@ const customTest = base.extend<
 			await use(new DesktopPointer(page));
 		}
 	},
-	editor: async ({ page, pointer }, use) => {
-		await use(new Editor(page, pointer));
+	editor: async ({ page, pointer, browserName }, use) => {
+		await use(new Editor(page, pointer, browserName));
 	},
 });
 
