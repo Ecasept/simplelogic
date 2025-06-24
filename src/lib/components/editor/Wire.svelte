@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
 	import {
+		debugLog,
 		isComponentHandleRef,
 		isVibrateSupported,
 	} from "$lib/util/global.svelte";
@@ -23,9 +24,10 @@
 			output: WireHandle;
 		};
 		uiState: EditorUiState;
+		renderMode?: "body" | "handles" | "all";
 	};
 
-	let { id, handles, uiState }: Props = $props();
+	let { id, handles, uiState, renderMode = "all" }: Props = $props();
 
 	let editingThis = $derived(
 		"draggedHandle" in uiState && uiState.draggedHandle.id === id,
@@ -167,68 +169,72 @@
 	);
 </script>
 
-<path
-	class={{ wire: true, selected: isSelected }}
-	d="M{input.x} {input.y} L{output.x} {output.y}"
-	{stroke}
-	style="pointer-events: none;"
-	data-testcomponenttype="wire"
-	data-testcomponentid={id}
-></path>
+{#if renderMode === "body" || renderMode === "all"}
+	<path
+		class={{ wire: true, selected: isSelected }}
+		d="M{input.x} {input.y} L{output.x} {output.y}"
+		{stroke}
+		style="pointer-events: none;"
+		data-testcomponenttype="wire"
+		data-testcomponentid={id}
+	></path>
 
-<path
-	role="button"
-	tabindex="0"
-	class="hitbox"
-	d="M{input.x} {input.y} L{output.x} {output.y}"
-	stroke="transparent"
-	style="pointer-events: {hitboxEnabled ? 'inherit' : 'none'};"
-	stroke-width="10"
-	onpointerenter={() => {
-		editorViewModel.setHoveredElement(id);
-	}}
-	onpointerleave={() => {
-		editorViewModel.removeHoveredElement();
-	}}
-	onpointerdown={onPointerDown}
-></path>
-
-<!-- Hide connected inputs -->
-{#if input.connections.length === 0}
-	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
-	{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle.handleType === "input")}
-		<Handle
-			{uiState}
-			ref={newWireHandleRef(id, "input")}
-			{editingThis}
-			{deletingThis}
-			{simulating}
-			{simData}
-			handleType="input"
-			position={{ x: input.x, y: input.y }}
-			onHandleDown={(e) => onHandleDown("input", e)}
-			onHandleEnter={() => onHandleEnter("input")}
-			{onHandleLeave}
-		/>
-	{/if}
+	<path
+		role="button"
+		tabindex="0"
+		class="hitbox"
+		d="M{input.x} {input.y} L{output.x} {output.y}"
+		stroke="transparent"
+		style="pointer-events: {hitboxEnabled ? 'inherit' : 'none'};"
+		stroke-width="10"
+		onpointerenter={() => {
+			editorViewModel.setHoveredElement(id);
+		}}
+		onpointerleave={() => {
+			editorViewModel.removeHoveredElement();
+		}}
+		onpointerdown={onPointerDown}
+	></path>
 {/if}
-<!-- Hide outputs connected to components -->
-{#if !isComponentHandleRef(output.connections[0] ?? null)}
-	<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
-	{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle?.handleType === "output")}
-		<Handle
-			{uiState}
-			ref={newWireHandleRef(id, "output")}
-			{editingThis}
-			{deletingThis}
-			{simulating}
-			{simData}
-			handleType="output"
-			position={{ x: output.x, y: output.y }}
-			onHandleDown={(e) => onHandleDown("output", e)}
-			onHandleEnter={() => onHandleEnter("output")}
-			{onHandleLeave}
-		/>
+
+{#if renderMode === "handles" || renderMode === "all"}
+	<!-- Hide connected inputs -->
+	{#if input.connections.length === 0}
+		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
+		{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle.handleType === "input")}
+			<Handle
+				{uiState}
+				ref={newWireHandleRef(id, "input")}
+				{editingThis}
+				{deletingThis}
+				{simulating}
+				{simData}
+				handleType="input"
+				position={{ x: input.x, y: input.y }}
+				onHandleDown={(e) => onHandleDown("input", e)}
+				onHandleEnter={() => onHandleEnter("input")}
+				{onHandleLeave}
+			/>
+		{/if}
+	{/if}
+	<!-- Hide outputs connected to components -->
+	{#if !isComponentHandleRef(output.connections[0] ?? null)}
+		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
+		{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle?.handleType === "output")}
+			<Handle
+				{uiState}
+				ref={newWireHandleRef(id, "output")}
+				{editingThis}
+				{deletingThis}
+				{simulating}
+				{simData}
+				handleType="output"
+				position={{ x: output.x, y: output.y }}
+				onHandleDown={(e) => onHandleDown("output", e)}
+				onHandleEnter={() => onHandleEnter("output")}
+				{onHandleLeave}
+			/>
+		{/if}
 	{/if}
 {/if}
 

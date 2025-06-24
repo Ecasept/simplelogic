@@ -220,7 +220,12 @@
 		/>
 
 		{#each Object.entries(graphData.wires) as [id, data] (id)}
-			<Wire {...data} uiState={editorViewModel.uiState}></Wire>
+			<Wire {...data} uiState={editorViewModel.uiState} renderMode="body"
+			></Wire>
+		{/each}
+		{#each Object.entries(graphData.wires) as [id, data] (id)}
+			<Wire {...data} uiState={editorViewModel.uiState} renderMode="handles"
+			></Wire>
 		{/each}
 		{#each Object.entries(graphData.components) as [id, data] (id)}
 			{#if data.type === "TEXT"}
