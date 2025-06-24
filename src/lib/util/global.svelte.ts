@@ -36,6 +36,8 @@ export function gridSnap(val: number) {
 
 export const COMPONENT_DATA: {
 	[T in ComponentType]: {
+		/** The user-facing name of the component */
+		name: string;
 		handles: ComponentHandleList;
 		height: number;
 		width: number;
@@ -49,6 +51,7 @@ export const COMPONENT_DATA: {
 	} & EmptyHandleList<string, ComponentHandle>;
 } = {
 	AND: {
+		name: "AND Gate",
 		handles: {
 			in1: { edge: "left", pos: 1, type: "input", connections: [] },
 			in2: { edge: "left", pos: 3, type: "input", connections: [] },
@@ -61,6 +64,7 @@ export const COMPONENT_DATA: {
 		execute: (inputs, _, __) => inputs.in1 && inputs.in2,
 	},
 	OR: {
+		name: "OR Gate",
 		handles: {
 			in1: { edge: "left", pos: 1, type: "input", connections: [] },
 			in2: { edge: "left", pos: 3, type: "input", connections: [] },
@@ -73,6 +77,7 @@ export const COMPONENT_DATA: {
 		execute: (inputs, _, __) => inputs.in1 || inputs.in2,
 	},
 	NOT: {
+		name: "NOT Gate",
 		handles: {
 			in: { edge: "left", pos: 2, type: "input", connections: [] },
 			out: { edge: "right", pos: 2, type: "output", connections: [] },
@@ -84,6 +89,7 @@ export const COMPONENT_DATA: {
 		execute: (inputs, _, __) => !inputs.in,
 	},
 	XOR: {
+		name: "XOR Gate",
 		handles: {
 			in1: { edge: "left", pos: 1, type: "input", connections: [] },
 			in2: { edge: "left", pos: 3, type: "input", connections: [] },
@@ -96,6 +102,7 @@ export const COMPONENT_DATA: {
 		execute: (inputs, _, __) => inputs.in1 != inputs.in2,
 	},
 	IN: {
+		name: "Input",
 		handles: {
 			out: { edge: "right", pos: 1, type: "output", connections: [] },
 		},
@@ -108,6 +115,7 @@ export const COMPONENT_DATA: {
 		},
 	},
 	LED: {
+		name: "LED",
 		handles: {
 			in: { edge: "left", pos: 1, type: "input", connections: [] },
 		},
