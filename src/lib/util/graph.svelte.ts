@@ -45,11 +45,16 @@ export class GraphManager {
 		command: C,
 		replace: boolean = false,
 	): ReturnType<C["execute"]> {
-		// If the command is replaceable and a previous command of the same type exists, undo it
-		if (replace && this.changes.length > 0) {
-			const prevCommand = this.changes[this.changes.length - 1];
-			if (prevCommand instanceof command.constructor) {
-				prevCommand.undo(this._graphData);
+		if (this.changes.length > 0) {
+			const lastChange = this.changes[this.changes.length - 1];
+			// If they are both command groups of the same type,
+			const canReplace =
+				lastChange instanceof CommandGroup &&
+				command instanceof CommandGroup &&
+				lastChange.type === command.type;
+			if (replace && canReplace) {
+				// If the command is replaceable and a previous command of the same type exists, undo it
+				lastChange.undo(this._graphData);
 				this.changes.pop();
 			}
 		}
@@ -123,7 +128,7 @@ export class GraphManager {
 				cmds.push(moveWireCmd);
 			}
 		}
-		const cmd = new CommandGroup(cmds);
+		const cmd = new CommandGroup(cmds, "moveComponent");
 		this.executeCommand(cmd, true);
 	}
 
@@ -164,7 +169,7 @@ export class GraphManager {
 			);
 			cmds.push(moveWireCmd);
 		}
-		const cmd = new CommandGroup(cmds);
+		const cmd = new CommandGroup(cmds, "moveWire");
 		this.executeCommand(cmd, true);
 	}
 

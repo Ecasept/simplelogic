@@ -319,8 +319,9 @@ export class EditorAction {
 	 *
 	 * @param id - The ID of the component to rotate
 	 * @param rotateBy - The angle to rotate the component by, in degrees
+	 * @param apply - Whether to apply the changes immediately or not.
 	 */
-	static rotateComponent(id: number, rotateBy: number) {
+	static rotateComponent(id: number, rotateBy: number, apply: boolean = true) {
 		const commands: Command[] = [];
 		commands.push(new RotateComponentCommand(id, rotateBy));
 
@@ -356,10 +357,28 @@ export class EditorAction {
 		const group = new CommandGroup(commands);
 
 		graphManager.executeCommand(group);
-		graphManager.applyChanges();
+		if (apply) {
+			graphManager.applyChanges();
+		}
 		graphManager.notifyAll();
 	}
+
+	static rotateDraggedComponent(rotateBy: number) {
+		const uiState = editorViewModel.uiState;
+		if (
+			!uiState.matches({
+				editType: P.union("draggingComponent", "addingComponent"),
+			})
+		) {
+			return;
+		}
+
+		const id = uiState.componentId;
+
+		EditorAction.rotateComponent(id, rotateBy, false);
+	}
 }
+
 export class ModeAction {
 	static async switchToDefaultMode() {
 		await simController.stopLoop();

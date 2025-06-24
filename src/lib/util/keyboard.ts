@@ -303,6 +303,34 @@ const shortcuts: Shortcut[] = [
 		},
 		action: EditorAction.clearCanvas,
 	},
+	{
+		name: "Rotate dragged clockwise",
+		pattern: {
+			key: "r",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: P.union("draggingComponent", "addingComponent"),
+			isPanning: false,
+		},
+		action: () => {
+			EditorAction.rotateDraggedComponent(90);
+		},
+	},
+	{
+		name: "Rotate dragged counter-clockwise",
+		pattern: {
+			key: "r",
+			mod: "shift",
+			env: "editor",
+			mode: "edit",
+			editType: P.union("draggingComponent", "addingComponent"),
+			isPanning: false,
+		},
+		action: () => {
+			EditorAction.rotateDraggedComponent(-90);
+		},
+	},
 ];
 
 function getPressedMod(e: KeyboardEvent) {

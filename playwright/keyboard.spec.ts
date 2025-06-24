@@ -339,4 +339,51 @@ test.describe("rotation shortcuts", () => {
 		// Finish the drag
 		await pointer.up();
 	});
+
+	test("rotate while adding and moving", async ({ page, editor, pointer }) => {
+		// drag a new component and rotate it while dragging
+		await page.keyboard.press("A");
+		await pointer.downAt(200, 200);
+		await pointer.moveTo(300, 300);
+		await page.keyboard.press("r");
+		await pointer.up();
+
+		const component = editor.comps();
+		await expect(component).toHaveCount(1);
+		await expectPosToBe(component, 300, 300);
+		await expect(component).toBeRotated(90);
+
+		// move it and rotate it again while doing so (in the opposite dir)
+		await pointer.downAt(300, 300);
+		await pointer.moveTo(400, 200);
+		await page.keyboard.press("Shift+R");
+		await pointer.up();
+
+		await expectPosToBe(component, 400, 200);
+		await expect(component).toBeRotated(0);
+
+		// move it again, verify still rotated
+		await pointer.downAt(400, 200);
+		await pointer.moveTo(500, 500);
+		await pointer.up();
+
+		await expectPosToBe(component, 500, 500);
+		await expect(component).toBeRotated(0);
+
+		// undo, verify rotated and pos
+		await page.keyboard.press("Control+Z");
+		await expect(component).toBeVisible();
+		await expectPosToBe(component, 400, 200);
+		await expect(component).toBeRotated(0);
+
+		// undo, verify rotated and pos
+		await page.keyboard.press("Control+Z");
+		await expect(component).toBeVisible();
+		await expectPosToBe(component, 300, 300);
+		await expect(component).toBeRotated(90);
+
+		// undo, verify does not exist
+		await page.keyboard.press("Control+Z");
+		await expect(editor.comps()).toHaveCount(0);
+	});
 });

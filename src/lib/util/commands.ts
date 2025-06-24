@@ -28,7 +28,10 @@ export interface Command {
 }
 
 export class CommandGroup implements Command {
-	constructor(private commands: Command[]) {}
+	constructor(
+		private commands: Command[],
+		public type: string = "none",
+	) {}
 	execute(graphData: GraphData) {
 		for (const command of this.commands) {
 			command.execute(graphData);
