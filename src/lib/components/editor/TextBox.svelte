@@ -38,7 +38,7 @@
 
 	let editingThis = $derived(uiState.matches({ componentId: id }));
 
-	let isSelected = $derived("selected" in uiState && uiState.selected === id);
+	let isSelected = $derived("selected" in uiState && uiState.selected.has(id));
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {

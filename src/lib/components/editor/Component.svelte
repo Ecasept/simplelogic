@@ -48,7 +48,7 @@
 	let simulating = $derived(uiState.matches({ mode: "simulate" }));
 	let simData = $derived(getSimData(id));
 
-	let isSelected = $derived("selected" in uiState && uiState.selected === id);
+	let isSelected = $derived("selected" in uiState && uiState.selected.has(id));
 
 	let isPowered = $derived.by(() => {
 		if (simulating) {
@@ -150,6 +150,16 @@
 			return;
 		}
 		if (!uiState.matches({ editType: "idle" })) {
+			return;
+		}
+		if (e.ctrlKey || e.metaKey) {
+			// If ctrl or cmd is pressed, toggle selection
+			if (isSelected) {
+				editorViewModel.removeSelected(id);
+			} else {
+				editorViewModel.addSelected(id);
+			}
+			e.stopPropagation();
 			return;
 		}
 
@@ -267,7 +277,7 @@
 					size,
 					position,
 					rotation,
-					false
+					false,
 				)}
 
 				<Handle

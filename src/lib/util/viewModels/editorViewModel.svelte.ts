@@ -90,7 +90,7 @@ export type PanningState = NotPanning | Panning;
 
 // ==== Selection states ====
 export type SelectionState = {
-	selected: number | null;
+	selected: Set<number>;
 	/** The ID of the component/wire that wants to be selected after the next edit operation */
 	selectionInProgressFor: number | null;
 };
@@ -152,7 +152,7 @@ export class EditorViewModel {
 	private initialUiState: EditorUiState = {
 		mode: "edit",
 		editType: "idle",
-		selected: null,
+		selected: new Set<number>(),
 		selectionInProgressFor: null,
 		hoveredHandle: null,
 		hoveredElement: null,
@@ -187,9 +187,11 @@ export class EditorViewModel {
 		this._uiState = { ...persistent, ...newState };
 	}
 
-	/** Returns the currently selected element, or null if nothing is selected */
+	/** Returns the currently selected elements, or a new empty set if none are selected. */
 	private getSelected() {
-		return "selected" in this._uiState ? this._uiState.selected : null;
+		return "selected" in this._uiState
+			? this._uiState.selected
+			: new Set<number>();
 	}
 
 	private softReset() {
@@ -360,12 +362,28 @@ export class EditorViewModel {
 		this._uiState.isPanning = false;
 		this.notifyAll();
 	}
-	setSelected(id: number) {
+	addSelected(id: number) {
 		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to select an element in an invalid mode");
 			return;
 		}
-		this._uiState.selected = id;
+		this._uiState.selected.add(id);
+		this.notifyAll();
+	}
+	removeSelected(id: number) {
+		if (!this._uiState.matches({ mode: "edit" })) {
+			console.warn("Tried to deselect an element in an invalid mode");
+			return;
+		}
+		this._uiState.selected.delete(id);
+		this.notifyAll();
+	}
+	setSelected(id: number) {
+		if (!this._uiState.matches({ mode: "edit" })) {
+			console.warn("Tried to set selection in an invalid mode");
+			return;
+		}
+		this._uiState.selected = new Set<number>([id]);
 		this.notifyAll();
 	}
 	clearSelection() {
@@ -373,7 +391,7 @@ export class EditorViewModel {
 			console.warn("Tried to clear selection in an invalid mode");
 			return;
 		}
-		this._uiState.selected = null;
+		this._uiState.selected = new Set<number>();
 		this.notifyAll();
 	}
 	setGridSnap(val: boolean) {

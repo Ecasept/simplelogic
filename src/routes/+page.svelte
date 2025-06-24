@@ -109,7 +109,7 @@
 		) {
 			// An element wants to change the selection
 			const selected = "selected" in uiState ? uiState.selected : null;
-			if (uiState.selectionInProgressFor === selected) {
+			if (selected?.has(uiState.selectionInProgressFor)) {
 				// The element is already selected
 				if (uiState.matches({ hasMoved: false })) {
 					// The element was already selected and only clicked
@@ -117,10 +117,12 @@
 					editorViewModel.clearSelection();
 				} else {
 					// A selected element was moved
-					// -> keep selection and do nothing
+					// -> ensure only it is selected
+					editorViewModel.setSelected(uiState.selectionInProgressFor);
 				}
 			} else {
-				// The element is not selected yet
+				// The element is not selected yet and wants to change the selection
+				// to itself
 				editorViewModel.setSelected(uiState.selectionInProgressFor);
 			}
 		}

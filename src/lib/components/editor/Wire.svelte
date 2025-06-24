@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { EditorAction, editorViewModel } from "$lib/util/actions";
 	import {
-		debugLog,
 		isComponentHandleRef,
 		isVibrateSupported,
 	} from "$lib/util/global.svelte";
@@ -40,7 +39,7 @@
 
 	let simData = $derived(getSimData(id));
 
-	let isSelected = $derived("selected" in uiState && uiState.selected === id);
+	let isSelected = $derived("selected" in uiState && uiState.selected.has(id));
 
 	let isPowered = $derived.by(() => {
 		const isOutputPowered = simData?.outputs["output"] ?? false;
