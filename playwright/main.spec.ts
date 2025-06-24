@@ -1372,6 +1372,35 @@ test.describe("rotation", () => {
 		// The wire should start from the new rotated handle position
 		expect(movedWireD).toMatch(/^M460 440 L/);
 	});
+
+	test("newly created components have the last used rotation", async ({
+		page,
+		editor,
+		pointer,
+	}) => {
+		// Add a component
+		await editor.addComponent("AND", 200, 200);
+
+		// Select and rotate it by 90 degrees
+		await page.keyboard.press("r");
+		await expect(editor.getComponent("AND").first()).toBeRotated(90);
+
+		// Add another component
+		await page.keyboard.press("o");
+		await pointer.clickAt(400, 400);
+
+		// Expect the new component to have the same rotation
+		// For a component at (400,400) of size 4x4, center is (440,440).
+		await expect(editor.getComponent("OR").first()).toBeRotated(90);
+
+		// Rotate again
+		await page.keyboard.press("r");
+		await expect(editor.getComponent("OR").first()).toBeRotated(180);
+
+		// Add a third component
+		await editor.addComponent("NOT", 100, 500);
+		await expect(editor.getComponent("NOT").first()).toBeRotated(180);
+	});
 });
 
 test.describe("text component", () => {

@@ -17,6 +17,7 @@ import {
 	GRID_SIZE,
 	gridSnap,
 	rotateAroundBy,
+	setLastRotation,
 } from "./global.svelte";
 import { GraphManager } from "./graph.svelte";
 import { simController } from "./simulation.svelte";
@@ -339,6 +340,7 @@ export class EditorAction {
 		commands.push(new RotateComponentCommand(id, rotateBy));
 
 		const cmpData = graphManager.getComponentData(id);
+		setLastRotation((cmpData.rotation + rotateBy) % 360);
 
 		const componentPos = {
 			x: cmpData.position.x + (cmpData.size.x * GRID_SIZE) / 2,

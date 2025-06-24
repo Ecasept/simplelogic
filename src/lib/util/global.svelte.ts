@@ -34,6 +34,15 @@ export function gridSnap(val: number) {
 	}
 }
 
+/** The last rotation of a component, used to determine the rotation of newly created components. */
+export let lastRotation = 0;
+export function setLastRotation(rotation: number) {
+	lastRotation = rotation;
+	if (import.meta.env.DEV) {
+		console.debug("Set last rotation to", rotation);
+	}
+}
+
 export const COMPONENT_DATA: {
 	[T in ComponentType]: {
 		/** The user-facing name of the component */
@@ -218,7 +227,7 @@ export function constructComponent(
 		},
 		handles: structuredClone(data.handles),
 		isPoweredInitially: false,
-		rotation: 0,
+		rotation: lastRotation,
 		customData: structuredClone(customData),
 	};
 }
