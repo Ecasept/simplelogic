@@ -313,33 +313,6 @@ test.describe("rotation shortcuts", () => {
 		await expect(wire2).not.toHaveAttribute("d", initialPath2);
 	});
 
-	test("rotation shortcuts don't work while editing", async ({
-		page,
-		editor,
-		pointer,
-	}) => {
-		// Add a component
-		await editor.addComponent("AND", 300, 300);
-		const component = editor.comps();
-
-		// Start dragging the component
-		await component.hover();
-		await pointer.down();
-		await pointer.moveTo(400, 400);
-
-		// Get current rotation
-		const currentRotation = await component.getAttribute("transform");
-
-		// Press R while dragging - should not rotate
-		await page.keyboard.press("r");
-
-		// Verify rotation hasn't changed
-		await expect(component).toHaveAttribute("transform", currentRotation);
-
-		// Finish the drag
-		await pointer.up();
-	});
-
 	test("rotate while adding and moving", async ({ page, editor, pointer }) => {
 		// drag a new component and rotate it while dragging
 		await page.keyboard.press("A");
