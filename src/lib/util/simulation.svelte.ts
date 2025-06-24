@@ -114,6 +114,9 @@ class SimulationController {
 		if (this._notifyOnUpdate) {
 			this.notifyAll();
 		}
+		if (this.mode === "run" && !this.loopRunning) {
+			this.startLoop();
+		}
 	}
 
 	public state: SimulationState = $state({});
