@@ -2,6 +2,7 @@ import {
 	CommandGroup,
 	MoveComponentCommand,
 	MoveWireHandleCommand,
+	UpdateCustomDataCommand,
 	type Command,
 } from "./commands";
 import { calculateHandlePosition, isComponentHandleRef } from "./global.svelte";
@@ -171,6 +172,36 @@ export class GraphManager {
 		}
 		const cmd = new CommandGroup(cmds, "moveWire");
 		this.executeCommand(cmd, true);
+	}
+
+	updateTextReplaceable(id: number, newText: string) {
+		const component = this.getComponentData(id);
+		if (!(component.type === "TEXT")) {
+			console.error("Tried to update text of non-text component");
+			return;
+		}
+
+		if (!this.historyEmpty) {
+			const lastCommand = this.history[this.history.length - 1];
+			if (
+				lastCommand instanceof UpdateCustomDataCommand &&
+				lastCommand.property === "text" &&
+				lastCommand.componentId === id
+			) {
+				// If the last command was editing the same text,
+				// undo it as we don't want the user to have to undo
+				// every single character they type
+				this.undoLastCommand();
+			}
+		}
+
+		const oldText = component.customData?.text;
+		if (oldText === newText) {
+			return; // No change
+		}
+		const editTextCmd = new UpdateCustomDataCommand(id, "text", newText);
+		this.executeCommand(editTextCmd, true);
+		this.applyChanges();
 	}
 
 	getComponentData(id: number) {

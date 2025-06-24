@@ -8,7 +8,15 @@ export const ZXYPair = z.object({
 export const ZHandleEdge = z.enum(["top", "bottom", "left", "right"]);
 export const ZHandleType = z.enum(["input", "output"]);
 
-export const ZComponentType = z.enum(["AND", "OR", "NOT", "XOR", "IN", "LED"]);
+export const ZComponentType = z.enum([
+	"AND",
+	"OR",
+	"NOT",
+	"XOR",
+	"IN",
+	"LED",
+	"TEXT",
+]);
 
 export const ZComponentHandleReference = z.object({
 	id: z.number(),
@@ -71,6 +79,7 @@ export const ZComponentData = z.object({
 	handles: ZComponentHandleList,
 	isPoweredInitially: z.boolean(),
 	rotation: z.number().gte(0).lt(360),
+	customData: z.record(z.string(), z.any()).optional(),
 });
 
 export const ZGraphData = z.object({
@@ -103,6 +112,11 @@ export type GraphData = z.infer<typeof ZGraphData>;
 export interface SVGPointerEvent extends PointerEvent {
 	currentTarget: EventTarget & SVGElement;
 }
+
+export interface InputInputEvent extends Event {
+	currentTarget: EventTarget & HTMLInputElement;
+}
+
 /** A type for a list of handles of type `HandleType` that have no connections.
  * The list needs to include all handles with the specified `HandleName`.
  * Example:

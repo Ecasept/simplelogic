@@ -15,6 +15,7 @@
 	} from "$lib/util/global.svelte";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 	import { P } from "ts-pattern";
+	import TextBox from "./TextBox.svelte";
 
 	let { uiState }: { uiState: CanvasUiState } = $props();
 
@@ -222,7 +223,11 @@
 			<Wire {...data} uiState={editorViewModel.uiState}></Wire>
 		{/each}
 		{#each Object.entries(graphData.components) as [id, data] (id)}
-			<Component {...data} uiState={editorViewModel.uiState}></Component>
+			{#if data.type === "TEXT"}
+				<TextBox {...data} uiState={editorViewModel.uiState}></TextBox>
+			{:else}
+				<Component {...data} uiState={editorViewModel.uiState}></Component>
+			{/if}
 		{/each}
 	</svg>
 </div>

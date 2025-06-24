@@ -3,6 +3,7 @@
 	import { editorViewModel } from "$lib/util/actions";
 	import { COMPONENT_DATA, GRID_SIZE } from "$lib/util/global.svelte";
 	import type { ComponentType, SVGPointerEvent } from "$lib/util/types";
+	import TextBox from "../../TextBox.svelte";
 
 	type Props = {
 		onPointerDown: (type: ComponentType, e: SVGPointerEvent) => void;
@@ -30,19 +31,37 @@
 			class="component-svg"
 		>
 			<g class="component-container">
-				<Component
-					id={-1}
-					size={{
-						x: COMPONENT_DATA[type].width,
-						y: COMPONENT_DATA[type].height,
-					}}
-					{type}
-					position={{ x: 0, y: 0 }}
-					handles={COMPONENT_DATA[type].handles}
-					{uiState}
-					isPoweredInitially={false}
-					rotation={0}
-				/>
+				{#if type === "TEXT"}
+					<TextBox
+						id={-1}
+						size={{
+							x: COMPONENT_DATA[type].width,
+							y: COMPONENT_DATA[type].height,
+						}}
+						position={{ x: 0, y: 6 }}
+						rotation={0}
+						{uiState}
+						customData={{ text: "Text", fontSize: 8 }}
+						handles={COMPONENT_DATA[type].handles}
+						{type}
+						isPoweredInitially={false}
+						centerTopLeft={true}
+					/>
+				{:else}
+					<Component
+						id={-1}
+						size={{
+							x: COMPONENT_DATA[type].width,
+							y: COMPONENT_DATA[type].height,
+						}}
+						{type}
+						position={{ x: 0, y: 0 }}
+						handles={COMPONENT_DATA[type].handles}
+						{uiState}
+						isPoweredInitially={false}
+						rotation={0}
+					/>
+				{/if}
 			</g>
 		</svg>
 	{/each}

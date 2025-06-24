@@ -9,6 +9,7 @@ import {
 	MoveWireHandleCommand,
 	RotateComponentCommand,
 	ToggleInputPowerStateCommand,
+	UpdateCustomDataCommand,
 	type Command,
 } from "./commands";
 import {
@@ -105,6 +106,18 @@ export class EditorAction {
 		if (editorViewModel.uiState.matches({ mode: "simulate" })) {
 			simController.recomputeComponent(id);
 		}
+	}
+
+	static updateTextReplaceable(id: number, newText: string) {
+		graphManager.updateTextReplaceable(id, newText);
+		graphManager.notifyAll();
+	}
+
+	static updateTextFontSize(id: number, newSize: number) {
+		const command = new UpdateCustomDataCommand(id, "fontSize", newSize);
+		graphManager.executeCommand(command);
+		graphManager.applyChanges();
+		graphManager.notifyAll();
 	}
 
 	static addComponent(

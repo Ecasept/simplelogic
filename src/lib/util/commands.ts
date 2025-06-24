@@ -434,3 +434,53 @@ export class RotateComponentCommand implements Command {
 		return [];
 	}
 }
+
+export class UpdateCustomDataCommand implements Command {
+	private oldValue: unknown = null;
+
+	constructor(
+		public componentId: number,
+		public property: string,
+		private newValue: unknown,
+	) {}
+
+	execute(graphData: GraphData) {
+		const component = graphData.components[this.componentId];
+		if (!component) {
+			throw new Error(`Component with id ${this.componentId} does not exist`);
+		}
+
+		// Initialize customData if it doesn't exist
+		if (!component.customData) {
+			component.customData = {};
+		}
+
+		// Store the old value for undo
+		this.oldValue = component.customData[this.property];
+
+		// Set the new value
+		component.customData[this.property] = this.newValue;
+	}
+
+	undo(graphData: GraphData) {
+		const component = graphData.components[this.componentId];
+		if (!component) {
+			console.error(`Component with id ${this.componentId} does not exist`);
+			return [];
+		}
+
+		if (!component.customData) {
+			console.error(`Component with id ${this.componentId} has no customData`);
+			return [];
+		}
+
+		// Restore the old value
+		if (this.oldValue === undefined) {
+			delete component.customData[this.property];
+		} else {
+			component.customData[this.property] = this.oldValue;
+		}
+
+		return [];
+	}
+}

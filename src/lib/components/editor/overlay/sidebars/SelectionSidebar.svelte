@@ -1,7 +1,13 @@
 <script lang="ts">
 	import Button from "$lib/components/reusable/Button.svelte";
-	import { EditorAction, graphManager } from "$lib/util/actions";
+	import {
+		EditorAction,
+		editorViewModel,
+		graphManager,
+	} from "$lib/util/actions";
 	import { COMPONENT_DATA, debugLog } from "$lib/util/global.svelte";
+	import { onEnter } from "$lib/util/keyboard";
+	import type { InputInputEvent } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import { RotateCcw, RotateCw, Trash, Zap, ZapOff } from "lucide-svelte";
 	import { match, P } from "ts-pattern";
@@ -37,6 +43,29 @@
 
 	function toggle() {
 		open = !open;
+	}
+
+	function onTextInput(e: InputInputEvent) {
+		const newText = e.currentTarget.value;
+		console.log(newText);
+		if (info.selectedId === null) {
+			console.error("No element selected to update text");
+			return;
+		}
+		EditorAction.updateTextReplaceable(info.selectedId, newText);
+	}
+
+	function onNumberInput(newSize: number) {
+		if (info.selectedId === null) {
+			console.error("No element selected to update font size");
+			return;
+		}
+		EditorAction.updateTextFontSize(info.selectedId, newSize);
+	}
+
+	function onEnterPressed() {
+		// Unfocus textbox
+		editorViewModel.clearSelection();
 	}
 
 	$inspect(info).with(debugLog("INFO"));
@@ -95,6 +124,33 @@
 							/>
 						</div>
 						{@render deleteButton()}
+
+						{#if info.data.type === "TEXT"}
+							<div class="text-data-container">
+								<input
+									title="Text"
+									aria-label="Text"
+									type="text"
+									placeholder="Enter text"
+									value={info.data.customData?.text}
+									oninput={onTextInput}
+									onkeypress={onEnter(onEnterPressed)}
+								/>
+								<input
+									title="Font size"
+									aria-label="Font size"
+									type="number"
+									placeholder="Font size"
+									value={info.data.customData?.fontSize}
+									oninput={(e) => {
+										const newSize = parseInt(e.currentTarget.value, 10);
+										if (!isNaN(newSize)) {
+											onNumberInput(newSize);
+										}
+									}}
+								/>
+							</div>
+						{/if}
 					</div>
 				{:else if info.type === "wire"}
 					<p class="selected-element-text">Selected: <strong>Wire</strong></p>
@@ -105,7 +161,7 @@
 	{/if}
 {/if}
 
-<style>
+<style lang="scss">
 	.selection-sidebar-content {
 		display: flex;
 		flex-direction: column;
@@ -136,5 +192,44 @@
 
 	p {
 		margin: 0;
+	}
+
+	.text-data-container {
+		display: flex;
+		gap: 8px;
+
+		& :first-child {
+			flex: 4 1 0;
+		}
+		& :last-child {
+			flex: 1 1 0;
+		}
+	}
+
+	input {
+		min-width: 0;
+		padding: 12px 16px;
+		background-color: var(--primary-color);
+		border: 2px solid var(--primary-border-color);
+		color: var(--on-primary-color);
+		border-radius: var(--default-border-radius);
+		font-size: 1rem;
+		transition: all 0.2s ease;
+
+		&:focus {
+			outline: none;
+			box-shadow: 0 0 0 3px var(--primary-color);
+		}
+	}
+
+	// Hide spin buttons
+	input[type="number"]::-webkit-inner-spin-button,
+	input[type="number"]::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+	input[type="number"] {
+		-moz-appearance: textfield; /* Firefox */
+		appearance: textfield;
 	}
 </style>

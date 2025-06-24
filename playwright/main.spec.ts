@@ -1373,3 +1373,62 @@ test.describe("rotation", () => {
 		expect(movedWireD).toMatch(/^M460 440 L/);
 	});
 });
+
+test.describe("text component", () => {
+	test("can be edited, moved and rotated", async ({ editor, pointer }) => {
+		// Add a text box
+		await editor.addComponent("TEXT", 400, 400);
+		const textComp = editor.getComponent("TEXT").first();
+		await expect(textComp).toBeVisible();
+
+		const selectionSidebar = editor.getSidebar("selection");
+
+		// Edit font size
+		const fontSizeInput = selectionSidebar.getByLabel("Font size");
+		await fontSizeInput.fill("32");
+		await expect(textComp).toHaveAttribute("font-size", "32");
+
+		// Edit text
+		const textInput = selectionSidebar.getByLabel("Text");
+		await textInput.fill("Hello World");
+		await expect(textComp).toHaveText("Hello World");
+
+		// Add another component, verify text stays the same
+		await editor.addComponent("AND", 500, 500);
+		await expect(textComp).toHaveText("Hello World");
+		await expect(textComp).toHaveAttribute("font-size", "32");
+
+		// Move the text box
+		await editor.dragTo(textComp, 300, 300);
+		await expectPosToBe(textComp, 300, 300);
+
+		// Rotate it
+		await editor.rotateSelected("cw");
+		await expect(textComp).toHaveAttribute("transform", "rotate(90 240 240)");
+	});
+
+	test("can undo text editing", async ({ editor, pointer }) => {
+		await editor.addComponent("TEXT", 400, 400);
+		const textComp = editor.getComponent("TEXT").first();
+
+		const selectionSidebar = editor.getSidebar("selection");
+
+		// Undo text change
+		const textInput = selectionSidebar.getByLabel("Text");
+		await expect(textComp).toHaveText("Text");
+		await textInput.fill("New Text");
+		await textInput.blur(); // Commit changes
+		await expect(textComp).toHaveText("New Text");
+		await editor.undo();
+		await expect(textComp).toHaveText("Text");
+
+		// Undo font size change
+		const fontSizeInput = selectionSidebar.getByLabel("Font size");
+		const initialSize = await fontSizeInput.inputValue();
+		await fontSizeInput.fill("48");
+		await fontSizeInput.blur(); // Commit changes
+		await expect(textComp).toHaveAttribute("font-size", "48");
+		await editor.undo();
+		await expect(textComp).toHaveAttribute("font-size", initialSize);
+	});
+});

@@ -48,6 +48,7 @@ export const COMPONENT_DATA: {
 			isPoweredInitially: boolean,
 			output: string,
 		) => boolean;
+		customData?: Record<string, unknown>;
 	} & EmptyHandleList<string, ComponentHandle>;
 } = {
 	AND: {
@@ -125,6 +126,19 @@ export const COMPONENT_DATA: {
 		canBePoweredWithoutAnyInputBeingPowered: false,
 		execute: (inputs, _, __) => inputs.in,
 	},
+	TEXT: {
+		name: "Text",
+		handles: {},
+		height: 1,
+		width: 1,
+		description: "Displays text on the canvas",
+		canBePoweredWithoutAnyInputBeingPowered: false,
+		execute: () => false, // Text components don't execute logic
+		customData: {
+			text: "Text",
+			fontSize: 16,
+		},
+	},
 };
 
 export function calculateHandlePosition(
@@ -194,6 +208,7 @@ export function constructComponent(
 ): ValidComponentInitData {
 	const data = COMPONENT_DATA[type];
 	const svgPos = canvasViewModel.clientToSVGCoords(pos);
+	const customData = data.customData ?? {};
 	return {
 		type: type,
 		size: { x: data.width, y: data.height },
@@ -204,6 +219,7 @@ export function constructComponent(
 		handles: structuredClone(data.handles),
 		isPoweredInitially: false,
 		rotation: 0,
+		customData: structuredClone(customData),
 	};
 }
 

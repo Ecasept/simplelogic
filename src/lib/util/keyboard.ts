@@ -163,6 +163,20 @@ const shortcuts: Shortcut[] = [
 		},
 	},
 	{
+		name: "Add text box",
+		pattern: {
+			key: "t",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
+		action: () => {
+			EditorAction.addComponent("TEXT", mousePosition, "keyboard");
+		},
+	},
+	{
 		name: "Toggle delete mode",
 		pattern: {
 			key: "d",
