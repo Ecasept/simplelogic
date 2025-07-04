@@ -105,6 +105,41 @@ test.describe("editor shortcuts", () => {
 		// Verify component is deleted
 		await expect(editor.comps()).toHaveCount(0);
 	});
+
+	test("delete multiple selected elements", async ({ page, editor }) => {
+		// Add two components
+		await editor.addComponent("AND", 400, 200);
+		await editor.addComponent("OR", 400, 400);
+		const andGate = editor.comps().first();
+		const orGate = editor.comps().last();
+
+		// Select both components
+		await editor.ctrlSelect(andGate);
+
+		// Verify both are selected
+		await expect(andGate).toBeSelected();
+		await expect(orGate).toBeSelected();
+
+		// Press delete
+		await page.keyboard.press("Delete");
+
+		// Verify components are deleted
+		await expect(editor.comps()).toHaveCount(0);
+	});
+
+	test("escape clears selection", async ({ page, editor }) => {
+		// Add a component
+		await editor.addComponent("AND", 100, 100);
+
+		// Component should be selected
+		await expect(editor.comps()).toBeSelected();
+
+		// Press escape
+		await page.keyboard.press("Escape");
+
+		// Component should not be selected
+		await expect(editor.comps()).not.toBeSelected();
+	});
 });
 
 test.describe("shortcut interactions", () => {

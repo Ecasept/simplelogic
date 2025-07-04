@@ -4,7 +4,7 @@
 		graphManager,
 		ModeAction,
 		PersistenceAction,
-	} from "$lib/util/actions";
+	} from "$lib/util/actions.svelte";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import {

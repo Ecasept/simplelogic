@@ -9,8 +9,9 @@
 		EditorAction,
 		editorViewModel,
 		graphManager,
+		MoveAction,
 		PersistenceAction,
-	} from "$lib/util/actions";
+	} from "$lib/util/actions.svelte";
 	import {
 		debugLog,
 		mousePosition,
@@ -64,22 +65,21 @@
 
 		if (
 			uiState.matches({
-				editType: P.union("draggingComponent", "addingComponent"),
-				isPanning: false,
-			})
-		) {
-			EditorAction.moveComponentReplaceable(pos, uiState.componentId);
-		} else if (
-			uiState.matches({
 				editType: P.union("draggingWire", "addingWire"),
 				isPanning: false,
 			})
 		) {
-			EditorAction.moveWireConnectionReplaceable(
+			MoveAction.moveWireConnectionReplaceable(
 				pos,
 				uiState.draggedHandle.id,
 				uiState.draggedHandle.handleType,
 			);
+		} else if (
+			uiState.matches({
+				editType: P.union("draggingElements", "addingComponent", "elementDown"),
+			})
+		) {
+			MoveAction.moveElementsReplaceable(pos);
 		}
 	}
 
@@ -100,81 +100,98 @@
 		if (uiState.matches({ isPanning: true })) {
 			console.warn("Panning should be handled by the canvas component");
 			return;
-		}
-
-		if (
-			uiState.matches({
-				selectionInProgressFor: P.number,
-			})
-		) {
-			// An element wants to change the selection
-			const selected = "selected" in uiState ? uiState.selected : null;
-			if (selected?.has(uiState.selectionInProgressFor)) {
-				// The element is already selected
-				if (uiState.matches({ hasMoved: false })) {
-					// The element was already selected and only clicked
-					// -> deselect it
-					editorViewModel.clearSelection();
-				} else {
-					// A selected element was moved
-					// -> ensure only it is selected
-					editorViewModel.setSelected(uiState.selectionInProgressFor);
-				}
-			} else {
-				// The element is not selected yet and wants to change the selection
-				// to itself
-				editorViewModel.setSelected(uiState.selectionInProgressFor);
-			}
-		}
-
-		if (
-			uiState.matches({ editType: P.union("draggingWire", "addingWire") }) &&
-			uiState.hoveredHandle !== null
-		) {
-			// A wire is being dragged, and it is hovering over a handle
-			// -> connect the wire to the handle
-			EditorAction.connect(
-				$state.snapshot(uiState.draggedHandle),
-				$state.snapshot(uiState.hoveredHandle),
-			);
-			editorViewModel.removeHoveredHandle();
-		}
-
-		if (uiState.matches({ editType: "draggingWireMiddle" })) {
-			// The middle of a wire was dragged/clicked
-			// -> currently unimplemented
-			console.warn("Dragging wire middle is not implemented yet");
-			// undo any changes possibly made while dragging
-			ChangesAction.abortEditing();
-			return;
-		}
-
-		if (
-			uiState.matches({
-				mode: "edit",
-				editType: P.union("addingComponent", "addingWire"),
-			}) ||
-			uiState.matches({
-				mode: "edit",
-				editType: P.union("draggingComponent", "draggingWire"),
-				hasMoved: true,
-			})
-		) {
-			// The user is adding a component or wire, or dragging a component or wire
-			// and the element has actually been moved (it wasn't just a click)
-			// -> commit the changes
+		} else if (uiState.matches({ editType: "addingComponent" })) {
+			// Select the component that was added
+			const clickedElement = $state.snapshot(uiState.clickedElement);
+			editorViewModel.setSelected(clickedElement);
+			// Complete the adding of the component
 			ChangesAction.commitChanges();
 		} else if (
 			uiState.matches({
-				mode: "edit",
-				editType: P.union("draggingComponent", "draggingWire"),
-				hasMoved: false,
+				editType: P.union("draggingWire", "addingWire"),
 			})
 		) {
-			// The user is dragging a component or wire, but the element hasn't been moved
-			// so this was only a click
-			// -> undo the changes made while dragging in order to effectively have done nothing
+			if (uiState.hoveredHandle === null) {
+				// The wire was dragged but not connected to a handle
+
+				const handle = $state.snapshot(uiState.draggedHandle);
+
+				if (
+					uiState.matches({
+						hasMoved: false,
+						editType: "draggingWire",
+					})
+				) {
+					// The wire handle of an existing wire was clicked,
+					// -> toggle selection of wire
+					if (editorViewModel.isSelected(handle)) {
+						editorViewModel.removeSelected(handle);
+					} else {
+						editorViewModel.setSelected(handle);
+					}
+					// Don't add a history entry for a this move
+					// if the wire wasn't actually moved
+					ChangesAction.abortEditing();
+				} else {
+					editorViewModel.setSelected({
+						id: handle.id,
+						type: "wire",
+					});
+					ChangesAction.commitChanges();
+				}
+			} else {
+				// We're currently dragging a wire and hovering over another handle
+				// -> connect them
+				EditorAction.connect(
+					$state.snapshot(uiState.draggedHandle),
+					$state.snapshot(uiState.hoveredHandle),
+				);
+				editorViewModel.removeHoveredHandle();
+				// Commit the changes made while dragging the wire
+				ChangesAction.commitChanges();
+			}
+		} else if (uiState.matches({ editType: "elementDown" })) {
+			const clickedElement = $state.snapshot(uiState.clickedElement);
+
+			if (uiState.clickType === "ctrl") {
+				// Ctrl+click: toggle selection
+				if (editorViewModel.isSelected(clickedElement)) {
+					editorViewModel.removeSelected(clickedElement);
+				} else {
+					editorViewModel.addSelected(clickedElement);
+				}
+			} else {
+				if (
+					editorViewModel.getSelectedCount() == 1 &&
+					editorViewModel.isSelected(clickedElement)
+				) {
+					// If the clicked element is the only selected element,
+					// toggle the selection
+					editorViewModel.removeSelected(clickedElement);
+				} else {
+					// Set it as the selected element
+					editorViewModel.setSelected(clickedElement);
+				}
+			}
+			// Return to idle state
 			ChangesAction.abortEditing();
+		} else if (
+			uiState.matches({
+				editType: "draggingElements",
+			})
+		) {
+			// An element was dragged
+			const clickedElement = $state.snapshot(uiState.clickedElement);
+			if (editorViewModel.isSelected(clickedElement)) {
+				// A selected element was moved
+				// -> do nothing, as it is already selected
+			} else {
+				// An unselected element was dragged
+				// -> set it as the only selected element
+				editorViewModel.setSelected(clickedElement);
+			}
+			// Commit the changes made while dragging the elements
+			ChangesAction.commitChanges();
 		}
 	}
 </script>

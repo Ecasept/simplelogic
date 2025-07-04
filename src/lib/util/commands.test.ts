@@ -7,12 +7,13 @@ import {
 	DeleteComponentCommand,
 	DeleteWireCommand,
 	DisconnectCommand,
+	MoveComponentAndWiresCommand,
 	MoveComponentCommand,
 	MoveWireHandleCommand,
 	RotateComponentCommand,
 	UpdateCustomDataCommand,
 } from "./commands";
-import { GRID_SIZE } from "./global.svelte";
+import { GRID_SIZE, calculateHandlePosition } from "./global.svelte";
 import {
 	newWireHandleRef,
 	type ComponentData,
@@ -1123,7 +1124,7 @@ describe("Command Tests", () => {
 			expect(graphData.components[1].rotation).toBe(0);
 		});
 	});
-	
+
 	describe("UpdateCustomDataCommand", () => {
 		it("should update custom data property and undo correctly", () => {
 			// Create a TEXT component with initial custom data
@@ -1142,16 +1143,24 @@ describe("Command Tests", () => {
 				},
 			};
 
-			const cmd = new UpdateCustomDataCommand(componentId, "text", "Updated Text");
-			
+			const cmd = new UpdateCustomDataCommand(
+				componentId,
+				"text",
+				"Updated Text",
+			);
+
 			// Execute command
 			cmd.execute(graphData);
-			expect(graphData.components[componentId].customData?.text).toBe("Updated Text");
+			expect(graphData.components[componentId].customData?.text).toBe(
+				"Updated Text",
+			);
 			expect(graphData.components[componentId].customData?.fontSize).toBe(16); // Should remain unchanged
 
 			// Undo command
 			cmd.undo(graphData);
-			expect(graphData.components[componentId].customData?.text).toBe("Initial Text");
+			expect(graphData.components[componentId].customData?.text).toBe(
+				"Initial Text",
+			);
 			expect(graphData.components[componentId].customData?.fontSize).toBe(16);
 		});
 
@@ -1169,14 +1178,18 @@ describe("Command Tests", () => {
 			};
 
 			const cmd = new UpdateCustomDataCommand(componentId, "text", "New Text");
-			
+
 			// Execute command
 			cmd.execute(graphData);
-			expect(graphData.components[componentId].customData?.text).toBe("New Text");
+			expect(graphData.components[componentId].customData?.text).toBe(
+				"New Text",
+			);
 
 			// Undo command - should remove the property since it didn't exist before
 			cmd.undo(graphData);
-			expect(graphData.components[componentId].customData?.text).toBeUndefined();
+			expect(
+				graphData.components[componentId].customData?.text,
+			).toBeUndefined();
 		});
 
 		it("should handle updating property that didn't exist before", () => {
@@ -1195,22 +1208,30 @@ describe("Command Tests", () => {
 			};
 
 			const cmd = new UpdateCustomDataCommand(componentId, "fontSize", 24);
-			
+
 			// Execute command
 			cmd.execute(graphData);
 			expect(graphData.components[componentId].customData?.fontSize).toBe(24);
-			expect(graphData.components[componentId].customData?.text).toBe("Existing Text");
+			expect(graphData.components[componentId].customData?.text).toBe(
+				"Existing Text",
+			);
 
 			// Undo command - should remove the new property
 			cmd.undo(graphData);
-			expect(graphData.components[componentId].customData?.fontSize).toBeUndefined();
-			expect(graphData.components[componentId].customData?.text).toBe("Existing Text");
+			expect(
+				graphData.components[componentId].customData?.fontSize,
+			).toBeUndefined();
+			expect(graphData.components[componentId].customData?.text).toBe(
+				"Existing Text",
+			);
 		});
 
 		it("should throw error when component doesn't exist", () => {
 			const cmd = new UpdateCustomDataCommand(999, "text", "Some Text");
-			
-			expect(() => cmd.execute(graphData)).toThrow("Component with id 999 does not exist");
+
+			expect(() => cmd.execute(graphData)).toThrow(
+				"Component with id 999 does not exist",
+			);
 		});
 
 		it("should handle various data types", () => {
@@ -1240,17 +1261,75 @@ describe("Command Tests", () => {
 			const testObj = { nested: "value" };
 			const cmd3 = new UpdateCustomDataCommand(componentId, "object", testObj);
 			cmd3.execute(graphData);
-			expect(graphData.components[componentId].customData?.object).toEqual(testObj);
+			expect(graphData.components[componentId].customData?.object).toEqual(
+				testObj,
+			);
 
 			// Undo in reverse order
 			cmd3.undo(graphData);
-			expect(graphData.components[componentId].customData?.object).toBeUndefined();
-			
+			expect(
+				graphData.components[componentId].customData?.object,
+			).toBeUndefined();
+
 			cmd2.undo(graphData);
-			expect(graphData.components[componentId].customData?.boolean).toBeUndefined();
-			
+			expect(
+				graphData.components[componentId].customData?.boolean,
+			).toBeUndefined();
+
 			cmd1.undo(graphData);
-			expect(graphData.components[componentId].customData?.number).toBeUndefined();
+			expect(
+				graphData.components[componentId].customData?.number,
+			).toBeUndefined();
+		});
+	});
+
+	describe("MoveComponentAndWiresCommand", () => {
+		it("should move a component and all connected wire handles", () => {
+			const componentId = 1;
+			const wire1Id = 2;
+			const wire2Id = 3;
+			const initialPos = { x: GRID_SIZE, y: GRID_SIZE };
+			const newPos = { x: 5 * GRID_SIZE, y: 7 * GRID_SIZE };
+
+			graphData.components[componentId] = createMockComponent(componentId);
+			graphData.wires[wire1Id] = createMockWire(wire1Id);
+			graphData.wires[wire2Id] = createMockWire(wire2Id);
+
+			// Connect component's output to wire1 input and wire2 input
+			const from = newCHR(componentId, "out");
+			const to1 = newWHR(wire1Id, "input");
+			const to2 = newWHR(wire2Id, "input");
+			const connect1 = new ConnectCommand(from, to1);
+			const connect2 = new ConnectCommand(from, to2);
+			connect1.execute(graphData);
+			connect2.execute(graphData);
+
+			const moveCmd = new MoveComponentAndWiresCommand(componentId, newPos);
+			moveCmd.execute(graphData);
+
+			// Component should be at newPos
+			expect(graphData.components[componentId].position).toEqual(newPos);
+			// All connected wire handles should be at the calculated positions
+			const cmp = graphData.components[componentId];
+			for (const [handleId, handle] of Object.entries(cmp.handles)) {
+				for (const connection of handle.connections) {
+					const calcPos = calculateHandlePosition(
+						handle.edge,
+						handle.pos,
+						cmp.size,
+						newPos,
+						cmp.rotation,
+					);
+					const wireHandle =
+						graphData.wires[connection.id].handles[connection.handleType];
+					expect(wireHandle.x).toBe(calcPos.x);
+					expect(wireHandle.y).toBe(calcPos.y);
+				}
+			}
+
+			// Undo
+			moveCmd.undo(graphData);
+			expect(graphData.components[componentId].position).toEqual(initialPos);
 		});
 	});
 });

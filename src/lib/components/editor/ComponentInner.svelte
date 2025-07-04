@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { EditorAction } from "$lib/util/actions";
+	import { EditorAction } from "$lib/util/actions.svelte";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { ComponentType } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";

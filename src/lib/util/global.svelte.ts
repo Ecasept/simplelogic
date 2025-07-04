@@ -1,4 +1,4 @@
-import { canvasViewModel, editorViewModel } from "./actions";
+import { editorViewModel } from "./actions.svelte";
 import type {
 	ComponentHandle,
 	ComponentHandleList,
@@ -209,21 +209,20 @@ export function calculateHandleOffset(
 /** Creates a component with important data pre-filled in
  *
  * @param type The type of component to create
- * @param pos The position to create the component at, as a client position. The component will be centered around this position.
+ * @param pos The position to create the component at, as a grid-snapped svg position. The component will be centered around this position.
  */
 export function constructComponent(
 	type: ComponentType,
 	pos: XYPair,
 ): ValidComponentInitData {
 	const data = COMPONENT_DATA[type];
-	const svgPos = canvasViewModel.clientToSVGCoords(pos);
 	const customData = data.customData ?? {};
 	return {
 		type: type,
 		size: { x: data.width, y: data.height },
 		position: {
-			x: svgPos.x - (data.width * GRID_SIZE) / 2,
-			y: svgPos.y - (data.height * GRID_SIZE) / 2,
+			x: pos.x - (data.width * GRID_SIZE) / 2,
+			y: pos.y - (data.height * GRID_SIZE) / 2,
 		},
 		handles: structuredClone(data.handles),
 		isPoweredInitially: false,

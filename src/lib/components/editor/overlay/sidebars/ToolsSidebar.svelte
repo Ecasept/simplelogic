@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from "$lib/components/reusable/Button.svelte";
-	import { EditorAction, editorViewModel } from "$lib/util/actions";
+	import { AddAction, editorViewModel } from "$lib/util/actions.svelte";
 	import type { ComponentType } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import { Magnet } from "lucide-svelte";
@@ -12,7 +12,7 @@
 	const { uiState } = $props<{ uiState: EditorUiState }>();
 
 	function addComponent(type: ComponentType, e: PointerEvent) {
-		EditorAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag");
+		AddAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag");
 	}
 
 	let open = $state(true);

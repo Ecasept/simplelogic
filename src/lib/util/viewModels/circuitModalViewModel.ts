@@ -1,4 +1,4 @@
-import { graphManager } from "../actions";
+import { graphManager } from "../actions.svelte";
 import { API } from "../api";
 import type { GraphData } from "../types";
 import { ViewModel } from "./viewModel";

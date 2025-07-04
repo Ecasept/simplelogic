@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { EditorAction, editorViewModel } from "$lib/util/actions";
+	import {
+		AddAction,
+		canvasViewModel,
+		DeleteAction,
+		editorViewModel,
+	} from "$lib/util/actions.svelte";
 	import {
 		isComponentHandleRef,
 		isVibrateSupported,
@@ -12,7 +17,10 @@
 		type SVGPointerEvent,
 		type WireHandle,
 	} from "$lib/util/types";
-	import { type EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+	import {
+		type EditorUiState,
+		type TypedReference,
+	} from "$lib/util/viewModels/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 	import Handle from "./Handle.svelte";
 
@@ -39,7 +47,7 @@
 
 	let simData = $derived(getSimData(id));
 
-	let isSelected = $derived("selected" in uiState && uiState.selected.has(id));
+	let isSelected = $derived(editorViewModel.isSelectedId(id));
 
 	let isPowered = $derived.by(() => {
 		const isOutputPowered = simData?.outputs["output"] ?? false;
@@ -54,7 +62,7 @@
 		if (isVibrateSupported()) {
 			navigator.vibrate(10);
 		}
-		EditorAction.addWire(
+		AddAction.addWire(
 			{
 				x: handle.x,
 				y: handle.y,
@@ -72,7 +80,7 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			EditorAction.deleteWire(id);
+			DeleteAction.deleteWire(id);
 			e.stopPropagation();
 			return;
 		}
@@ -83,7 +91,16 @@
 		e.currentTarget.releasePointerCapture(e.pointerId);
 		e.stopPropagation();
 
-		editorViewModel.startDragWireMiddle(id);
+		const clickPosClient = { x: e.clientX, y: e.clientY };
+		const clickPosSvg = canvasViewModel.clientToSVGCoords(clickPosClient);
+
+		const self: TypedReference = {
+			id,
+			type: "wire",
+		};
+
+		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
+		editorViewModel.onElementDown(self, clickPosSvg, clickType);
 	}
 
 	function onHandleDown(clickedHandle: HandleType, e: SVGPointerEvent) {
@@ -94,7 +111,7 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			EditorAction.deleteWire(id);
+			DeleteAction.deleteWire(id);
 			e.stopPropagation();
 			return;
 		}
@@ -116,7 +133,7 @@
 		}
 
 		if (e.shiftKey && clickedHandle === "output") {
-			EditorAction.addWire(
+			AddAction.addWire(
 				{
 					x: handle.x,
 					y: handle.y,
@@ -164,7 +181,7 @@
 
 	let hitboxEnabled = $derived(
 		uiState.matches({ mode: "delete" }) ||
-			uiState.matches({ editType: P.union("idle", "draggingWireMiddle") }),
+			uiState.matches({ editType: "idle" }),
 	);
 </script>
 

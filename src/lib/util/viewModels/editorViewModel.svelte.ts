@@ -2,7 +2,20 @@ import { isMatching, P } from "ts-pattern";
 import type { PatternConstraint } from "../../../../node_modules/ts-pattern/dist/is-matching";
 import type { HandleReference, WireHandleReference, XYPair } from "../types";
 
-// Base properties that are always present
+/** References an element, and including its type.
+ * This is useful because, even though an element can be
+ * uniquely identified by its ID, many operations behave differently
+ * depending on whether the element is a component or a wire, so
+ * by storing the type, we can avoid having to look it up many times later.
+ */
+export type TypedReference = {
+	id: number;
+	/** The type of the selected element, either "component" or "wire" */
+	type: "component" | "wire";
+};
+export type ElementType = "component" | "wire";
+
+/** Base properties that are always present */
 export type BaseState = {
 	hoveredHandle: HandleReference | null;
 	hoveredElement: number | null;
@@ -22,22 +35,39 @@ export type EditIdle = {
 export type EditAddingComponent = {
 	mode: "edit";
 	editType: "addingComponent";
-	componentId: number;
-	/** Offset from the top left corner of the component to the mouse position in svg coordinates */
-	clickOffset: XYPair;
+	/** The component being added */
+	clickedElement: TypedReference;
+	/** The position of the mouse when the component was created */
+	clickPosition: XYPair;
 	/** Whether the component was added by dragging from the component toolbar, or by using the keyboard shortcut */
 	initiator: "drag" | "keyboard";
 };
-export type EditDraggingComponent = {
+
+/** When the user clicked the mouse down on an element,
+ * but has not yet released or moved the mouse.
+ */
+export type EditElementDown = {
 	mode: "edit";
-	editType: "draggingComponent";
-	componentId: number;
-	/** If the component has actually been moved enough that
-	 * it changed position on the grid */
-	hasMoved: boolean;
-	/** Offset from the top left corner of the component to the mouse position in svg coordinates */
-	clickOffset: XYPair;
+	editType: "elementDown";
+	/** The element that was clicked */
+	clickedElement: TypedReference;
+	/** The position of the mouse when the element was clicked */
+	clickPosition: XYPair;
+	/** What type of click was used */
+	clickType: "ctrl" | "none";
 };
+
+export type EditDraggingElements = {
+	mode: "edit";
+	editType: "draggingElements";
+	/** The ID of the component being dragged */
+	clickedElement: TypedReference;
+	/** The position of the mouse when the elements were clicked */
+	clickPosition: XYPair;
+	/** Whether all selected elements are being dragged, or only the clicked one */
+	draggingSelected: boolean;
+};
+
 export type EditDraggingWire = {
 	mode: "edit";
 	editType: "draggingWire";
@@ -52,22 +82,14 @@ export type EditAddingWire = {
 	draggedHandle: WireHandleReference;
 	connectionCount: number;
 };
-/** The ui state when the user is dragging a wire from the middle of an existing wire */
-export type EditDraggingWireMiddle = {
-	mode: "edit";
-	editType: "draggingWireMiddle";
-	wireId: number;
-	/** If the wire has actually been moved */
-	hasMoved: boolean;
-};
 
 export type EditState =
 	| EditIdle
 	| EditAddingComponent
-	| EditDraggingComponent
+	| EditElementDown
+	| EditDraggingElements
 	| EditDraggingWire
-	| EditAddingWire
-	| EditDraggingWireMiddle;
+	| EditAddingWire;
 
 // ==== Delete Mode states ====
 export type DeleteState = {
@@ -90,9 +112,7 @@ export type PanningState = NotPanning | Panning;
 
 // ==== Selection states ====
 export type SelectionState = {
-	selected: Set<number>;
-	/** The ID of the component/wire that wants to be selected after the next edit operation */
-	selectionInProgressFor: number | null;
+	selected: Map<number, ElementType>;
 };
 
 export type MatchesState = {
@@ -152,8 +172,7 @@ export class EditorViewModel {
 	private initialUiState: EditorUiState = {
 		mode: "edit",
 		editType: "idle",
-		selected: new Set<number>(),
-		selectionInProgressFor: null,
+		selected: new Map<number, ElementType>(),
 		hoveredHandle: null,
 		hoveredElement: null,
 		isModalOpen: false,
@@ -191,7 +210,7 @@ export class EditorViewModel {
 	private getSelected() {
 		return "selected" in this._uiState
 			? this._uiState.selected
-			: new Set<number>();
+			: new Map<number, ElementType>();
 	}
 
 	private softReset() {
@@ -199,7 +218,6 @@ export class EditorViewModel {
 			mode: "edit",
 			editType: "idle",
 			selected: this.getSelected(), // Preserve selected element
-			selectionInProgressFor: null, // Don't preserve any element that wanted to change the selection
 			hoveredHandle: this._uiState.hoveredHandle,
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
@@ -229,7 +247,6 @@ export class EditorViewModel {
 			mode: "edit",
 			editType: "idle",
 			selected: this.getSelected(),
-			selectionInProgressFor: null,
 		});
 		this.notifyAll();
 	}
@@ -246,40 +263,55 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 
-	startDragWireMiddle(wireId: number) {
+	/** Puts the editor into the state where an element has been clicked,
+	 * and we are waiting for further actions by the user.
+	 * @param clicked The element that was clicked
+	 * @param pos The svg position where the mouse clicked
+	 * @param clickType The type of click that was used, either "ctrl" (for ctrl-click) or "none" (for normal click)
+	 */
+	onElementDown(
+		clicked: TypedReference,
+		pos: XYPair,
+		clickType: "ctrl" | "none",
+	) {
+		if (!this._uiState.matches({ mode: "edit" })) {
+			console.warn("Tried to click an element in an invalid mode");
+			return;
+		}
 		this.setUiState({
 			mode: "edit",
-			editType: "draggingWireMiddle",
-			wireId: wireId,
-			hasMoved: false,
+			editType: "elementDown",
+			clickedElement: clicked,
+			clickPosition: pos,
+			clickType,
 			selected: this.getSelected(),
-			selectionInProgressFor: wireId,
 		});
 		this.notifyAll();
 	}
 
-	/* Starts dragging a component
+	/** Starts dragging elements
 	 *
-	 * @param id The ID of the component being dragged
-	 * @param clickOffset The offset from the top left corner of the component to the mouse position in SVG coordinates
+	 * @param clicked The element being dragged
+	 * @param pos The svg position where dragging started
+	 * @param dragSelected Whether to drag all selected elements, or just the clicked one
 	 */
-	startMoveComponent(id: number, clickOffset: XYPair) {
+	startDrag(clicked: TypedReference, pos: XYPair, dragSelected: boolean) {
 		this.setUiState({
 			mode: "edit",
-			editType: "draggingComponent",
-			componentId: id,
-			clickOffset: clickOffset,
-			hasMoved: false,
+			editType: "draggingElements",
+			clickedElement: clicked,
+			clickPosition: pos,
+			draggingSelected: dragSelected,
 			selected: this.getSelected(),
-			selectionInProgressFor: id,
 		});
 		this.notifyAll();
 	}
-	/* Tells the editor that a component/wire that is being dragged has actually been moved */
+
+	/** Tells the editor that a wire that is being dragged has actually been moved */
 	registerMove() {
 		if (
 			!this._uiState.matches({
-				editType: P.union("draggingComponent", "draggingWire"),
+				editType: "draggingWire",
 			})
 		) {
 			console.warn("Tried to register move without starting it");
@@ -296,26 +328,31 @@ export class EditorViewModel {
 			connectionCount: wireConnectionCount,
 			hasMoved: false,
 			selected: this.getSelected(),
-			selectionInProgressFor: wire.id,
 		});
 		this.notifyAll();
 	}
+
+	/** Puts the editor in the mode where a new component is being added.
+	 * @param component The component that is being added
+	 * @param pos The position where the mouse was clicked
+	 * @param initiator Whether the component was added by dragging from the component toolbar, or by using the keyboard shortcut
+	 */
 	startAddComponent(
-		id: number,
-		clickOffset: XYPair,
+		component: TypedReference,
+		pos: XYPair,
 		initiator: "drag" | "keyboard",
 	) {
 		this.setUiState({
 			mode: "edit",
 			editType: "addingComponent",
-			componentId: id,
-			clickOffset: clickOffset,
+			clickedElement: component,
+			clickPosition: pos,
 			initiator: initiator,
 			selected: this.getSelected(),
-			selectionInProgressFor: id,
 		});
 		this.notifyAll();
 	}
+
 	startAddWire(wire: WireHandleReference, wireConnectionCount: number) {
 		this.setUiState({
 			mode: "edit",
@@ -323,7 +360,6 @@ export class EditorViewModel {
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
 			selected: this.getSelected(),
-			selectionInProgressFor: wire.id,
 		});
 		this.notifyAll();
 	}
@@ -362,15 +398,21 @@ export class EditorViewModel {
 		this._uiState.isPanning = false;
 		this.notifyAll();
 	}
-	addSelected(id: number) {
+	/** Add `element` to the selection */
+	addSelected(element: TypedReference) {
 		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to select an element in an invalid mode");
 			return;
 		}
-		this._uiState.selected.add(id);
+		this._uiState.selected.set(element.id, element.type);
 		this.notifyAll();
 	}
-	removeSelected(id: number) {
+	/** Remove `element` from the selection */
+	removeSelected(element: TypedReference) {
+		this.removeSelectedId(element.id);
+	}
+	/** Remove the element with the given `id` from the selection */
+	removeSelectedId(id: number) {
 		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to deselect an element in an invalid mode");
 			return;
@@ -378,12 +420,14 @@ export class EditorViewModel {
 		this._uiState.selected.delete(id);
 		this.notifyAll();
 	}
-	setSelected(id: number) {
+	/** Set the selection to only contain the given element */
+	setSelected(element: TypedReference) {
 		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to set selection in an invalid mode");
 			return;
 		}
-		this._uiState.selected = new Set<number>([id]);
+		this._uiState.selected = new Map<number, ElementType>();
+		this._uiState.selected.set(element.id, element.type);
 		this.notifyAll();
 	}
 	clearSelection() {
@@ -391,8 +435,18 @@ export class EditorViewModel {
 			console.warn("Tried to clear selection in an invalid mode");
 			return;
 		}
-		this._uiState.selected = new Set<number>();
+		this._uiState.selected.clear();
 		this.notifyAll();
+	}
+	isSelected(element: TypedReference) {
+		return this.isSelectedId(element.id);
+	}
+	isSelectedId(id: number) {
+		// Use the public version of the state to ensure reactivity
+		return "selected" in this.uiState && this.uiState.selected.has(id);
+	}
+	getSelectedCount() {
+		return "selected" in this.uiState ? this.uiState.selected.size : 0;
 	}
 	setGridSnap(val: boolean) {
 		this._uiState.gridSnap = val;

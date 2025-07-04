@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { circuitModalViewModel, PersistenceAction } from "$lib/util/actions";
+	import {
+		circuitModalViewModel,
+		PersistenceAction,
+	} from "$lib/util/actions.svelte";
 	import type { CircuitModalUiState } from "$lib/util/viewModels/circuitModalViewModel";
 	import { Download, Save } from "lucide-svelte";
 	import BaseModal from "./BaseModal.svelte";

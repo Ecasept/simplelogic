@@ -24,6 +24,13 @@ export class Editor {
 		await this.waitForNetworkIdle();
 	}
 
+	/** Add an element to the selection */
+	async ctrlSelect(locator: Locator, force?: boolean) {
+		await this.page.keyboard.down("Control");
+		await this.pointer.clickOn(locator, force);
+		await this.page.keyboard.up("Control");
+	}
+
 	/** Clicks the delete button of a specific circuit in the load modal */
 	async deleteCircuit(name: string) {
 		const entry = this.getModal().getByRole("menuitem", {

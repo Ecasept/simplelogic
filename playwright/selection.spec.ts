@@ -106,8 +106,8 @@ test.describe("selection", () => {
 	});
 	test("ctrl-click flow", async ({ page, editor, pointer }) => {
 		// Add two components
-		await editor.addComponent("AND", 500, 500);
-		await editor.addComponent("OR", 700, 700);
+		await editor.addComponent("AND", 400, 400);
+		await editor.addComponent("OR", 600, 600);
 		const first = editor.comps().nth(0);
 		const second = editor.comps().nth(1);
 
@@ -119,19 +119,21 @@ test.describe("selection", () => {
 		await expect(first).toBeSelected();
 		await expect(second).toBeSelected();
 
-		// Move first, expect only first selected
-		await editor.dragTo(first, 550, 550);
+		// Move first, expect both selected and moved
+		await editor.dragTo(first, 450, 450);
 		await expect(first).toBeSelected();
-		await expect(second).not.toBeSelected();
+		await expect(second).toBeSelected();
+		await expectPosToBe(first, 450, 450);
+		await expectPosToBe(second, 650, 650);
 
-		// Ctrl-click with move second, expect both selected and not moved
+		// Ctrl-click with move second, expect both selected and moved
 		await page.keyboard.down("Control");
 		await pointer.downOn(second);
-		await pointer.moveTo(750, 550);
+		await pointer.moveTo(700, 700);
 		await pointer.up();
 		await expect(first).toBeSelected();
 		await expect(second).toBeSelected();
-		// Check that second did not move
+		await expectPosToBe(first, 500, 500);
 		await expectPosToBe(second, 700, 700);
 
 		// Ctrl-click second, expect only first selected
@@ -155,5 +157,106 @@ test.describe("selection", () => {
 		await expect(second).not.toBeSelected();
 
 		await page.keyboard.up("Control");
+	});
+	test("multi-selection click", async ({ editor, pointer, page }) => {
+		// Add two components
+		await editor.addComponent("AND", 400, 200);
+		await editor.addComponent("OR", 600, 400);
+		const andGate = editor.comps().first();
+		const orGate = editor.comps().last();
+
+		// Select both components
+		await editor.ctrlSelect(andGate);
+
+		// Verify both are selected
+		await expect(andGate).toBeSelected();
+		await expect(orGate).toBeSelected();
+
+		// Click on one of them
+		await pointer.clickOn(andGate);
+
+		// Verify only the clicked one remains selected
+		await expect(andGate).toBeSelected();
+		await expect(orGate).not.toBeSelected();
+	});
+	test("move multiple selected elements", async ({ editor, pointer }) => {
+		// Add two components
+		await editor.addComponent("AND", 400, 400);
+		await editor.addComponent("OR", 600, 600);
+		const andGate = editor.comps().first();
+		const orGate = editor.comps().last();
+
+		// Select both components
+		await editor.ctrlSelect(andGate);
+
+		// Verify both are selected
+		await expect(andGate).toBeSelected();
+		await expect(orGate).toBeSelected();
+
+		// Drag one of the components
+		await editor.dragTo(andGate, 500, 500);
+
+		// Verify both moved
+		await expectPosToBe(andGate, 500, 500);
+		await expectPosToBe(orGate, 700, 700);
+	});
+
+	test("move unselected element from a selection", async ({
+		editor,
+		pointer,
+	}) => {
+		// Add three components
+		await editor.addComponent("AND", 400, 200);
+		await editor.addComponent("OR", 400, 400);
+		await editor.addComponent("XOR", 600, 200);
+		const andGate = editor.comps().nth(0);
+		const orGate = editor.comps().nth(1);
+		const xorGate = editor.comps().nth(2);
+
+		// Select first two components
+		await pointer.clickOn(andGate);
+		await editor.ctrlSelect(orGate);
+
+		// Verify they are selected
+		await expect(andGate).toBeSelected();
+		await expect(orGate).toBeSelected();
+		await expect(xorGate).not.toBeSelected();
+
+		// Drag the unselected component
+		await editor.dragTo(xorGate, 700, 300);
+
+		// Verify selection is cleared, the dragged component is selected, and only it moves
+		await expect(andGate).not.toBeSelected();
+		await expect(orGate).not.toBeSelected();
+		await expect(xorGate).toBeSelected();
+		await expectPosToBe(andGate, 400, 200);
+		await expectPosToBe(orGate, 400, 400);
+		await expectPosToBe(xorGate, 700, 300);
+	});
+
+	test("delete multiple selected elements with sidebar button", async ({
+		editor,
+		pointer,
+	}) => {
+		// Add two components
+		await editor.addComponent("AND", 400, 200);
+		await editor.addComponent("OR", 400, 400);
+		const andGate = editor.comps().first();
+		const orGate = editor.comps().last();
+
+		await pointer.clickAt(400, 100); // Deselect everything
+
+		// Select both components
+		await editor.ctrlSelect(andGate);
+		await editor.ctrlSelect(orGate);
+
+		// The selection sidebar should be visible now.
+		await expect(editor.getSidebar("selection")).toBeVisible();
+
+		// Click delete button
+		await editor.deleteSelected();
+
+		// Assert that both components are removed
+		await expect(editor.comps()).toHaveCount(0);
 	});
 });

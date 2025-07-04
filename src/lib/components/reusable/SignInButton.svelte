@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { graphManager } from "$lib/util/actions";
+	import { graphManager } from "$lib/util/actions.svelte";
 	import { getTheme } from "$lib/util/theme.svelte";
 	import { signIn } from "@auth/sveltekit/client";
 

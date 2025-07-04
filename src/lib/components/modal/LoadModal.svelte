@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { circuitModalViewModel } from "$lib/util/actions";
+	import { circuitModalViewModel } from "$lib/util/actions.svelte";
 	import type { ListRequestData } from "$lib/util/api";
 	import type { FeedbackMessage } from "$lib/util/viewModels/circuitModalViewModel";
 	import { LogIn } from "lucide-svelte";

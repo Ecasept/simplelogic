@@ -1,4 +1,5 @@
 import {
+	calculateHandlePosition,
 	entries,
 	includesHandle,
 	indexOfHandle,
@@ -249,6 +250,67 @@ export class MoveComponentCommand implements Command {
 		return [];
 	}
 }
+
+/** Moves a component and all its connected wire handles to a new position. */
+export class MoveComponentAndWiresCommand implements Command {
+	private moveComponentCmd: MoveComponentCommand | null = null;
+	private moveWireCmds: MoveWireHandleCommand[] = [];
+	private prepared = false;
+
+	constructor(
+		private componentId: number,
+		private newPosition: XYPair,
+	) {}
+
+	private prepare(graphData: GraphData) {
+		if (this.prepared) return;
+		this.moveComponentCmd = new MoveComponentCommand(
+			this.newPosition,
+			this.componentId,
+		);
+		const cmp = graphData.components[this.componentId];
+		for (const [handleId, handle] of Object.entries(cmp.handles)) {
+			for (const connection of handle.connections) {
+				const handlePos = calculateHandlePosition(
+					handle.edge,
+					handle.pos,
+					cmp.size,
+					this.newPosition,
+					cmp.rotation,
+				);
+				this.moveWireCmds.push(
+					new MoveWireHandleCommand(
+						handlePos,
+						connection.handleType,
+						connection.id,
+					),
+				);
+			}
+		}
+		this.prepared = true;
+	}
+
+	execute(graphData: GraphData) {
+		this.prepare(graphData);
+		this.moveComponentCmd!.execute(graphData);
+		for (const cmd of this.moveWireCmds) {
+			cmd.execute(graphData);
+		}
+	}
+
+	undo(graphData: GraphData) {
+		if (!this.prepared) {
+			console.error("Tried to undo command that has not been executed");
+			return [];
+		}
+		for (const cmd of this.moveWireCmds.toReversed()) {
+			cmd.undo(graphData);
+		}
+		this.moveComponentCmd!.undo(graphData);
+		return [];
+	}
+}
+
 export class CreateWireCommand implements Command {
 	oldNextId: number | null = null;
 

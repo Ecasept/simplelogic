@@ -1,4 +1,4 @@
-import { graphManager } from "./actions";
+import { graphManager } from "./actions.svelte";
 import { COMPONENT_DATA, isComponentHandleRef } from "./global.svelte";
 import type { ComponentData, ComponentType } from "./types";
 

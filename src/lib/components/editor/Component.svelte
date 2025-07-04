@@ -1,9 +1,10 @@
 <script lang="ts">
 	import {
+		AddAction,
 		canvasViewModel,
-		EditorAction,
+		DeleteAction,
 		editorViewModel,
-	} from "$lib/util/actions";
+	} from "$lib/util/actions.svelte";
 	import { calculateHandlePosition, GRID_SIZE } from "$lib/util/global.svelte";
 	import { getSimData } from "$lib/util/simulation.svelte";
 	import type {
@@ -15,7 +16,10 @@
 		SVGPointerEvent,
 		XYPair,
 	} from "$lib/util/types";
-	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+	import type {
+		EditorUiState,
+		TypedReference,
+	} from "$lib/util/viewModels/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 	import ComponentInner from "./ComponentInner.svelte";
 	import Handle from "./Handle.svelte";
@@ -43,12 +47,17 @@
 
 	let rect = $state<SVGRectElement>();
 
-	let editingThis = $derived(uiState.matches({ componentId: id }));
+	let editingThis = $derived(
+		uiState.matches({
+			editType: P.union("draggingElements", "addingComponent"),
+			clickedElement: { id, type: "component" },
+		}),
+	);
 
 	let simulating = $derived(uiState.matches({ mode: "simulate" }));
 	let simData = $derived(getSimData(id));
 
-	let isSelected = $derived("selected" in uiState && uiState.selected.has(id));
+	let isSelected = $derived(editorViewModel.isSelectedId(id));
 
 	let isPowered = $derived.by(() => {
 		if (simulating) {
@@ -72,7 +81,7 @@
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
-			if (uiState.matches({ editType: "draggingComponent" })) {
+			if (uiState.matches({ editType: "draggingElements" })) {
 				// If we are dragging this component, show grabbing cursor
 				return "grabbing";
 			} else {
@@ -102,7 +111,7 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			EditorAction.deleteComponent(id);
+			DeleteAction.deleteComponent(id);
 			e.stopPropagation();
 			return;
 		}
@@ -124,7 +133,7 @@
 			rotation,
 		);
 
-		EditorAction.addWire(wirePos, {
+		AddAction.addWire(wirePos, {
 			id,
 			handleId,
 			handleType,
@@ -145,21 +154,11 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			EditorAction.deleteComponent(id);
+			DeleteAction.deleteComponent(id);
 			e.stopPropagation();
 			return;
 		}
 		if (!uiState.matches({ editType: "idle" })) {
-			return;
-		}
-		if (e.ctrlKey || e.metaKey) {
-			// If ctrl or cmd is pressed, toggle selection
-			if (isSelected) {
-				editorViewModel.removeSelected(id);
-			} else {
-				editorViewModel.addSelected(id);
-			}
-			e.stopPropagation();
 			return;
 		}
 
@@ -168,12 +167,14 @@
 
 		const clickPosClient = { x: e.clientX, y: e.clientY };
 		const clickPosSvg = canvasViewModel.clientToSVGCoords(clickPosClient);
-		// Calculate offset between click position and top left corner of component
-		const offset = {
-			x: clickPosSvg.x - position.x,
-			y: clickPosSvg.y - position.y,
+
+		const self: TypedReference = {
+			id,
+			type: "component",
 		};
-		editorViewModel.startMoveComponent(id, offset);
+
+		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
+		editorViewModel.onElementDown(self, clickPosSvg, clickType);
 	}
 
 	function onHandleEnter(handle: ComponentHandle, identifier: string) {

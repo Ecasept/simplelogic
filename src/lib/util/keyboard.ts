@@ -1,26 +1,37 @@
-import { match, P } from "ts-pattern";
+import { isMatching, P } from "ts-pattern";
 import type { Pattern } from "ts-pattern/types";
 import {
+	AddAction,
 	ChangesAction,
+	DeleteAction,
 	EditorAction,
 	editorViewModel,
 	ModeAction,
 	PersistenceAction,
-} from "./actions";
+} from "./actions.svelte";
 import { mousePosition } from "./global.svelte";
 import type { EditorUiState } from "./viewModels/editorViewModel.svelte";
 
 type Environment = { env: "editor" | "modal" };
 type Key = { key: string; mod: string | null };
+type State = EditorUiState & Environment & Key;
+type ShortcutPattern = Pattern<State>;
 
-type Shortcut = {
+type Shortcut<TPattern extends ShortcutPattern> = {
 	name: string;
-	pattern: Pattern<EditorUiState & Environment & Key>;
-	action: () => Promise<void> | void;
+	pattern: TPattern;
+	action: (state: P.narrow<State, TPattern>) => Promise<void> | void;
 };
 
-const shortcuts: Shortcut[] = [
-	{
+/** A helper function to create a shortcut without needing to specify any extra types */
+function s<TPattern extends ShortcutPattern>(
+	shortcut: Shortcut<TPattern>,
+): Shortcut<TPattern> {
+	return shortcut;
+}
+
+const shortcuts = [
+	s({
 		name: "Cancel editing",
 		pattern: {
 			key: "escape",
@@ -28,16 +39,28 @@ const shortcuts: Shortcut[] = [
 			env: "editor",
 			mode: "edit",
 			editType: P.union(
-				"addingComponent",
 				"addingWire",
-				"draggingComponent",
+				"addingComponent",
+				"draggingElements",
 				"draggingWire",
 			),
 			isPanning: false,
 		},
 		action: ChangesAction.abortEditing,
-	},
-	{
+	}),
+	s({
+		name: "Clear selection",
+		pattern: {
+			key: "escape",
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			selected: P.when((s) => s.size > 0),
+		},
+		action: () => editorViewModel.clearSelection(),
+	}),
+	s({
 		name: "Exit delete mode",
 		pattern: {
 			key: "escape",
@@ -47,8 +70,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: ModeAction.toggleDelete,
-	},
-	{
+	}),
+	s({
 		name: "Exit simulation mode",
 		pattern: {
 			key: "escape",
@@ -58,8 +81,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: ModeAction.toggleSimulate,
-	},
-	{
+	}),
+	s({
 		name: "Close modal",
 		pattern: {
 			key: "escape",
@@ -67,8 +90,8 @@ const shortcuts: Shortcut[] = [
 			env: "modal",
 		},
 		action: PersistenceAction.closeModal,
-	},
-	{
+	}),
+	s({
 		name: "Cancel panning",
 		pattern: {
 			key: "escape",
@@ -77,8 +100,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: true,
 		},
 		action: EditorAction.abortPanning,
-	},
-	{
+	}),
+	s({
 		name: "Add AND gate",
 		pattern: {
 			key: "a",
@@ -89,10 +112,10 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: () => {
-			EditorAction.addComponent("AND", mousePosition, "keyboard");
+			AddAction.addComponent("AND", mousePosition, "keyboard");
 		},
-	},
-	{
+	}),
+	s({
 		name: "Add input",
 		pattern: {
 			key: "i",
@@ -103,10 +126,10 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: () => {
-			EditorAction.addComponent("IN", mousePosition, "keyboard");
+			AddAction.addComponent("IN", mousePosition, "keyboard");
 		},
-	},
-	{
+	}),
+	s({
 		name: "Add LED",
 		pattern: {
 			key: "l",
@@ -117,10 +140,10 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: () => {
-			EditorAction.addComponent("LED", mousePosition, "keyboard");
+			AddAction.addComponent("LED", mousePosition, "keyboard");
 		},
-	},
-	{
+	}),
+	s({
 		name: "Add NOT gate",
 		pattern: {
 			key: "n",
@@ -131,10 +154,10 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: () => {
-			EditorAction.addComponent("NOT", mousePosition, "keyboard");
+			AddAction.addComponent("NOT", mousePosition, "keyboard");
 		},
-	},
-	{
+	}),
+	s({
 		name: "Add XOR gate",
 		pattern: {
 			key: "x",
@@ -145,10 +168,10 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: () => {
-			EditorAction.addComponent("XOR", mousePosition, "keyboard");
+			AddAction.addComponent("XOR", mousePosition, "keyboard");
 		},
-	},
-	{
+	}),
+	s({
 		name: "Add OR gate",
 		pattern: {
 			key: "o",
@@ -159,10 +182,10 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: () => {
-			EditorAction.addComponent("OR", mousePosition, "keyboard");
+			AddAction.addComponent("OR", mousePosition, "keyboard");
 		},
-	},
-	{
+	}),
+	s({
 		name: "Add text box",
 		pattern: {
 			key: "t",
@@ -173,10 +196,10 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: () => {
-			EditorAction.addComponent("TEXT", mousePosition, "keyboard");
+			AddAction.addComponent("TEXT", mousePosition, "keyboard");
 		},
-	},
-	{
+	}),
+	s({
 		name: "Toggle delete mode",
 		pattern: {
 			key: "d",
@@ -186,8 +209,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: ModeAction.toggleDelete,
-	},
-	{
+	}),
+	s({
 		name: "Toggle simulation mode",
 		pattern: {
 			key: "s",
@@ -197,8 +220,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: ModeAction.toggleSimulate,
-	},
-	{
+	}),
+	s({
 		name: "Save circuit",
 		pattern: {
 			key: "s",
@@ -208,8 +231,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: PersistenceAction.saveGraph,
-	},
-	{
+	}),
+	s({
 		name: "Load circuit",
 		pattern: {
 			key: "l",
@@ -219,8 +242,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: PersistenceAction.loadGraph,
-	},
-	{
+	}),
+	s({
 		name: "Undo edit",
 		pattern: {
 			key: "z",
@@ -231,8 +254,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: EditorAction.undo,
-	},
-	{
+	}),
+	s({
 		name: "Undo deletion",
 		pattern: {
 			key: "z",
@@ -242,8 +265,8 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: EditorAction.undo,
-	},
-	{
+	}),
+	s({
 		name: "Delete selected",
 		pattern: {
 			key: "delete",
@@ -251,11 +274,13 @@ const shortcuts: Shortcut[] = [
 			env: "editor",
 			mode: "edit",
 			editType: "idle",
-			selected: P.not(null),
+			selected: P.when((s) => s.size > 0),
 		},
-		action: EditorAction.deleteSelected,
-	},
-	{
+		action: () => {
+			DeleteAction.deleteSelected();
+		},
+	}),
+	s({
 		name: "Rotate selected clockwise",
 		pattern: {
 			key: "r",
@@ -263,16 +288,14 @@ const shortcuts: Shortcut[] = [
 			env: "editor",
 			mode: "edit",
 			editType: "idle",
-			selected: P.not(null),
+			selected: P.when((s) => s.size === 1),
 		},
-		action: () => {
-			const uiState = editorViewModel.uiState;
-			if ("selected" in uiState && uiState.selected !== null) {
-				EditorAction.rotateComponent(uiState.selected, 90);
-			}
+		action: (uiState) => {
+			const [selectedId] = uiState.selected.keys();
+			EditorAction.rotateComponent(selectedId, 90);
 		},
-	},
-	{
+	}),
+	s({
 		name: "Rotate selected counter-clockwise",
 		pattern: {
 			key: "r",
@@ -280,16 +303,14 @@ const shortcuts: Shortcut[] = [
 			env: "editor",
 			mode: "edit",
 			editType: "idle",
-			selected: P.not(null),
+			selected: P.when((s) => s.size === 1),
 		},
-		action: () => {
-			const uiState = editorViewModel.uiState;
-			if ("selected" in uiState && uiState.selected !== null) {
-				EditorAction.rotateComponent(uiState.selected, -90);
-			}
+		action: (uiState) => {
+			const [selectedId] = uiState.selected.keys();
+			EditorAction.rotateComponent(selectedId, -90);
 		},
-	},
-	{
+	}),
+	s({
 		name: "Cancel editing when undoing while editing",
 		pattern: {
 			key: "z",
@@ -297,16 +318,16 @@ const shortcuts: Shortcut[] = [
 			env: "editor",
 			mode: "edit",
 			editType: P.union(
-				"addingComponent",
 				"addingWire",
-				"draggingComponent",
+				"addingComponent",
+				"draggingElements",
 				"draggingWire",
 			),
 			isPanning: false,
 		},
 		action: ChangesAction.abortEditing,
-	},
-	{
+	}),
+	s({
 		name: "Clear canvas",
 		pattern: {
 			key: "c",
@@ -316,35 +337,35 @@ const shortcuts: Shortcut[] = [
 			isPanning: false,
 		},
 		action: EditorAction.clearCanvas,
-	},
-	{
-		name: "Rotate dragged clockwise",
+	}),
+	s({
+		name: "Rotate dragged/adding clockwise",
 		pattern: {
 			key: "r",
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: P.union("draggingComponent", "addingComponent"),
+			editType: P.union("draggingElements", "addingComponent"),
 			isPanning: false,
 		},
-		action: () => {
-			EditorAction.rotateDraggedComponent(90);
+		action: (uiState) => {
+			EditorAction.rotateComponent(uiState.clickedElement.id, 90, false);
 		},
-	},
-	{
-		name: "Rotate dragged counter-clockwise",
+	}),
+	s({
+		name: "Rotate dragged/adding counter-clockwise",
 		pattern: {
 			key: "r",
 			mod: "shift",
 			env: "editor",
 			mode: "edit",
-			editType: P.union("draggingComponent", "addingComponent"),
+			editType: P.union("draggingElements", "addingComponent"),
 			isPanning: false,
 		},
-		action: () => {
-			EditorAction.rotateDraggedComponent(-90);
+		action: (uiState) => {
+			EditorAction.rotateComponent(uiState.clickedElement.id, -90, false);
 		},
-	},
+	}),
 ];
 
 function getPressedMod(e: KeyboardEvent) {
@@ -357,7 +378,7 @@ function getPressedMod(e: KeyboardEvent) {
 				: null;
 }
 
-function constructValue(e: KeyboardEvent) {
+function constructValue(e: KeyboardEvent): State {
 	return {
 		...editorViewModel.uiState,
 		key: e.key.toLowerCase(),
@@ -373,16 +394,19 @@ export async function handleKeyDown(e: KeyboardEvent) {
 
 	const value = constructValue(e);
 
-	const matchingShortcuts = shortcuts.filter((shortcut) =>
-		match(value)
-			.with(shortcut.pattern, () => true)
-			.otherwise(() => false),
-	);
+	let preventedDefault = false;
 
-	if (matchingShortcuts.length > 0) {
-		e.preventDefault();
-		for (const shortcut of matchingShortcuts) {
-			await shortcut.action();
+	for (const shortcut of shortcuts) {
+		if (isMatching(shortcut.pattern, value)) {
+			if (!preventedDefault) {
+				e.preventDefault();
+				preventedDefault = true;
+			}
+
+			// Apparently typescript can't handle large unions well
+			// like the shortcut array
+			// @ts-ignore
+			await shortcut.action(value);
 		}
 	}
 }

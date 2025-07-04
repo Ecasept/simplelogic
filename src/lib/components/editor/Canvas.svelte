@@ -6,7 +6,7 @@
 		EditorAction,
 		editorViewModel,
 		graphManager,
-	} from "$lib/util/actions";
+	} from "$lib/util/actions.svelte";
 	import {
 		CANVAS_DOT_RADIUS,
 		debugLog,

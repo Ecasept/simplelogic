@@ -1,11 +1,11 @@
 import {
 	CommandGroup,
-	MoveComponentCommand,
+	MoveComponentAndWiresCommand,
 	MoveWireHandleCommand,
 	UpdateCustomDataCommand,
 	type Command,
 } from "./commands";
-import { calculateHandlePosition, isComponentHandleRef } from "./global.svelte";
+import { gridSnap, isComponentHandleRef } from "./global.svelte";
 import {
 	ZGraphData,
 	type GraphData,
@@ -86,6 +86,7 @@ export class GraphManager {
 			this.changes[i].undo(this._graphData);
 		}
 		this.changes = [];
+		this.oldPositions = null;
 	}
 
 	/** Applies all changes that have been made since the last time the changes were applied.
@@ -99,38 +100,103 @@ export class GraphManager {
 				: this.changes[0];
 		this.history.push(command);
 		this.changes = [];
+		this.oldPositions = null;
 	}
 
-	/** Issues the correct commands
-	 * to move the component with the given `componentId` to the new position `newComponentPos`.
-	 * This will also move all connected wires to the new position.
+	/** Used for move operations.
+	 * Stores the positions of all components being moved before the move operation.
 	 */
-	moveComponentReplaceable(newComponentPos: XYPair, componentId: number) {
-		const cmds = [];
-		const moveCmpCmd = new MoveComponentCommand(newComponentPos, componentId);
-		cmds.push(moveCmpCmd);
+	private oldPositions: Map<number, XYPair> | null = null;
 
-		const cmp = this.getComponentData(componentId);
-
-		for (const [id, handle] of Object.entries(cmp.handles)) {
-			for (const connection of handle.connections) {
-				const handlePos = calculateHandlePosition(
-					handle.edge,
-					handle.pos,
-					cmp.size,
-					newComponentPos,
-					cmp.rotation,
-				);
-				const moveWireCmd = new MoveWireHandleCommand(
-					handlePos,
-					connection.handleType,
-					connection.id,
-				);
-				cmds.push(moveWireCmd);
+	/** Undoes the last move operation */
+	undoLastMove() {
+		if (this.changes.length !== 0) {
+			const lastCommand = this.changes[this.changes.length - 1];
+			if (lastCommand instanceof CommandGroup && lastCommand.type === "move") {
+				lastCommand.undo(this._graphData);
+				this.changes.pop();
 			}
 		}
-		const cmd = new CommandGroup(cmds, "moveComponent");
-		this.executeCommand(cmd, true);
+	}
+
+	/**
+	 * `offset` is how much the mouse has moved since the click started.
+	 * The components old position (before the move was started) is taken,
+	 * and this offset is added to it to get the new position.
+	 *
+	 * The old positions of the components are stored in `this.oldPositions`.
+	 * This function also handles populating `this.oldPositions` when the move operation is started.
+	 *
+	 * As an optimization, this function will only update the graph if at least one component has changed position.
+	 * Due to grid snapping, most of the time, no component will have changed position.
+	 * The move commands are only applied at the end once we now whether any components have changed position.
+	 *
+	 * @param offset The position to move the elements to relative to their old position before the move operation was started.
+	 * @param elements The elements to move.
+	 * @returns `true` if any elements were moved, `false` otherwise.
+	 */
+	moveElementsReplaceable(
+		offset: XYPair,
+		elements: Map<number, "component" | "wire">,
+	) {
+		let changed = false;
+		const cmds: Command[] = [];
+
+		/** If this is the first move, the old positions are the current positions and
+		 * `this.oldPositions` is null. In that case, we need to initialize it
+		 * with the current positions of the elements. In order to save performance,
+		 * we can do this while looping over the elements.
+		 */
+		const shouldPopulate = this.oldPositions === null;
+		if (shouldPopulate) {
+			this.oldPositions = new Map();
+		}
+
+		for (const [id, type] of elements.entries()) {
+			if (type === "wire") {
+				continue;
+			}
+			const currentPos = this.getComponentData(id).position;
+			if (shouldPopulate) {
+				this.oldPositions!.set(id, currentPos);
+			}
+			const oldPos = this.oldPositions!.get(id)!;
+
+			const newPos = {
+				x: gridSnap(oldPos.x + offset.x),
+				y: gridSnap(oldPos.y + offset.y),
+			};
+
+			const moveCmpCmd = new MoveComponentAndWiresCommand(id, newPos);
+			cmds.push(moveCmpCmd);
+
+			// oldPos: Position before move operation began
+			// currentPos: Position before this move command
+			// newPos: Position after this move command
+
+			if (currentPos.x === newPos.x && currentPos.y === newPos.y) {
+				continue; // No change, graph doesn't need to be updated
+			}
+			// If we arrive at this point in the loop, it means that
+			// at least one component has changed position, so we need to update the graph
+
+			if (!changed) {
+				// Mark that at least one component has changed position
+				// and we need to update the graph by executing the commands
+				changed = true;
+				// Undo the last move command if it exists,
+				// so that the user only has to undo once
+				// instead of every single move command
+				this.undoLastMove();
+			}
+		}
+
+		if (changed) {
+			const group = new CommandGroup(cmds, "move");
+			this.executeCommand(group, true);
+			this.notifyAll();
+		}
+		return changed;
 	}
 
 	/** Issues the correct commands

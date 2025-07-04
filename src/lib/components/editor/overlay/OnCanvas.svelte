@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChangesAction } from "$lib/util/actions";
+	import { ChangesAction } from "$lib/util/actions.svelte";
 	import type { AuthUiState } from "$lib/util/viewModels/authViewModel";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import CancelButton from "../CancelButton.svelte";
