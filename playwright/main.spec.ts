@@ -289,6 +289,260 @@ test.describe("adding and dragging/moving", async () => {
 		// Expect the wire addition to be undone, instead of any move
 		await expect(editor.wires()).toHaveCount(0);
 	});
+
+	test.describe("wire movement", () => {
+		test("wire between two components does not move", async ({
+			editor,
+			pointer,
+		}) => {
+			await editor.addComponent("AND", 400, 100);
+			await editor.addComponent("OR", 600, 100);
+			const comp1 = editor.getComponent("AND").first();
+			const comp2 = editor.getComponent("OR").first();
+			await editor.drag(
+				editor.getHandle("AND", "out").first(),
+				editor.getHandle("OR", "in1").first(),
+			);
+			const wire = editor.wires().first();
+
+			// Selected after creating
+			await expect(wire).toBeSelected();
+
+			// Try dragging twice
+			await editor.dragTo(wire, 500, 200, true);
+			await expect(wire).not.toBeSelected();
+			await editor.dragTo(wire, 500, 200, true);
+			await expect(wire).toBeSelected();
+
+			// Expect components and wire to not have moved
+			await expectPosToBe(comp1, 400, 100);
+			await expectPosToBe(comp2, 600, 100);
+			await expect(wire).toHaveAttribute("d", "M360 80 L420 60");
+
+			await editor.undo();
+
+			// Expect wire to have disappeared
+			await expect(editor.wires()).toHaveCount(0);
+		});
+
+		test("wire moves adjacent connections but not component", async ({
+			editor,
+			pointer,
+			page,
+			browserName,
+		}) => {
+			// skip on firefox as d values are different
+			test.skip(browserName === "firefox");
+
+			await editor.addComponent("AND", 400, 100);
+			await editor.addComponent("OR", 700, 100);
+			const comp1 = editor.getComponent("AND").first();
+			const comp2 = editor.getComponent("OR").first();
+
+			// first wire is dragged into empty space
+			await editor.dragTo(editor.getHandle("AND", "out").first(), 550, 200);
+
+			await page.keyboard.down("Shift");
+			// second wire connects first wire and last component
+			await editor.drag(
+				editor.getHandle("wire", "output").first(),
+				editor.getHandle("OR", "in1").first(),
+			);
+			await page.keyboard.up("Shift");
+
+			const wire1 = editor.wires().first();
+			const wire2 = editor.wires().nth(1);
+
+			// After second wire is created, it is selected.
+			await expect(wire2).toBeSelected();
+
+			// selection test
+			// ctrl click, expect wire deselected
+			await editor.ctrlSelect(wire2, true);
+			await expect(wire2).not.toBeSelected();
+
+			// ctrl click, selected
+			await editor.ctrlSelect(wire2, true);
+			await expect(wire2).toBeSelected();
+
+			// normal click, deselected
+			await pointer.clickOn(wire2, true);
+			await expect(wire2).not.toBeSelected();
+
+			// normal click, selected
+			await pointer.clickOn(wire2, true);
+			await expect(wire2).toBeSelected();
+
+			const d1_before = await getAttr(wire1, "d");
+			const d2_before = await getAttr(wire2, "d");
+
+			await editor.dragTo(wire2, 550, 300, true);
+
+			await expectPosToBe(comp1, 400, 100);
+			await expectPosToBe(comp2, 700, 100);
+
+			await expect(wire1).toHaveAttribute("d", "M360 80 L380 280");
+			await expect(wire2).toHaveAttribute("d", "M380 280 L500 60");
+
+			await editor.undo();
+
+			await expect(wire1).toHaveAttribute("d", d1_before);
+			await expect(wire2).toHaveAttribute("d", d2_before);
+		});
+
+		test("multi handle flow", async ({ editor, pointer }) => {
+			await editor.loadCircuitUsingClipboard(circuits.wireTest);
+			const wires = editor.wires();
+			const wire1 = wires.first();
+			const wire4 = wires.nth(3);
+
+			const d_initial = [
+				"M240 380 L320 380",
+				"M320 380 L420 360",
+				"M320 380 L420 400",
+				"M320 380 L360 460",
+			];
+
+			const checkWires = async (expected_d: string[]) => {
+				for (let i = 0; i < expected_d.length; i++) {
+					await expect(wires.nth(i)).toHaveAttribute("d", expected_d[i]);
+				}
+			};
+
+			await checkWires(d_initial);
+
+			// Move the first wire
+			await editor.dragTo(wire1, 400, 400, true);
+			const d_after_move1 = [
+				"M240 380 L360 320",
+				"M360 320 L420 360",
+				"M360 320 L420 400",
+				"M360 320 L360 460",
+			];
+			await checkWires(d_after_move1);
+
+			// Move the last wire
+			await editor.dragTo(wire4, 400, 400, true);
+			const d_after_move2 = [
+				"M240 380 L320 240",
+				"M320 240 L420 360",
+				"M320 240 L420 400",
+				"M320 240 L320 380",
+			];
+			await checkWires(d_after_move2);
+
+			// select and move first and last wire
+			await pointer.clickOn(wire1, true);
+			await editor.ctrlSelect(wire4, true);
+			await editor.dragTo(wire1, 400, 400, true);
+			await checkWires([
+				"M240 380 L360 240",
+				"M360 240 L420 360",
+				"M360 240 L420 400",
+				"M360 240 L360 380",
+			]);
+
+			// Undo last action
+			await editor.undo();
+			await checkWires(d_after_move2);
+
+			// Undo second action
+			await editor.undo();
+			await checkWires(d_after_move1);
+
+			// Undo first action
+			await editor.undo();
+
+			// Check that wires are back to their original state
+			await checkWires(d_initial);
+		});
+
+		test("multi handle flow with components", async ({ editor, pointer }) => {
+			await editor.loadCircuitUsingClipboard(circuits.wireTest);
+			await editor.toggleSidebar("tools");
+
+			// Move canvas to right
+			await pointer.downAt(500, 400);
+			await pointer.moveTo(600, 500);
+			await pointer.up();
+
+			const comp1 = editor.getComponent("AND").first();
+			const comp2 = editor.getComponent("AND").nth(1);
+			const wires = editor.wires();
+			const wire1 = wires.first();
+			const wire4 = wires.nth(3);
+
+			const d_initial = [
+				"M240 380 L320 380",
+				"M320 380 L420 360",
+				"M320 380 L420 400",
+				"M320 380 L360 460",
+			];
+
+			const checkWires = async (expected_d: string[]) => {
+				for (let i = 0; i < expected_d.length; i++) {
+					await expect(wires.nth(i)).toHaveAttribute("d", expected_d[i]);
+				}
+			};
+
+			// --- Move 1: Select first wire and both components, then drag the wire ---
+			await pointer.clickOn(wires.first(), true);
+			await editor.ctrlSelect(comp1, true);
+			await editor.ctrlSelect(comp2, true);
+
+			await editor.dragTo(comp1, 400, 400, true);
+
+			await expect(comp1).toHaveAttribute("x", "200");
+			await expect(comp1).toHaveAttribute("y", "200");
+			await expect(comp2).toHaveAttribute("x", "460");
+			await expect(comp2).toHaveAttribute("y", "200");
+			const d_after_move1 = [
+				"M280 240 L360 240",
+				"M360 240 L460 220",
+				"M360 240 L460 260",
+				"M360 240 L360 460",
+			];
+			await checkWires(d_after_move1);
+
+			// --- Move 2: Select last wire and both components, then drag the wire ---
+			// Deselect all by clicking canvas
+			await pointer.clickAt(10, 10);
+			await pointer.clickOn(comp1, true);
+			await editor.ctrlSelect(comp2, true);
+			await editor.ctrlSelect(wire4, true);
+
+			await editor.dragTo(wire4, 500, 500, true);
+
+			await expect(comp1).toHaveAttribute("x", "160");
+			await expect(comp1).toHaveAttribute("y", "160");
+			await expect(comp2).toHaveAttribute("x", "420");
+			await expect(comp2).toHaveAttribute("y", "160");
+			const d_after_move2 = [
+				"M240 200 L320 200",
+				"M320 200 L420 180",
+				"M320 200 L420 220",
+				"M320 200 L320 420",
+			];
+			await checkWires(d_after_move2);
+
+			// --- Undo both moves ---
+			await editor.undo();
+
+			await expect(comp1).toHaveAttribute("x", "200");
+			await expect(comp1).toHaveAttribute("y", "200");
+			await expect(comp2).toHaveAttribute("x", "460");
+			await expect(comp2).toHaveAttribute("y", "200");
+			await checkWires(d_after_move1);
+
+			await editor.undo();
+
+			await expect(comp1).toHaveAttribute("x", "160");
+			await expect(comp1).toHaveAttribute("y", "340");
+			await expect(comp2).toHaveAttribute("x", "420");
+			await expect(comp2).toHaveAttribute("y", "340");
+			await checkWires(d_initial);
+		});
+	});
 });
 test.describe("deleting", async () => {
 	test("can't delete wire under component", async ({ editor }) => {
@@ -375,6 +629,58 @@ test.describe("deleting", async () => {
 		await pointer.clickOn(editor.getHandle("wire", "output").first());
 
 		await expect(editor.wires()).toHaveCount(0);
+	});
+
+	test("delete multiple selected items and undo", async ({
+		editor,
+		pointer,
+	}) => {
+		// Create multiple components (x > 300 to avoid toolbar)
+		await editor.addComponent("AND", 400, 200);
+		await editor.addComponent("OR", 600, 200);
+		await editor.addComponent("NOT", 800, 200);
+
+		// Create wires between components
+		await editor.drag(
+			editor.getHandle("AND", "out").first(),
+			editor.getHandle("OR", "in1").first(),
+		);
+		await editor.dragTo(editor.getHandle("OR", "out").first(), 700, 300);
+		await editor.dragTo(editor.getHandle("NOT", "out").first(), 900, 250);
+
+		// Verify initial state
+		await expect(editor.comps()).toHaveCount(3);
+		await expect(editor.wires()).toHaveCount(3);
+
+		// Select multiple items: first component, second component, and one wire
+		await pointer.clickOn(editor.getComponent("AND").first(), true);
+		await editor.ctrlSelect(editor.getComponent("OR").first(), true);
+		await editor.ctrlSelect(editor.wires().nth(1), true); // Second wire
+
+		// Delete selected items
+		await editor.deleteSelected();
+
+		// Verify items were deleted
+		// - AND and OR components deleted
+		// - Second wire explicitly deleted
+		// - First wire (AND->OR) remains as disconnected wire since components don't auto-delete their wires
+		// - Third wire (NOT->disconnected) remains
+		await expect(editor.comps()).toHaveCount(1); // Only NOT gate remains
+		await expect(editor.wires()).toHaveCount(2); // First and third wires remain
+
+		// Verify the remaining component is the NOT gate
+		const remainingComp = editor.comps().first();
+		await expect(remainingComp).toHaveAttribute(
+			"data-testcomponenttype",
+			"NOT",
+		);
+
+		// Undo the deletion
+		await editor.undo();
+
+		// Verify all items are restored
+		await expect(editor.comps()).toHaveCount(3);
+		await expect(editor.wires()).toHaveCount(3);
 	});
 });
 

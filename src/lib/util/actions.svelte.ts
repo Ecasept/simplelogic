@@ -1,4 +1,4 @@
-import { match, P } from "ts-pattern";
+import { P } from "ts-pattern";
 import {
 	CommandGroup,
 	ConnectCommand,
@@ -15,18 +15,17 @@ import {
 import {
 	constructComponent,
 	GRID_SIZE,
-	gridSnap,
 	rotateAroundBy,
 	setLastRotation,
 } from "./global.svelte";
 import { GraphManager } from "./graph.svelte";
+import { mover } from "./move.svelte";
 import { simController } from "./simulation.svelte";
 import {
 	newWireHandleRef,
 	type ComponentType,
 	type GraphData,
 	type HandleReference,
-	type HandleType,
 	type ValidWireInitData,
 	type XYPair,
 } from "./types";
@@ -34,6 +33,7 @@ import { CanvasViewModel } from "./viewModels/canvasViewModel";
 import { CircuitModalViewModel } from "./viewModels/circuitModalViewModel";
 import {
 	EditorViewModel,
+	type EditorUiState,
 	type ElementType,
 	type TypedReference,
 } from "./viewModels/editorViewModel.svelte";
@@ -116,22 +116,18 @@ export class DeleteAction {
 export class AddAction {
 	/** Initiates the process of adding a component to the graph.
 	 * @param type The type of the component to add.
-	 * @param pos The position where the mouse was clicke, and the component should be placed (in client coordinates).
+	 * @param clickPos The position where the mouse was clicked, and the component should be placed (in client coordinates).
 	 * @param initiator String indicating how the component was added, either by dragging it from the toolbar or through the keyboard shortcut.
 	 */
 	static addComponent(
 		type: ComponentType,
-		pos: XYPair,
+		clickPos: XYPair,
 		initiator: "drag" | "keyboard",
 	) {
 		ChangesAction.abortEditing();
-		const clickSvgPos = canvasViewModel.clientToSVGCoords(pos);
-		const cmpPos = {
-			x: clickSvgPos.x,
-			y: clickSvgPos.y,
-		};
+		const clickSvgPos = canvasViewModel.clientToSVGCoords(clickPos);
 
-		const cmpData = constructComponent(type, cmpPos);
+		const cmpData = constructComponent(type, clickSvgPos);
 
 		const cmd = new CreateComponentCommand(cmpData);
 		const id = graphManager.executeCommand(cmd);
@@ -144,41 +140,43 @@ export class AddAction {
 		editorViewModel.startAddComponent(element, clickSvgPos, initiator);
 
 		// Snap the component to the grid
-		MoveAction.moveElementsReplaceable(clickSvgPos);
+		MoveAction.onMove(clickSvgPos);
 	}
 
 	/**
 	 * Adds a wire to the graph when a handle was clicked,
 	 * and connects the wire to the clicked handle.
-	 * @param position The position where the clicked handle is located,
+	 * @param clickPos
 	 * @param clickedHandle The handle that was clicked, which will be connected to the wire.
 	 */
-	static addWire(position: XYPair, clickedHandle: HandleReference) {
+	static addWire(clickSvgPos: XYPair, clickedHandle: HandleReference) {
 		const wireData: ValidWireInitData = {
 			handles: {
 				input: {
-					x: position.x,
-					y: position.y,
+					x: clickSvgPos.x,
+					y: clickSvgPos.y,
 					type: "input",
 					connections: [],
 				},
 				output: {
-					x: position.x,
-					y: position.y,
+					x: clickSvgPos.x,
+					y: clickSvgPos.y,
 					type: "output",
 					connections: [],
 				},
 			},
 		};
 
+		// Add the wire
 		const wireId = graphManager.executeCommand(new CreateWireCommand(wireData));
 
-		// The type of the handle that will be connected to the clicked handle
+		// Connect it to the clicked handle
+		/** The type of the handle that will be connected to the clicked handle */
 		const handleType =
 			clickedHandle.handleType === "input" ? "output" : "input";
-		// The handle connected to the clicked handle
+		/** The handle connected to the clicked handle */
 		const connectedHandle = newWireHandleRef(wireId, handleType);
-		// The handle that will be dragged (opposite of the connected handle)
+		/** The handle that will be dragged (opposite of the connected handle) */
 		const draggedHandle = newWireHandleRef(wireId, clickedHandle.handleType);
 
 		graphManager.executeCommand(
@@ -186,8 +184,10 @@ export class AddAction {
 		);
 		graphManager.notifyAll();
 
-		// The dragged handle will always have 0 connections
-		editorViewModel.startAddWire(draggedHandle, 0);
+		// The new dragged handle will always have 0 connections
+		editorViewModel.startAddWire(draggedHandle, clickSvgPos, 0);
+
+		MoveAction.onMove(clickSvgPos);
 	}
 }
 
@@ -209,74 +209,133 @@ export class MoveAction {
 	 * It does all of the movement logic. It also tells us if a click on a component
 	 * has moved the component enough to start a drag operation.
 	 */
-	static moveElementsReplaceable(mousePos: XYPair) {
+	static onMove(svgMousePos: XYPair) {
 		const uiState = editorViewModel.uiState;
 		if (
 			!uiState.matches({
-				editType: P.union("draggingElements", "elementDown", "addingComponent"),
+				editType: P.union(
+					"draggingElements",
+					"elementDown",
+					"addingComponent",
+					"draggingWireHandle",
+					"addingWire",
+					"wireHandleDown",
+				),
 			})
 		) {
-			throw new Error(
-				"Tried to move elements without being in dragging, elementDown, or addingComponent state",
-			);
+			// If we're not in a mode that supports moving elements, do nothing
+			return;
 		}
 
 		const oldPos = uiState.clickPosition;
-		const newPos = canvasViewModel.clientToSVGCoords(mousePos);
+		const newPos = svgMousePos;
 		const offset = {
 			x: newPos.x - oldPos.x,
 			y: newPos.y - oldPos.y,
 		};
 
-		const moveSelected = match(uiState)
-			.with({ editType: "draggingElements" }, (state) => state.draggingSelected)
-			.with({ editType: "addingComponent" }, () => false)
-			.with({ editType: "elementDown" }, (state) =>
-				editorViewModel.isSelected(state.clickedElement),
-			)
-			.exhaustive();
+		switch (uiState.editType) {
+			case "addingComponent":
+				this.addingComponent(uiState, offset);
+				break;
+			case "draggingElements":
+				this.draggingElements(uiState, offset);
+				break;
+			case "elementDown":
+				this.elementDown(uiState, offset);
+				break;
+			case "wireHandleDown":
+				this.wireHandleDown(uiState, offset);
+				break;
+			case "draggingWireHandle":
+				this.draggingWireHandle(uiState, offset);
+				break;
+			case "addingWire":
+				this.addingWire(uiState, offset);
+				break;
+		}
+	}
 
-		let elements = moveSelected
-			? new Map(uiState.selected)
-			: new Map<number, ElementType>();
+	private static addingComponent(uiState: EditorUiState, offset: XYPair) {
+		if (!uiState.matches({ editType: "addingComponent" })) {
+			throw new Error("wrong mode");
+		}
+		const elements = new Map<number, ElementType>();
 		elements.set(uiState.clickedElement.id, uiState.clickedElement.type);
+		mover.moveElementsReplaceable(offset, elements);
+	}
 
-		const moved = graphManager.moveElementsReplaceable(offset, elements);
+	private static draggingElements(uiState: EditorUiState, offset: XYPair) {
+		if (!uiState.matches({ editType: "draggingElements" })) {
+			throw new Error("wrong mode");
+		}
+		let elements: Map<number, ElementType> | undefined;
+		if (uiState.draggingSelected) {
+			elements = new Map(uiState.selected);
+		} else {
+			// If we're dragging a single element, we only move that element
+			elements = new Map<number, ElementType>();
+			elements.set(uiState.clickedElement.id, uiState.clickedElement.type);
+		}
+		mover.moveElementsReplaceable(offset, elements);
+	}
 
+	private static elementDown(uiState: EditorUiState, offset: XYPair) {
+		if (!uiState.matches({ editType: "elementDown" })) {
+			throw new Error("wrong mode");
+		}
+		const isSelected = editorViewModel.isSelected(uiState.clickedElement);
+		let elements: Map<number, ElementType> | undefined;
+		if (isSelected) {
+			// If the clicked element is selected, we move all selected elements
+			elements = new Map(uiState.selected);
+		} else {
+			// If the clicked element is not selected, we only move that element
+			elements = new Map<number, ElementType>();
+			elements.set(uiState.clickedElement.id, uiState.clickedElement.type);
+		}
+		const moved = mover.moveElementsReplaceable(offset, elements);
 		// If we're in elementDown state and this is the first move, transition to draggingElements
-		if (moved && uiState.matches({ editType: "elementDown" })) {
+		if (moved) {
 			// Start drag with the appropriate mode: drag selected elements if this element is selected
 			editorViewModel.startDrag(
 				$state.snapshot(uiState.clickedElement),
 				$state.snapshot(uiState.clickPosition),
-				moveSelected,
+				isSelected,
 			);
 		}
 	}
 
-	static moveWireConnectionReplaceable(
-		mousePos: XYPair,
-		id: number,
-		draggedHandle: HandleType,
-	) {
-		const svgMousePos = canvasViewModel.clientToSVGCoords(mousePos);
-		const newPos = {
-			x: gridSnap(svgMousePos.x),
-			y: gridSnap(svgMousePos.y),
-		};
-		const wireHandle = graphManager.getWireData(id).handles[draggedHandle];
-		if (newPos.x === wireHandle.x && newPos.y === wireHandle.y) {
-			// The wire hasn't actually moved, so we don't need to do anything
-			return;
+	private static wireHandleDown(uiState: EditorUiState, offset: XYPair) {
+		if (!uiState.matches({ editType: "wireHandleDown" })) {
+			throw new Error("wrong mode");
 		}
-
-		if (editorViewModel.uiState.matches({ hasMoved: false })) {
-			// Tell the view model that the wire has actually been moved
-			editorViewModel.registerMove();
+		const ref = $state.snapshot(uiState.clickedHandle);
+		const moved = mover.moveWireHandleReplaceable(offset, ref);
+		if (moved) {
+			// Start dragging the wire handle
+			editorViewModel.startDragWireHandle(
+				ref,
+				$state.snapshot(uiState.clickPosition),
+				$state.snapshot(uiState.connectionCount),
+			);
 		}
+	}
 
-		graphManager.moveWireReplaceable(newPos, draggedHandle, id);
-		graphManager.notifyAll();
+	private static draggingWireHandle(uiState: EditorUiState, offset: XYPair) {
+		if (!uiState.matches({ editType: "draggingWireHandle" })) {
+			throw new Error("wrong mode");
+		}
+		const ref = uiState.draggedHandle;
+		mover.moveWireHandleReplaceable(offset, ref);
+	}
+
+	private static addingWire(uiState: EditorUiState, offset: XYPair) {
+		if (!uiState.matches({ editType: "addingWire" })) {
+			throw new Error("wrong mode");
+		}
+		const ref = uiState.draggedHandle;
+		mover.moveWireHandleReplaceable(offset, ref);
 	}
 }
 

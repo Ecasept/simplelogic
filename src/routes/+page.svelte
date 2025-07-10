@@ -61,26 +61,9 @@
 		const pos = { x: e.clientX, y: e.clientY };
 		setMousePosition(pos);
 
-		const uiState = editorViewModel.uiState;
+		const svgPos = canvasViewModel.clientToSVGCoords(pos);
 
-		if (
-			uiState.matches({
-				editType: P.union("draggingWire", "addingWire"),
-				isPanning: false,
-			})
-		) {
-			MoveAction.moveWireConnectionReplaceable(
-				pos,
-				uiState.draggedHandle.id,
-				uiState.draggedHandle.handleType,
-			);
-		} else if (
-			uiState.matches({
-				editType: P.union("draggingElements", "addingComponent", "elementDown"),
-			})
-		) {
-			MoveAction.moveElementsReplaceable(pos);
-		}
+		MoveAction.onMove(svgPos);
 	}
 
 	function onPointerMove(e: PointerEvent) {
@@ -108,37 +91,15 @@
 			ChangesAction.commitChanges();
 		} else if (
 			uiState.matches({
-				editType: P.union("draggingWire", "addingWire"),
+				editType: P.union("draggingWireHandle", "addingWire"),
 			})
 		) {
 			if (uiState.hoveredHandle === null) {
 				// The wire was dragged but not connected to a handle
 
 				const handle = $state.snapshot(uiState.draggedHandle);
-
-				if (
-					uiState.matches({
-						hasMoved: false,
-						editType: "draggingWire",
-					})
-				) {
-					// The wire handle of an existing wire was clicked,
-					// -> toggle selection of wire
-					if (editorViewModel.isSelected(handle)) {
-						editorViewModel.removeSelected(handle);
-					} else {
-						editorViewModel.setSelected(handle);
-					}
-					// Don't add a history entry for a this move
-					// if the wire wasn't actually moved
-					ChangesAction.abortEditing();
-				} else {
-					editorViewModel.setSelected({
-						id: handle.id,
-						type: "wire",
-					});
-					ChangesAction.commitChanges();
-				}
+				editorViewModel.setSelected(handle);
+				ChangesAction.commitChanges();
 			} else {
 				// We're currently dragging a wire and hovering over another handle
 				// -> connect them
@@ -147,6 +108,8 @@
 					$state.snapshot(uiState.hoveredHandle),
 				);
 				editorViewModel.removeHoveredHandle();
+				const handle = $state.snapshot(uiState.draggedHandle);
+				editorViewModel.setSelected(handle);
 				// Commit the changes made while dragging the wire
 				ChangesAction.commitChanges();
 			}
@@ -171,6 +134,31 @@
 				} else {
 					// Set it as the selected element
 					editorViewModel.setSelected(clickedElement);
+				}
+			}
+			// Return to idle state
+			ChangesAction.abortEditing();
+		} else if (uiState.matches({ editType: "wireHandleDown" })) {
+			// A wire handle was clicked
+			const clickedHandle = $state.snapshot(uiState.clickedHandle);
+			if (uiState.clickType === "ctrl") {
+				// Ctrl+click: toggle selection
+				if (editorViewModel.isSelected(clickedHandle)) {
+					editorViewModel.removeSelected(clickedHandle);
+				} else {
+					editorViewModel.addSelected(clickedHandle);
+				}
+			} else {
+				if (
+					editorViewModel.getSelectedCount() == 1 &&
+					editorViewModel.isSelected(clickedHandle)
+				) {
+					// If the clicked handle is the only selected element,
+					// toggle the selection
+					editorViewModel.removeSelected(clickedHandle);
+				} else {
+					// Set it as the selected element
+					editorViewModel.setSelected(clickedHandle);
 				}
 			}
 			// Return to idle state

@@ -38,3 +38,5 @@ coverage/
 # CA certificates for testing with HTTPS
 cert.pem
 key.pem
+
+tmp*.json

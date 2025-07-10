@@ -68,27 +68,41 @@ export type EditDraggingElements = {
 	draggingSelected: boolean;
 };
 
-export type EditDraggingWire = {
+export type EditWireHandleDown = {
 	mode: "edit";
-	editType: "draggingWire";
+	editType: "wireHandleDown";
+	/** The wire handle that was clicked */
+	clickedHandle: WireHandleReference;
+	/** The position of the mouse when the handle was clicked */
+	clickPosition: XYPair;
+	/** The number of connections the wire has */
+	connectionCount: number;
+	/** What type of click was used */
+	clickType: "ctrl" | "none";
+};
+
+export type EditDraggingWireHandle = {
+	mode: "edit";
+	editType: "draggingWireHandle";
+	clickPosition: XYPair;
 	draggedHandle: WireHandleReference;
 	connectionCount: number;
-	/** If the wire has actually been moved */
-	hasMoved: boolean;
 };
 export type EditAddingWire = {
 	mode: "edit";
 	editType: "addingWire";
+	clickPosition: XYPair;
 	draggedHandle: WireHandleReference;
 	connectionCount: number;
 };
 
 export type EditState =
 	| EditIdle
-	| EditAddingComponent
 	| EditElementDown
 	| EditDraggingElements
-	| EditDraggingWire
+	| EditAddingComponent
+	| EditWireHandleDown
+	| EditDraggingWireHandle
 	| EditAddingWire;
 
 // ==== Delete Mode states ====
@@ -289,6 +303,28 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 
+	onWireHandleDown(
+		handle: WireHandleReference,
+		pos: XYPair,
+		connectionCount: number,
+		clickType: "ctrl" | "none",
+	) {
+		if (!this._uiState.matches({ mode: "edit" })) {
+			console.warn("Tried to click a wire handle in an invalid mode");
+			return;
+		}
+		this.setUiState({
+			mode: "edit",
+			editType: "wireHandleDown",
+			clickedHandle: handle,
+			clickPosition: pos,
+			connectionCount,
+			clickType,
+			selected: this.getSelected(),
+		});
+		this.notifyAll();
+	}
+
 	/** Starts dragging elements
 	 *
 	 * @param clicked The element being dragged
@@ -307,26 +343,25 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 
-	/** Tells the editor that a wire that is being dragged has actually been moved */
-	registerMove() {
+	startDragWireHandle(
+		handle: WireHandleReference,
+		pos: XYPair,
+		connectionCount: number,
+	) {
 		if (
 			!this._uiState.matches({
-				editType: "draggingWire",
+				editType: "wireHandleDown",
 			})
 		) {
-			console.warn("Tried to register move without starting it");
+			console.warn("Tried to drag wire handle without it being down");
 			return;
 		}
-		this._uiState.hasMoved = true;
-		this.notifyAll();
-	}
-	startMoveWire(wire: WireHandleReference, wireConnectionCount: number) {
 		this.setUiState({
 			mode: "edit",
-			editType: "draggingWire",
-			draggedHandle: wire,
-			connectionCount: wireConnectionCount,
-			hasMoved: false,
+			editType: "draggingWireHandle",
+			draggedHandle: handle,
+			clickPosition: pos,
+			connectionCount: connectionCount,
 			selected: this.getSelected(),
 		});
 		this.notifyAll();
@@ -353,10 +388,15 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 
-	startAddWire(wire: WireHandleReference, wireConnectionCount: number) {
+	startAddWire(
+		wire: WireHandleReference,
+		pos: XYPair,
+		wireConnectionCount: number,
+	) {
 		this.setUiState({
 			mode: "edit",
 			editType: "addingWire",
+			clickPosition: pos,
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
 			selected: this.getSelected(),

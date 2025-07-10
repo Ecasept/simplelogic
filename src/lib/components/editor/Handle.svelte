@@ -21,6 +21,7 @@
 		handleType: HandleType;
 		position: XYPair;
 		rotateString?: string;
+		isSelected?: boolean;
 		onHandleDown: (event: SVGPointerEvent) => void;
 		onHandleEnter: () => void;
 		onHandleLeave: () => void;
@@ -37,6 +38,7 @@
 		deletingThis,
 		onHandleDown,
 		rotateString = "",
+		isSelected = false,
 		onHandleEnter,
 		onHandleLeave,
 	}: Props = $props();
@@ -103,7 +105,9 @@
 			: (simulating && isHandlePowered) ||
 				  (deletingThis && isWireHandleRef(connection))
 				? "var(--component-delete-color)"
-				: "var(--component-outline-color)",
+				: isSelected
+					? "var(--selected-outline-color)"
+					: "var(--component-outline-color)",
 	);
 
 	// If

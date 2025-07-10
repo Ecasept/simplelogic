@@ -141,9 +141,15 @@
 				newWireHandleRef(id, clickedHandle),
 			);
 		} else {
-			editorViewModel.startMoveWire(
+			const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
+			editorViewModel.onWireHandleDown(
 				newWireHandleRef(id, clickedHandle),
+				{
+					x: handle.x,
+					y: handle.y,
+				},
 				handle.connections.length,
+				clickType,
 			);
 		}
 	}
@@ -225,6 +231,7 @@
 				{deletingThis}
 				{simulating}
 				{simData}
+				{isSelected}
 				handleType="input"
 				position={{ x: input.x, y: input.y }}
 				onHandleDown={(e) => onHandleDown("input", e)}
@@ -244,6 +251,7 @@
 				{deletingThis}
 				{simulating}
 				{simData}
+				{isSelected}
 				handleType="output"
 				position={{ x: output.x, y: output.y }}
 				onHandleDown={(e) => onHandleDown("output", e)}
