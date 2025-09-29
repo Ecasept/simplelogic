@@ -13,6 +13,10 @@
 		GRID_SIZE,
 		PAN_THRESHOLD,
 	} from "$lib/util/global.svelte";
+	import {
+		cancelLongPressIfMoved,
+		startLongPressTimer,
+	} from "$lib/util/longpress";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
 	import { P } from "ts-pattern";
 	import TextBox from "./TextBox.svelte";
@@ -44,68 +48,38 @@
 	 * The most recent event for all currently active pointers.
 	 */
 	const pointerEventCache: PointerEvent[] = [];
-	let panType: "default" | "whileAdding" | "whileMoving" = "default";
 
 	function startPanning() {
 		const uiState = editorViewModel.uiState;
-		if (uiState.matches({ isPanning: true })) {
-			// Already panning, onPointerMove will handle this so do nothing
-			return;
-		}
+		if (uiState.matches({ isPanning: true })) return;
 
 		if (
 			uiState.matches({ mode: P.union("simulate", "delete") }) ||
 			uiState.matches({ editType: "idle" })
 		) {
-			// Pan as usual when simulating, deleting or when no component is being edited
 			EditorAction.startPanning();
-			panType = "default";
-		} else if (
-			uiState.matches({ editType: "addingComponent", initiator: "drag" })
-		) {
-			// This is a special case when adding a component by dragging it:
-			// The first pointerdown to start dragging is not registered by the canvas
-			// so we need to start panning here at the first pointerdown
-			// as that means a second finger (in addition to the one used for adding)
-			// was placed on the screen
-			EditorAction.startPanning();
-			panType = "whileAdding";
-		} else if (
-			uiState.matches({ mode: "edit" }) &&
-			pointerEventCache.length === 2
-		) {
-			// When editing components and wires (but not when adding components, see above),
-			// the first pointerdown that starts the editing is registered by the canvas,
-			// so we need to start panning only when the second pointerdown is registered,
-			// because that means a second finger was placed on the screen in order to pan
-			EditorAction.startPanning();
-			panType = "whileMoving";
 		}
 	}
 
 	function stopPanning() {
-		const stopCount = panType === "whileMoving" ? 1 : 0;
-		if (pointerEventCache.length === stopCount) {
+		if (pointerEventCache.length === 0) {
 			EditorAction.stopPanning();
 		}
 	}
 
 	function onPointerDown(event: PointerEvent) {
-		if (event.button !== 0) {
-			return;
-		}
+		if (event.button !== 0) return;
 		event.preventDefault();
 		pointerEventCache.push(event);
 		startPanning();
+		startLongPressTimer({ x: event.clientX, y: event.clientY }, () => {});
 	}
 
 	function removeEvent(ev: PointerEvent) {
 		const index = pointerEventCache.findIndex(
 			(cachedEv) => cachedEv.pointerId === ev.pointerId,
 		);
-		if (index !== -1) {
-			pointerEventCache.splice(index, 1);
-		}
+		if (index !== -1) pointerEventCache.splice(index, 1);
 	}
 	function onPointerExit(event: PointerEvent) {
 		const cuiState = canvasViewModel.uiState;
@@ -125,6 +99,7 @@
 	}
 
 	function onPointerMove(event: PointerEvent) {
+		cancelLongPressIfMoved({ x: event.clientX, y: event.clientY });
 		// Update current event in cache
 		const index = pointerEventCache.findIndex(
 			(cachedEv) => cachedEv.pointerId === event.pointerId,
@@ -137,27 +112,22 @@
 		const oldEvent = pointerEventCache[index];
 		pointerEventCache[index] = event;
 
-		const panCount = panType === "whileMoving" ? 2 : 1;
-		const zoomCount = panType === "whileMoving" ? 3 : 2;
-
-		// Depending on the number of pointers, pan or zoom
-		if (pointerEventCache.length === panCount) {
+		// One pointer -> pan (if panning started), Two pointers -> pinch zoom
+		if (pointerEventCache.length === 1) {
+			if (editorViewModel.uiState.matches({ isPanning: true })) {
+				event.preventDefault();
+				const movementX = event.clientX - oldEvent.clientX;
+				const movementY = event.clientY - oldEvent.clientY;
+				pan(movementX, movementY);
+			}
+		} else if (pointerEventCache.length === 2) {
 			event.preventDefault();
-			const movementX = event.clientX - oldEvent.clientX;
-			const movementY = event.clientY - oldEvent.clientY;
-			pan(movementX, movementY);
-		} else if (pointerEventCache.length === zoomCount) {
-			event.preventDefault();
-			// Get last two pointers (when zooming while editing,
-			// three pointers are used, but the last two are used for zooming
-			// while the first one stays on the component)
 			const [p1, p2] = pointerEventCache.slice(-2);
 			const distance = Math.hypot(
 				p1.clientX - p2.clientX,
 				p1.clientY - p2.clientY,
 			);
 
-			// Get both events, but this time replace the current event with the old one
 			const [oldP1, oldP2] = pointerEventCache
 				.map((ev, i) => (i == index ? oldEvent : ev))
 				.slice(-2);
