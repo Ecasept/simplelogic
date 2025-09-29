@@ -37,8 +37,17 @@
 		toggle();
 	}
 
+	function getRandom() {
+		// Generate a random string
+		if (crypto.randomUUID) {
+			return crypto.randomUUID();
+		}
+		// For non-secure contexts
+		return Math.random().toString(36).substring(2, 15);
+	}
+
 	// Generate unique IDs for ARIA attributes
-	const contentId = `sidebar-content-${crypto.randomUUID()}`;
+	const contentId = `sidebar-content-${getRandom()}`;
 </script>
 
 <div class="toolbar" role="region" aria-label={text}>
