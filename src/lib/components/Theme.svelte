@@ -51,7 +51,7 @@
 		--primary-container-color: #2e3426;
 		--primary-color: #304302;
 		--primary-highlight-color: #48610e;
-		--primary-disabled-color: #b2aba1;
+		--primary-disabled-color: #707070;
 		--on-surface-color: #b9de6f;
 		--on-primary-color: #b9de6f;
 		--on-primary-container-color: #b9de6f;
