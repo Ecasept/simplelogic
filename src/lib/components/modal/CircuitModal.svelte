@@ -41,6 +41,7 @@
 
 		<LoadModal
 			loadMode={uiState.loadMode}
+			fixConnections={uiState.fixConnections}
 			listRequestData={uiState.listRequestData}
 			message={uiState.message}
 			onSelect={chooseGraph}

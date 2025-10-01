@@ -1,6 +1,7 @@
 import { graphManager } from "../actions.svelte";
 import { API } from "../api";
-import type { GraphData } from "../types";
+import { calculateHandlePosition } from "../global.svelte";
+import type { ComponentData, GraphData } from "../types";
 import { ViewModel } from "./viewModel";
 
 export type FeedbackMessage = {
@@ -10,28 +11,31 @@ export type FeedbackMessage = {
 
 export type CircuitModalUiState =
 	| {
-			mode: null;
-			callback: null;
-			message: null;
-			listRequestData: null;
-			loadMode: null;
-	  }
+		mode: null;
+		callback: null;
+		message: null;
+		listRequestData: null;
+		loadMode: null;
+		fixConnections: null;
+	}
 	| {
-			mode: "load";
-			message: FeedbackMessage | null;
-			callback: (graphData: GraphData) => void;
-			listRequestData: ListRequestData | null;
-			isLoadingList: boolean;
-			loadMode: "select" | "list";
-	  }
+		mode: "load";
+		message: FeedbackMessage | null;
+		callback: (graphData: GraphData) => void;
+		listRequestData: ListRequestData | null;
+		isLoadingList: boolean;
+		loadMode: "select" | "list";
+		fixConnections: boolean;
+	}
 	| {
-			mode: "save";
-			message: FeedbackMessage | null;
-			callback: () => void;
-			listRequestData: null;
-			isLoadingList: false;
-			loadMode: null;
-	  };
+		mode: "save";
+		message: FeedbackMessage | null;
+		callback: () => void;
+		listRequestData: null;
+		isLoadingList: false;
+		loadMode: null;
+		fixConnections: null;
+	};
 
 type ListRequestData = {
 	circuits: {
@@ -55,6 +59,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		callback: null,
 		listRequestData: null,
 		loadMode: null,
+		fixConnections: null,
 	};
 
 	protected resetUiState() {
@@ -64,7 +69,72 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			callback: null,
 			listRequestData: null,
 			loadMode: null,
+			fixConnections: null,
 		};
+	}
+
+	setFixConnections(val: boolean) {
+		if (this._uiState.mode !== "load") return;
+		this._uiState.fixConnections = val;
+		this.notifyAll();
+	}
+
+	private computeComponentHandlePos(comp: ComponentData, handleId: string) {
+		const handle = comp.handles[handleId];
+		return calculateHandlePosition(
+			handle.edge,
+			handle.pos,
+			comp.size,
+			comp.position,
+			comp.rotation,
+			true,
+		);
+	}
+
+	private fixGraphConnections(graphData: GraphData): GraphData {
+		// Creates a deep copy and normalizes every wire endpoint coordinate:
+		// 1. Wire input -> the position of any connected output
+		// 2. Wire output -> the position of a connected component input (if any)
+		const data = structuredClone(graphData);
+		for (const wireId in data.wires) {
+			const wire = data.wires[wireId];
+
+			// ---- INPUT END FIX ----
+			const inputHandle = wire.handles.input;
+			if (inputHandle.connections.length > 0) {
+				const conn = inputHandle.connections[0]; // there should be only one connection
+				if (conn.type === "wire") {
+					// Snap to other wire handle coordinate
+					const other = data.wires[conn.id];
+					if (other) {
+						inputHandle.x = other.handles[conn.handleId].x;
+						inputHandle.y = other.handles[conn.handleId].y;
+					}
+				} else if (conn.type === "component") {
+					// Snap to computed component handle position
+					const comp = data.components[conn.id];
+					if (comp) {
+						const pos = this.computeComponentHandlePos(comp, conn.handleId);
+						inputHandle.x = pos.x;
+						inputHandle.y = pos.y;
+					}
+				}
+			}
+
+			// ---- OUTPUT END FIX ----
+			const outputHandle = wire.handles.output;
+			const compConn = outputHandle.connections.find(c => c.type === "component");
+			if (compConn) {
+				// If the wire drives a component input, snap its output endpoint there
+				const comp = data.components[compConn.id];
+				if (comp) {
+					const pos = this.computeComponentHandlePos(comp, compConn.handleId);
+					outputHandle.x = pos.x;
+					outputHandle.y = pos.y;
+				}
+			}
+		}
+		return data;
 	}
 
 	async copyCircuitToClipboard() {
@@ -83,13 +153,14 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		}
 		const json = await navigator.clipboard.readText();
 		try {
-			const graphData = JSON.parse(json);
-
-			// Validate data
+			let graphData = JSON.parse(json);
 			const validationResult = graphManager.validateData(graphData);
 			if (!validationResult.success) {
 				this.setError("Invalid data: " + validationResult.error.message);
 				return;
+			}
+			if (this._uiState.fixConnections) {
+				graphData = this.fixGraphConnections(graphData);
 			}
 			this.setSuccess("Circuit pasted from clipboard");
 			this._uiState.callback(graphData);
@@ -137,8 +208,12 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		}
 		const data = await API.loadCircuit(id);
 		if (data.success) {
+			let graphData = data.data;
+			if (this._uiState.fixConnections) {
+				graphData = this.fixGraphConnections(graphData);
+			}
 			this.setSuccess("Circuit loaded successfully");
-			this._uiState.callback(data.data);
+			this._uiState.callback(graphData);
 		} else {
 			this.setError(data.error);
 		}

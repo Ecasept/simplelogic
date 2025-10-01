@@ -5,6 +5,7 @@
 	import type { FeedbackMessage } from "$lib/util/viewModels/circuitModalViewModel";
 	import { LogIn } from "lucide-svelte";
 	import Button from "../reusable/Button.svelte";
+	import Checkbox from "../reusable/Checkbox.svelte";
 	import HrText from "../reusable/HRText.svelte";
 	import SignInButton from "../reusable/SignInButton.svelte";
 	import CircuitList from "./CircuitList.svelte";
@@ -14,11 +15,13 @@
 	type Props = {
 		loadMode: "select" | "list";
 		listRequestData: ListRequestData | null;
+		fixConnections: boolean | null;
 		message: FeedbackMessage | null;
 		onSelect: (id: number) => void;
 	};
 
-	let { loadMode, listRequestData, message, onSelect }: Props = $props();
+	let { loadMode, fixConnections, listRequestData, message, onSelect }: Props =
+		$props();
 
 	function pasteCircuitFromClipboard() {
 		circuitModalViewModel.pasteCircuitFromClipboard();
@@ -26,6 +29,10 @@
 
 	function loadCircuitList() {
 		circuitModalViewModel.loadCircuitList(1);
+	}
+
+	function toggleFixConnections(checked: boolean) {
+		circuitModalViewModel.setFixConnections(checked);
 	}
 
 	const isLoggedIn = $derived($page.data.session !== null);
@@ -38,6 +45,13 @@
 			onClick={pasteCircuitFromClipboard}
 			height="2.75em"
 		/>
+		<label class="fix-connections">
+			<Checkbox
+				onchange={toggleFixConnections}
+				checked={fixConnections ?? false}
+			/>
+			<span>Fix wire endpoint positions</span>
+		</label>
 	</div>
 
 	{#if !isLoggedIn}
@@ -135,6 +149,19 @@
 		gap: 12px;
 		width: 100%;
 		max-width: 280px;
+	}
+
+	.fix-connections {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 0.9rem;
+		color: var(--on-surface-variant-color);
+		margin: 0px 5px;
+
+		input {
+			cursor: pointer;
+		}
 	}
 
 	/* Mobile responsiveness */
