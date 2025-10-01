@@ -159,6 +159,7 @@
 		border-radius: 20px;
 		padding: 32px;
 		max-height: 80vh;
+		box-sizing: border-box; // Include padding in height calculations
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
