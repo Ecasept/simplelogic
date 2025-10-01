@@ -7,10 +7,12 @@ import type {
 	EmptyHandleList,
 	HandleEdge,
 	HandleReference,
+	HandleType,
 	ValidComponentInitData,
 	WireHandleReference,
 	XYPair,
 } from "./types";
+import type { EditorUiState } from "./viewModels/editorViewModel.svelte";
 
 export let mousePosition = { x: 0, y: 0 };
 export function setMousePosition(pos: XYPair) {
@@ -365,6 +367,27 @@ export function rotateAroundBy(
 	};
 }
 
+
+/** Checks if two lines defined by four points intersect. */
+export function linesIntersect(
+	p1: XYPair,
+	p2: XYPair,
+	p3: XYPair,
+	p4: XYPair,
+): boolean {
+	// Calculate the direction of the points
+	const d1 = (p4.x - p3.x) * (p1.y - p3.y) - (p4.y - p3.y) * (p1.x - p3.x);
+	const d2 = (p4.x - p3.x) * (p2.y - p3.y) - (p4.y - p3.y) * (p2.x - p3.x);
+	const d3 = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+	const d4 = (p2.x - p1.x) * (p4.y - p1.y) - (p2.y - p1.y) * (p4.x - p1.x);
+
+	// If the signs of d1 and d2 are different and the signs of d3 and d4 are different, the lines intersect
+	if (d1 * d2 < 0 && d3 * d4 < 0) {
+		return true;
+	}
+
+	return false;
+}
 
 /** Checks if there is currently a handle of the given type being dragged. */
 export function draggedHandleType(uiState: EditorUiState, type: HandleType) {

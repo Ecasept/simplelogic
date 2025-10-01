@@ -339,6 +339,11 @@ export class Editor {
 		const button = this.page.getByRole("button", { name: `Rotate ${dirText}` });
 		await this.pointer.clickOn(button);
 	}
+
+	/** Returns the current number of selected elements (components + wires) by counting elements with the 'selected' class */
+	getSelectedCount() {
+		return this.page.locator('.canvasWrapper .selected').count();
+	}
 }
 
 export interface Pointer {

@@ -1,18 +1,16 @@
 import {
 	CommandGroup,
-	MoveComponentAndWiresCommand,
-	MoveWireHandleCommand,
 	UpdateCustomDataCommand,
-	type Command,
+	type Command
 } from "./commands";
-import { isComponentHandleRef } from "./global.svelte";
+import { GRID_SIZE, linesIntersect } from "./global.svelte";
 import { mover } from "./move.svelte";
 import {
 	ZGraphData,
 	type GraphData,
-	type HandleType,
-	type XYPair,
+	type XYPair
 } from "./types";
+import type { AreaSelectType, TypedReference } from "./viewModels/editorViewModel.svelte";
 
 export class GraphManager {
 	/** Private state of the graph manager, that gets published with the notifyAll() method */
@@ -113,6 +111,71 @@ export class GraphManager {
 		this.history.push(command);
 		this.changes = [];
 		mover.reset();
+	}
+
+	/**
+	 * Gets all elements (components and wires) that are in the specified area.
+	 */
+	getElementsInArea(startPos: XYPair, endPos: XYPair, type: AreaSelectType) {
+		const x1 = Math.min(startPos.x, endPos.x);
+		const x2 = Math.max(startPos.x, endPos.x);
+		const y1 = Math.min(startPos.y, endPos.y);
+		const y2 = Math.max(startPos.y, endPos.y);
+
+		const selected: TypedReference[] = [];
+
+		for (const compId in this._graphData.components) {
+			const component = this._graphData.components[compId];
+			const cx1 = component.position.x;
+			const cy1 = component.position.y;
+			const cx2 = component.position.x + component.size.x * GRID_SIZE;
+			const cy2 = component.position.y + component.size.y * GRID_SIZE;
+			if (type === "contain") {
+				// Check if the component is fully contained in the selection area
+				if (cx1 >= x1 && cx2 <= x2 && cy1 >= y1 && cy2 <= y2) {
+					selected.push({ type: "component", id: component.id })
+				}
+			} else {
+				// Check if the component intersects with the selection area
+				if (cx1 < x2 && cx2 > x1 && cy1 < y2 && cy2 > y1) {
+					selected.push({ type: "component", id: component.id })
+				}
+			}
+		}
+		console.log(this._graphData.wires);
+		for (const wireId in this._graphData.wires) {
+			const wire = this._graphData.wires[wireId];
+			const startX = wire.handles.input.x;
+			const startY = wire.handles.input.y;
+			const endX = wire.handles.output.x;
+			const endY = wire.handles.output.y;
+			// Check if both handles are contained in the selection area
+			// no `if (type === "contain")` check needed, as if the line is contained,
+			// it is also intersecting
+			if (
+				startX >= x1 &&
+				startX <= x2 &&
+				startY >= y1 &&
+				startY <= y2 &&
+				endX >= x1 &&
+				endX <= x2 &&
+				endY >= y1 &&
+				endY <= y2
+			) {
+				selected.push({ type: "wire", id: wire.id });
+			} else if (type === "intersect") {
+				const start = { x: startX, y: startY };
+				const end = { x: endX, y: endY };
+				if (linesIntersect(start, end, { x: x1, y: y1 }, { x: x2, y: y1 }) ||
+					linesIntersect(start, end, { x: x2, y: y1 }, { x: x2, y: y2 }) ||
+					linesIntersect(start, end, { x: x2, y: y2 }, { x: x1, y: y2 }) ||
+					linesIntersect(start, end, { x: x1, y: y2 }, { x: x1, y: y1 })) {
+					selected.push({ type: "wire", id: wire.id });
+				}
+			}
+			console.log("selected:", selected);
+		}
+		return selected;
 	}
 
 	updateTextReplaceable(id: number, newText: string) {

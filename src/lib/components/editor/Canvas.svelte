@@ -62,17 +62,41 @@
 	}
 
 	function stopPanning() {
-		if (pointerEventCache.length === 0) {
+		if (uiState.isAreaSelecting) {
+			EditorAction.stopAreaSelection();
+		} else if (pointerEventCache.length === 0) {
 			EditorAction.stopPanning();
 		}
 	}
 
 	function onPointerDown(event: PointerEvent) {
 		if (event.button !== 0) return;
+		console.log("event:", event);
+		if (event.shiftKey) {
+			const uiState = editorViewModel.uiState;
+			if (uiState.matches({ isPanning: true })) return;
+
+			if (uiState.matches({ editType: "idle" })) {
+				EditorAction.startAreaSelection(
+					canvasViewModel.clientToSVGCoords({
+						x: event.clientX,
+						y: event.clientY,
+					}),
+				);
+			}
+		}
 		event.preventDefault();
 		pointerEventCache.push(event);
 		startPanning();
-		startLongPressTimer({ x: event.clientX, y: event.clientY }, () => {});
+		startLongPressTimer({ x: event.clientX, y: event.clientY }, () => {
+			stopPanning();
+			EditorAction.startAreaSelection(
+				canvasViewModel.clientToSVGCoords({
+					x: event.clientX,
+					y: event.clientY,
+				}),
+			);
+		});
 	}
 
 	function removeEvent(ev: PointerEvent) {
@@ -109,6 +133,17 @@
 			// -> user is not panning
 			return;
 		}
+
+		if (uiState.isAreaSelecting) {
+			canvasViewModel.updateAreaSelection(
+				canvasViewModel.clientToSVGCoords({
+					x: event.clientX,
+					y: event.clientY,
+				}),
+			);
+			return;
+		}
+
 		const oldEvent = pointerEventCache[index];
 		pointerEventCache[index] = event;
 
@@ -204,6 +239,21 @@
 				<Component {...data} uiState={editorViewModel.uiState}></Component>
 			{/if}
 		{/each}
+
+		{#if uiState.isAreaSelecting}
+			{@const startPos = uiState.startPos}
+			{@const currentPos = uiState.currentPos}
+			<rect
+				x={Math.min(startPos.x, currentPos.x)}
+				y={Math.min(startPos.y, currentPos.y)}
+				width={Math.abs(currentPos.x - startPos.x)}
+				height={Math.abs(currentPos.y - startPos.y)}
+				fill="var(--selected-outline-color)"
+				fill-opacity="0.3"
+				stroke="var(--selected-outline-color)"
+				stroke-dasharray="4"
+			></rect>
+		{/if}
 	</svg>
 </div>
 

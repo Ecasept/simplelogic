@@ -8,6 +8,11 @@ let pressPos: XYPair | null = null;
 /** How many pixels a mouse needs to move for it to no longer count as a long press */
 const MOVE_THRESHOLD = 5;
 
+
+function hasMouse() {
+	return matchMedia("(pointer:fine)").matches;
+}
+
 /** Start a timer for a long press event
  *
  * A long press event is triggered when the mouse is pressed
@@ -17,6 +22,9 @@ const MOVE_THRESHOLD = 5;
  * @param cb The callback to call when the long press is triggered
  */
 export function startLongPressTimer(pos: XYPair, cb: () => void) {
+	if (hasMouse()) {
+		return;
+	}
 	callback = cb;
 	pressPos = pos;
 	timeoutCancel = setTimeout(() => {

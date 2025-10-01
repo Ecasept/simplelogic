@@ -340,6 +340,23 @@ export class MoveAction {
 }
 
 export class EditorAction {
+	static startAreaSelection(pos: XYPair) {
+		editorViewModel.startAreaSelection();
+		canvasViewModel.startAreaSelection(pos);
+	}
+	static stopAreaSelection() {
+		if (!canvasViewModel.uiState.isAreaSelecting) {
+			console.warn("stopAreaSelection called when not area selecting");
+			return;
+		}
+		const startPos = canvasViewModel.uiState.startPos;
+		const endPos = canvasViewModel.uiState.currentPos;
+		editorViewModel.stopAreaSelection();
+		canvasViewModel.stopAreaSelection();
+		const areaSelectType = editorViewModel.uiState.areaSelectType;
+		const elements = graphManager.getElementsInArea(startPos, endPos, areaSelectType);
+		editorViewModel.setSelectedElements(elements);
+	}
 	static startPanning() {
 		canvasViewModel.startPanning();
 		editorViewModel.startPanning();
@@ -502,7 +519,7 @@ export class PersistenceAction {
 		ChangesAction.abortEditing();
 		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
-		circuitModalViewModel.open("save", () => {});
+		circuitModalViewModel.open("save", () => { });
 	}
 	static loadGraph() {
 		ChangesAction.abortEditing();

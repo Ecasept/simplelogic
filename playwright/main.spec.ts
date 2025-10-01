@@ -1171,6 +1171,11 @@ test.describe("simulating", () => {
 	test("simulate 2-bit ripple carry adder", async ({ editor, pointer }) => {
 		await editor.loadCircuitUsingClipboard(circuits.rippleCarryAdder);
 
+		// move canvas to the right
+		await pointer.downAt(500, 400);
+		await pointer.moveTo(600, 500);
+		await pointer.up();
+
 		const b1 = editor.getComponent("IN").first(); // first bit of second number
 		const b2 = editor.getComponent("IN").nth(1); // second bit of second number
 		const a1 = editor.getComponent("IN").nth(2); // first bit of first number

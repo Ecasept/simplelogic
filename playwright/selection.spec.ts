@@ -1,3 +1,4 @@
+import { circuits } from "./circuits";
 import { expect, expectPosToBe, test } from "./common";
 
 test.describe("selection", () => {
@@ -259,5 +260,47 @@ test.describe("selection", () => {
 
 		// Assert that both components are removed
 		await expect(editor.comps()).toHaveCount(0);
+	});
+	test("area selection intersect vs contain", async ({ editor, pointer, page }) => {
+		await editor.loadCircuitUsingClipboard(circuits.areaSelectTest);
+
+		// move canvas 30 left and 150 up
+		await pointer.downAt(400, 250);
+		await pointer.moveTo(370, 100);
+		await pointer.up();
+
+		// INTERSECT mode assumed default (areaSelectType starts as 'intersect')
+		// Perform area select from (400,500) to (700,250)
+		await page.keyboard.down("Shift"); // Hold shift to do area select
+		await pointer.downAt(400, 500);
+		await pointer.moveTo(700, 250);
+		await pointer.up();
+		await page.keyboard.up("Shift");
+
+		// Expect 7 elements selected
+		expect(await editor.getSelectedCount()).toBe(7);
+
+		// Unselect all by clicking on empty canvas
+		await pointer.clickAt(200, 50);
+		expect(await editor.getSelectedCount()).toBe(0);
+
+		// Switch to contain area select via tools sidebar toggle button
+		// Button label changes dynamically; we look for the one that contains 'contain area select'
+		const containBtn = page.getByRole("button", { name: /contain area select/i });
+		await containBtn.click();
+
+		// Redo same area selection
+		await page.keyboard.down("Shift"); // Hold shift to do area select
+		await pointer.downAt(400, 500);
+		await pointer.moveTo(700, 250);
+		await pointer.up();
+		await page.keyboard.up("Shift");
+
+		// Expect 3 elements selected in contain mode
+		expect(await editor.getSelectedCount()).toBe(3);
+
+		// Switch back again
+		const intersectBtn = page.getByRole("button", { name: /intersect area select/i });
+		await intersectBtn.click();
 	});
 });

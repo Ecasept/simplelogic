@@ -22,9 +22,12 @@ export type BaseState = {
 	isModalOpen: boolean;
 };
 
+export type AreaSelectType = "intersect" | "contain";
+
 export type SettingsState = {
 	/** Whether dragging elements should snap to the grid */
 	gridSnap: boolean;
+	areaSelectType: AreaSelectType;
 };
 
 // ==== Edit Mode states ====
@@ -192,6 +195,7 @@ export class EditorViewModel {
 		isModalOpen: false,
 		isPanning: false,
 		gridSnap: true,
+		areaSelectType: "intersect",
 		matches: matcher.matches,
 	};
 
@@ -215,6 +219,7 @@ export class EditorViewModel {
 			isModalOpen: this._uiState.isModalOpen,
 			isPanning: this._uiState.isPanning,
 			gridSnap: this._uiState.gridSnap,
+			areaSelectType: this._uiState.areaSelectType,
 			matches: this._uiState.matches,
 		};
 		this._uiState = { ...persistent, ...newState };
@@ -236,6 +241,7 @@ export class EditorViewModel {
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
 			gridSnap: this._uiState.gridSnap,
+			areaSelectType: this._uiState.areaSelectType,
 			isPanning: false,
 			matches: this._uiState.matches,
 		};
@@ -430,6 +436,12 @@ export class EditorViewModel {
 		this._uiState.hoveredHandle = null;
 		this.notifyAll();
 	}
+	startAreaSelection() {
+		this.startPanning();
+	}
+	stopAreaSelection() {
+		this.stopPanning();
+	}
 	startPanning() {
 		this._uiState.isPanning = true;
 		this.notifyAll();
@@ -470,6 +482,18 @@ export class EditorViewModel {
 		this._uiState.selected.set(element.id, element.type);
 		this.notifyAll();
 	}
+	/** Set the selection to only contain the given elements */
+	setSelectedElements(elements: TypedReference[]) {
+		if (!this._uiState.matches({ mode: "edit" })) {
+			console.warn("Tried to set selection in an invalid mode");
+			return;
+		}
+		this._uiState.selected = new Map<number, ElementType>();
+		for (const element of elements) {
+			this._uiState.selected.set(element.id, element.type);
+		}
+		this.notifyAll();
+	}
 	clearSelection() {
 		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to clear selection in an invalid mode");
@@ -490,6 +514,10 @@ export class EditorViewModel {
 	}
 	setGridSnap(val: boolean) {
 		this._uiState.gridSnap = val;
+		this.notifyAll();
+	}
+	setAreaSelectType(val: AreaSelectType) {
+		this._uiState.areaSelectType = val;
 		this.notifyAll();
 	}
 }

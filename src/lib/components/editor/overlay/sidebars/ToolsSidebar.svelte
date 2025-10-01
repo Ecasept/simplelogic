@@ -3,13 +3,13 @@
 	import { AddAction, editorViewModel } from "$lib/util/actions.svelte";
 	import type { ComponentType } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { Magnet } from "lucide-svelte";
+	import { Magnet, SquareDashed } from "lucide-svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import Sidebar from "./Sidebar.svelte";
 	import SidebarSection from "./SidebarSection.svelte";
 	import SimulationSidebarContent from "./SimulationSidebarContent.svelte";
 
-	const { uiState } = $props<{ uiState: EditorUiState }>();
+	const { uiState }: { uiState: EditorUiState } = $props();
 
 	function addComponent(type: ComponentType, e: PointerEvent) {
 		AddAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag");
@@ -24,6 +24,11 @@
 	function toggleGridSnap() {
 		editorViewModel.setGridSnap(!uiState.gridSnap);
 	}
+	function toggleAreaSelect() {
+		const newValue =
+			uiState.areaSelectType === "contain" ? "intersect" : "contain";
+		editorViewModel.setAreaSelectType(newValue);
+	}
 </script>
 
 {#if uiState.matches({ mode: "edit", editType: "idle" })}
@@ -32,12 +37,22 @@
 			<ComponentToolbar onPointerDown={addComponent} />
 		</SidebarSection>
 		<SidebarSection text="Settings">
-			{@const text = uiState.gridSnap ? "Disable" : "Enable"}
+			{@const gridSnapText = uiState.gridSnap ? "Disable" : "Enable"}
+			{@const areaSelectText =
+				uiState.areaSelectType === "contain"
+					? "Switch to intersect area select"
+					: "Switch to contain area select"}
 			<Button
-				title="{text} grid snap"
-				text="{text} grid snap"
+				title="{gridSnapText} grid snap"
+				text="{gridSnapText} grid snap"
 				onClick={toggleGridSnap}
 				icon={Magnet}
+			/>
+			<Button
+				title={areaSelectText}
+				text={areaSelectText}
+				onClick={toggleAreaSelect}
+				icon={SquareDashed}
 			/>
 		</SidebarSection>
 	</Sidebar>
