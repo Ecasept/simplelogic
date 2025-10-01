@@ -721,6 +721,7 @@ test.describe("other", () => {
 		const thirdHandle = editor.handles().nth(5);
 		await thirdHandle.hover();
 		await pointer.down();
+		await pointer.moveTo(500, 500); // move a bit
 
 		// verify that other outputs have disappeared
 		await expect(editor.handles()).toHaveCount(5);
@@ -741,6 +742,7 @@ test.describe("other", () => {
 		const inputHandle = editor.handles().first();
 		await inputHandle.hover();
 		await pointer.down();
+		await pointer.moveTo(500, 500); // move a bit
 
 		// verify that other inputs have disappeared
 		await expect(editor.handles()).toHaveCount(5);
@@ -764,6 +766,7 @@ test.describe("other", () => {
 		let middleHandle = editor.getHandle("wire", "output").nth(3);
 		await middleHandle.hover();
 		await pointer.down();
+		await pointer.moveTo(400, 300); // move a bit
 		await expect(editor.handles()).toHaveCount(2);
 		const targetHandle = editor.handles().nth(1);
 		await targetHandle.hover();
