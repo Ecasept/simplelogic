@@ -122,6 +122,28 @@
 			? 10
 			: 5,
 	);
+
+	/** The position that the handle would be in when rotated with `rotateString`, but as a translation.
+	 * Can be used to reposition an element without rotating it itself.
+	 */
+	const symbolPosition = $derived.by(() => {
+		// Extract the three values from the rotateString
+		const [rot, x, y] = rotateString
+			.replace("rotate(", "")
+			.replace(")", "")
+			.split(" ")
+			.map(Number);
+		// rotate `position` around (x, y) by `rot` degrees
+		const angle = (rot * Math.PI) / 180;
+		const cos = Math.cos(angle);
+		const sin = Math.sin(angle);
+		const dx = position.x - x;
+		const dy = position.y - y;
+		return {
+			x: x + dx * cos - dy * sin,
+			y: y + dx * sin + dy * cos,
+		};
+	});
 </script>
 
 <circle
@@ -142,6 +164,31 @@
 	style="pointer-events: {editingThis ? 'none' : 'inherit'};"
 	transform={rotateString}
 ></circle>
+
+{#if handleType === "input"}
+	<line
+		x1={position.x}
+		y1={position.y - r / 2}
+		x2={position.x}
+		y2={position.y + r / 2}
+		stroke="var(--on-component-outline-color)"
+		stroke-width={1}
+		pointer-events="none"
+		transform="translate({symbolPosition.x - position.x}, {symbolPosition.y -
+			position.y})"
+	></line>
+{:else}
+	<circle
+		cx={position.x}
+		cy={position.y}
+		r={(3 * r) / 5}
+		fill="transparent"
+		stroke-width={1}
+		stroke="var(--on-component-outline-color)"
+		pointer-events="none"
+		transform={rotateString}
+	></circle>
+{/if}
 
 <style lang="scss">
 	circle {

@@ -44,6 +44,8 @@
 		--success-container-color: #e8f5e8;
 		--processing-background-color: #f8f9fa;
 		--processing-border-color: #e0e0e0;
+
+		--on-component-outline-color: var(--primary-color);
 	}
 
 	@mixin theme-dark {
@@ -90,6 +92,8 @@
 		--success-container-color: rgba(50, 120, 4, 0.15);
 		--processing-background-color: #1f251e;
 		--processing-border-color: #3d4832;
+
+		--on-component-outline-color: black;
 	}
 
 	/* ==== Apply theme ==== */
