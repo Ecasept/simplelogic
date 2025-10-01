@@ -4,6 +4,7 @@
 		DeleteAction,
 		editorViewModel,
 	} from "$lib/util/actions.svelte";
+	import { RotationInfo } from "$lib/util/positioning";
 	import type {
 		ComponentHandleList,
 		ComponentType,
@@ -14,7 +15,6 @@
 		TypedReference,
 	} from "$lib/util/viewModels/editorViewModel.svelte";
 	import { P } from "ts-pattern";
-	import { RotationInfo } from "$lib/util/positioning";
 
 	type Props = {
 		id: number;

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { EditorAction } from "$lib/util/actions.svelte";
 	import { onEnter } from "$lib/util/keyboard";
+	import { RotationInfo } from "$lib/util/positioning";
 	import type { ComponentType } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { RotationInfo } from "$lib/util/positioning";
 
 	type Props = {
 		componentId: number;
