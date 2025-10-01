@@ -543,6 +543,26 @@ test.describe("adding and dragging/moving", async () => {
 			await checkWires(d_initial);
 		});
 	});
+	test("can branch from wire input with shift after dragging from component input", async ({ editor, page, pointer }) => {
+		// Place a single component
+		await editor.addComponent("AND", 400, 200);
+
+		// Drag a wire starting from the component input (in1)
+		const compInput = editor.getHandle("AND", "in1").first();
+		await editor.dragTo(compInput, 300, 300);
+		await expect(editor.wires()).toHaveCount(1);
+
+		// Hold shift to branch from the existing wire's free end (its input handle)
+		await page.keyboard.down("Shift");
+		const wireInputHandle = editor.getHandle("wire", "input").first();
+		await pointer.downOn(wireInputHandle);
+		await pointer.moveTo(250, 250); // drag to a new empty location to create a branch
+		await pointer.up();
+		await page.keyboard.up("Shift");
+
+		// Expect a new wire to have been created (branch)
+		await expect(editor.wires()).toHaveCount(2);
+	});
 });
 test.describe("deleting", async () => {
 	test("can't delete wire under component", async ({ editor }) => {

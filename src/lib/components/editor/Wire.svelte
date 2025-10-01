@@ -59,6 +59,11 @@
 	});
 
 	function onHandleLongPress(handle: WireHandle, handleType: HandleType) {
+		if (handleType === "input" && handle.connections.length > 0) {
+			// Cannot start a new wire from an input that already has a connection
+			return;
+		}
+
 		// Add new wire instead of moving existing one on long press
 		// Abort the previous move wire action
 		editorViewModel.abortEditing();
@@ -130,13 +135,16 @@
 
 		const handle = clickedHandle === "input" ? input : output;
 
-		if (clickedHandle === "output") {
-			startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
-				onHandleLongPress(handle, clickedHandle);
-			});
-		}
+		startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
+			onHandleLongPress(handle, clickedHandle);
+		});
 
-		if (e.shiftKey && clickedHandle === "output") {
+		// If shift is held, add a new wire instead of moving existing one
+		// Only works for output handles, or input handles with no connections
+		if (
+			e.shiftKey &&
+			(clickedHandle === "output" || handle.connections.length === 0)
+		) {
 			AddAction.addWire(
 				{
 					x: handle.x,
