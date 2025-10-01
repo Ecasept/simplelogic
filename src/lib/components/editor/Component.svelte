@@ -6,6 +6,7 @@
 		editorViewModel,
 	} from "$lib/util/actions.svelte";
 	import { calculateHandlePosition, GRID_SIZE } from "$lib/util/global.svelte";
+	import { RotationInfo } from "$lib/util/positioning";
 	import { getSimData } from "$lib/util/simulation.svelte";
 	import type {
 		ComponentHandle,
@@ -221,8 +222,11 @@
 			: "var(--component-outline-color)",
 	);
 
-	let rotateString = $derived(
-		`rotate(${rotation} ${position.x + width / 2} ${position.y + height / 2})`,
+	let rotationInfo = $derived(
+		new RotationInfo(rotation, {
+			x: position.x + width / 2,
+			y: position.y + height / 2,
+		}),
 	);
 </script>
 
@@ -249,7 +253,7 @@
 	{fill}
 	{stroke}
 	fill-opacity="70%"
-	transform={rotateString}
+	transform={rotationInfo.asRotate()}
 />
 
 <ComponentInner
@@ -261,7 +265,7 @@
 	{type}
 	{isPowered}
 	{uiState}
-	{rotateString}
+	{rotationInfo}
 />
 
 {#each Object.entries(handles) as [identifier, handle]}
@@ -299,7 +303,7 @@
 						onHandleDown(identifier, handle.type, handle.edge, handle.pos, e)}
 					onHandleEnter={() => onHandleEnter(handle, identifier)}
 					{onHandleLeave}
-					{rotateString}
+					{rotationInfo}
 				/>
 			{/if}
 		{/if}

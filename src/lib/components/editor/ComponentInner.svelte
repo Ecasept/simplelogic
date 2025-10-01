@@ -3,6 +3,7 @@
 	import { onEnter } from "$lib/util/keyboard";
 	import type { ComponentType } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+	import { RotationInfo } from "$lib/util/positioning";
 
 	type Props = {
 		componentId: number;
@@ -12,7 +13,7 @@
 		height: number;
 		type: ComponentType;
 		isPowered: boolean;
-		rotateString: string;
+		rotationInfo: RotationInfo;
 		uiState: EditorUiState;
 	};
 	let {
@@ -23,7 +24,7 @@
 		height,
 		type,
 		isPowered,
-		rotateString,
+		rotationInfo,
 		uiState,
 	}: Props = $props();
 
@@ -55,7 +56,7 @@
 		onkeypress={onEnter(() => {
 			EditorAction.togglePower(componentId);
 		})}
-		transform={rotateString}
+		transform={rotationInfo.asRotate()}
 	/>
 {:else if type === "LED"}
 	<circle
@@ -67,7 +68,7 @@
 		fill={isPowered
 			? "var(--component-delete-color)"
 			: "var(--component-outline-color)"}
-		transform={rotateString}
+		transform={rotationInfo.asRotate()}
 	/>
 {:else}
 	<text
@@ -77,6 +78,7 @@
 		dy=".35em"
 		text-anchor="middle"
 		fill="currentColor"
+		transform={rotationInfo.asRotate()}
 	>
 		{type}
 	</text>

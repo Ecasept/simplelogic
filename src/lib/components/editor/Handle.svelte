@@ -3,6 +3,7 @@
 		isComponentHandleRef,
 		isWireHandleRef,
 	} from "$lib/util/global.svelte";
+	import { RotationInfo } from "$lib/util/positioning";
 	import type { SimulationData } from "$lib/util/simulation.svelte";
 	import type {
 		HandleReference,
@@ -20,7 +21,7 @@
 		simData: SimulationData | null;
 		handleType: HandleType;
 		position: XYPair;
-		rotateString?: string;
+		rotationInfo?: RotationInfo; // optional for wires (no rotation)
 		isSelected?: boolean;
 		onHandleDown: (event: SVGPointerEvent) => void;
 		onHandleEnter: () => void;
@@ -37,7 +38,7 @@
 		position,
 		deletingThis,
 		onHandleDown,
-		rotateString = "",
+		rotationInfo = new RotationInfo(0, { x: 0, y: 0 }),
 		isSelected = false,
 		onHandleEnter,
 		onHandleLeave,
@@ -122,28 +123,6 @@
 			? 10
 			: 5,
 	);
-
-	/** The position that the handle would be in when rotated with `rotateString`, but as a translation.
-	 * Can be used to reposition an element without rotating it itself.
-	 */
-	const symbolPosition = $derived.by(() => {
-		// Extract the three values from the rotateString
-		const [rot, x, y] = rotateString
-			.replace("rotate(", "")
-			.replace(")", "")
-			.split(" ")
-			.map(Number);
-		// rotate `position` around (x, y) by `rot` degrees
-		const angle = (rot * Math.PI) / 180;
-		const cos = Math.cos(angle);
-		const sin = Math.sin(angle);
-		const dx = position.x - x;
-		const dy = position.y - y;
-		return {
-			x: x + dx * cos - dy * sin,
-			y: y + dx * sin + dy * cos,
-		};
-	});
 </script>
 
 <circle
@@ -162,7 +141,7 @@
 	{r}
 	onpointerdown={(e) => onHandleDown(e)}
 	style="pointer-events: {editingThis ? 'none' : 'inherit'};"
-	transform={rotateString}
+	transform={rotationInfo.asRotate()}
 ></circle>
 
 {#if handleType === "input"}
@@ -174,8 +153,7 @@
 		stroke="var(--on-component-outline-color)"
 		stroke-width={1}
 		pointer-events="none"
-		transform="translate({symbolPosition.x - position.x}, {symbolPosition.y -
-			position.y})"
+		transform={rotationInfo.asTranslateFor(position)}
 	></line>
 {:else}
 	<circle
@@ -186,7 +164,7 @@
 		stroke-width={1}
 		stroke="var(--on-component-outline-color)"
 		pointer-events="none"
-		transform={rotateString}
+		transform={rotationInfo.asTranslateFor(position)}
 	></circle>
 {/if}
 

@@ -14,6 +14,7 @@
 		TypedReference,
 	} from "$lib/util/viewModels/editorViewModel.svelte";
 	import { P } from "ts-pattern";
+	import { RotationInfo } from "$lib/util/positioning";
 
 	type Props = {
 		id: number;
@@ -115,8 +116,8 @@
 		deletingThis ? "var(--component-delete-color)" : "var(--on-primary-color)",
 	);
 
-	let rotateString = $derived(
-		`rotate(${rotation} ${position.x} ${position.y})`,
+	let rotationInfo = $derived(
+		new RotationInfo(rotation, { x: position.x, y: position.y }),
 	);
 
 	let textAnchor = $derived(centerTopLeft ? "start" : "middle");
@@ -140,7 +141,7 @@
 	onpointerleave={() => {
 		editorViewModel.removeHoveredElement();
 	}}
-	transform={rotateString}
+	transform={rotationInfo.asRotate()}
 	font-size={fontSize}
 	fill={textColor}
 	text-anchor={textAnchor}
