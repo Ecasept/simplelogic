@@ -84,6 +84,14 @@
 	.sidebar {
 		padding: 10px;
 		width: 250px;
+		max-height: 100%;
+
+		box-sizing: border-box;
+
+		&:not(:has(.collapsed)) {
+			// Only allow scroll if not collapsed
+			overflow-y: auto;
+		}
 	}
 
 	.button-container {

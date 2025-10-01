@@ -61,6 +61,8 @@
 		box-sizing: border-box;
 		gap: 10px;
 
+		height: 100%;
+
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -108,6 +110,9 @@
 		grid-template-areas: "tools cancel selection";
 
 		width: 100%;
+
+		overflow: hidden;
+		height: 100%;
 
 		gap: 10px;
 
