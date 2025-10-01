@@ -8,6 +8,7 @@ import {
 	editorViewModel,
 	ModeAction,
 	PersistenceAction,
+	DuplicateAction,
 } from "./actions.svelte";
 import { mousePosition } from "./global.svelte";
 import type { EditorUiState } from "./viewModels/editorViewModel.svelte";
@@ -364,6 +365,21 @@ const shortcuts = [
 		},
 		action: (uiState) => {
 			EditorAction.rotateComponent(uiState.clickedElement.id, -90, false);
+		},
+	}),
+	s({
+		name: "Duplicate selected",
+		pattern: {
+			key: "d",
+			mod: "ctrl",
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			selected: P.when((s) => s.size > 0),
+			isPanning: false,
+		},
+		action: () => {
+			DuplicateAction.duplicateSelected();
 		},
 	}),
 ];

@@ -304,3 +304,24 @@ test.describe("selection", () => {
 		await intersectBtn.click();
 	});
 });
+
+test.describe("duplicate selection", () => {
+	test("duplicates selected component and wire, prunes external connections", async ({ editor, pointer }) => {
+		await editor.addComponent("IN", 400, 200); // id 0
+		await editor.addComponent("LED", 500, 200); // id 1
+		// Connect OUT of input to IN of led via wire
+		await editor.drag(editor.getHandle("IN", "out").first(), editor.getHandle("LED", "in").first());
+		// Unselect wire
+		await pointer.clickOn(editor.wires(), true);
+		// Select both components (multi-select via ctrl)
+		await editor.ctrlSelect(editor.getComponent("IN").first());
+		await editor.ctrlSelect(editor.getComponent("LED").first());
+		// Duplicate via sidebar button (SelectionSidebar Duplicate button)
+		const duplicateBtn = editor.getSidebar("selection").getByRole("button", { name: "Duplicate" });
+		await duplicateBtn.click();
+		// Expect component count doubled
+		await expect(editor.comps()).toHaveCount(4);
+		// But only one wire
+		await expect(editor.wires()).toHaveCount(1);
+	});
+});

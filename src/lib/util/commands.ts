@@ -388,6 +388,46 @@ export class CreateComponentCommand implements Command {
 	}
 }
 
+export class RawAddCommand implements Command {
+	private oldNextId: number | null = null;
+	/**
+	 * Adds an already fully constructed element (component or wire) to the graph using the provided id.
+	 * @param elementType The type of element to add ("component" | "wire")
+	 * @param data The full element data INCLUDING id & connections restricted to valid in-graph ones
+	 * @param newNextId The value that graphData.nextId should have AFTER executing this command
+	 */
+	constructor(
+		private elementType: "component" | "wire",
+		private data: ComponentData | WireData,
+		private newNextId: number,
+	) {}
+	execute(graphData: GraphData) {
+		this.oldNextId = graphData.nextId;
+		if (this.elementType === "component") {
+			graphData.components[this.data.id] = this.data as ComponentData;
+		} else {
+			graphData.wires[this.data.id] = this.data as WireData;
+		}
+		graphData.nextId = this.newNextId;
+		return this.data.id;
+	}
+	undo(graphData: GraphData) {
+		if (this.oldNextId === null) {
+			console.error("Tried to undo command that has not been executed");
+			return [];
+		}
+		if (this.elementType === "component") {
+			delete graphData.components[this.data.id];
+		} else {
+			delete graphData.wires[this.data.id];
+		}
+		graphData.nextId = this.oldNextId;
+		const deletedId = this.data.id;
+		this.oldNextId = null;
+		return [deletedId];
+	}
+}
+
 /** A superclass for commands that delete an element from the graph data.
  * The type of the element deletet must be specified in the constructor.
  */

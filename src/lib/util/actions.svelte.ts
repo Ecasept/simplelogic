@@ -10,6 +10,7 @@ import {
 	RotateComponentCommand,
 	ToggleInputPowerStateCommand,
 	UpdateCustomDataCommand,
+	RawAddCommand,
 	type Command,
 } from "./commands";
 import {
@@ -23,10 +24,12 @@ import { mover } from "./move.svelte";
 import { simController } from "./simulation.svelte";
 import {
 	newWireHandleRef,
+	type ComponentHandle,
 	type ComponentType,
 	type GraphData,
 	type HandleReference,
 	type ValidWireInitData,
+	type WireHandle,
 	type XYPair,
 } from "./types";
 import { CanvasViewModel } from "./viewModels/canvasViewModel";
@@ -37,6 +40,7 @@ import {
 	type ElementType,
 	type TypedReference,
 } from "./viewModels/editorViewModel.svelte";
+import type Handle from "$lib/components/editor/Handle.svelte";
 
 export const graphManager = new GraphManager();
 export const editorViewModel = new EditorViewModel();
@@ -110,6 +114,60 @@ export class DeleteAction {
 			return;
 		}
 		DeleteAction.deleteMulti(uiState.selected);
+	}
+}
+
+export class DuplicateAction {
+	/** Duplicates all selected elements. New ids are assigned sequentially starting at current nextId.
+	 * Connections pointing outside the duplicated subset are removed.
+	 */
+	static duplicateSelected() {
+		const uiState = editorViewModel.uiState;
+		if (!uiState.matches({ mode: "edit", editType: "idle" })) return;
+		if (!("selected" in uiState) || uiState.selected.size === 0) return;
+		const data = graphManager.getGraphData();
+		
+		// Collect ids
+		const oldSelected = uiState.selected; // Map<number, ElementType>
+		
+		// Build mapping oldId -> newId
+		let nextId = data.nextId;
+		const idMap = new Map<number, number>();
+		for (const id of oldSelected.keys()) {
+			idMap.set(id, nextId++);
+		}
+
+		const commands: Command[] = [];
+		// Duplicate components
+		for (const [oldId, type] of oldSelected) {
+			const orig = type === "component" ? data.components[oldId] : data.wires[oldId];
+			if (!orig) continue;
+
+			const clone = structuredClone(orig);
+			clone.id = idMap.get(oldId)!;
+		
+			// Filter connections to only those inside subset and remap ids
+			for (const handle of Object.values(clone.handles) as (WireHandle | ComponentHandle)[]) {
+				handle.connections = handle.connections
+					.filter((c) => idMap.has(c.id))
+					.map((c) => ({ ...c, id: idMap.get(c.id)! }));
+			}
+			commands.push(new RawAddCommand(type, clone, nextId));
+		}
+
+		if (commands.length === 0) return;
+		const group = new CommandGroup(commands, "duplicate");
+		graphManager.executeCommand(group);
+		graphManager.applyChanges();
+		graphManager.notifyAll();
+
+		// Update selection to new elements
+		const newSelection: Map<number, ElementType> = new Map();
+		for (const [oldId, newId] of idMap) {
+			const t = oldSelected.get(oldId)!;
+			newSelection.set(newId, t);
+		}
+		editorViewModel.setSelectedElements(Array.from(newSelection, ([id, type]) => ({ id, type })));
 	}
 }
 

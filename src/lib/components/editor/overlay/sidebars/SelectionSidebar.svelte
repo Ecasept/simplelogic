@@ -5,6 +5,7 @@
 		EditorAction,
 		editorViewModel,
 		graphManager,
+		DuplicateAction,
 	} from "$lib/util/actions.svelte";
 	import { COMPONENT_DATA, debugLog } from "$lib/util/global.svelte";
 	import { onEnter } from "$lib/util/keyboard";
@@ -95,6 +96,14 @@
 		type="danger"
 	/>
 {/snippet}
+{#snippet duplicateButton()}
+	<Button
+		title="Duplicate selected element(s)"
+		text="Duplicate"
+		onClick={() => DuplicateAction.duplicateSelected()}
+		margin="0"
+	/>
+{/snippet}
 
 {#if info.selectionCount > 0}
 	{#if uiState.matches({ mode: "edit", editType: "idle" })}
@@ -139,6 +148,7 @@
 								/>
 							</div>
 							{@render deleteButton()}
+							{@render duplicateButton()}
 
 							{#if info.data.type === "TEXT"}
 								<div class="text-data-container">
@@ -170,6 +180,7 @@
 					{:else if info.type === "wire"}
 						<p class="selected-element-text">Selected: <strong>Wire</strong></p>
 						{@render deleteButton()}
+						{@render duplicateButton()}
 					{/if}
 				{:else}
 					<!-- Multiple elements selected -->
@@ -178,6 +189,7 @@
 					</p>
 					<div class="actions-container">
 						{@render deleteButton()}
+						{@render duplicateButton()}
 					</div>
 				{/if}
 			</div>

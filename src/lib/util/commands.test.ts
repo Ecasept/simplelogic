@@ -12,6 +12,7 @@ import {
 	MoveWireHandleCommand,
 	RotateComponentCommand,
 	UpdateCustomDataCommand,
+	RawAddCommand,
 } from "./commands";
 import { GRID_SIZE, calculateHandlePosition } from "./global.svelte";
 import {
@@ -1330,6 +1331,44 @@ describe("Command Tests", () => {
 			// Undo
 			moveCmd.undo(graphData);
 			expect(graphData.components[componentId].position).toEqual(initialPos);
+		});
+	});
+	describe("RawAddCommand", () => {
+		it("should add preconstructed component with given id and update nextId", () => {
+			graphData.nextId = 10;
+			const component = {
+				id: 15,
+				type: "AND" as const,
+				size: { x: 1, y: 1 },
+				position: { x: 5, y: 5 },
+				handles: {},
+				isPoweredInitially: false,
+				rotation: 0,
+			};
+			const cmd = new RawAddCommand("component", component, 20);
+			cmd.execute(graphData);
+			expect(graphData.components[15]).toBeDefined();
+			expect(graphData.nextId).toBe(20);
+			cmd.undo(graphData);
+			expect(graphData.components[15]).toBeUndefined();
+			expect(graphData.nextId).toBe(10);
+		});
+		it("should add preconstructed wire with given id and update nextId", () => {
+			graphData.nextId = 3;
+			const wire = {
+				id: 7,
+				handles: {
+					input: { x: 1, y: 2, connections: [], type: "input" as const },
+					output: { x: 3, y: 4, connections: [], type: "output" as const },
+				},
+			};
+			const cmd = new RawAddCommand("wire", wire, 11);
+			cmd.execute(graphData);
+			expect(graphData.wires[7]).toBeDefined();
+			expect(graphData.nextId).toBe(11);
+			cmd.undo(graphData);
+			expect(graphData.wires[7]).toBeUndefined();
+			expect(graphData.nextId).toBe(3);
 		});
 	});
 });
