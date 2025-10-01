@@ -56,7 +56,7 @@ test.describe("selection", () => {
 		await expect(editor.wires()).not.toBeSelected();
 
 		// Move wire, verify selected
-		await editor.dragTo(editor.wires(), 600, 700, true);
+		await editor.dragTo(editor.wires(), 400, 500, true);
 		await expect(editor.wires()).toBeSelected();
 
 		// Click wire to deselect it
@@ -74,6 +74,7 @@ test.describe("selection", () => {
 
 		// ===== Undo Operations =====
 		// Undo twice, verify wire disappeared
+		await editor.undo();
 		await editor.undo();
 		await expect(editor.wires()).toHaveCount(0);
 
