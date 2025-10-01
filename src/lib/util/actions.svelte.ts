@@ -411,7 +411,7 @@ export class EditorAction {
 		const endPos = canvasViewModel.uiState.currentPos;
 		editorViewModel.stopAreaSelection();
 		canvasViewModel.stopAreaSelection();
-		const areaSelectType = editorViewModel.uiState.areaSelectType;
+		const areaSelectType = editorViewModel.uiState.settings.areaSelectType;
 		const elements = graphManager.getElementsInArea(startPos, endPos, areaSelectType);
 		editorViewModel.setSelectedElements(elements);
 	}

@@ -29,7 +29,7 @@ export const CANVAS_DOT_RADIUS = 1;
 export const PAN_THRESHOLD = 5;
 
 export function gridSnap(val: number) {
-	if (editorViewModel.uiState.gridSnap) {
+	if (editorViewModel.uiState.settings.gridSnap) {
 		return Math.round(val / GRID_SIZE) * GRID_SIZE;
 	} else {
 		return val;

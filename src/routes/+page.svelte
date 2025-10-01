@@ -53,6 +53,16 @@
 					break;
 			}
 		}
+
+		const storedSettings = localStorage.getItem("editorSettings");
+		if (storedSettings) {
+			try {
+				const settings = JSON.parse(storedSettings);
+				editorViewModel.applySettings(settings);
+			} catch (e) {
+				console.error("Failed to parse stored settings:", e);
+			}
+		}
 	});
 
 	$inspect(editorViewModel.uiState).with(debugLog("UISTATE"));

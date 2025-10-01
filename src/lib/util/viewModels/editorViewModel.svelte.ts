@@ -25,9 +25,13 @@ export type BaseState = {
 export type AreaSelectType = "intersect" | "contain";
 
 export type SettingsState = {
-	/** Whether dragging elements should snap to the grid */
-	gridSnap: boolean;
-	areaSelectType: AreaSelectType;
+	/** The settings of the editor */
+	settings: {
+		/** Whether dragging elements should snap to the grid */
+		gridSnap: boolean;
+		/** Whether area selection should select elements that intersect the selection area, or only those fully contained within it */
+		areaSelectType: AreaSelectType;
+	}
 };
 
 // ==== Edit Mode states ====
@@ -194,8 +198,11 @@ export class EditorViewModel {
 		hoveredElement: null,
 		isModalOpen: false,
 		isPanning: false,
-		gridSnap: true,
-		areaSelectType: "intersect",
+		// Default settings, might be overridden through local storage later
+		settings: {
+			gridSnap: true,
+			areaSelectType: "intersect",
+		},
 		matches: matcher.matches,
 	};
 
@@ -218,8 +225,7 @@ export class EditorViewModel {
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
 			isPanning: this._uiState.isPanning,
-			gridSnap: this._uiState.gridSnap,
-			areaSelectType: this._uiState.areaSelectType,
+			settings: this._uiState.settings,
 			matches: this._uiState.matches,
 		};
 		this._uiState = { ...persistent, ...newState };
@@ -240,8 +246,7 @@ export class EditorViewModel {
 			hoveredHandle: this._uiState.hoveredHandle,
 			hoveredElement: this._uiState.hoveredElement,
 			isModalOpen: this._uiState.isModalOpen,
-			gridSnap: this._uiState.gridSnap,
-			areaSelectType: this._uiState.areaSelectType,
+			settings: this._uiState.settings,
 			isPanning: false,
 			matches: this._uiState.matches,
 		};
@@ -513,11 +518,22 @@ export class EditorViewModel {
 		return "selected" in this.uiState ? this.uiState.selected.size : 0;
 	}
 	setGridSnap(val: boolean) {
-		this._uiState.gridSnap = val;
-		this.notifyAll();
+		this._uiState.settings.gridSnap = val;
+		this.updateSettings();
 	}
 	setAreaSelectType(val: AreaSelectType) {
-		this._uiState.areaSelectType = val;
+		this._uiState.settings.areaSelectType = val;
+		this.updateSettings();
+	}
+	updateSettings() {
+		localStorage.setItem(
+			"editorSettings",
+			JSON.stringify(this._uiState.settings),
+		);
+		this.notifyAll();
+	}
+	applySettings(settings: Partial<SettingsState["settings"]>) {
+		this._uiState.settings = { ...this._uiState.settings, ...settings };
 		this.notifyAll();
 	}
 }

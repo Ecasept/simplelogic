@@ -22,11 +22,11 @@
 	}
 
 	function toggleGridSnap() {
-		editorViewModel.setGridSnap(!uiState.gridSnap);
+		editorViewModel.setGridSnap(!uiState.settings.gridSnap);
 	}
 	function toggleAreaSelect() {
 		const newValue =
-			uiState.areaSelectType === "contain" ? "intersect" : "contain";
+			uiState.settings.areaSelectType === "contain" ? "intersect" : "contain";
 		editorViewModel.setAreaSelectType(newValue);
 	}
 </script>
@@ -37,9 +37,9 @@
 			<ComponentToolbar onPointerDown={addComponent} />
 		</SidebarSection>
 		<SidebarSection text="Settings">
-			{@const gridSnapText = uiState.gridSnap ? "Disable" : "Enable"}
+			{@const gridSnapText = uiState.settings.gridSnap ? "Disable" : "Enable"}
 			{@const areaSelectText =
-				uiState.areaSelectType === "contain"
+				uiState.settings.areaSelectType === "contain"
 					? "Switch to intersect area select"
 					: "Switch to contain area select"}
 			<Button
