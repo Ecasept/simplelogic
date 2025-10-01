@@ -364,3 +364,11 @@ export function rotateAroundBy(
 		y: dx * sin + dy * cos + center.y,
 	};
 }
+
+
+/** Checks if there is currently a handle of the given type being dragged. */
+export function draggedHandleType(uiState: EditorUiState, type: HandleType) {
+	if ("draggedHandle" in uiState) {
+		return uiState.draggedHandle.handleType === type;
+	}
+}

@@ -6,6 +6,7 @@
 		editorViewModel,
 	} from "$lib/util/actions.svelte";
 	import {
+		draggedHandleType,
 		isComponentHandleRef,
 		isVibrateSupported,
 	} from "$lib/util/global.svelte";
@@ -38,6 +39,9 @@
 
 	let editingThis = $derived(
 		"draggedHandle" in uiState && uiState.draggedHandle.id === id,
+	);
+	let clickedThis = $derived(
+		"clickedHandle" in uiState && uiState.clickedHandle.id === id,
 	);
 
 	let input = $derived(handles.input);
@@ -223,7 +227,7 @@
 	<!-- Hide connected inputs -->
 	{#if input.connections.length === 0}
 		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
-		{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle.handleType === "input")}
+		{#if !(!editingThis && !clickedThis && draggedHandleType(uiState, "input"))}
 			<Handle
 				{uiState}
 				ref={newWireHandleRef(id, "input")}
@@ -243,7 +247,7 @@
 	<!-- Hide outputs connected to components -->
 	{#if !isComponentHandleRef(output.connections[0] ?? null)}
 		<!-- Hide handles of same type as dragged handle (but not dragged handle itself) -->
-		{#if !(!editingThis && "draggedHandle" in uiState && uiState.draggedHandle?.handleType === "output")}
+		{#if !(!editingThis && !clickedThis && draggedHandleType(uiState, "output"))}
 			<Handle
 				{uiState}
 				ref={newWireHandleRef(id, "output")}
