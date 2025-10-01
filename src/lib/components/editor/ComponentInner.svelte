@@ -72,13 +72,13 @@
 	/>
 {:else}
 	<text
-		x={x + width / 2}
-		y={y + height / 2}
+		x={middleX}
+		y={middleY}
 		font-size="12"
-		dy=".35em"
+		dominant-baseline="middle"
 		text-anchor="middle"
 		fill="currentColor"
-		transform={rotationInfo.asRotate()}
+		transform={rotationInfo.asTranslateFor({ x: middleX, y: middleY })}
 	>
 		{type}
 	</text>
