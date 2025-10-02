@@ -7,10 +7,10 @@ import {
 	DeleteComponentCommand,
 	DeleteWireCommand,
 	MoveWireHandleCommand,
+	RawAddCommand,
 	RotateComponentCommand,
 	ToggleInputPowerStateCommand,
 	UpdateCustomDataCommand,
-	RawAddCommand,
 	type Command,
 } from "./commands";
 import {
@@ -40,7 +40,6 @@ import {
 	type ElementType,
 	type TypedReference,
 } from "./viewModels/editorViewModel.svelte";
-import type Handle from "$lib/components/editor/Handle.svelte";
 
 export const graphManager = new GraphManager();
 export const editorViewModel = new EditorViewModel();
@@ -126,10 +125,10 @@ export class DuplicateAction {
 		if (!uiState.matches({ mode: "edit", editType: "idle" })) return;
 		if (!("selected" in uiState) || uiState.selected.size === 0) return;
 		const data = graphManager.getGraphData();
-		
+
 		// Collect ids
 		const oldSelected = uiState.selected; // Map<number, ElementType>
-		
+
 		// Build mapping oldId -> newId
 		let nextId = data.nextId;
 		const idMap = new Map<number, number>();
@@ -145,7 +144,7 @@ export class DuplicateAction {
 
 			const clone = structuredClone(orig);
 			clone.id = idMap.get(oldId)!;
-		
+
 			// Filter connections to only those inside subset and remap ids
 			for (const handle of Object.values(clone.handles) as (WireHandle | ComponentHandle)[]) {
 				handle.connections = handle.connections
@@ -579,13 +578,22 @@ export class PersistenceAction {
 		editorViewModel.setModalOpen(true);
 		circuitModalViewModel.open("save", () => { });
 	}
-	static loadGraph() {
+	/** Opens the load modal in non-fresh mode (i.e. not onboarding). */
+	static loadGraphManually() {
+		PersistenceAction.loadGraph(false);
+	}
+	static loadGraph(isOnboarding: boolean) {
 		ChangesAction.abortEditing();
 		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
-		circuitModalViewModel.open("load", (newGraphData: GraphData) => {
+		circuitModalViewModel.open("load", (newGraphData, type) => {
 			PersistenceAction.setNewGraph(newGraphData);
-		});
+			if (isOnboarding && type === "preset") {
+				// If the user is new and selected a preset,
+				// show him the circuit immediately for better onboarding
+				PersistenceAction.closeModal();
+			}
+		}, { isOnboarding });
 	}
 	static closeModal() {
 		circuitModalViewModel.close();

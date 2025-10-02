@@ -93,7 +93,11 @@
 	)}
 
 	{@render toolbarButton("Save circuit", Save, PersistenceAction.saveGraph)}
-	{@render toolbarButton("Load circuit", Download, PersistenceAction.loadGraph)}
+	{@render toolbarButton(
+		"Load circuit",
+		Download,
+		PersistenceAction.loadGraphManually,
+	)}
 	{@render toolbarButton("Clear canvas", CopyX, EditorAction.clearCanvas)}
 </div>
 

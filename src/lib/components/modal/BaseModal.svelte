@@ -153,8 +153,7 @@
 	}
 
 	.modal-bg {
-		width: min(90vw, 480px);
-		max-width: 480px;
+		width: min(600px, 90vw);
 		background-color: var(--surface-color);
 		border-radius: 20px;
 		padding: 32px;

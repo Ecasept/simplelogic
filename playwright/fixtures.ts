@@ -9,6 +9,7 @@ export class Editor {
 		private readonly page: Page,
 		private readonly pointer: Pointer,
 		private readonly browserName: string,
+		private readonly baseURL: string,
 	) { }
 
 	async waitForNetworkIdle() {
@@ -20,7 +21,7 @@ export class Editor {
 
 	/** Reloads the editor, resetting all components and everyhing else in the UI */
 	async reload() {
-		await this.page.goto("/");
+		await this.page.goto(this.baseURL);
 		await this.waitForNetworkIdle();
 	}
 
@@ -78,7 +79,7 @@ export class Editor {
 		await expect(button).toBeVisible();
 		await button.click();
 		await expect(button).not.toBeVisible();
-		await this.page.waitForURL("/");
+		await this.page.waitForURL(this.baseURL);
 		await this.waitForNetworkIdle();
 	}
 
@@ -106,7 +107,7 @@ export class Editor {
 		const btn = this.page.getByRole("button", { name: "Sign out" });
 		await btn.click();
 		await expect(btn).not.toBeVisible();
-		await this.page.waitForURL("/");
+		await this.page.waitForURL(this.baseURL);
 		await this.waitForNetworkIdle();
 	}
 

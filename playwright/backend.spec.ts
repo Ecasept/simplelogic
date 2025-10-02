@@ -16,7 +16,7 @@ test.describe("modal login", () => {
 		await editor.openSaveModal();
 		await expect(page.getByText("Sign in to")).toBeVisible();
 	});
-	test("load modal login flow", async ({ page, editor }) => {
+	test("load modal login flow", async ({ page, editor, baseURL }) => {
 		await editor.openLoadModal();
 		await expect(page.getByText("Sign in to")).toBeVisible();
 		await editor.clickGoogleLoginButton();

@@ -4,11 +4,11 @@ import {
 	AddAction,
 	ChangesAction,
 	DeleteAction,
+	DuplicateAction,
 	EditorAction,
 	editorViewModel,
 	ModeAction,
 	PersistenceAction,
-	DuplicateAction,
 } from "./actions.svelte";
 import { mousePosition } from "./global.svelte";
 import type { EditorUiState } from "./viewModels/editorViewModel.svelte";
@@ -242,7 +242,7 @@ const shortcuts = [
 			mode: P.union("edit", "simulate", "delete"),
 			isPanning: false,
 		},
-		action: PersistenceAction.loadGraph,
+		action: PersistenceAction.loadGraphManually,
 	}),
 	s({
 		name: "Undo edit",

@@ -41,6 +41,7 @@
 
 		<LoadModal
 			loadMode={uiState.loadMode}
+			isOnboarding={uiState.isOnboarding}
 			fixConnections={uiState.fixConnections}
 			listRequestData={uiState.listRequestData}
 			message={uiState.message}

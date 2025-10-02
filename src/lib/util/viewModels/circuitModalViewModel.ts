@@ -17,15 +17,17 @@ export type CircuitModalUiState =
 		listRequestData: null;
 		loadMode: null;
 		fixConnections: null;
+		isOnboarding: null,
 	}
 	| {
 		mode: "load";
 		message: FeedbackMessage | null;
-		callback: (graphData: GraphData) => void;
+		callback: (graphData: GraphData, type: "preset" | "custom") => void;
 		listRequestData: ListRequestData | null;
 		isLoadingList: boolean;
 		loadMode: "select" | "list";
 		fixConnections: boolean;
+		isOnboarding: boolean,
 	}
 	| {
 		mode: "save";
@@ -35,6 +37,7 @@ export type CircuitModalUiState =
 		isLoadingList: false;
 		loadMode: null;
 		fixConnections: null;
+		isOnboarding: null,
 	};
 
 type ListRequestData = {
@@ -60,6 +63,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		listRequestData: null,
 		loadMode: null,
 		fixConnections: null,
+		isOnboarding: null,
 	};
 
 	protected resetUiState() {
@@ -70,6 +74,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			listRequestData: null,
 			loadMode: null,
 			fixConnections: null,
+			isOnboarding: null,
 		};
 	}
 
@@ -163,7 +168,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 				graphData = this.fixGraphConnections(graphData);
 			}
 			this.setSuccess("Circuit pasted from clipboard");
-			this._uiState.callback(graphData);
+			this._uiState.callback(graphData, "custom");
 		} catch (e: unknown) {
 			if (e instanceof Error) {
 				console.warn(e);
@@ -213,7 +218,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 				graphData = this.fixGraphConnections(graphData);
 			}
 			this.setSuccess("Circuit loaded successfully");
-			this._uiState.callback(graphData);
+			this._uiState.callback(graphData, "custom");
 		} else {
 			this.setError(data.error);
 		}
@@ -236,12 +241,14 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 
 	open(
 		mode: "save" | "load",
-		callback: ((graphData: GraphData) => void) | null,
+		callback: ((graphData: GraphData, type: "custom" | "preset") => void) | null,
+		{ isOnboarding = true }: { isOnboarding?: boolean } = {},
 	) {
 		this._uiState.mode = mode;
 		this._uiState.callback = callback;
 		if (mode === "load") {
 			this._uiState.loadMode = "select";
+			this._uiState.isOnboarding = isOnboarding;
 		}
 		this.notifyAll();
 	}
@@ -268,5 +275,23 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 	closeFeedback() {
 		this._uiState.message = null;
 		this.notifyAll();
+	}
+
+	async loadPreset(id: number | "empty") {
+		if (this._uiState.mode !== "load") {
+			throw new Error("Invalid mode");
+		}
+		if (id === "empty") {
+			this.setSuccess("Empty preset loaded");
+			this._uiState.callback({ components: {}, wires: {}, nextId: 0 }, "preset");
+			return;
+		}
+		const preset = await API.getPresetById(id);
+		if (!preset.success) {
+			this.setError(preset.error);
+			return;
+		}
+		this.setSuccess("Preset loaded");
+		this._uiState.callback(preset.data.data, "preset");
 	}
 }

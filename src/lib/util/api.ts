@@ -1,4 +1,5 @@
 import { z } from "zod";
+import zu from "zod_utilz";
 import { err } from "./error";
 import { type GraphData, ZGraphData } from "./types";
 
@@ -20,6 +21,15 @@ const ListRequestDataSchema = z.object({
 	circuits: z.array(CircuitListItemSchema),
 	pagination: PaginationSchema,
 });
+
+const PresetResponseSchema = z
+	.object({
+		id: z.number().int().nonnegative(),
+		name: z.string(),
+		img: z
+			.string(),
+		data: zu.stringToJSON().pipe(ZGraphData),
+	});
 
 const APIResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
 	z
@@ -58,11 +68,11 @@ export namespace API {
 	 * @param options - The request options including method, body, and headers
 	 * @returns A promise that resolves to the validated API response
 	 */
-	async function makeAPIRequest<T>(
+	async function makeAPIRequest<T extends z.ZodType>(
 		url: string,
-		schema: z.ZodType<T>,
+		schema: T,
 		options: FetchOptions,
-	): Promise<APIResponse<T>> {
+	): Promise<APIResponse<z.infer<T>>> {
 		try {
 			const fetchOptions: RequestInit = {
 				method: options.method,
@@ -105,7 +115,7 @@ export namespace API {
 
 	export function loadCircuitList(
 		page: number,
-	): Promise<APIResponse<ListRequestData>> {
+	): Promise<APIResponse<z.infer<typeof ListRequestDataSchema>>> {
 		return makeAPIRequest(
 			`/api/circuits?page=${page}&perPage=10`,
 			ListRequestDataSchema,
@@ -113,13 +123,19 @@ export namespace API {
 		);
 	}
 
-	export function loadCircuit(id: number): Promise<APIResponse<GraphData>> {
+	export function loadCircuit(id: number) {
 		return makeAPIRequest(`/api/circuits/${id}`, ZGraphData, { method: "GET" });
 	}
 
-	export function deleteCircuit(id: number): Promise<APIResponse<null>> {
+	export function deleteCircuit(id: number) {
 		return makeAPIRequest(`/api/circuits/${id}`, z.null(), {
 			method: "DELETE",
+		});
+	}
+
+	export function getPresetById(id: number) {
+		return makeAPIRequest(`/api/preset?id=${id}`, PresetResponseSchema, {
+			method: "GET",
 		});
 	}
 }

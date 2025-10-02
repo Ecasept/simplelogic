@@ -15,6 +15,7 @@
 	import {
 		debugLog,
 		mousePosition,
+		setAvailablePresets,
 		setMousePosition,
 	} from "$lib/util/global.svelte";
 	import { handleKeyDown } from "$lib/util/keyboard";
@@ -23,8 +24,9 @@
 	import { authViewModel } from "$lib/util/viewModels/authViewModel";
 	import { onMount } from "svelte";
 	import { P } from "ts-pattern";
+	import type { PageData } from "./$types";
 
-	let { data }: { data: import("./$types").LayoutData } = $props();
+	let { data }: { data: PageData } = $props();
 	let themeClass = $derived.by(getThemeClass);
 
 	onMount(() => {
@@ -46,7 +48,7 @@
 					PersistenceAction.saveGraph();
 					break;
 				case "loadModal":
-					PersistenceAction.loadGraph();
+					PersistenceAction.loadGraphManually();
 					break;
 				case "authPopup":
 					authViewModel.toggleOpen();
@@ -62,6 +64,16 @@
 			} catch (e) {
 				console.error("Failed to parse stored settings:", e);
 			}
+		}
+
+		// Determine if onboarding should be skipped
+		const urlParams = new URL(window.location.href).searchParams;
+		const skipOnboarding = urlParams.has("no-onboarding");
+		setAvailablePresets(data.presets);
+
+		if (!source && !sessionCircuit && !skipOnboarding) {
+			// Fresh load, show the load modal (onboarding)
+			PersistenceAction.loadGraph(true);
 		}
 	});
 

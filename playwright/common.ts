@@ -6,6 +6,7 @@ import {
 	MatcherReturnType,
 	Page,
 } from "@playwright/test";
+import playwrightConfig from "../playwright.config";
 import { DesktopPointer, Editor, Pointer } from "./fixtures";
 import { Touchscreen } from "./mobile/touchscreen";
 
@@ -164,7 +165,7 @@ const customTest = base.extend<
 		},
 		{ scope: "worker", auto: true },
 	],
-	clipboard: async ({}, use) => {
+	clipboard: async ({ }, use) => {
 		const clipboard = {
 			content: "",
 		};
@@ -204,23 +205,32 @@ const customTest = base.extend<
 			await use(new DesktopPointer(page));
 		}
 	},
-	editor: async ({ page, pointer, browserName }, use) => {
-		await use(new Editor(page, pointer, browserName));
+	editor: async ({ page, pointer, browserName, baseURL }, use) => {
+		await use(new Editor(page, pointer, browserName, baseURL));
 	},
 });
 
+
+export const test = Object.assign(customTest, {
+	/** Ensures that the test gets its own account without any circuits from other tests */
+	accountId: configureAccountId,
+	withOnboarding: configureOnboarding,
+});
+
 function configureAccountId(id: string) {
-	customTest.use({
+	test.use({
 		extraHTTPHeaders: {
 			"test-id": id,
 		},
 	});
 }
 
-export const test = Object.assign(customTest, {
-	/** Ensures that the test gets its own account without any circuits from other tests */
-	accountId: configureAccountId,
-});
+/** Restores the default onboarding behavior */
+function configureOnboarding() {
+	test.use({
+		baseURL: playwrightConfig.use?.baseURL.replace("?no-onboarding", ""),
+	});
+}
 
 /**A matcher function.
  * A matcher function will be used like this:
@@ -292,12 +302,12 @@ const createMatcher = <TReceived extends unknown, TArgs extends unknown[]>(
 			pass
 				? "Test passed"
 				: this.utils.matcherHint(assertionName, undefined, undefined, {
-						isNot: this.isNot,
-					}) +
-					"\n\n" +
-					`${toString(received)}\n` +
-					`Expected: ${this.utils.printExpected((this.isNot ? "not " : "") + matcherResult?.expected)}\n` +
-					`Received: ${this.utils.printReceived(matcherResult?.actual)}`;
+					isNot: this.isNot,
+				}) +
+				"\n\n" +
+				`${toString(received)}\n` +
+				`Expected: ${this.utils.printExpected((this.isNot ? "not " : "") + matcherResult?.expected)}\n` +
+				`Received: ${this.utils.printReceived(matcherResult?.actual)}`;
 
 		if (this.isNot) {
 			pass = !pass;

@@ -38,8 +38,8 @@
 		--circuit-item-separator-color: #00000020;
 
 		/* Simulation sidebar colors */
-		--surface-variant-color: #f0f4ed;
-		--on-surface-variant-color: #6a6a6a;
+		--surface-variant-color: #a1c79a;
+		--on-surface-variant-color: #2c2c2c;
 		--outline-variant-color: #c8d1c0;
 		--success-container-color: #e8f5e8;
 		--processing-background-color: #f8f9fa;
