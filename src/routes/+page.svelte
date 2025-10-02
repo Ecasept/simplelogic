@@ -38,7 +38,6 @@
 			graphManager.setGraphData(circuit);
 			graphManager.notifyAll();
 			sessionStorage.removeItem("currentCircuit");
-			console.log("Loaded circuit from session storage");
 		}
 		const source = sessionStorage.getItem("signInSource");
 		if (source) {

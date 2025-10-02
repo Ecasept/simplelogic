@@ -79,7 +79,6 @@ class SimulationController {
 	}
 
 	public async startLoop() {
-		console.log("Starting simulation loop");
 		this.loopRunning = true;
 		this.simulationStart = new Date();
 

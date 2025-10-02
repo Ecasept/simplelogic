@@ -62,7 +62,6 @@
 
 	function onTextInput(e: InputInputEvent) {
 		const newText = e.currentTarget.value;
-		console.log(newText);
 		if (info.selectedId === null) {
 			console.error("No element selected to update text");
 			return;

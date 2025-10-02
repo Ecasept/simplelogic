@@ -142,7 +142,6 @@ export class GraphManager {
 				}
 			}
 		}
-		console.log(this._graphData.wires);
 		for (const wireId in this._graphData.wires) {
 			const wire = this._graphData.wires[wireId];
 			const startX = wire.handles.input.x;
@@ -173,7 +172,6 @@ export class GraphManager {
 					selected.push({ type: "wire", id: wire.id });
 				}
 			}
-			console.log("selected:", selected);
 		}
 		return selected;
 	}

@@ -71,7 +71,6 @@
 
 	function onPointerDown(event: PointerEvent) {
 		if (event.button !== 0) return;
-		console.log("event:", event);
 		if (event.shiftKey) {
 			const uiState = editorViewModel.uiState;
 			if (uiState.matches({ isPanning: true })) return;
