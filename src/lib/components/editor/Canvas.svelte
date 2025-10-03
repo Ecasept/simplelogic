@@ -134,16 +134,6 @@
 
 	function onPointerMove(event: PointerEvent) {
 		cancelLongPressIfMoved({ x: event.clientX, y: event.clientY });
-		// Update current event in cache
-		const index = pointerEventCache.findIndex(
-			(cachedEv) => cachedEv.pointerId === event.pointerId,
-		);
-		if (index === -1) {
-			// onPointerDown was not triggered on canvas
-			// -> user is not panning
-			return;
-		}
-
 		if (uiState.isAreaSelecting) {
 			canvasViewModel.updateAreaSelection(
 				canvasViewModel.clientToSVGCoords({
@@ -151,6 +141,16 @@
 					y: event.clientY,
 				}),
 			);
+			return;
+		}
+
+		// Update current event in cache
+		const index = pointerEventCache.findIndex(
+			(cachedEv) => cachedEv.pointerId === event.pointerId,
+		);
+		if (index === -1) {
+			// onPointerDown was not triggered on canvas
+			// -> user is not panning
 			return;
 		}
 
