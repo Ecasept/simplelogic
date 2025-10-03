@@ -153,11 +153,18 @@
 	}
 
 	.modal-bg {
-		width: min(600px, 90vw);
+		// The modal will take up to 600px in width, but shrink on smaller screens.
+		width: 600px;
+
+		// Always keep a margin of 5vw around the modal.
+		// Using max-height and dvh instead of margin
+		// to avoid issues with mobile browsers.
+		max-width: 90vw;
+		max-height: calc(100dvh - 10vw);
+
 		background-color: var(--surface-color);
 		border-radius: 20px;
 		padding: 32px;
-		max-height: 80vh;
 		box-sizing: border-box; // Include padding in height calculations
 		overflow-y: auto;
 		display: flex;
@@ -189,10 +196,7 @@
 	/* Mobile responsiveness */
 	@media (max-width: $mobile-breakpoint) {
 		.modal-bg {
-			width: 95vw;
 			padding: 24px;
-			margin: 16px;
-			max-height: 90vh;
 		}
 
 		#title-container {
