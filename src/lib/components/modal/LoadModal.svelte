@@ -62,12 +62,13 @@
 {#snippet presetCard(p: Preset)}
 	<button class="preset-card" onclick={() => loadPreset(p.id)}>
 		<img
-			src={p.img}
+			src={p.img + "_160.webp"}
 			alt={`Preview of ${p.name} preset circuit`}
 			loading="lazy"
 			width="160"
 			height="90"
 			class="preset-image"
+			srcset="{p.img}_160.webp 1x, {p.img}_320.webp 2x, {p.img}_480.webp 3x"
 		/>
 		<span class="preset-name">{p.name}</span>
 	</button>

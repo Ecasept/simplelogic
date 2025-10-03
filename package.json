@@ -20,7 +20,8 @@
 		"playwright:headed": "NODE_OPTIONS='--no-experimental-strip-types' npx playwright test --headed",
 		"playwright:ui": "NODE_OPTIONS='--no-experimental-strip-types' npx playwright test --ui",
 		"db": "wrangler pages dev",
-		"oauth": "tsx playwright/oauth/mock_server.ts"
+		"oauth": "tsx playwright/oauth/mock_server.ts",
+		"generate:presets": "python3 scripts/process_presets_images.py"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240815.0",
