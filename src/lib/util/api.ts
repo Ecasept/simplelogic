@@ -1,7 +1,17 @@
 import { z } from "zod";
-import zu from "zod_utilz";
 import { err } from "./error";
 import { type GraphData, ZGraphData } from "./types";
+
+const stringToJSONSchema = z.string()
+	.transform((str, ctx) => {
+		try {
+			return JSON.parse(str)
+		} catch (e) {
+			ctx.addIssue({ code: 'custom', message: 'Invalid JSON' })
+			return z.NEVER
+		}
+	})
+
 
 const PaginationSchema = z.object({
 	page: z.number(),
@@ -28,33 +38,28 @@ const PresetResponseSchema = z
 		name: z.string(),
 		img: z
 			.string(),
-		data: zu.stringToJSON().pipe(ZGraphData),
+		data: stringToJSONSchema.pipe(ZGraphData),
 	});
 
 const APIResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
-	z
-		.object({
+	z.discriminatedUnion("success", [
+		z.object({
 			success: z.literal(true),
 			data: dataSchema,
-		})
-		.or(
-			z.object({
-				success: z.literal(false),
-				error: z.string(),
-			}),
-		)
-		.and(
+			message: z.string().optional(),
+		}),
+		z.object({
+			success: z.literal(false),
+			error: z.string(),
 			// SvelteKit error handling requires a message field
-			z.object({
-				message: z.string().optional(),
-			}),
-		);
+			message: z.string().optional(),
+		}),
+	]);
 
 export type ListRequestData = z.infer<typeof ListRequestDataSchema>;
 
-export type APIResponse<T> = z.infer<
-	ReturnType<typeof APIResponseSchema<z.ZodType<T>>>
->;
+export type APIResponse<T> = z.infer<ReturnType<typeof APIResponseSchema<z.ZodType<T>>>>;
+
 export namespace API {
 	interface FetchOptions {
 		method: "GET" | "POST" | "DELETE";
@@ -68,11 +73,11 @@ export namespace API {
 	 * @param options - The request options including method, body, and headers
 	 * @returns A promise that resolves to the validated API response
 	 */
-	async function makeAPIRequest<T extends z.ZodType>(
+	async function makeAPIRequest<T>(
 		url: string,
-		schema: T,
+		schema: z.ZodType<T>,
 		options: FetchOptions,
-	): Promise<APIResponse<z.infer<T>>> {
+	): Promise<APIResponse<T>> {
 		try {
 			const fetchOptions: RequestInit = {
 				method: options.method,
@@ -106,7 +111,7 @@ export namespace API {
 	export function saveCircuit(
 		name: string,
 		circuitData: GraphData,
-	): Promise<APIResponse<null>> {
+	) {
 		return makeAPIRequest("/api/circuits", z.null(), {
 			method: "POST",
 			body: { name, data: circuitData },
@@ -115,7 +120,7 @@ export namespace API {
 
 	export function loadCircuitList(
 		page: number,
-	): Promise<APIResponse<z.infer<typeof ListRequestDataSchema>>> {
+	) {
 		return makeAPIRequest(
 			`/api/circuits?page=${page}&perPage=10`,
 			ListRequestDataSchema,

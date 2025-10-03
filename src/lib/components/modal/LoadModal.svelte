@@ -194,7 +194,7 @@
 <FeedbackCard feedback={message} />
 
 <style lang="scss">
-	@import "$lib/css/variables.scss";
+	@use "$lib/css/variables.scss" as *;
 
 	.preset-screen {
 		color: var(--on-surface-color);
@@ -306,25 +306,6 @@
 		font-weight: 600;
 		color: var(--on-surface-color);
 		text-align: center;
-	}
-	.bottom-actions {
-		display: flex;
-		justify-content: flex-end;
-	}
-	.bottom-actions .secondary {
-		background: none;
-		border: 1px solid var(--outline-color);
-		color: var(--primary-color);
-		font-size: 0.65rem;
-		text-transform: uppercase;
-		letter-spacing: 0.75px;
-		padding: 6px 12px;
-		border-radius: 8px;
-		cursor: pointer;
-		font-weight: 600;
-	}
-	.bottom-actions .secondary:hover {
-		background: var(--highlight-filter);
 	}
 
 	/* Shared existing styles retained */

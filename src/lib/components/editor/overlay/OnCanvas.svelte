@@ -47,7 +47,7 @@
 </div>
 
 <style lang="scss">
-	@use "src/lib/css/variables.scss" as *;
+	@use "$lib/css/variables.scss" as *;
 	/** How far away any overlay should be from the screen ede */
 	$screen-margin: 10px;
 

@@ -80,15 +80,6 @@
 		touch-action: none;
 	}
 
-	#collapse-icon {
-		height: 20px;
-		transition: transform 0.3s;
-		transform: rotate(180deg);
-		&.collapsed {
-			transform: rotate(0deg);
-		}
-	}
-
 	.toolbar {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, 100px);

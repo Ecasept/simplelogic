@@ -50,7 +50,7 @@
 </div>
 
 <style lang="scss">
-	@import "$lib/css/variables.scss";
+	@use "$lib/css/variables.scss" as *;
 
 	#modal-header {
 		display: flex;

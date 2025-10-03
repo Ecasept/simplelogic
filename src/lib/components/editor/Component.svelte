@@ -312,7 +312,7 @@
 
 <style lang="scss">
 	@use "sass:math";
-	@import "$lib/css/variables.scss";
+	@use "$lib/css/variables.scss" as *;
 
 	$stroke-width: 2px;
 	$outline-width: 2px;

@@ -73,7 +73,7 @@
 <FeedbackCard feedback={message} />
 
 <style lang="scss">
-	@import "$lib/css/variables.scss";
+	@use "$lib/css/variables.scss" as *;
 
 	.action-section {
 		display: flex;
