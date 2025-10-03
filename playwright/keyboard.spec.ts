@@ -30,6 +30,30 @@ test.describe("editor shortcuts", () => {
 		await expectPosToBe(component, 300, 300);
 	});
 
+	test("continuous placement adds multiple components", async ({
+		page,
+		pointer,
+		editor,
+	}) => {
+		await editor.setContinuousPlacement(true);
+
+		await page.keyboard.press("A");
+		await pointer.clickAt(150, 150);
+		await expect(editor.comps()).toHaveCount(2);
+
+		await pointer.clickAt(250, 250);
+		await expect(editor.comps()).toHaveCount(3);
+
+		await pointer.clickAt(350, 350);
+		await expect(editor.comps()).toHaveCount(4);
+
+		await page.keyboard.press("Escape");
+
+		await expect(editor.comps()).toHaveCount(3);
+
+		await editor.setContinuousPlacement(false);
+	});
+
 	test("ctrl+s opens save dialog and escape closes it", async ({
 		page,
 		editor,

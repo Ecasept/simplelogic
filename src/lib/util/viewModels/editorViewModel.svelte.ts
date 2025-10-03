@@ -31,6 +31,8 @@ export type SettingsState = {
 		gridSnap: boolean;
 		/** Whether area selection should select elements that intersect the selection area, or only those fully contained within it */
 		areaSelectType: AreaSelectType;
+		/** Whether when selecting a component to place with the keyboard shortcut, you can place multiple of them in a row without having to re-select it each time */
+		continuousPlacement: boolean;
 	}
 };
 
@@ -202,6 +204,7 @@ export class EditorViewModel {
 		settings: {
 			gridSnap: true,
 			areaSelectType: "intersect",
+			continuousPlacement: false,
 		},
 		matches: matcher.matches,
 	};
@@ -523,6 +526,10 @@ export class EditorViewModel {
 	}
 	setAreaSelectType(val: AreaSelectType) {
 		this._uiState.settings.areaSelectType = val;
+		this.updateSettings();
+	}
+	setContinuousPlacement(val: boolean) {
+		this._uiState.settings.continuousPlacement = val;
 		this.updateSettings();
 	}
 	updateSettings() {

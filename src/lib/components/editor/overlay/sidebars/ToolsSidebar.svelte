@@ -3,7 +3,7 @@
 	import { AddAction, editorViewModel } from "$lib/util/actions.svelte";
 	import type { ComponentType } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { Magnet, SquareDashed } from "lucide-svelte";
+	import { Magnet, ReplaceAll, SquareDashed } from "lucide-svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import Sidebar from "./Sidebar.svelte";
 	import SidebarSection from "./SidebarSection.svelte";
@@ -29,6 +29,11 @@
 			uiState.settings.areaSelectType === "contain" ? "intersect" : "contain";
 		editorViewModel.setAreaSelectType(newValue);
 	}
+	function toggleContinuousPlacement() {
+		editorViewModel.setContinuousPlacement(
+			!uiState.settings.continuousPlacement,
+		);
+	}
 </script>
 
 {#if uiState.matches({ mode: "edit", editType: "idle" })}
@@ -42,6 +47,15 @@
 				uiState.settings.areaSelectType === "contain"
 					? "Switch to intersect area select"
 					: "Switch to contain area select"}
+			{@const continousPlacementText = uiState.settings.continuousPlacement
+				? "Disable"
+				: "Enable"}
+			<Button
+				title="{continousPlacementText} continuous placement"
+				text="{continousPlacementText} continuous placement"
+				onClick={toggleContinuousPlacement}
+				icon={ReplaceAll}
+			/>
 			<Button
 				title="{gridSnapText} grid snap"
 				text="{gridSnapText} grid snap"

@@ -335,6 +335,35 @@ export class Editor {
 		await this.pointer.clickOn(this.page.getByLabel(text));
 	}
 
+	async setContinuousPlacement(enable: boolean) {
+		const enableLabel = "Enable continuous placement";
+		const disableLabel = "Disable continuous placement";
+		if (enable) {
+			const enableButton = this.page.getByRole("button", {
+				name: enableLabel,
+			});
+			if (await enableButton.isVisible()) {
+				await this.pointer.clickOn(enableButton);
+			} else {
+				await expect(
+					this.page.getByRole("button", { name: disableLabel }),
+				).toBeVisible();
+			}
+			return;
+		}
+
+		const disableButton = this.page.getByRole("button", {
+			name: disableLabel,
+		});
+		if (await disableButton.isVisible()) {
+			await this.pointer.clickOn(disableButton);
+		} else {
+			await expect(
+				this.page.getByRole("button", { name: enableLabel }),
+			).toBeVisible();
+		}
+	}
+
 	async rotateSelected(dir: "cw" | "ccw") {
 		const dirText = dir === "cw" ? "clockwise" : "counter-clockwise";
 		const button = this.page.getByRole("button", { name: `Rotate ${dirText}` });

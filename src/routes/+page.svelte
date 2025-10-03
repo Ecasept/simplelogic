@@ -3,6 +3,7 @@
 	import OnCanvas from "$lib/components/editor/overlay/OnCanvas.svelte";
 	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
 	import {
+		AddAction,
 		canvasViewModel,
 		ChangesAction,
 		circuitModalViewModel,
@@ -110,6 +111,22 @@
 			editorViewModel.setSelected(clickedElement);
 			// Complete the adding of the component
 			ChangesAction.commitChanges();
+
+			if (
+				uiState.matches({
+					settings: {
+						continuousPlacement: true,
+					},
+					initiator: "keyboard",
+				})
+			) {
+				// If continuous placement is enabled, start adding another component of the same type
+				AddAction.addComponent(
+					graphManager.getComponentData(clickedElement.id).type,
+					{ x: e.clientX, y: e.clientY },
+					"keyboard",
+				);
+			}
 		} else if (
 			uiState.matches({
 				editType: P.union("draggingWireHandle", "addingWire"),
