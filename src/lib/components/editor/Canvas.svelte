@@ -11,9 +11,11 @@
 		CANVAS_DOT_RADIUS,
 		debugLog,
 		GRID_SIZE,
+		isVibrateSupported,
 		PAN_THRESHOLD,
 	} from "$lib/util/global.svelte";
 	import {
+		cancelLongPress,
 		cancelLongPressIfMoved,
 		startLongPressTimer,
 	} from "$lib/util/longpress";
@@ -46,6 +48,7 @@
 
 	/**
 	 * The most recent event for all currently active pointers.
+	 * Only for panning/zoom, not for area selection.
 	 */
 	const pointerEventCache: PointerEvent[] = [];
 
@@ -71,31 +74,37 @@
 
 	function onPointerDown(event: PointerEvent) {
 		if (event.button !== 0) return;
-		if (event.shiftKey) {
-			const uiState = editorViewModel.uiState;
-			if (uiState.matches({ isPanning: true })) return;
 
-			if (uiState.matches({ editType: "idle" })) {
+		const uiState = editorViewModel.uiState;
+		if (uiState.matches({ editType: "idle", isPanning: false })) {
+			if (event.shiftKey) {
+				// If shift is held, start area selection
 				EditorAction.startAreaSelection(
 					canvasViewModel.clientToSVGCoords({
 						x: event.clientX,
 						y: event.clientY,
 					}),
 				);
+				event.preventDefault();
+				return;
+			} else {
+				startLongPressTimer({ x: event.clientX, y: event.clientY }, () => {
+					stopPanning();
+					if (isVibrateSupported()) {
+						navigator.vibrate(10);
+					}
+					EditorAction.startAreaSelection(
+						canvasViewModel.clientToSVGCoords({
+							x: event.clientX,
+							y: event.clientY,
+						}),
+					);
+				});
 			}
 		}
 		event.preventDefault();
 		pointerEventCache.push(event);
 		startPanning();
-		startLongPressTimer({ x: event.clientX, y: event.clientY }, () => {
-			stopPanning();
-			EditorAction.startAreaSelection(
-				canvasViewModel.clientToSVGCoords({
-					x: event.clientX,
-					y: event.clientY,
-				}),
-			);
-		});
 	}
 
 	function removeEvent(ev: PointerEvent) {
@@ -105,6 +114,8 @@
 		if (index !== -1) pointerEventCache.splice(index, 1);
 	}
 	function onPointerExit(event: PointerEvent) {
+		// Cancel any pending long press
+		cancelLongPress();
 		const cuiState = canvasViewModel.uiState;
 		if (cuiState.isPanning && cuiState.moveAmount < PAN_THRESHOLD) {
 			// If the user only clicked and didn't move the canvas,
