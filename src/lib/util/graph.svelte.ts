@@ -1,3 +1,4 @@
+import { canvasViewModel } from "./actions.svelte";
 import {
 	CommandGroup,
 	UpdateCustomDataCommand,
@@ -7,7 +8,9 @@ import { GRID_SIZE, linesIntersect } from "./global.svelte";
 import { mover } from "./move.svelte";
 import {
 	ZGraphData,
+	type ComponentData,
 	type GraphData,
+	type WireData,
 	type XYPair
 } from "./types";
 import type { AreaSelectType, TypedReference } from "./viewModels/editorViewModel.svelte";
@@ -126,51 +129,21 @@ export class GraphManager {
 
 		for (const compId in this._graphData.components) {
 			const component = this._graphData.components[compId];
-			const cx1 = component.position.x;
-			const cy1 = component.position.y;
-			const cx2 = component.position.x + component.size.x * GRID_SIZE;
-			const cy2 = component.position.y + component.size.y * GRID_SIZE;
-			if (type === "contain") {
-				// Check if the component is fully contained in the selection area
-				if (cx1 >= x1 && cx2 <= x2 && cy1 >= y1 && cy2 <= y2) {
-					selected.push({ type: "component", id: component.id })
+			if (component.type === "TEXT") {
+				// Text components are a special case, as their size is dynamic
+				if (AreaSelect.doesTextBoxIntersectArea(component, x1, y1, x2, y2, type)) {
+					selected.push({ type: "component", id: component.id });
 				}
-			} else {
-				// Check if the component intersects with the selection area
-				if (cx1 < x2 && cx2 > x1 && cy1 < y2 && cy2 > y1) {
-					selected.push({ type: "component", id: component.id })
-				}
+				continue;
+			}
+			if (AreaSelect.doesComponentIntersectArea(component, x1, y1, x2, y2, type)) {
+				selected.push({ type: "component", id: component.id });
 			}
 		}
 		for (const wireId in this._graphData.wires) {
 			const wire = this._graphData.wires[wireId];
-			const startX = wire.handles.input.x;
-			const startY = wire.handles.input.y;
-			const endX = wire.handles.output.x;
-			const endY = wire.handles.output.y;
-			// Check if both handles are contained in the selection area
-			// no `if (type === "contain")` check needed, as if the line is contained,
-			// it is also intersecting
-			if (
-				startX >= x1 &&
-				startX <= x2 &&
-				startY >= y1 &&
-				startY <= y2 &&
-				endX >= x1 &&
-				endX <= x2 &&
-				endY >= y1 &&
-				endY <= y2
-			) {
+			if (AreaSelect.doesWireIntersectArea(wire, x1, y1, x2, y2, type)) {
 				selected.push({ type: "wire", id: wire.id });
-			} else if (type === "intersect") {
-				const start = { x: startX, y: startY };
-				const end = { x: endX, y: endY };
-				if (linesIntersect(start, end, { x: x1, y: y1 }, { x: x2, y: y1 }) ||
-					linesIntersect(start, end, { x: x2, y: y1 }, { x: x2, y: y2 }) ||
-					linesIntersect(start, end, { x: x2, y: y2 }, { x: x1, y: y2 }) ||
-					linesIntersect(start, end, { x: x1, y: y2 }, { x: x1, y: y1 })) {
-					selected.push({ type: "wire", id: wire.id });
-				}
 			}
 		}
 		return selected;
@@ -269,5 +242,82 @@ export class GraphManager {
 	}
 	getGraphData() {
 		return this._graphData;
+	}
+}
+
+class AreaSelect {
+	static doesComponentIntersectArea(component: ComponentData, x1: number, y1: number, x2: number, y2: number, type: AreaSelectType) {
+		const cx1 = component.position.x;
+		const cy1 = component.position.y;
+		const cx2 = component.position.x + component.size.x * GRID_SIZE;
+		const cy2 = component.position.y + component.size.y * GRID_SIZE;
+		if (type === "contain") {
+			// Check if the component is fully contained in the selection area
+			if (cx1 >= x1 && cx2 <= x2 && cy1 >= y1 && cy2 <= y2) {
+				return true;
+			}
+		} else {
+			// Check if the component intersects with the selection area
+			if (cx1 < x2 && cx2 > x1 && cy1 < y2 && cy2 > y1) {
+				return true;
+			}
+		}
+		return false;
+	}
+	static doesWireIntersectArea(wire: WireData, x1: number, y1: number, x2: number, y2: number, type: AreaSelectType) {
+		const startX = wire.handles.input.x;
+		const startY = wire.handles.input.y;
+		const endX = wire.handles.output.x;
+		const endY = wire.handles.output.y;
+		// Check if both handles are contained in the selection area
+		// no `if (type === "contain")` check needed, as if the line is contained,
+		// it is also intersecting
+		if (
+			startX >= x1 &&
+			startX <= x2 &&
+			startY >= y1 &&
+			startY <= y2 &&
+			endX >= x1 &&
+			endX <= x2 &&
+			endY >= y1 &&
+			endY <= y2
+		) {
+			return true;
+		} else if (type === "intersect") {
+			const start = { x: startX, y: startY };
+			const end = { x: endX, y: endY };
+			if (linesIntersect(start, end, { x: x1, y: y1 }, { x: x2, y: y1 }) ||
+				linesIntersect(start, end, { x: x2, y: y1 }, { x: x2, y: y2 }) ||
+				linesIntersect(start, end, { x: x2, y: y2 }, { x: x1, y: y2 }) ||
+				linesIntersect(start, end, { x: x1, y: y2 }, { x: x1, y: y1 })) {
+				return true;
+			}
+		}
+		return false;
+	}
+	static doesTextBoxIntersectArea(textBox: ComponentData, x1: number, y1: number, x2: number, y2: number, type: AreaSelectType) {
+		// Try to find the text box in the DOM
+		const element = document.querySelector(`[data-testcomponenttype="TEXT"][data-testcomponentid="${textBox.id}"]`);
+		if (element) {
+			console.log("found")
+			const rect = element.getBoundingClientRect();
+			const topLeftClient = { x: rect.left, y: rect.top };
+			const bottomRightClient = { x: rect.right, y: rect.bottom };
+			const topLeft = canvasViewModel.clientToSVGCoords(topLeftClient);
+			const bottomRight = canvasViewModel.clientToSVGCoords(bottomRightClient);
+			const size = {
+				x: (bottomRight.x - topLeft.x) / GRID_SIZE,
+				y: (bottomRight.y - topLeft.y) / GRID_SIZE
+			}
+			console.log("size", size);
+			const textBoxData: ComponentData = {
+				...textBox,
+				position: topLeft,
+				size
+			};
+			return this.doesComponentIntersectArea(textBoxData, x1, y1, x2, y2, type);
+		}
+		// If the element is not found, fall back to using the component's position and its default size
+		return this.doesComponentIntersectArea(textBox, x1, y1, x2, y2, type);
 	}
 }
