@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		isComponentHandleRef,
+		isVibrateSupported,
 		isWireHandleRef,
 	} from "$lib/util/global.svelte";
 	import { RotationInfo } from "$lib/util/positioning";
@@ -125,6 +126,15 @@
 	let r = $derived(
 		highlight ? 10 : isHoveredHandle && !(deletingThis || simulating) ? 6 : 5,
 	);
+
+	$effect(() => {
+		// Vibrate when dragging a wire onto another handle
+		if (isVibrateSupported()) {
+			if (draggingOtherOnToThis) {
+				navigator.vibrate(10);
+			}
+		}
+	});
 
 	function cubicBezier(p0: number, p1: number, p2: number, p3: number) {
 		return (t: number) => {
