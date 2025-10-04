@@ -26,20 +26,12 @@
 		isPoweredInitially: boolean;
 		uiState: EditorUiState;
 		customData?: Record<string, any>;
-		centerTopLeft?: boolean;
 	};
-	let {
-		id,
-		type,
-		position,
-		rotation,
-		uiState,
-		customData,
-		centerTopLeft,
-	}: Props = $props();
+	let { id, type, position, rotation, uiState, customData }: Props = $props();
 
 	let text = $derived(customData?.text ?? "");
 	let fontSize = $derived(customData?.fontSize ?? 16);
+	let alignment = $derived(customData?.alignment ?? "center");
 
 	let editingThis = $derived(
 		uiState.matches({
@@ -120,8 +112,18 @@
 		new RotationInfo(rotation, { x: position.x, y: position.y }),
 	);
 
-	let textAnchor = $derived(centerTopLeft ? "start" : "middle");
-	let dominantBaseline = $derived(centerTopLeft ? "hanging" : "middle");
+	let textAnchor = $derived.by(() => {
+		switch (alignment) {
+			case "left":
+				return "start";
+			case "center":
+				return "middle";
+			case "right":
+				return "end";
+			default:
+				return "center";
+		}
+	});
 </script>
 
 <text
@@ -145,9 +147,11 @@
 	font-size={fontSize}
 	fill={textColor}
 	text-anchor={textAnchor}
-	dominant-baseline={dominantBaseline}
+	dominant-baseline="middle"
 >
-	{text}
+	{#each text.split("\n") as line, i (i)}
+		<tspan x={position.x} dy={i === 0 ? "0" : "1.2em"}>{line}</tspan>
+	{/each}
 </text>
 
 <!-- <circle cx={position.x} cy={position.y} r="1" /> -->

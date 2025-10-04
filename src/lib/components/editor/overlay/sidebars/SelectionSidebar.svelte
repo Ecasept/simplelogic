@@ -2,16 +2,25 @@
 	import Button from "$lib/components/reusable/Button.svelte";
 	import {
 		DeleteAction,
+		DuplicateAction,
 		EditorAction,
 		editorViewModel,
 		graphManager,
-		DuplicateAction,
 	} from "$lib/util/actions.svelte";
 	import { COMPONENT_DATA, debugLog } from "$lib/util/global.svelte";
 	import { onEnter } from "$lib/util/keyboard";
-	import type { InputInputEvent } from "$lib/util/types";
+	import type { TextAreaInputEvent } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
-	import { RotateCcw, RotateCw, Trash, Zap, ZapOff } from "lucide-svelte";
+	import {
+		RotateCcw,
+		RotateCw,
+		TextAlignCenter,
+		TextAlignEnd,
+		TextAlignStart,
+		Trash,
+		Zap,
+		ZapOff,
+	} from "lucide-svelte";
 	import { match } from "ts-pattern";
 	import Sidebar from "./Sidebar.svelte";
 
@@ -60,7 +69,7 @@
 		open = !open;
 	}
 
-	function onTextInput(e: InputInputEvent) {
+	function onTextInput(e: TextAreaInputEvent) {
 		const newText = e.currentTarget.value;
 		if (info.selectedId === null) {
 			console.error("No element selected to update text");
@@ -77,9 +86,36 @@
 		EditorAction.updateTextFontSize(info.selectedId, newSize);
 	}
 
-	function onEnterPressed() {
+	function onEnterPressed(event: KeyboardEvent) {
+		if (event.shiftKey) {
+			// Allow new lines with Shift+Enter
+			return;
+		}
 		// Unfocus textbox
 		editorViewModel.clearSelection();
+	}
+
+	function getTextAlignmentIcon(
+		alignment: "left" | "center" | "right" | undefined,
+	) {
+		return match(alignment)
+			.with("left", () => TextAlignStart)
+			.with("center", () => TextAlignCenter)
+			.with("right", () => TextAlignEnd)
+			.otherwise(() => TextAlignCenter);
+	}
+
+	function toggleAlignment(currentAlign: "left" | "center" | "right" | null) {
+		if (info.selectedId === null) {
+			console.error("No element selected to update text alignment");
+			return;
+		}
+		const newAlign = match(currentAlign)
+			.with("left", () => "center" as const)
+			.with("center", () => "right" as const)
+			.with("right", () => "left" as const)
+			.otherwise(() => "right" as const); // null defaults to center, so next is right
+		EditorAction.updateTextAlignment(info.selectedId, newAlign);
 	}
 
 	$inspect(info).with(debugLog("INFO"));
@@ -151,14 +187,20 @@
 
 							{#if info.data.type === "TEXT"}
 								<div class="text-data-container">
-									<input
+									<textarea
 										title="Text"
 										aria-label="Text"
-										type="text"
 										placeholder="Enter text"
 										value={info.data.customData?.text}
 										oninput={onTextInput}
 										onkeypress={onEnter(onEnterPressed)}
+									></textarea>
+									<Button
+										title="Toggle text alignment"
+										icon={getTextAlignmentIcon(info.data.customData?.alignment)}
+										onClick={() =>
+											toggleAlignment(info.data.customData?.alignment)}
+										margin="0"
 									/>
 									<input
 										title="Font size"
@@ -230,18 +272,16 @@
 	}
 
 	.text-data-container {
-		display: flex;
+		display: grid;
 		gap: 8px;
-
-		& :first-child {
-			flex: 4 1 0;
-		}
-		& :last-child {
-			flex: 1 1 0;
+		grid-template-columns: 1fr 0.5fr;
+		textarea {
+			grid-row: 1 / span 2;
 		}
 	}
 
-	input {
+	input,
+	textarea {
 		min-width: 0;
 		padding: 12px 16px;
 		background-color: var(--primary-color);
@@ -250,6 +290,7 @@
 		border-radius: var(--default-border-radius);
 		font-size: 1rem;
 		transition: all 0.2s ease;
+		field-sizing: content;
 
 		&:focus {
 			outline: none;

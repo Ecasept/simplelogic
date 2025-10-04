@@ -159,6 +159,7 @@ export const COMPONENT_DATA: {
 		customData: {
 			text: "Text",
 			fontSize: 16,
+			alignment: "center",
 		},
 	},
 };

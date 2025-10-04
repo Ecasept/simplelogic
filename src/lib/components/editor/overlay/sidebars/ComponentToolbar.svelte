@@ -45,7 +45,6 @@
 						handles={COMPONENT_DATA[type].handles}
 						{type}
 						isPoweredInitially={false}
-						centerTopLeft={true}
 					/>
 				{:else}
 					<Component

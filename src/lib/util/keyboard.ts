@@ -404,7 +404,7 @@ function constructValue(e: KeyboardEvent): State {
 }
 
 export async function handleKeyDown(e: KeyboardEvent) {
-	if (e.target instanceof HTMLInputElement) {
+	if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
 		return;
 	}
 

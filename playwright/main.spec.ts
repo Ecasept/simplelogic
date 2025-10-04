@@ -1689,4 +1689,30 @@ test.describe("text component", () => {
 		await editor.undo();
 		await expect(textComp).toHaveAttribute("font-size", initialSize);
 	});
+
+	test("can toggle text alignment", async ({ editor, pointer }) => {
+		await editor.addComponent("TEXT", 400, 400);
+		const textComp = editor.getComponent("TEXT").first();
+
+		const selectionSidebar = editor.getSidebar("selection");
+		const alignmentButton = selectionSidebar.getByRole("button", {
+			name: "Toggle text alignment",
+		});
+
+		await expect(textComp).toHaveAttribute("text-anchor", "middle");
+
+		await pointer.clickOn(alignmentButton);
+		await expect(textComp).toHaveAttribute("text-anchor", "end");
+
+		await pointer.clickOn(alignmentButton);
+		await expect(textComp).toHaveAttribute("text-anchor", "start");
+
+		await pointer.clickOn(alignmentButton);
+		await expect(textComp).toHaveAttribute("text-anchor", "middle");
+
+		// Ensure alignment persists after deselecting and reselecting
+		await pointer.clickAt(200, 10);
+		await pointer.clickOn(textComp, true);
+		await expect(textComp).toHaveAttribute("text-anchor", "middle");
+	});
 });

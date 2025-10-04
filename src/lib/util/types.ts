@@ -117,6 +117,10 @@ export interface InputInputEvent extends Event {
 	currentTarget: EventTarget & HTMLInputElement;
 }
 
+export interface TextAreaInputEvent extends Event {
+	currentTarget: EventTarget & HTMLTextAreaElement;
+}
+
 /** A type for a list of handles of type `HandleType` that have no connections.
  * The list needs to include all handles with the specified `HandleName`.
  * Example:

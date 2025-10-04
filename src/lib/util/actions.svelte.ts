@@ -459,6 +459,13 @@ export class EditorAction {
 		graphManager.notifyAll();
 	}
 
+	static updateTextAlignment(id: number, newAlignment: "left" | "center" | "right") {
+		const command = new UpdateCustomDataCommand(id, "alignment", newAlignment);
+		graphManager.executeCommand(command);
+		graphManager.applyChanges();
+		graphManager.notifyAll();
+	}
+
 	// ==== Movement ====
 
 	/** Returns the position of the given handle reference. */
