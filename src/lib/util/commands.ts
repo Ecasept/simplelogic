@@ -31,7 +31,7 @@ export interface Command {
 export class CommandGroup implements Command {
 	constructor(
 		private readonly commands: Command[],
-		private readonly type: string = "none",
+		public readonly type: string = "none",
 	) {}
 	execute(graphData: GraphData) {
 		for (const command of this.commands) {
