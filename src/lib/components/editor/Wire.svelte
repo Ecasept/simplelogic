@@ -2,6 +2,7 @@
 	import {
 		AddAction,
 		canvasViewModel,
+		ChangesAction,
 		DeleteAction,
 		editorViewModel,
 	} from "$lib/util/actions.svelte";
@@ -66,7 +67,7 @@
 
 		// Add new wire instead of moving existing one on long press
 		// Abort the previous move wire action
-		editorViewModel.abortEditing();
+		ChangesAction.abortEditing();
 
 		if (isVibrateSupported()) {
 			navigator.vibrate(10);

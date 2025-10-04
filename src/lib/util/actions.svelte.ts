@@ -208,6 +208,8 @@ export class AddAction {
 	 * @param clickedHandle The handle that was clicked, which will be connected to the wire.
 	 */
 	static addWire(clickSvgPos: XYPair, clickedHandle: HandleReference) {
+		ChangesAction.abortEditing();
+
 		const wireData: ValidWireInitData = {
 			handles: {
 				input: {
