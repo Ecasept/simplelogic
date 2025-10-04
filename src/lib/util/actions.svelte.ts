@@ -14,6 +14,7 @@ import {
 	type Command,
 } from "./commands";
 import {
+	calculateHandlePosition,
 	constructComponent,
 	GRID_SIZE,
 	rotateAroundBy,
@@ -458,9 +459,41 @@ export class EditorAction {
 
 	// ==== Movement ====
 
+	/** Returns the position of the given handle reference. */
+	private static getPos(ref: HandleReference) {
+		if (ref.type == "component") {
+			const cmp = graphManager.getComponentData(ref.id);
+			const handle = cmp.handles[ref.handleId];
+			return calculateHandlePosition(
+				handle.edge,
+				handle.pos,
+				cmp.size,
+				cmp.position,
+				cmp.rotation,
+				true,
+			);
+		} else {
+			const handle = graphManager.getWireData(ref.id).handles[ref.handleId];
+			return { x: handle.x, y: handle.y };
+		}
+	}
+
 	static connect(conn1: HandleReference, conn2: HandleReference) {
+
+		// Move conn1 to the position of conn2 before connecting
+		const pos2 = this.getPos(conn2);
+		const cmdMove = new MoveWireHandleCommand(
+			pos2,
+			conn1.handleType,
+			conn1.id,
+		);
+
+		// Connect the two handles
 		const cmd = new ConnectCommand(conn1, conn2);
-		graphManager.executeCommand(cmd);
+
+		const group = new CommandGroup([cmdMove, cmd], "connect");
+
+		graphManager.executeCommand(group);
 		graphManager.notifyAll();
 	}
 	static undo() {
