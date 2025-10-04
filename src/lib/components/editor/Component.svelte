@@ -297,6 +297,7 @@
 					{deletingThis}
 					{simulating}
 					{simData}
+					{isSelected}
 					handleType={handle.type}
 					position={handlePosition}
 					onHandleDown={(e) =>
