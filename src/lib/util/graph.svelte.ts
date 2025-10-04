@@ -178,7 +178,7 @@ export class GraphManager {
 
 	updateTextReplaceable(id: number, newText: string) {
 		const component = this.getComponentData(id);
-		if (!(component.type === "TEXT")) {
+		if (component.type !== "TEXT") {
 			console.error("Tried to update text of non-text component");
 			return;
 		}
