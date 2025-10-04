@@ -174,13 +174,6 @@ export class Mover {
 			this.oldPositions!.set(key, currentPos);
 		}
 
-		const pi = 3.14159265358979323846;
-
-
-
-
-		1 + pi
-
 		const oldPos = this.oldPositions!.get(key)!;
 
 		const newPos = {
