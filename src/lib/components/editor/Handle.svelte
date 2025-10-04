@@ -12,6 +12,7 @@
 		XYPair,
 	} from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+	import { Tween } from "svelte/motion";
 	type Props = {
 		uiState: EditorUiState;
 		ref: HandleReference;
@@ -100,8 +101,11 @@
 	//   and the we are part of a wire
 	//   (we don't want to change the color of component handles when hovering components in delete mode)
 	//   -> fill the handle with the delete color
+
+	let highlight = $derived(draggingOtherOnToThis || draggingThisOnToOther);
+
 	let fill = $derived(
-		draggingOtherOnToThis || draggingThisOnToOther
+		highlight
 			? "var(--handle-connect-color)"
 			: (simulating && isHandlePowered) ||
 				  (deletingThis && isWireHandleRef(connection))
@@ -116,13 +120,30 @@
 	//   and we are not deleting this handle or simulation is active
 	//   (handles are disabled when deleting or simulating)
 	//   -> increase the radius of the handle
-	// - the user is dragging this wire onto another component
-	//   -> increase the radius of the handle
+	// - the user is connecting to/from this handle
+	//   -> increase the radius of the handle more
 	let r = $derived(
-		(isHoveredHandle && !deletingThis && !simulating) || draggingThisOnToOther
-			? 10
-			: 5,
+		highlight ? 10 : isHoveredHandle && !(deletingThis || simulating) ? 6 : 5,
 	);
+
+	function cubicBezier(p0: number, p1: number, p2: number, p3: number) {
+		return (t: number) => {
+			const u = 1 - t;
+			const tt = t * t;
+			const uu = u * u;
+			return 3 * uu * t * p1 + 3 * u * tt * p2 + tt * t * p3;
+		};
+	}
+
+	/** Animated radius for the handle symbol */
+	const aR = new Tween(5, {
+		duration: 100,
+		easing: cubicBezier(0.19, 1, 0.22, 1),
+	});
+
+	$effect(() => {
+		aR.set(r);
+	});
 </script>
 
 <circle
@@ -144,22 +165,32 @@
 	transform={rotationInfo.asRotate()}
 ></circle>
 
-{#if handleType === "input"}
+{#snippet line(rotated: boolean, show: boolean)}
 	<line
-		x1={position.x}
-		y1={position.y - r / 2}
-		x2={position.x}
-		y2={position.y + r / 2}
+		class={["handle-symbol", { hidden: !show }]}
+		x1={position.x - (rotated ? aR.current / 2 : 0)}
+		y1={position.y - (rotated ? 0 : aR.current / 2)}
+		x2={position.x + (rotated ? aR.current / 2 : 0)}
+		y2={position.y + (rotated ? 0 : aR.current / 2)}
 		stroke="var(--on-component-outline-color)"
 		stroke-width={1}
 		pointer-events="none"
 		transform={rotationInfo.asTranslateFor(position)}
 	></line>
+{/snippet}
+
+<!-- A "+" sign to indicate connection -->
+{@render line(true, highlight)}
+{@render line(false, highlight)}
+
+{#if handleType === "input"}
+	{@render line(false, !highlight)}
 {:else}
 	<circle
+		class={["handle-symbol", { hidden: highlight }]}
 		cx={position.x}
 		cy={position.y}
-		r={(3 * r) / 5}
+		r={(3 * aR.current) / 5}
 		fill="transparent"
 		stroke-width={1}
 		stroke="var(--on-component-outline-color)"
@@ -169,9 +200,15 @@
 {/if}
 
 <style lang="scss">
-	circle {
+	.handle {
 		transition:
 			r 0.1s cubic-bezier(0.19, 1, 0.22, 1),
 			fill 0.1s cubic-bezier(0.19, 1, 0.22, 1);
+	}
+	.handle-symbol {
+		transition: opacity 0.1s cubic-bezier(0.19, 1, 0.22, 1);
+		&.hidden {
+			opacity: 0;
+		}
 	}
 </style>
