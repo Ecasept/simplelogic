@@ -30,8 +30,8 @@ export interface Command {
 
 export class CommandGroup implements Command {
 	constructor(
-		private commands: Command[],
-		public type: string = "none",
+		private readonly commands: Command[],
+		private readonly type: string = "none",
 	) {}
 	execute(graphData: GraphData) {
 		for (const command of this.commands) {
@@ -123,8 +123,8 @@ function disconnect(
 
 export class ConnectCommand implements Command {
 	constructor(
-		private from: HandleReference,
-		private to: HandleReference,
+		private readonly from: HandleReference,
+		private readonly to: HandleReference,
 	) {
 		// disallow two components
 		if (isComponentHandleRef(from) && isComponentHandleRef(to)) {
@@ -159,8 +159,8 @@ export class DisconnectCommand implements Command {
 	fromRefIndex: number | null = null;
 
 	constructor(
-		private from: HandleReference,
-		private to: HandleReference,
+		private readonly from: HandleReference,
+		private readonly to: HandleReference,
 	) {
 		// disallow two components
 		if (isComponentHandleRef(from) && isComponentHandleRef(to)) {
@@ -198,9 +198,9 @@ export class MoveWireHandleCommand implements Command {
 	oldPosition: XYPair | null = null;
 
 	constructor(
-		private newPosition: XYPair,
-		private type: HandleType,
-		private wireId: number,
+		private readonly newPosition: XYPair,
+		private readonly type: HandleType,
+		private readonly wireId: number,
 	) {}
 
 	execute(graphData: GraphData) {
@@ -228,8 +228,8 @@ export class MoveComponentCommand implements Command {
 	oldPosition: XYPair | null = null;
 
 	constructor(
-		private newPosition: XYPair,
-		private componentId: number,
+		private readonly newPosition: XYPair,
+		private readonly componentId: number,
 	) {}
 
 	execute(graphData: GraphData) {
@@ -258,8 +258,8 @@ export class MoveComponentAndWiresCommand implements Command {
 	private prepared = false;
 
 	constructor(
-		private componentId: number,
-		private newPosition: XYPair,
+		private readonly componentId: number,
+		private readonly newPosition: XYPair,
 	) {}
 
 	private prepare(graphData: GraphData) {
@@ -319,7 +319,7 @@ export class CreateWireCommand implements Command {
 	 * Additionally, the "input" and "output" fields must not contain any connections
 	 * They should be added in a separate ConnectCommand.
 	 */
-	constructor(private newWireData: ValidWireInitData) {}
+	constructor(private readonly newWireData: ValidWireInitData) {}
 	execute(graphData: GraphData) {
 		this.oldNextId = graphData.nextId;
 
@@ -356,7 +356,7 @@ export class CreateComponentCommand implements Command {
 	 * Additionally, no handle is allowed to have a connection. Any connections
 	 * should be added in a separate ConnectCommand.
 	 */
-	constructor(private newComponentData: ValidComponentInitData) {}
+	constructor(private readonly newComponentData: ValidComponentInitData) {}
 	execute(graphData: GraphData) {
 		this.oldNextId = graphData.nextId;
 
@@ -397,9 +397,9 @@ export class RawAddCommand implements Command {
 	 * @param newNextId The value that graphData.nextId should have AFTER executing this command
 	 */
 	constructor(
-		private elementType: "component" | "wire",
-		private data: ComponentData | WireData,
-		private newNextId: number,
+		private readonly elementType: "component" | "wire",
+		private readonly data: ComponentData | WireData,
+		private readonly newNextId: number,
 	) {}
 	execute(graphData: GraphData) {
 		this.oldNextId = graphData.nextId;
@@ -437,7 +437,7 @@ export class DeleteElementCommand implements Command {
 
 	constructor(
 		private elementId: number,
-		private elementType: "component" | "wire",
+		private readonly elementType: "component" | "wire",
 	) {}
 	execute(graphData: GraphData) {
 		const list =
@@ -505,7 +505,7 @@ export class DeleteWireCommand extends DeleteElementCommand {
 }
 
 export class ToggleInputPowerStateCommand implements Command {
-	constructor(private componentId: number) {}
+	constructor(private readonly componentId: number) {}
 
 	execute(graphData: GraphData) {
 		graphData.components[this.componentId].isPoweredInitially =
@@ -521,8 +521,8 @@ export class ToggleInputPowerStateCommand implements Command {
 
 export class RotateComponentCommand implements Command {
 	constructor(
-		private componentId: number,
-		private amount: number,
+		private readonly componentId: number,
+		private readonly amount: number,
 	) {}
 
 	execute(graphData: GraphData) {
@@ -543,7 +543,7 @@ export class UpdateCustomDataCommand implements Command {
 	constructor(
 		public componentId: number,
 		public property: string,
-		private newValue: unknown,
+		private readonly newValue: unknown,
 	) {}
 
 	execute(graphData: GraphData) {
@@ -553,9 +553,7 @@ export class UpdateCustomDataCommand implements Command {
 		}
 
 		// Initialize customData if it doesn't exist
-		if (!component.customData) {
-			component.customData = {};
-		}
+		component.customData ??= {};
 
 		// Store the old value for undo
 		this.oldValue = component.customData[this.property];
