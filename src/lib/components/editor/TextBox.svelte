@@ -150,7 +150,10 @@
 	dominant-baseline="middle"
 >
 	{#each text.split("\n") as line, i (i)}
-		<tspan x={position.x} dy={i === 0 ? "0" : "1.2em"}>{line}</tspan>
+		<tspan x={position.x} dy={i === 0 ? 0 : "1.2em"}>
+			<!-- Use non-breaking space if line is empty to ensure line height is maintained -->
+			{line || "\u00A0"}
+		</tspan>
 	{/each}
 </text>
 
