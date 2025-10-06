@@ -7,6 +7,7 @@ const stringToJSONSchema = z.string()
 		try {
 			return JSON.parse(str)
 		} catch (e) {
+			console.error('JSON parse error:', e)
 			ctx.addIssue({ code: 'custom', message: 'Invalid JSON' })
 			return z.NEVER
 		}
