@@ -157,8 +157,6 @@
 	{/each}
 </text>
 
-<!-- <circle cx={position.x} cy={position.y} r="1" /> -->
-
 <style lang="scss">
 	@use "sass:math";
 	@use "$lib/css/variables.scss" as *;
