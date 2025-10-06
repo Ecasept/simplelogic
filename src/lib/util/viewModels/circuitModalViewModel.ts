@@ -258,12 +258,22 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		this.notifyAll();
 	}
 
+	scrollToFeedback() {
+		setTimeout(() => {
+			const el = document.getElementById("error-msg");
+			if (el) {
+				el.scrollIntoView({ behavior: "smooth", block: "center" });
+			}
+		});
+	}
+
 	setError(msg: string) {
 		this._uiState.message = {
 			type: "error",
 			message: msg,
 		};
 		this.notifyAll();
+		this.scrollToFeedback();
 	}
 	setSuccess(msg: string) {
 		this._uiState.message = {
@@ -271,6 +281,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			message: msg,
 		};
 		this.notifyAll();
+		this.scrollToFeedback();
 	}
 	closeFeedback() {
 		this._uiState.message = null;
