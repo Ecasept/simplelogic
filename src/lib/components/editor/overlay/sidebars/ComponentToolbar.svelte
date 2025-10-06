@@ -38,7 +38,10 @@
 							x: COMPONENT_DATA[type].width,
 							y: COMPONENT_DATA[type].height,
 						}}
-						position={{ x: 0, y: 6 }}
+						position={{
+							x: (COMPONENT_DATA[type].width * GRID_SIZE) / 2,
+							y: (COMPONENT_DATA[type].height * GRID_SIZE) / 2,
+						}}
 						rotation={0}
 						{uiState}
 						customData={{ text: "Text", fontSize: 8 }}
