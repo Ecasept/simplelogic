@@ -187,14 +187,6 @@
 
 							{#if info.data.type === "TEXT"}
 								<div class="text-data-container">
-									<textarea
-										title="Text"
-										aria-label="Text"
-										placeholder="Enter text"
-										value={info.data.customData?.text}
-										oninput={onTextInput}
-										onkeypress={onEnter(onEnterPressed)}
-									></textarea>
 									<Button
 										title="Toggle text alignment"
 										icon={getTextAlignmentIcon(info.data.customData?.alignment)}
@@ -215,6 +207,14 @@
 											}
 										}}
 									/>
+									<textarea
+										title="Text"
+										aria-label="Text"
+										placeholder="Enter text"
+										value={info.data.customData?.text}
+										oninput={onTextInput}
+										onkeypress={onEnter(onEnterPressed)}
+									></textarea>
 								</div>
 							{/if}
 						</div>
@@ -274,9 +274,9 @@
 	.text-data-container {
 		display: grid;
 		gap: 8px;
-		grid-template-columns: 1fr 0.5fr;
+		grid-template-columns: 1fr 1fr;
 		textarea {
-			grid-row: 1 / span 2;
+			grid-column: 1 / span 2;
 		}
 	}
 
