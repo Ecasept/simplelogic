@@ -7,7 +7,9 @@ import {
 	Page,
 } from "@playwright/test";
 import playwrightConfig from "../playwright.config";
-import { DesktopPointer, Editor, Pointer } from "./fixtures";
+import { Editor } from "./fixtures/editor";
+import { DesktopPointer, Pointer } from "./fixtures/pointer";
+import { Simulation } from "./fixtures/simulation";
 import { Touchscreen } from "./mobile/touchscreen";
 
 export async function expectPosToBe(component: Locator, x: number, y: number) {
@@ -148,6 +150,7 @@ const customTest = base.extend<
 		page: Page;
 		clipboard: MockClipboard;
 		editor: Editor;
+		sim: Simulation;
 		touchscreen: Touchscreen | null;
 		/** A default pointer used by the editor */
 		pointer: Pointer;
@@ -207,6 +210,9 @@ const customTest = base.extend<
 	},
 	editor: async ({ page, pointer, browserName, baseURL }, use) => {
 		await use(new Editor(page, pointer, browserName, baseURL));
+	},
+	sim: async ({ editor }, use) => {
+		await use(new Simulation(editor));
 	},
 });
 

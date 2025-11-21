@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
-import { circuits } from "./circuits";
-import { getAttr, test } from "./common";
+import { circuits } from "../circuits";
+import { getAttr, test } from "../common";
 
 test.describe("modal login", () => {
 	test("save modal login flow", async ({ page, editor }) => {

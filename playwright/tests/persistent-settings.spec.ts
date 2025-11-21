@@ -1,4 +1,4 @@
-import { expect, test } from './common';
+import { expect, test } from '../common';
 
 // Tests that editor settings (grid snap & area select type) persist across a reload via localStorage
 // Relies on editorViewModel.updateSettings() writing to localStorage under key 'editorSettings'

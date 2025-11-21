@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { expect, test } from './common';
+import { expect, test } from '../common';
 
 // Tests A, B, C, D from plan:
 // A: onboarding shows (fresh) unless no-onboarding param present.

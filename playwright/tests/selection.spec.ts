@@ -1,5 +1,5 @@
-import { circuits } from "./circuits";
-import { expect, expectPosToBe, test } from "./common";
+import { circuits } from "../circuits";
+import { expect, expectPosToBe, test } from "../common";
 
 test.describe("selection", () => {
 	test("selection flow", async ({ page, editor, pointer }) => {

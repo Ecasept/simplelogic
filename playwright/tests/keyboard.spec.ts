@@ -1,4 +1,4 @@
-import { expect, expectPosToBe, test } from "./common";
+import { expect, expectPosToBe, test } from "../common";
 
 test.describe("editor shortcuts", () => {
 	test("a adds AND gate", async ({ page, pointer, editor }) => {
