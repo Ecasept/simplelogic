@@ -7,7 +7,8 @@
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import Sidebar from "./Sidebar.svelte";
 	import SidebarSection from "./SidebarSection.svelte";
-	import SimulationSidebarContent from "./SimulationSidebarContent.svelte";
+	import SimulationSidebarContent from "./simulation/SimulationSidebarContent.svelte";
+	import { P } from "ts-pattern";
 
 	const { uiState }: { uiState: EditorUiState } = $props();
 
@@ -36,7 +37,7 @@
 	}
 </script>
 
-{#if uiState.matches({ mode: "edit", editType: "idle" })}
+{#if uiState.matches( { mode: "edit", editType: P.union("idle", "elementDown") }, )}
 	<Sidebar headerText="Tools" uniqueName={"tools"} {toggle} {open}>
 		<SidebarSection text="Components">
 			<ComponentToolbar onPointerDown={addComponent} />

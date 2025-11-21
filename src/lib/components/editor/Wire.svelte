@@ -7,8 +7,10 @@
 		editorViewModel,
 	} from "$lib/util/actions.svelte";
 	import {
+		debugLog,
 		draggedHandleType,
 		isComponentHandleRef,
+		isElementPowered,
 		isVibrateSupported,
 	} from "$lib/util/global.svelte";
 	import { startLongPressTimer } from "$lib/util/longpress";
@@ -54,11 +56,13 @@
 
 	let isSelected = $derived(editorViewModel.isSelectedId(id));
 
-	let isPowered = $derived.by(() => {
-		const isOutputPowered = simData?.outputs["output"] ?? false;
-		return simulating && isOutputPowered;
-	});
+	let isPowered = $derived(
+		simData ? simulating && isElementPowered(simData) : false,
+	);
 
+	if (id === 10) {
+		$inspect(simData).with(debugLog(`Wire ${id} Simulation Data`));
+	}
 	function onHandleLongPress(handle: WireHandle, handleType: HandleType) {
 		if (handleType === "input" && handle.connections.length > 0) {
 			// Cannot start a new wire from an input that already has a connection

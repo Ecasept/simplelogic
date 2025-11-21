@@ -19,45 +19,52 @@ export function getSimData(id: number): SimulationData | null {
 	return simController.state[id] ?? null;
 }
 
+/** Max duration to process a batch of elements in ms
+ * until yielding back to the event loop */
+const SIMULATION_MAX_TIME_WITHOUT_YIELD = 10;
+
 class SimulationController {
-	public mode: "run" | "step" = $state("run");
-	public notifyOnUpdateSetting: boolean = $state(true);
+
+
+	public continuousExecution: boolean = $state(true);
 
 	/** The time that the simulation was started */
-	private simulationStart: Date | null = null;
+	private simulationStart: DOMHighResTimeStamp | null = null;
 	/** How long the simulation ran */
 	public simulationDuration: number = $state(0);
+
+	/** How long in ms to wait between each update in continuous mode */
+	public updateDelay: number = $state(16);
 
 	/** Whether the simulation is currently processing the queue. */
 	public loopRunning: boolean = $state(false);
 
 	private onStopped: (() => void) | null = null;
+	private skipLoopDelay: (() => void) | null = null;
 
-	/** Whether the simulation should notify the UI on every update.
-	 * This is true for the "step" mode and can also be set manually
-	 */
-	private get _notifyOnUpdate() {
-		return this.notifyOnUpdateSetting || this.mode === "step";
+	public startContinuousExecution() {
+		this.continuousExecution = true;
+		this.runContinuousLoopIfEnabled();
+	}
+	public stopContinuousExecution() {
+		this.stopLoop();
+		this.continuousExecution = false;
 	}
 
-	public async setMode(mode: "run" | "step") {
-		if (this.mode === mode) {
-			return;
-		}
-		if (this.loopRunning) {
-			await this.stopLoop();
-		}
-		this.mode = mode;
+	public async reset() {
+		await this.stopLoop();
+		simulation.reset();
+		this.simulationStart = null;
+		this.simulationDuration = 0;
+		this.notifyAll();
+		// Start processing again if in continuous mode
+		this.runContinuousLoopIfEnabled();
 	}
 
 	public start() {
 		simulation.reset();
-		if (this._notifyOnUpdate) {
-			this.notifyAll();
-		}
-		if (this.mode === "run") {
-			this.startLoop();
-		}
+		this.notifyAll();
+		this.runContinuousLoopIfEnabled();
 	}
 
 	public async stopLoop() {
@@ -65,29 +72,48 @@ class SimulationController {
 			return;
 		}
 		this.loopRunning = false;
-		return new Promise<void>((resolve) => {
+
+		const onStoppedPromise = new Promise<void>((resolve) => {
+			// When the loop stops, this promise will be resolved
 			this.onStopped = resolve;
 		});
+
+		if (this.skipLoopDelay) {
+			// If we are currently waiting for the next step, skip the delay
+			this.skipLoopDelay();
+		}
+
+		return onStoppedPromise;
 	}
 
-	public step() {
+	public stepForward() {
+		this._step();
+		this.notifyAll();
+	}
+
+	private _step() {
 		const hasMoreWork = simulation.step();
-		if (this._notifyOnUpdate) {
-			this.notifyAll();
-		}
 		return hasMoreWork;
 	}
 
-	public async startLoop() {
+	public runContinuousLoopIfEnabled() {
+		if (!this.continuousExecution || this.loopRunning) {
+			return;
+		}
+		this._runLoop();
+	}
+
+	private async _runLoop() {
 		this.loopRunning = true;
-		this.simulationStart = new Date();
+		this.simulationStart = performance.now();
+
+		let stepStart = performance.now();
+		let stepEnd = performance.now() + this.updateDelay;
+
+		await new Promise(requestAnimationFrame);
+
 
 		while (true) {
-			const hasMoreWork = this.step();
-			if (!hasMoreWork) {
-				break;
-			}
-
 			if (this.onStopped) {
 				// If the processing was stopped, exit the loop
 				this.loopRunning = false;
@@ -96,12 +122,37 @@ class SimulationController {
 				break;
 			}
 
-			// Don't block the event loop
-			await new Promise((resolve) => setTimeout(resolve, 0));
+			const hasMoreWork = this._step();
+			if (!hasMoreWork) {
+				break;
+			}
+
+			if (this.updateDelay !== 0) {
+				// Notify UI about changes.
+				// UI will not actually be updated until we yield back to the event loop.
+				this.notifyAll();
+			}
+
+			const now = performance.now();
+			const maxTimeExceeded = now - stepStart > SIMULATION_MAX_TIME_WITHOUT_YIELD;
+			const aheadOfSchedule = stepEnd > now;
+			const shouldYield = maxTimeExceeded || aheadOfSchedule;
+
+			if (shouldYield) {
+				// Yield back to the event loop
+				const timeLeft = Math.max(0, stepEnd - now);
+				await new Promise<void>(
+					(r) => {
+						this.skipLoopDelay = r;
+						setTimeout(r, timeLeft);
+					});
+				this.skipLoopDelay = null;
+				stepEnd += this.updateDelay;
+				stepStart = performance.now();
+			}
 		}
 
-		this.simulationDuration =
-			new Date().getTime() - this.simulationStart.getTime();
+		this.simulationDuration = performance.now() - this.simulationStart;
 		this.simulationStart = null;
 		this.loopRunning = false;
 
@@ -110,12 +161,10 @@ class SimulationController {
 
 	public recomputeComponent(id: number) {
 		simulation.recomputeComponent(id);
-		if (this._notifyOnUpdate) {
-			this.notifyAll();
-		}
-		if (this.mode === "run" && !this.loopRunning) {
-			this.startLoop();
-		}
+
+		this.notifyAll();
+
+		this.runContinuousLoopIfEnabled();
 	}
 
 	public state: SimulationState = $state({});

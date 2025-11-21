@@ -23,7 +23,6 @@
 		position: XYPair;
 		rotation: number;
 		handles: ComponentHandleList;
-		isPoweredInitially: boolean;
 		uiState: EditorUiState;
 		customData?: Record<string, any>;
 	};

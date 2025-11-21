@@ -643,6 +643,7 @@ export class PersistenceAction {
 	}
 	static setNewGraph(newGraphData: GraphData) {
 		editorViewModel.hardReset();
+		simController.reset();
 		graphManager.clear();
 		graphManager.setGraphData(newGraphData);
 		graphManager.notifyAll();

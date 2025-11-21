@@ -10,6 +10,10 @@ body {
 	width: 100%;
 	overflow: hidden;
 	font-family: Raleway, ui-sans-serif, sans-serif;
+
+	// Raleway uses old-style numerals by default, but in this app
+	// numbers are often used in isolation, so lining numerals are better.
+	font-variant-numeric: lining-nums;
 }
 
 :root {

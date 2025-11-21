@@ -11,6 +11,7 @@
 		height?: string;
 		type?: "danger" | "primary";
 		reversed?: boolean;
+		size?: string;
 	};
 	let {
 		icon: Icon = null,
@@ -22,6 +23,7 @@
 		height = "auto",
 		type = "primary",
 		reversed = false,
+		size = undefined,
 	}: Props = $props();
 </script>
 
@@ -32,14 +34,14 @@
 		icon: Icon !== null,
 		danger: type === "danger",
 		primary: type === "primary",
-		reversed
+		reversed,
 	}}
 	aria-label={title}
 	onclick={onClick}
 	style={"margin:" + margin + "; height:" + height}
 >
 	{#if Icon}
-		<Icon />
+		<Icon {size} />
 	{/if}
 	{#if text}{text}{/if}
 </button>

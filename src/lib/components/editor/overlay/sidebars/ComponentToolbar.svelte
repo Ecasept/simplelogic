@@ -47,7 +47,6 @@
 						customData={{ text: "Text", fontSize: 8 }}
 						handles={COMPONENT_DATA[type].handles}
 						{type}
-						isPoweredInitially={false}
 					/>
 				{:else}
 					<Component
@@ -60,7 +59,6 @@
 						position={{ x: 0, y: 0 }}
 						handles={COMPONENT_DATA[type].handles}
 						{uiState}
-						isPoweredInitially={false}
 						rotation={0}
 					/>
 				{/if}

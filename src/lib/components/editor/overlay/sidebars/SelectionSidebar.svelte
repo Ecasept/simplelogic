@@ -21,7 +21,7 @@
 		Zap,
 		ZapOff,
 	} from "lucide-svelte";
-	import { match } from "ts-pattern";
+	import { match, P } from "ts-pattern";
 	import Sidebar from "./Sidebar.svelte";
 
 	const { uiState }: { uiState: EditorUiState } = $props();
@@ -141,7 +141,7 @@
 {/snippet}
 
 {#if info.selectionCount > 0}
-	{#if uiState.matches({ mode: "edit", editType: "idle" })}
+	{#if uiState.matches( { mode: "edit", editType: P.union("idle", "elementDown") }, )}
 		<Sidebar
 			headerText="Element Settings"
 			uniqueName={"selection"}

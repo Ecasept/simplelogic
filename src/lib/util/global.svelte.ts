@@ -1,4 +1,5 @@
 import { editorViewModel } from "./actions.svelte";
+import type { SimulationData } from "./simulation.svelte";
 import type {
 	ComponentHandle,
 	ComponentHandleList,
@@ -399,6 +400,20 @@ export function linesIntersect(
 	}
 
 	return false;
+}
+
+/** Returns whether a simulation element (component or wire) is currently powered. */
+export function isElementPowered(sim: SimulationData): boolean {
+	if (sim.type === "IN") {
+		// Inputs reflect their initial toggle immediately
+		return sim.isPoweredInitially;
+	}
+
+	const anyOutputPowered = Object.values(sim.outputs ?? {}).some((v) => v);
+	// LEDs don't have outputs, they are powered if their input is powered
+	const isSimPowered = anyOutputPowered || sim.ledPowered;
+
+	return isSimPowered || sim.isPoweredInitially;
 }
 
 /** Checks if there is currently a handle of the given type being dragged. */

@@ -5,7 +5,11 @@
 		DeleteAction,
 		editorViewModel,
 	} from "$lib/util/actions.svelte";
-	import { calculateHandlePosition, GRID_SIZE } from "$lib/util/global.svelte";
+	import {
+		calculateHandlePosition,
+		GRID_SIZE,
+		isElementPowered,
+	} from "$lib/util/global.svelte";
 	import { RotationInfo } from "$lib/util/positioning";
 	import { getSimData } from "$lib/util/simulation.svelte";
 	import type {
@@ -32,19 +36,10 @@
 		position: XYPair;
 		rotation: number;
 		handles: ComponentHandleList;
-		isPoweredInitially: boolean;
 		uiState: EditorUiState;
 	};
-	let {
-		id,
-		size,
-		type,
-		position,
-		rotation,
-		handles,
-		isPoweredInitially,
-		uiState,
-	}: Props = $props();
+	let { id, size, type, position, rotation, handles, uiState }: Props =
+		$props();
 
 	let rect = $state<SVGRectElement>();
 
@@ -55,30 +50,15 @@
 		}),
 	);
 
+	/** If the editor is currently in simulate mode */
 	let simulating = $derived(uiState.matches({ mode: "simulate" }));
 	let simData = $derived(getSimData(id));
 
 	let isSelected = $derived(editorViewModel.isSelectedId(id));
 
-	let isPowered = $derived.by(() => {
-		if (simulating) {
-			const isAnyOutputPowered = Object.values(simData?.outputs ?? {}).some(
-				(v) => v,
-			);
-			// A component is "powered" if it sends power to any output
-			if (isAnyOutputPowered) {
-				return true;
-			}
-			// LEDs don't have outputs, so there is an extra property
-			if (simData?.ledPowered) {
-				return true;
-			}
-		}
-		if (isPoweredInitially) {
-			return true;
-		}
-		return false;
-	});
+	let isPowered = $derived(
+		simData ? simulating && isElementPowered(simData) : false,
+	);
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
