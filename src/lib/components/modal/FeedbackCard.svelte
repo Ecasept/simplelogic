@@ -16,7 +16,7 @@
 
 {#if feedback !== null}
 	<div class={feedback.type} id="error-msg">
-		{feedback.message}
+		<span>{feedback.message}</span>
 		<button id="close-btn" onclick={closeFeedback}>
 			<Trash size="20" />
 		</button>
@@ -24,12 +24,10 @@
 {/if}
 
 <style lang="scss">
-	$card-padding-vertical: 12px;
-	$card-padding-horizontal: 16px;
-
 	#error-msg {
 		margin: 8px 0 0 0;
-		padding: $card-padding-vertical $card-padding-horizontal;
+		padding: 4px;
+		padding-left: 12px; // extra left padding for the text
 		font-weight: 500;
 		text-align: center;
 		border-radius: var(--default-border-radius);
@@ -60,9 +58,6 @@
 		cursor: pointer;
 		position: relative;
 		padding: 8px;
-		margin: -8px;
-		// Change the padding on the right to be the same as the top/bottom padding
-		margin-right: -$card-padding-horizontal + $card-padding-vertical - 8px;
 		border-radius: var(--default-border-radius);
 
 		&:hover {
