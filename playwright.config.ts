@@ -17,6 +17,9 @@ type WebServer = ReturnType<typeof defineConfig>["webServer"];
 // to differentiate users in tests
 import { v4 as uuidv4 } from "uuid";
 const testId = uuidv4();
+const testOauthIssuer =
+	process.env.TEST_OAUTH_ISSUER ??
+	`http://localhost:${process.env.TEST_OAUTH_PORT ?? "58080"}`;
 
 export default defineConfig({
 	testDir: "./playwright",
@@ -107,7 +110,7 @@ export default defineConfig({
 			{
 				// OAuth2 mock server
 				command: "npm run oauth",
-				url: "http://localhost:8080/userinfo",
+				url: `${testOauthIssuer}/userinfo`,
 				reuseExistingServer: !process.env.CI,
 			},
 		];

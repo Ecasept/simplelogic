@@ -4,6 +4,9 @@ import { SvelteKitAuth } from "@auth/sveltekit";
 import type { Provider } from "@auth/sveltekit/providers";
 import GitHub from "@auth/sveltekit/providers/github";
 
+const TEST_OAUTH_ISSUER =
+	env.TEST_OAUTH_ISSUER ?? "http://localhost:58080";
+
 /** Creates a testing provider for testing purposes.
  * It is connected to a locally running OAuth server
  * and returns a mock user profile based on the user agent.
@@ -21,11 +24,11 @@ function createTestingProvider(
 		id: provider,
 		name: `${provider} Testing`,
 		type: "oauth",
-		issuer: "http://localhost:8080",
+		issuer: TEST_OAUTH_ISSUER,
 		clientId: `testing-client-id`,
 		clientSecret: "abc",
-		userinfo: "http://localhost:8080/userinfo",
-		token: "http://localhost:8080/token",
+		userinfo: `${TEST_OAUTH_ISSUER}/userinfo`,
+		token: `${TEST_OAUTH_ISSUER}/token`,
 		profile(profile) {
 			return {
 				name: `John Doe (${testingClient})`,
