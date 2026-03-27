@@ -13,6 +13,7 @@
 		height: number;
 		type: ComponentType;
 		isPowered: boolean;
+		customData?: Record<string, unknown>;
 		rotationInfo: RotationInfo;
 		uiState: EditorUiState;
 	};
@@ -24,12 +25,17 @@
 		height,
 		type,
 		isPowered,
+		customData,
 		rotationInfo,
 		uiState,
 	}: Props = $props();
 
 	let middleX = $derived(x + width / 2);
 	let middleY = $derived(y + height / 2);
+	let showLabel = $derived(customData?.showLabel !== false);
+	let ioLabel = $derived(
+		type === "IN" || type === "LED" ? String(customData?.label ?? "") : "",
+	);
 </script>
 
 {#if type === "IN"}
@@ -58,6 +64,19 @@
 		})}
 		transform={rotationInfo.asRotate()}
 	/>
+	{#if showLabel && ioLabel !== ""}
+		<text
+			x={middleX}
+			y={y + height + 14}
+			font-size="12"
+			dominant-baseline="middle"
+			text-anchor="middle"
+			fill="currentColor"
+			class="io-name"
+		>
+			{ioLabel}
+		</text>
+	{/if}
 {:else if type === "LED"}
 	<circle
 		class="led"
@@ -70,6 +89,19 @@
 			: "var(--component-outline-color)"}
 		transform={rotationInfo.asRotate()}
 	/>
+	{#if showLabel && ioLabel !== ""}
+		<text
+			x={middleX}
+			y={y + height + 14}
+			font-size="12"
+			dominant-baseline="middle"
+			text-anchor="middle"
+			fill="currentColor"
+			class="io-name"
+		>
+			{ioLabel}
+		</text>
+	{/if}
 {:else}
 	<text
 		x={middleX}

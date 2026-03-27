@@ -36,9 +36,10 @@
 		position: XYPair;
 		rotation: number;
 		handles: ComponentHandleList;
+		customData?: Record<string, unknown>;
 		uiState: EditorUiState;
 	};
-	let { id, size, type, position, rotation, handles, uiState }: Props =
+	let { id, size, type, position, rotation, handles, customData, uiState }: Props =
 		$props();
 
 	let rect = $state<SVGRectElement>();
@@ -244,6 +245,7 @@
 	{height}
 	{type}
 	{isPowered}
+	{customData}
 	{uiState}
 	{rotationInfo}
 />

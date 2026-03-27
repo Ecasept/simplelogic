@@ -137,6 +137,10 @@ export const COMPONENT_DATA: {
 		execute: (_, isPoweredInitially, __) => {
 			return isPoweredInitially;
 		},
+		customData: {
+			label: "",
+			showLabel: true,
+		},
 	},
 	LED: {
 		name: "LED",
@@ -148,6 +152,10 @@ export const COMPONENT_DATA: {
 		description: "Displays the input as a light",
 		canBePoweredWithoutAnyInputBeingPowered: false,
 		execute: (inputs, _, __) => inputs.in,
+		customData: {
+			label: "",
+			showLabel: true,
+		},
 	},
 	TEXT: {
 		name: "Text",

@@ -149,10 +149,10 @@ export class GraphManager {
 		return selected;
 	}
 
-	updateTextReplaceable(id: number, newText: string) {
+	updateCustomDataReplaceable(id: number, property: string, newValue: unknown) {
 		const component = this.getComponentData(id);
-		if (component.type !== "TEXT") {
-			console.error("Tried to update text of non-text component");
+		if (!component) {
+			console.error(`Tried to update customData of missing component ${id}`);
 			return;
 		}
 
@@ -160,22 +160,20 @@ export class GraphManager {
 			const lastCommand = this.history[this.history.length - 1];
 			if (
 				lastCommand instanceof UpdateCustomDataCommand &&
-				lastCommand.property === "text" &&
+				lastCommand.property === property &&
 				lastCommand.componentId === id
 			) {
-				// If the last command was editing the same text,
-				// undo it as we don't want the user to have to undo
-				// every single character they type
 				this.undoLastCommand();
 			}
 		}
 
-		const oldText = component.customData?.text;
-		if (oldText === newText) {
-			return; // No change
+		const oldValue = component.customData?.[property];
+		if (oldValue === newValue) {
+			return;
 		}
-		const editTextCmd = new UpdateCustomDataCommand(id, "text", newText);
-		this.executeCommand(editTextCmd, true);
+
+		const cmd = new UpdateCustomDataCommand(id, property, newValue);
+		this.executeCommand(cmd, true);
 		this.applyChanges();
 	}
 

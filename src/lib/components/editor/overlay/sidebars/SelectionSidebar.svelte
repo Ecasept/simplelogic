@@ -9,7 +9,7 @@
 	} from "$lib/util/actions.svelte";
 	import { COMPONENT_DATA, debugLog } from "$lib/util/global.svelte";
 	import { onEnter } from "$lib/util/keyboard";
-	import type { TextAreaInputEvent } from "$lib/util/types";
+	import type { InputInputEvent, TextAreaInputEvent } from "$lib/util/types";
 	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 	import {
 		RotateCcw,
@@ -75,7 +75,7 @@
 			console.error("No element selected to update text");
 			return;
 		}
-		EditorAction.updateTextReplaceable(info.selectedId, newText);
+		EditorAction.updateCustomDataReplaceable(info.selectedId, "text", newText);
 	}
 
 	function onNumberInput(newSize: number) {
@@ -84,6 +84,27 @@
 			return;
 		}
 		EditorAction.updateTextFontSize(info.selectedId, newSize);
+	}
+
+	function onIoLabelInput(e: InputInputEvent) {
+		if (info.selectedId === null) {
+			console.error("No element selected to update IO label");
+			return;
+		}
+		EditorAction.updateCustomDataReplaceable(
+			info.selectedId,
+			"label",
+			e.currentTarget.value,
+		);
+	}
+
+	function toggleIoShowLabel() {
+		if (info.selectedId === null || info.type !== "component") {
+			console.error("No element selected to toggle IO label visibility");
+			return;
+		}
+		const showLabel = info.data.customData?.showLabel !== false;
+		EditorAction.updateIoShowLabel(info.selectedId, !showLabel);
 	}
 
 	function onEnterPressed(event: KeyboardEvent) {
@@ -217,6 +238,26 @@
 									></textarea>
 								</div>
 							{/if}
+
+							{#if info.data.type === "IN" || info.data.type === "LED"}
+								<div class="io-data-container">
+									<input
+										title="Label"
+										aria-label="Label"
+										placeholder="Label"
+										value={info.data.customData?.label ?? ""}
+										oninput={onIoLabelInput}
+									/>
+									<Button
+										text={info.data.customData?.showLabel === false
+											? "Show Label"
+											: "Hide Label"}
+										title="Toggle label visibility"
+										onClick={() => toggleIoShowLabel()}
+										margin="0"
+									/>
+								</div>
+							{/if}
 						</div>
 					{:else if info.type === "wire"}
 						<p class="selected-element-text">Selected: <strong>Wire</strong></p>
@@ -278,6 +319,11 @@
 		textarea {
 			grid-column: 1 / span 2;
 		}
+	}
+
+	.io-data-container {
+		display: grid;
+		gap: 8px;
 	}
 
 	input,

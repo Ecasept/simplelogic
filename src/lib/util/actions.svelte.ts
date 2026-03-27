@@ -447,11 +447,6 @@ export class EditorAction {
 		}
 	}
 
-	static updateTextReplaceable(id: number, newText: string) {
-		graphManager.updateTextReplaceable(id, newText);
-		graphManager.notifyAll();
-	}
-
 	static updateTextFontSize(id: number, newSize: number) {
 		const command = new UpdateCustomDataCommand(id, "fontSize", newSize);
 		graphManager.executeCommand(command);
@@ -459,8 +454,24 @@ export class EditorAction {
 		graphManager.notifyAll();
 	}
 
+	static updateCustomDataReplaceable(
+		id: number,
+		property: string,
+		newValue: unknown,
+	) {
+		graphManager.updateCustomDataReplaceable(id, property, newValue);
+		graphManager.notifyAll();
+	}
+
 	static updateTextAlignment(id: number, newAlignment: "left" | "center" | "right") {
 		const command = new UpdateCustomDataCommand(id, "alignment", newAlignment);
+		graphManager.executeCommand(command);
+		graphManager.applyChanges();
+		graphManager.notifyAll();
+	}
+
+	static updateIoShowLabel(id: number, showLabel: boolean) {
+		const command = new UpdateCustomDataCommand(id, "showLabel", showLabel);
 		graphManager.executeCommand(command);
 		graphManager.applyChanges();
 		graphManager.notifyAll();
