@@ -565,6 +565,83 @@ test.describe("adding and dragging/moving", async () => {
 		await expect(editor.wires()).toHaveCount(2);
 	});
 });
+
+test.describe("input/output labels", () => {
+	test("typing label is replaceable and undo is a single step", async ({
+		editor,
+		page,
+		pointer,
+	}) => {
+		await editor.addComponent("IN", 280, 240);
+
+		const labelInput = page.getByRole('textbox', { name: 'Label' });
+		await labelInput.click();
+		await labelInput.pressSequentially("CLK");
+		await expect(labelInput).toHaveValue("CLK");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "CLK" })).toBeVisible();
+
+		await pointer.clickAt(200, 20);
+		await editor.undo();
+
+		await pointer.clickOn(editor.getComponent("IN").first(), true);
+		await expect(labelInput).toHaveValue("");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "CLK" })).toHaveCount(0);
+	});
+
+	test("label visibility toggle persists across selection and mode changes", async ({
+		editor,
+		page,
+		pointer,
+	}) => {
+		await editor.addComponent("IN", 360, 220);
+		await page.getByRole('textbox', { name: 'Label' }).fill("A");
+
+		const visibilityButton = page.getByRole("button", {
+			name: "Toggle label visibility",
+		});
+		await expect(visibilityButton).toHaveText("Hide Label");
+		await visibilityButton.click();
+		await expect(visibilityButton).toHaveText("Show Label");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "A" })).toHaveCount(0);
+
+		await editor.addComponent("LED", 520, 220);
+		await pointer.clickOn(editor.getComponent("IN").first(), true);
+		await expect(visibilityButton).toHaveText("Show Label");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "A" })).toHaveCount(0);
+
+		await editor.toggleSimulate();
+		await editor.toggleSimulate();
+		await pointer.clickOn(editor.getComponent("IN").first(), true);
+		await expect(visibilityButton).toHaveText("Show Label");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "A" })).toHaveCount(0);
+	});
+
+	test("renders label only when non-empty and visible", async ({ editor, page }) => {
+		await editor.addComponent("LED", 320, 240);
+		const visibilityButton = page.getByRole("button", {
+			name: "Toggle label visibility",
+		});
+
+		await expect(page.locator(".canvasWrapper .io-name")).toHaveCount(0);
+
+		await page.getByRole('textbox', { name: 'Label' }).fill("OUT");
+		await expect(visibilityButton).toHaveText("Hide Label");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "OUT" })).toBeVisible();
+
+		await visibilityButton.click();
+		await expect(visibilityButton).toHaveText("Show Label");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "OUT" })).toHaveCount(0);
+
+		await visibilityButton.click();
+		await expect(visibilityButton).toHaveText("Hide Label");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "OUT" })).toBeVisible();
+
+		await page.getByRole('textbox', { name: 'Label' }).clear();
+		await expect(visibilityButton).toHaveText("Hide Label");
+		await expect(page.locator(".canvasWrapper .io-name", { hasText: "OUT" })).toHaveCount(0);
+	});
+});
+
 test.describe("deleting", async () => {
 	test("can't delete wire under component", async ({ editor }) => {
 		await editor.addComponent("AND", 500, 100);
