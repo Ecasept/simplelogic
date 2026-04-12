@@ -128,11 +128,9 @@
 	);
 
 	$effect(() => {
-		// Vibrate when dragging a wire onto another handle
-		if (isVibrateSupported()) {
-			if (draggingOtherOnToThis) {
-				navigator.vibrate(10);
-			}
+		// Vibrate when hovering a handle (the finger might be blocking the view, so this gives additional feedback that the handle is being hovered)
+		if (isVibrateSupported() && highlight) {
+			navigator.vibrate(10);
 		}
 	});
 
