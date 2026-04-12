@@ -20,7 +20,7 @@
 
 <div class="container">
 	<div class="run-controls">
-		Simulation
+		Live Simulation
 		{#if isRunning}
 			<Button
 				icon={Square}
@@ -44,10 +44,10 @@
 	<span class="status-text">
 		{#if !loopRunning}
 			<Check size={16} />
-			Finished in {finishedIn.toFixed(0)} ms
+			Last update took {finishedIn.toFixed(0)} ms
 		{:else}
 			<LoadingSpinner size={16} spinnerWidth={4}></LoadingSpinner>
-			Calculating...
+			Processing updates...
 		{/if}
 	</span>
 </div>
