@@ -116,6 +116,11 @@
 
 		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
 		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
+
+		startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
+			editorViewModel.addSelected({ id, type: "wire" });
+			ChangesAction.abortEditing();
+		});
 	}
 
 	function onHandleDown(clickedHandle: HandleType, e: SVGPointerEvent) {

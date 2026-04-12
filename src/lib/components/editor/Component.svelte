@@ -2,15 +2,16 @@
 	import {
 		AddAction,
 		canvasViewModel,
+		ChangesAction,
 		DeleteAction,
-		EditorAction,
-		editorViewModel,
+		editorViewModel
 	} from "$lib/util/actions.svelte";
 	import {
 		calculateHandlePosition,
 		GRID_SIZE,
 		isElementPowered,
 	} from "$lib/util/global.svelte";
+	import { startLongPressTimer } from "$lib/util/longpress";
 	import { RotationInfo } from "$lib/util/positioning";
 	import { getSimData } from "$lib/util/simulation.svelte";
 	import type {
@@ -159,14 +160,11 @@
 
 		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
 		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
-	}
 
-	function onKeyPress(e: KeyboardEvent) {
-		if (e.key === "Enter" && canToggleFromComponentBody()) {
-			e.preventDefault();
-			e.stopPropagation();
-			EditorAction.togglePower(id);
-		}
+		startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
+			editorViewModel.addSelected({ id, type: "component" });
+			ChangesAction.abortEditing();
+		});
 	}
 
 	function onHandleEnter(handle: ComponentHandle, identifier: string) {
