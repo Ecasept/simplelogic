@@ -53,6 +53,15 @@ export type EditAddingComponent = {
 	/** The id of the pointer whose click initiated the action. `null` if initiated by keyboard */
 	activePointerId: number | null;
 };
+export type EditAddingElements = {
+	mode: "edit";
+	editType: "addingElements";
+	activePointerId: number | null;
+	/** The elements being added */
+	elements: Map<number, ElementType>;
+	/** The position of the mouse when the component was created */
+	clickPosition: XYPair;
+}
 
 /** When the user clicked the mouse down on an element,
  * but has not yet released or moved the mouse.
@@ -119,7 +128,8 @@ export type EditState =
 	| EditAddingComponent
 	| EditWireHandleDown
 	| EditDraggingWireHandle
-	| EditAddingWire;
+	| EditAddingWire
+	| EditAddingElements;
 
 // ==== Delete Mode states ====
 export type DeleteState = {
@@ -401,6 +411,21 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 
+	startAddElements(
+		elements: Map<number, ElementType>,
+		clickPosition: XYPair,
+	) {
+		this.setUiState({
+			mode: "edit",
+			editType: "addingElements",
+			elements,
+			clickPosition,
+			activePointerId: null,
+			selected: this.getSelected(),
+		});
+		this.notifyAll();
+	}
+
 	/** Puts the editor in the mode where a new component is being added.
 	 * @param component The component that is being added
 	 * @param pos The position where the mouse was clicked
@@ -515,15 +540,12 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 	/** Set the selection to only contain the given elements */
-	setSelectedElements(elements: TypedReference[]) {
+	setSelectedElements(elements: Map<number, ElementType>) {
 		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to set selection in an invalid mode");
 			return;
 		}
-		this._uiState.selected = new Map<number, ElementType>();
-		for (const element of elements) {
-			this._uiState.selected.set(element.id, element.type);
-		}
+		this._uiState.selected = new Map(elements);
 		this.notifyAll();
 	}
 	clearSelection() {

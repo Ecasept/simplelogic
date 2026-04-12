@@ -17,6 +17,7 @@ import {
 	calculateHandlePosition,
 	constructComponent,
 	GRID_SIZE,
+	mousePosition,
 	rotateAroundBy,
 	setLastRotation,
 } from "./global.svelte";
@@ -25,11 +26,13 @@ import { mover } from "./move.svelte";
 import { simController } from "./simulation.svelte";
 import {
 	newWireHandleRef,
+	type ComponentData,
 	type ComponentHandle,
 	type ComponentType,
 	type GraphData,
 	type HandleReference,
 	type ValidWireInitData,
+	type WireData,
 	type WireHandle,
 	type XYPair,
 } from "./types";
@@ -117,41 +120,118 @@ export class DeleteAction {
 	}
 }
 
-export class DuplicateAction {
-	/** Duplicates all selected elements. New ids are assigned sequentially starting at current nextId.
-	 * Connections pointing outside the duplicated subset are removed.
-	 */
-	static duplicateSelected() {
-		const uiState = editorViewModel.uiState;
-		if (!uiState.matches({ mode: "edit", editType: "idle" })) return;
-		if (!("selected" in uiState) || uiState.selected.size === 0) return;
-		const data = graphManager.getGraphData();
 
-		// Collect ids
-		const oldSelected = uiState.selected; // Map<number, ElementType>
 
-		// Build mapping oldId -> newId
-		let nextId = data.nextId;
-		const idMap = new Map<number, number>();
-		for (const id of oldSelected.keys()) {
-			idMap.set(id, nextId++);
+type CloneEntry =
+	| [ComponentData, "component"]
+	| [WireData, "wire"];
+
+
+export class CloneAction {
+
+	static clipboard: CloneEntry[] = [];
+
+
+	static getBoundingBox(elements: CloneEntry[]) {
+		let minX = Infinity;
+		let minY = Infinity;
+		let maxX = -Infinity;
+		let maxY = -Infinity;
+		for (const [element, type] of elements) {
+			if (type === "component") {
+				const { x, y } = element.position;
+				minX = Math.min(minX, x);
+				minY = Math.min(minY, y);
+				maxX = Math.max(maxX, x + element.size.x * GRID_SIZE);
+				maxY = Math.max(maxY, y + element.size.y * GRID_SIZE);
+			} else {
+				for (const handle of Object.values(element.handles) as WireHandle[]) {
+					minX = Math.min(minX, handle.x);
+					minY = Math.min(minY, handle.y);
+					maxX = Math.max(maxX, handle.x);
+					maxY = Math.max(maxY, handle.y);
+				}
+			}
 		}
+		return { minX, minY, maxX, maxY };
+	}
 
-		const commands: Command[] = [];
-		// Duplicate components
-		for (const [oldId, type] of oldSelected) {
+	static getCenter(elements: CloneEntry[]) {
+		let xSum = 0;
+		let ySum = 0;
+		let count = 0;
+
+		for (const [element, type] of elements) {
+			if (type === "component") {
+				const { x, y } = element.position;
+				xSum += x;
+				ySum += y;
+				count++;
+			} else {
+				for (const handle of Object.values(element.handles) as WireHandle[]) {
+					xSum += handle.x;
+					ySum += handle.y;
+					count++;
+				}
+			}
+		}
+		return { x: xSum / count, y: ySum / count };
+	}
+
+	static shiftBy(elements: CloneEntry[], offset: XYPair) {
+		for (const [element, type] of elements) {
+			if (type === "component") {
+				element.position.x += offset.x;
+				element.position.y += offset.y;
+			} else {
+				for (const handle of Object.values(element.handles) as WireHandle[]) {
+					handle.x += offset.x;
+					handle.y += offset.y;
+				}
+			}
+		}
+	}
+
+	static getCopies(elements: Map<number, ElementType>, data: GraphData) {
+		const selectedIds = new Set(elements.keys());
+		const clones: CloneEntry[] = [];
+		for (const [oldId, type] of elements) {
 			const orig = type === "component" ? data.components[oldId] : data.wires[oldId];
 			if (!orig) continue;
 
 			const clone = structuredClone(orig);
-			clone.id = idMap.get(oldId)!;
 
-			// Filter connections to only those inside subset and remap ids
+			// Filter connections to only those inside subset
+			for (const handle of Object.values(clone.handles) as (WireHandle | ComponentHandle)[]) {
+				handle.connections = handle.connections
+					.filter((c) => selectedIds.has(c.id));
+			}
+			clones.push([clone, type] as CloneEntry);
+		}
+		return clones;
+	}
+
+	static remapIds(clones: CloneEntry[], nextId: number) {
+		const idMap = new Map<number, number>();
+		for (const [clone] of clones) {
+			idMap.set(clone.id, nextId++);
+		}
+
+		for (const [clone] of clones) {
+			clone.id = idMap.get(clone.id)!;
 			for (const handle of Object.values(clone.handles) as (WireHandle | ComponentHandle)[]) {
 				handle.connections = handle.connections
 					.filter((c) => idMap.has(c.id))
 					.map((c) => ({ ...c, id: idMap.get(c.id)! }));
 			}
+		}
+
+		return [clones, idMap, nextId] as const;
+	}
+
+	static insert(clones: CloneEntry[], data: GraphData, nextId: number) {
+		const commands: Command[] = [];
+		for (const [clone, type] of clones) {
 			commands.push(new RawAddCommand(type, clone, nextId));
 		}
 
@@ -160,14 +240,97 @@ export class DuplicateAction {
 		graphManager.executeCommand(group);
 		graphManager.applyChanges();
 		graphManager.notifyAll();
+	}
 
-		// Update selection to new elements
-		const newSelection: Map<number, ElementType> = new Map();
-		for (const [oldId, newId] of idMap) {
-			const t = oldSelected.get(oldId)!;
-			newSelection.set(newId, t);
+	static selectAll(clones: CloneEntry[]) {
+		const newSelection = new Map<number, ElementType>();
+		for (const [clone, type] of clones) {
+			newSelection.set(clone.id, type);
 		}
-		editorViewModel.setSelectedElements(Array.from(newSelection, ([id, type]) => ({ id, type })));
+		editorViewModel.setSelectedElements(newSelection);
+	}
+
+	static copySelected() {
+		const uiState = editorViewModel.uiState;
+		if (!uiState.matches({ mode: "edit", editType: "idle" })) return;
+		if (!("selected" in uiState) || uiState.selected.size === 0) return;
+		const data = graphManager.getGraphData();
+
+		const clones = this.getCopies(uiState.selected, data);
+		this.clipboard = clones;
+
+	}
+
+	static pasteClipboard() {
+		if (this.clipboard.length === 0) {
+			return;
+		}
+		ChangesAction.abortEditing();
+		const data = graphManager.getGraphData();
+
+
+		const mpSVG = canvasViewModel.clientToSVGCoords(mousePosition);
+		const { minX, minY, maxX, maxY } = this.getBoundingBox(this.clipboard);
+		const center = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+		const offset = { x: mpSVG.x - center.x, y: mpSVG.y - center.y };
+		// copy clipboard again to avoid mutating original clipboard entries with the offset
+		const clones = structuredClone(this.clipboard) as CloneEntry[];
+		const [remappedClones, _, nextId] = this.remapIds(clones, data.nextId);
+		this.shiftBy(clones, offset);
+		this.insert(remappedClones, data, nextId);
+		this.selectAll(remappedClones);
+
+	}
+
+	static duplicateSelectedWithOffset() {
+		const uiState = editorViewModel.uiState;
+		if (!uiState.matches({ mode: "edit", editType: "idle" })) return;
+		if (!("selected" in uiState) || uiState.selected.size === 0) return;
+		ChangesAction.abortEditing();
+		const data = graphManager.getGraphData();
+
+		const clones = this.getCopies(uiState.selected, data);
+		const [remappedClones, _, nextId] = this.remapIds(clones, data.nextId);
+
+		this.shiftBy(remappedClones, { x: GRID_SIZE, y: GRID_SIZE }); // Shift the duplicates by one grid cell to avoid exact overlap
+		this.insert(remappedClones, data, nextId);
+		this.selectAll(remappedClones);
+	}
+
+	static duplicateSelectedAndDrag() {
+		const uiState = editorViewModel.uiState;
+		if (!uiState.matches({ mode: "edit", editType: "idle" })) return;
+		if (!("selected" in uiState) || uiState.selected.size === 0) return;
+		ChangesAction.abortEditing();
+		const data = graphManager.getGraphData();
+
+		const clones = this.getCopies(uiState.selected, data);
+		const [remappedClones, _, nextId] = this.remapIds(clones, data.nextId);
+
+
+		const mpSVG = canvasViewModel.clientToSVGCoords(mousePosition);
+		const { minX, minY, maxX, maxY } = this.getBoundingBox(remappedClones);
+		const center = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+		const offset = { x: mpSVG.x - center.x, y: mpSVG.y - center.y };
+		this.shiftBy(remappedClones, offset);
+
+
+		// Actually insert clones
+		const commands: Command[] = [];
+		for (const [clone, type] of remappedClones) {
+			commands.push(new RawAddCommand(type, clone, nextId));
+		}
+
+		if (commands.length === 0) return;
+		const group = new CommandGroup(commands, "duplicate");
+		graphManager.executeCommand(group);
+		graphManager.notifyAll();
+
+		const elements = new Map<number, ElementType>();
+		for (const [clone, type] of remappedClones) {
+			elements.set(clone.id, type);
+		}
+		editorViewModel.startAddElements(elements, mpSVG);
 	}
 }
 
@@ -284,6 +447,7 @@ export class MoveAction {
 					"draggingWireHandle",
 					"addingWire",
 					"wireHandleDown",
+					"addingElements",
 				),
 			})
 		) {
@@ -308,6 +472,12 @@ export class MoveAction {
 					editorViewModel.setActivePointerId(pointerId);
 				}
 				this.addingComponent(uiState, offset);
+				break;
+			case "addingElements":
+				if (uiState.activePointerId === null) {
+					editorViewModel.setActivePointerId(pointerId);
+				}
+				this.addingElements(uiState, offset);
 				break;
 			case "draggingElements":
 				this.draggingElements(uiState, offset);
@@ -334,6 +504,15 @@ export class MoveAction {
 		const elements = new Map<number, ElementType>();
 		elements.set(uiState.clickedElement.id, uiState.clickedElement.type);
 		mover.moveElementsReplaceable(offset, elements);
+	}
+
+	private static addingElements(uiState: EditorUiState, offset: XYPair) {
+		if (!uiState.matches({ editType: "addingElements" })) {
+			throw new Error("wrong mode");
+		}
+
+
+		mover.moveElementsReplaceable(offset, uiState.elements);
 	}
 
 	private static draggingElements(uiState: EditorUiState, offset: XYPair) {

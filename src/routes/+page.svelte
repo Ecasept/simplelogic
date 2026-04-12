@@ -105,7 +105,18 @@
 		if (uiState.matches({ isPanning: true })) {
 			console.warn("Panning should be handled by the canvas component");
 			return;
-		} else if (uiState.matches({ editType: "addingComponent", activePointerId: e.pointerId })) {
+		} else if (
+			uiState.mode === "edit" &&
+			uiState.editType === "addingElements" &&
+			uiState.activePointerId === e.pointerId
+		) {
+			editorViewModel.setSelectedElements(uiState.elements);
+			ChangesAction.commitChanges();
+		} else if (
+			uiState.mode === "edit" &&
+			uiState.editType === "addingComponent" &&
+			uiState.activePointerId === e.pointerId
+		) {
 			// Select the component that was added
 			const clickedElement = $state.snapshot(uiState.clickedElement);
 			editorViewModel.setSelected(clickedElement);

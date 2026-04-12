@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Button from "$lib/components/reusable/Button.svelte";
 	import {
+		CloneAction,
 		DeleteAction,
-		DuplicateAction,
 		EditorAction,
 		editorViewModel,
 		graphManager,
@@ -156,7 +156,7 @@
 	<Button
 		title="Duplicate selected element(s)"
 		text="Duplicate"
-		onClick={() => DuplicateAction.duplicateSelected()}
+		onClick={() => CloneAction.duplicateSelectedWithOffset()}
 		margin="0"
 	/>
 {/snippet}

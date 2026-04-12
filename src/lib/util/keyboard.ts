@@ -3,8 +3,8 @@ import type { Pattern } from "ts-pattern/types";
 import {
 	AddAction,
 	ChangesAction,
+	CloneAction,
 	DeleteAction,
-	DuplicateAction,
 	EditorAction,
 	editorViewModel,
 	ModeAction,
@@ -379,7 +379,36 @@ const shortcuts = [
 			isPanning: false,
 		},
 		action: () => {
-			DuplicateAction.duplicateSelected();
+			CloneAction.duplicateSelectedAndDrag();
+		},
+	}),
+		s({
+		name: "Copy selected",
+		pattern: {
+			key: "c",
+			mod: "ctrl",
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			selected: P.when((s) => s.size > 0),
+			isPanning: false,
+		},
+		action: () => {
+			CloneAction.copySelected();
+		},
+	}),
+		s({
+		name: "Paste clipboard",
+		pattern: {
+			key: "v",
+			mod: "ctrl",
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			isPanning: false,
+		},
+		action: () => {
+			CloneAction.pasteClipboard();
 		},
 	}),
 ];

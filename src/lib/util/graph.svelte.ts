@@ -13,7 +13,7 @@ import {
 	type WireData,
 	type XYPair
 } from "./types";
-import type { AreaSelectType, TypedReference } from "./viewModels/editorViewModel.svelte";
+import type { AreaSelectType, TypedReference, ElementType } from "./viewModels/editorViewModel.svelte";
 
 export class GraphManager {
 	/** Private state of the graph manager, that gets published with the notifyAll() method */
@@ -125,25 +125,25 @@ export class GraphManager {
 		const y1 = Math.min(startPos.y, endPos.y);
 		const y2 = Math.max(startPos.y, endPos.y);
 
-		const selected: TypedReference[] = [];
+		const selected = new Map<number, ElementType>();
 
 		for (const compId in this._graphData.components) {
 			const component = this._graphData.components[compId];
 			if (component.type === "TEXT") {
 				// Text components are a special case, as their size is dynamic
 				if (AreaSelect.doesTextBoxIntersectArea(component, x1, y1, x2, y2, type)) {
-					selected.push({ type: "component", id: component.id });
+					selected.set(component.id, "component");
 				}
 				continue;
 			}
 			if (AreaSelect.doesComponentIntersectArea(component, x1, y1, x2, y2, type)) {
-				selected.push({ type: "component", id: component.id });
+				selected.set(component.id, "component");
 			}
 		}
 		for (const wireId in this._graphData.wires) {
 			const wire = this._graphData.wires[wireId];
 			if (AreaSelect.doesWireIntersectArea(wire, x1, y1, x2, y2, type)) {
-				selected.push({ type: "wire", id: wire.id });
+				selected.set(wire.id, "wire");
 			}
 		}
 		return selected;

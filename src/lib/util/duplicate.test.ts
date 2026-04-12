@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { DuplicateAction, graphManager, editorViewModel } from "./actions.svelte";
+import { beforeEach, describe, expect, it } from "vitest";
+import { CloneAction, editorViewModel, graphManager } from "./actions.svelte";
 import { newWireHandleRef, type GraphData } from "./types";
+import type { ElementType } from "./viewModels/editorViewModel.svelte";
 
 function comp(id: number, overrides: Partial<any> = {}) {
 	return {
@@ -38,6 +39,14 @@ function wire(id: number, overrides: Partial<any> = {}) {
 	};
 }
 
+// Mock DOMPoint for clientToSVGCoords since it's not defined in the test environment natively
+if (typeof DOMPoint === 'undefined') {
+	(global as any).DOMPoint = class DOMPoint {
+		constructor(public x = 0, public y = 0, public z = 0, public w = 1) {}
+		matrixTransform() { return this; }
+	};
+}
+
 describe("DuplicateAction", () => {
 	beforeEach(() => {
 		graphManager.clear();
@@ -58,12 +67,14 @@ describe("DuplicateAction", () => {
 		graphManager.setGraphData(data);
 
 		// Select component 0 and wire 1 only
-		editorViewModel.setSelectedElements([
-			{ id: 0, type: "component" },
-			{ id: 1, type: "wire" },
-		]);
+		editorViewModel.setSelectedElements(
+			new Map<number, ElementType>([
+				[0, "component"],
+				[1, "wire"],
+			])
+		);
 
-		DuplicateAction.duplicateSelected();
+		CloneAction.duplicateSelectedWithOffset();
 
 		const gd = graphManager.getGraphData();
 		// New ids should be 3 (for id0) and 4 (for id1) in insertion order
@@ -96,12 +107,14 @@ describe("DuplicateAction", () => {
 		w5.handles.input.connections.push(newWireHandleRef(3, "output"));
 		const data: GraphData = { components: {}, wires: { 3: w3, 4: w4, 5: w5 }, nextId: 6 };
 		graphManager.setGraphData(data);
-		editorViewModel.setSelectedElements([
-			{ id: 3, type: "wire" },
-			{ id: 4, type: "wire" },
-		]);
+		editorViewModel.setSelectedElements(
+			new Map<number, ElementType>([
+				[3, "wire"],
+				[4, "wire"],
+			])
+		);
 
-		DuplicateAction.duplicateSelected();
+		CloneAction.duplicateSelectedWithOffset();
 		const gd = graphManager.getGraphData();
 		// New ids: 6,7
 		expect(gd.wires[6]).toBeDefined();
@@ -115,5 +128,27 @@ describe("DuplicateAction", () => {
 		// Duplicated w4 input should reference duplicated w3
 		expect(dupW4.handles.input.connections).toHaveLength(1);
 		expect(dupW4.handles.input.connections[0].id).toBe(6);
+	});
+
+	it("duplicates selected elements and starts drag", () => {
+		const c0 = comp(0);
+		const data: GraphData = { components: { 0: c0 }, wires: {}, nextId: 1 };
+		graphManager.setGraphData(data);
+		editorViewModel.setSelectedElements(new Map<number, ElementType>([[0, "component"]]));
+
+		// Execute
+		CloneAction.duplicateSelectedAndDrag();
+
+		// Should be in addingElements mode
+		expect((editorViewModel.uiState as any).editType).toBe("addingElements");
+		
+		const state = editorViewModel.uiState as any;
+		expect(state.elements.size).toBe(1);
+		expect(state.elements.get(1)).toBe("component"); // The duplicated id
+		
+		// Ensure graph state correctly updated
+		const gd = graphManager.getGraphData();
+		expect(gd.components[1]).toBeDefined();
+		expect(gd.nextId).toBe(2);
 	});
 });
