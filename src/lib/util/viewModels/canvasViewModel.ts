@@ -108,14 +108,15 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 			return;
 		}
 
-		let { x, y } = this.clientToSVGCoords({
-			x: -movementX,
-			y: -movementY,
-		});
+		let p0 = this.clientToSVGCoords({ x: 0, y: 0 });
+		let p1 = this.clientToSVGCoords({ x: movementX, y: movementY });
 
-		this._uiState.viewBox.x = x;
-		this._uiState.viewBox.y = y;
-		this._uiState.moveAmount += Math.sqrt(movementX ** 2 + movementY ** 2);
+		let dx = p1.x - p0.x;
+		let dy = p1.y - p0.y;
+
+		this._uiState.viewBox.x -= dx;
+		this._uiState.viewBox.y -= dy;
+		this._uiState.moveAmount += Math.hypot(movementX, movementY);
 		this.notifyAll();
 	}
 	zoom(factor: number, clientPos: XYPair) {
