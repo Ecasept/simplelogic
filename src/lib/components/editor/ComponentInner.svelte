@@ -55,7 +55,8 @@
 			? "var(--component-delete-color)"
 			: "var(--component-outline-color)"}
 		onclick={() => {
-			if (uiState.matches({ mode: "simulate" })) {
+			// Allow toggling the input
+			if (uiState.matches({ mode: "simulate", isPanning: false })) {
 				EditorAction.togglePower(componentId);
 			}
 		}}

@@ -3,6 +3,7 @@
 		AddAction,
 		canvasViewModel,
 		DeleteAction,
+		EditorAction,
 		editorViewModel,
 	} from "$lib/util/actions.svelte";
 	import {
@@ -159,6 +160,29 @@
 		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
 	}
 
+	function canToggleFromComponentBody() {
+		return (
+			type === "IN" &&
+			uiState.matches({ mode: "simulate", isPanning: false }) &&
+			!window.matchMedia("(pointer:fine)").matches
+		);
+	}
+
+	function onClick(e: MouseEvent) {
+		if (canToggleFromComponentBody()) {
+			e.stopPropagation();
+			EditorAction.togglePower(id);
+		}
+	}
+	
+	function onKeyPress(e: KeyboardEvent) {
+		if (e.key === "Enter" && canToggleFromComponentBody()) {
+			e.preventDefault();
+			e.stopPropagation();
+			EditorAction.togglePower(id);
+		}
+	}
+
 	function onHandleEnter(handle: ComponentHandle, identifier: string) {
 		if (
 			!uiState.matches({
@@ -211,6 +235,7 @@
 	);
 </script>
 
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <rect
 	bind:this={rect}
 	role="button"
@@ -225,6 +250,7 @@
 	{height}
 	style="cursor: {cursor}"
 	onpointerdown={onPointerDown}
+	onclick={onClick}
 	onpointerenter={() => {
 		editorViewModel.setHoveredElement(id);
 	}}

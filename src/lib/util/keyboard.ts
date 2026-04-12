@@ -7,11 +7,13 @@ import {
 	DeleteAction,
 	EditorAction,
 	editorViewModel,
+	graphManager,
 	ModeAction,
 	PersistenceAction,
 } from "./actions.svelte";
 import { mousePosition } from "./global.svelte";
-import type { EditorUiState } from "./viewModels/editorViewModel.svelte";
+import type { ComponentType } from "./types";
+import type { EditorUiState, ElementType } from "./viewModels/editorViewModel.svelte";
 
 type Environment = { env: "editor" | "modal" };
 type Key = { key: string; mod: string | null };
@@ -29,6 +31,15 @@ function s<TPattern extends ShortcutPattern>(
 	shortcut: Shortcut<TPattern>,
 ): Shortcut<TPattern> {
 	return shortcut;
+}
+
+function isOnlyComponentsSelected(state: { selected: Map<number, ElementType> }, t: ComponentType) {
+	if (state.selected.size === 0) {
+		return false;
+	}
+
+	const graphData = graphManager.getGraphData();
+	return [...state.selected.entries()].every(([id, type]) => type === "component" && graphData.components[id]?.type === t);
 }
 
 const shortcuts = [
@@ -282,6 +293,23 @@ const shortcuts = [
 		},
 	}),
 	s({
+		name: "Invert selected inputs",
+		pattern: {
+			key: P.when((key) => key === " " || key === "spacebar"),
+			mod: null,
+			env: "editor",
+			mode: "edit",
+			editType: "idle",
+			selected: P.when((selected) => isOnlyComponentsSelected({ selected }, "IN")),
+			isPanning: false,
+		},
+		action: (uiState) => {
+			for (const inputId of uiState.selected.keys()) {
+				EditorAction.togglePower(inputId);
+			}
+		},
+	}),
+	s({
 		name: "Rotate selected clockwise",
 		pattern: {
 			key: "r",
@@ -382,7 +410,7 @@ const shortcuts = [
 			CloneAction.duplicateSelectedAndDrag();
 		},
 	}),
-		s({
+	s({
 		name: "Copy selected",
 		pattern: {
 			key: "c",
@@ -397,7 +425,7 @@ const shortcuts = [
 			CloneAction.copySelected();
 		},
 	}),
-		s({
+	s({
 		name: "Paste clipboard",
 		pattern: {
 			key: "v",
