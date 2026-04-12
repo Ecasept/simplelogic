@@ -4,6 +4,7 @@
 		canvasViewModel,
 		ChangesAction,
 		DeleteAction,
+		EditorAction,
 		editorViewModel
 	} from "$lib/util/actions.svelte";
 	import {
@@ -167,6 +168,16 @@
 		});
 	}
 
+	function onClick(e: MouseEvent) {
+		if (type !== "IN" || !uiState.matches({ mode: "simulate", isPanning: false })) {
+			return;
+		}
+
+		// In simulate mode, repurpose whole-component clicks to toggle input power as selection is disabled.
+		e.stopPropagation();
+		EditorAction.togglePower(id);
+	}
+
 	function onHandleEnter(handle: ComponentHandle, identifier: string) {
 		if (
 			!uiState.matches({
@@ -234,6 +245,7 @@
 	{height}
 	style="cursor: {cursor}"
 	onpointerdown={onPointerDown}
+	onclick={onClick}
 	onpointerenter={() => {
 		editorViewModel.setHoveredElement(id);
 	}}
