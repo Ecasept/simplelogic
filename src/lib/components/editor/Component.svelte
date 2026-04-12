@@ -161,21 +161,6 @@
 		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
 	}
 
-	function canToggleFromComponentBody() {
-		return (
-			type === "IN" &&
-			uiState.matches({ mode: "simulate", isPanning: false }) &&
-			!window.matchMedia("(pointer:fine)").matches
-		);
-	}
-
-	function onClick(e: MouseEvent) {
-		if (canToggleFromComponentBody()) {
-			e.stopPropagation();
-			EditorAction.togglePower(id);
-		}
-	}
-	
 	function onKeyPress(e: KeyboardEvent) {
 		if (e.key === "Enter" && canToggleFromComponentBody()) {
 			e.preventDefault();
@@ -251,7 +236,6 @@
 	{height}
 	style="cursor: {cursor}"
 	onpointerdown={onPointerDown}
-	onclick={onClick}
 	onpointerenter={() => {
 		editorViewModel.setHoveredElement(id);
 	}}
