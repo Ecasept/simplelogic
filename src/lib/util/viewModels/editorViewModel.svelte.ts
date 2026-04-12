@@ -50,6 +50,8 @@ export type EditAddingComponent = {
 	clickPosition: XYPair;
 	/** Whether the component was added by dragging from the component toolbar, or by using the keyboard shortcut */
 	initiator: "drag" | "keyboard";
+	/** The id of the pointer whose click initiated the action. `null` if initiated by keyboard */
+	activePointerId: number | null;
 };
 
 /** When the user clicked the mouse down on an element,
@@ -64,6 +66,7 @@ export type EditElementDown = {
 	clickPosition: XYPair;
 	/** What type of click was used */
 	clickType: "ctrl" | "none";
+	activePointerId: number;
 };
 
 export type EditDraggingElements = {
@@ -75,6 +78,7 @@ export type EditDraggingElements = {
 	clickPosition: XYPair;
 	/** Whether all selected elements are being dragged, or only the clicked one */
 	draggingSelected: boolean;
+	activePointerId: number;
 };
 
 export type EditWireHandleDown = {
@@ -88,6 +92,7 @@ export type EditWireHandleDown = {
 	connectionCount: number;
 	/** What type of click was used */
 	clickType: "ctrl" | "none";
+	activePointerId: number;
 };
 
 export type EditDraggingWireHandle = {
@@ -96,6 +101,7 @@ export type EditDraggingWireHandle = {
 	clickPosition: XYPair;
 	draggedHandle: WireHandleReference;
 	connectionCount: number;
+	activePointerId: number;
 };
 export type EditAddingWire = {
 	mode: "edit";
@@ -103,6 +109,7 @@ export type EditAddingWire = {
 	clickPosition: XYPair;
 	draggedHandle: WireHandleReference;
 	connectionCount: number;
+	activePointerId: number;
 };
 
 export type EditState =
@@ -278,6 +285,12 @@ export class EditorViewModel {
 		});
 		this.notifyAll();
 	}
+	setActivePointerId(pointerId: number) {
+		if ("activePointerId" in this._uiState) {
+			this._uiState.activePointerId = pointerId;
+		}
+	}
+
 	switchToDeleteMode() {
 		this.setUiState({
 			mode: "delete",
@@ -301,6 +314,7 @@ export class EditorViewModel {
 		clicked: TypedReference,
 		pos: XYPair,
 		clickType: "ctrl" | "none",
+		pointerId: number,
 	) {
 		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to click an element in an invalid mode");
@@ -312,6 +326,7 @@ export class EditorViewModel {
 			clickedElement: clicked,
 			clickPosition: pos,
 			clickType,
+			activePointerId: pointerId,
 			selected: this.getSelected(),
 		});
 		this.notifyAll();
@@ -322,6 +337,7 @@ export class EditorViewModel {
 		pos: XYPair,
 		connectionCount: number,
 		clickType: "ctrl" | "none",
+		pointerId: number,
 	) {
 		if (!this._uiState.matches({ mode: "edit" })) {
 			console.warn("Tried to click a wire handle in an invalid mode");
@@ -334,6 +350,7 @@ export class EditorViewModel {
 			clickPosition: pos,
 			connectionCount,
 			clickType,
+			activePointerId: pointerId,
 			selected: this.getSelected(),
 		});
 		this.notifyAll();
@@ -345,13 +362,14 @@ export class EditorViewModel {
 	 * @param pos The svg position where dragging started
 	 * @param dragSelected Whether to drag all selected elements, or just the clicked one
 	 */
-	startDrag(clicked: TypedReference, pos: XYPair, dragSelected: boolean) {
+	startDrag(clicked: TypedReference, pos: XYPair, dragSelected: boolean, pointerId: number) {
 		this.setUiState({
 			mode: "edit",
 			editType: "draggingElements",
 			clickedElement: clicked,
 			clickPosition: pos,
 			draggingSelected: dragSelected,
+			activePointerId: pointerId,
 			selected: this.getSelected(),
 		});
 		this.notifyAll();
@@ -361,6 +379,7 @@ export class EditorViewModel {
 		handle: WireHandleReference,
 		pos: XYPair,
 		connectionCount: number,
+		pointerId: number,
 	) {
 		if (
 			!this._uiState.matches({
@@ -376,6 +395,7 @@ export class EditorViewModel {
 			draggedHandle: handle,
 			clickPosition: pos,
 			connectionCount: connectionCount,
+			activePointerId: pointerId,
 			selected: this.getSelected(),
 		});
 		this.notifyAll();
@@ -390,6 +410,7 @@ export class EditorViewModel {
 		component: TypedReference,
 		pos: XYPair,
 		initiator: "drag" | "keyboard",
+		pointerId: number | null,
 	) {
 		this.setUiState({
 			mode: "edit",
@@ -397,6 +418,7 @@ export class EditorViewModel {
 			clickedElement: component,
 			clickPosition: pos,
 			initiator: initiator,
+			activePointerId: pointerId,
 			selected: this.getSelected(),
 		});
 		this.notifyAll();
@@ -406,6 +428,7 @@ export class EditorViewModel {
 		wire: WireHandleReference,
 		pos: XYPair,
 		wireConnectionCount: number,
+		pointerId: number,
 	) {
 		this.setUiState({
 			mode: "edit",
@@ -413,6 +436,7 @@ export class EditorViewModel {
 			clickPosition: pos,
 			draggedHandle: wire,
 			connectionCount: wireConnectionCount,
+			activePointerId: pointerId,
 			selected: this.getSelected(),
 		});
 		this.notifyAll();

@@ -13,7 +13,7 @@
 	const { uiState }: { uiState: EditorUiState } = $props();
 
 	function addComponent(type: ComponentType, e: PointerEvent) {
-		AddAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag");
+		AddAction.addComponent(type, { x: e.clientX, y: e.clientY }, "drag", e.pointerId);
 	}
 
 	let open = $state(true);

@@ -113,7 +113,7 @@ const shortcuts = [
 			isPanning: false,
 		},
 		action: () => {
-			AddAction.addComponent("AND", mousePosition, "keyboard");
+			AddAction.addComponent("AND", mousePosition, "keyboard", null);
 		},
 	}),
 	s({
@@ -127,7 +127,7 @@ const shortcuts = [
 			isPanning: false,
 		},
 		action: () => {
-			AddAction.addComponent("IN", mousePosition, "keyboard");
+			AddAction.addComponent("IN", mousePosition, "keyboard", null);
 		},
 	}),
 	s({
@@ -141,7 +141,7 @@ const shortcuts = [
 			isPanning: false,
 		},
 		action: () => {
-			AddAction.addComponent("LED", mousePosition, "keyboard");
+			AddAction.addComponent("LED", mousePosition, "keyboard", null);
 		},
 	}),
 	s({
@@ -155,7 +155,7 @@ const shortcuts = [
 			isPanning: false,
 		},
 		action: () => {
-			AddAction.addComponent("NOT", mousePosition, "keyboard");
+			AddAction.addComponent("NOT", mousePosition, "keyboard", null);
 		},
 	}),
 	s({
@@ -169,7 +169,7 @@ const shortcuts = [
 			isPanning: false,
 		},
 		action: () => {
-			AddAction.addComponent("XOR", mousePosition, "keyboard");
+			AddAction.addComponent("XOR", mousePosition, "keyboard", null);
 		},
 	}),
 	s({
@@ -183,7 +183,7 @@ const shortcuts = [
 			isPanning: false,
 		},
 		action: () => {
-			AddAction.addComponent("OR", mousePosition, "keyboard");
+			AddAction.addComponent("OR", mousePosition, "keyboard", null);
 		},
 	}),
 	s({
@@ -197,7 +197,7 @@ const shortcuts = [
 			isPanning: false,
 		},
 		action: () => {
-			AddAction.addComponent("TEXT", mousePosition, "keyboard");
+			AddAction.addComponent("TEXT", mousePosition, "keyboard", null);
 		},
 	}),
 	s({

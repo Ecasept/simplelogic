@@ -46,12 +46,90 @@
 		});
 	}
 
-	/**
-	 * The most recent event for all currently active pointers.
-	 * Only for panning/zoom, not for area selection.
-	 */
-	const pointerEventCache: PointerEvent[] = [];
+	const activePointerSlots: [PointerEvent | null, PointerEvent | null] = [null, null];
+	let areaSelectPointerId: number | null = null;
 
+	/** Converts a pointer event's client coordinates to SVG world coordinates. */
+	function toSvgPosition(event: PointerEvent) {
+		return canvasViewModel.clientToSVGCoords({
+			x: event.clientX,
+			y: event.clientY,
+		});
+	}
+
+	/** Returns the number of currently tracked gesture pointers (0..2). */
+	function getActivePointerCount() {
+		return activePointerSlots[0] === null
+			? activePointerSlots[1] === null
+				? 0
+				: 1
+			: activePointerSlots[1] === null
+				? 1
+				: 2;
+	}
+
+	/** Returns both active pointers when two are present, otherwise null. */
+	function getTwoActivePointers(): [PointerEvent, PointerEvent] | null {
+		const first = activePointerSlots[0];
+		const second = activePointerSlots[1];
+		if (!first || !second) return null;
+		return [first, second];
+	}
+
+	/** Clears both gesture pointer slots. */
+	function clearActivePointers() {
+		activePointerSlots[0] = null;
+		activePointerSlots[1] = null;
+	}
+
+	/** Adds a pointer to the first available gesture slot; returns true if inserted. */
+	function addActivePointer(event: PointerEvent) {
+		const hasPointer = activePointerSlots.some(
+			(activePointer) => activePointer?.pointerId === event.pointerId,
+		);
+		if (hasPointer) return false;
+
+		const emptySlotIndex = activePointerSlots.findIndex(
+			(activePointer) => activePointer === null,
+		);
+		if (emptySlotIndex !== -1) {
+			activePointerSlots[emptySlotIndex] = event;
+			return true;
+		}
+
+		return false;
+	}
+
+	/** Updates an existing pointer slot and returns the previous event snapshot. */
+	function updateActivePointer(event: PointerEvent) {
+		const slotIndex = activePointerSlots.findIndex(
+			(activePointer) => activePointer?.pointerId === event.pointerId,
+		);
+		if (slotIndex === -1) return null;
+
+		const previousEvent = activePointerSlots[slotIndex];
+		activePointerSlots[slotIndex] = event;
+		if (previousEvent) return previousEvent;
+		return null;
+	}
+
+	/** Removes a pointer by id from tracked gesture slots; returns true if removed. */
+	function removeActivePointer(pointerId: number) {
+		const slotIndex = activePointerSlots.findIndex(
+			(activePointer) => activePointer?.pointerId === pointerId,
+		);
+		if (slotIndex === -1) return false;
+		activePointerSlots[slotIndex] = null;
+		return true;
+	}
+
+	/** Starts area selection and records the owning pointer id. */
+	function beginAreaSelection(event: PointerEvent) {
+		areaSelectPointerId = event.pointerId;
+		EditorAction.startAreaSelection(toSvgPosition(event));
+	}
+
+	/** Requests panning mode if current editor state allows it. */
 	function startPanning() {
 		const uiState = editorViewModel.uiState;
 		if (uiState.matches({ isPanning: true })) return;
@@ -64,10 +142,11 @@
 		}
 	}
 
+	/** Stops area selection or panning when no active gesture pointers remain. */
 	function stopPanning() {
 		if (uiState.isAreaSelecting) {
 			EditorAction.stopAreaSelection();
-		} else if (pointerEventCache.length === 0) {
+		} else if (getActivePointerCount() === 0) {
 			EditorAction.stopPanning();
 		}
 	}
@@ -79,43 +158,41 @@
 		if (uiState.matches({ editType: "idle", isPanning: false })) {
 			if (event.shiftKey) {
 				// If shift is held, start area selection
-				EditorAction.startAreaSelection(
-					canvasViewModel.clientToSVGCoords({
-						x: event.clientX,
-						y: event.clientY,
-					}),
-				);
+				beginAreaSelection(event);
 				event.preventDefault();
 				return;
 			} else {
 				startLongPressTimer({ x: event.clientX, y: event.clientY }, () => {
+					clearActivePointers();
 					stopPanning();
 					if (isVibrateSupported()) {
 						navigator.vibrate(10);
 					}
-					EditorAction.startAreaSelection(
-						canvasViewModel.clientToSVGCoords({
-							x: event.clientX,
-							y: event.clientY,
-						}),
-					);
+					beginAreaSelection(event);
 				});
 			}
 		}
 		event.preventDefault();
-		pointerEventCache.push(event);
-		startPanning();
+		if (addActivePointer(event)) {
+			startPanning();
+		}
 	}
 
-	function removeEvent(ev: PointerEvent) {
-		const index = pointerEventCache.findIndex(
-			(cachedEv) => cachedEv.pointerId === ev.pointerId,
-		);
-		if (index !== -1) pointerEventCache.splice(index, 1);
-	}
+	/** Handles pointer release/leave, slot cleanup, and panning teardown. */
 	function onPointerExit(event: PointerEvent) {
 		// Cancel any pending long press
 		cancelLongPress();
+
+		if (uiState.isAreaSelecting) {
+			if (areaSelectPointerId === event.pointerId) {
+				areaSelectPointerId = null;
+				EditorAction.stopAreaSelection();
+			}
+			return;
+		}
+
+		if (!removeActivePointer(event.pointerId)) return;
+
 		const cuiState = canvasViewModel.uiState;
 		if (cuiState.isPanning && cuiState.moveAmount < PAN_THRESHOLD) {
 			// If the user only clicked and didn't move the canvas,
@@ -123,59 +200,60 @@
 			editorViewModel.clearSelection();
 		}
 
-		removeEvent(event);
 		if (editorViewModel.uiState.matches({ isPanning: true })) {
 			// Prevent the page from registering the pointer event
 			// as the user releasing a component
 			event.stopPropagation();
 		}
-		stopPanning();
+
+		if (getActivePointerCount() === 0) {
+			EditorAction.stopPanning();
+		}
 	}
 
 	function onPointerMove(event: PointerEvent) {
 		cancelLongPressIfMoved({ x: event.clientX, y: event.clientY });
 		if (uiState.isAreaSelecting) {
-			canvasViewModel.updateAreaSelection(
-				canvasViewModel.clientToSVGCoords({
-					x: event.clientX,
-					y: event.clientY,
-				}),
-			);
+			if (areaSelectPointerId === event.pointerId) {
+				canvasViewModel.updateAreaSelection(toSvgPosition(event));
+			}
 			return;
 		}
 
 		// Update current event in cache
-		const index = pointerEventCache.findIndex(
-			(cachedEv) => cachedEv.pointerId === event.pointerId,
-		);
-		if (index === -1) {
-			// onPointerDown was not triggered on canvas
-			// -> user is not panning
+		const oldEvent = updateActivePointer(event);
+
+		if (!oldEvent) {
+			// pointerId not found in active pointers
+			// -> no pointerDown was ever triggered on the canvas for this pointerId
+			// -> we are not responsible for handling this pointer
 			return;
 		}
 
-		const oldEvent = pointerEventCache[index];
-		pointerEventCache[index] = event;
+		const activeCount = getActivePointerCount();
 
 		// One pointer -> pan (if panning started), Two pointers -> pinch zoom
-		if (pointerEventCache.length === 1) {
+		if (activeCount === 1) {
 			if (editorViewModel.uiState.matches({ isPanning: true })) {
 				event.preventDefault();
 				const movementX = event.clientX - oldEvent.clientX;
 				const movementY = event.clientY - oldEvent.clientY;
 				pan(movementX, movementY);
 			}
-		} else if (pointerEventCache.length === 2) {
+		} else if (activeCount === 2) {
+			const activePointers = getTwoActivePointers();
+			if (!activePointers) return;
+
 			event.preventDefault();
-			const [p1, p2] = pointerEventCache.slice(-2);
+			const [p1, p2] = activePointers;
 			const distance = Math.hypot(
 				p1.clientX - p2.clientX,
 				p1.clientY - p2.clientY,
 			);
 
-			const [oldP1, oldP2] = pointerEventCache
-				.map((ev, i) => (i == index ? oldEvent : ev))
-				.slice(-2);
+			const oldP1 = p1.pointerId === event.pointerId ? oldEvent : p1;
+			const oldP2 = p2.pointerId === event.pointerId ? oldEvent : p2;
+
 			const oldDistance = Math.hypot(
 				oldP1.clientX - oldP2.clientX,
 				oldP1.clientY - oldP2.clientY,

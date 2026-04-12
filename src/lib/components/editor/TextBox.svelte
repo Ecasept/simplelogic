@@ -92,7 +92,7 @@
 		};
 
 		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
-		editorViewModel.onElementDown(self, clickPosSvg, clickType);
+		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
 	}
 
 	// If we are in delete mode, and either

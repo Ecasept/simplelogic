@@ -181,6 +181,7 @@ export class AddAction {
 		type: ComponentType,
 		clickPos: XYPair,
 		initiator: "drag" | "keyboard",
+		pointerId: number | null,
 	) {
 		ChangesAction.abortEditing();
 		const clickSvgPos = canvasViewModel.clientToSVGCoords(clickPos);
@@ -195,10 +196,12 @@ export class AddAction {
 		const element: TypedReference = { id, type: "component" };
 
 		// Start adding component mode
-		editorViewModel.startAddComponent(element, clickSvgPos, initiator);
+		editorViewModel.startAddComponent(element, clickSvgPos, initiator, pointerId);
 
 		// Snap the component to the grid
-		MoveAction.onMove(clickSvgPos);
+		if (pointerId != null) {
+			MoveAction.onMove(clickSvgPos, pointerId);
+		}
 	}
 
 	/**
@@ -207,7 +210,7 @@ export class AddAction {
 	 * @param clickPos
 	 * @param clickedHandle The handle that was clicked, which will be connected to the wire.
 	 */
-	static addWire(clickSvgPos: XYPair, clickedHandle: HandleReference) {
+	static addWire(clickSvgPos: XYPair, clickedHandle: HandleReference, pointerId: number) {
 		ChangesAction.abortEditing();
 
 		const wireData: ValidWireInitData = {
@@ -245,9 +248,9 @@ export class AddAction {
 		graphManager.notifyAll();
 
 		// The new dragged handle will always have 0 connections
-		editorViewModel.startAddWire(draggedHandle, clickSvgPos, 0);
+		editorViewModel.startAddWire(draggedHandle, clickSvgPos, 0, pointerId ?? 0);
 
-		MoveAction.onMove(clickSvgPos);
+		MoveAction.onMove(clickSvgPos, pointerId);
 	}
 }
 
@@ -269,8 +272,9 @@ export class MoveAction {
 	 * It does all of the movement logic. It also tells us if a click on a component
 	 * has moved the component enough to start a drag operation.
 	 */
-	static onMove(svgMousePos: XYPair) {
+	static onMove(svgMousePos: XYPair, pointerId: number) {
 		const uiState = editorViewModel.uiState;
+
 		if (
 			!uiState.matches({
 				editType: P.union(
@@ -287,6 +291,10 @@ export class MoveAction {
 			return;
 		}
 
+		if (uiState.activePointerId !== null && uiState.activePointerId !== pointerId) {
+			return; // Only respond to the pointer that initiated the drag
+		}
+
 		const oldPos = uiState.clickPosition;
 		const newPos = svgMousePos;
 		const offset = {
@@ -296,6 +304,9 @@ export class MoveAction {
 
 		switch (uiState.editType) {
 			case "addingComponent":
+				if (uiState.activePointerId === null) {
+					editorViewModel.setActivePointerId(pointerId);
+				}
 				this.addingComponent(uiState, offset);
 				break;
 			case "draggingElements":
@@ -362,6 +373,7 @@ export class MoveAction {
 				$state.snapshot(uiState.clickedElement),
 				$state.snapshot(uiState.clickPosition),
 				isSelected,
+				uiState.activePointerId,
 			);
 		}
 	}
@@ -378,6 +390,7 @@ export class MoveAction {
 				ref,
 				$state.snapshot(uiState.clickPosition),
 				$state.snapshot(uiState.connectionCount),
+				uiState.activePointerId,
 			);
 		}
 	}

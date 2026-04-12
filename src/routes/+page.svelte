@@ -85,7 +85,7 @@
 
 		const svgPos = canvasViewModel.clientToSVGCoords(pos);
 
-		MoveAction.onMove(svgPos);
+		MoveAction.onMove(svgPos, e.pointerId);
 	}
 
 	function onPointerMove(e: PointerEvent) {
@@ -94,18 +94,18 @@
 	}
 
 	function onPointerUp(e: PointerEvent) {
+		const uiState = editorViewModel.uiState;
+
 		// on touch screens, no pointer move events are emitted for adding components
 		// so we need to update the position here
 		updatePosition(e);
 
 		cancelLongPress();
 
-		const uiState = editorViewModel.uiState;
-
 		if (uiState.matches({ isPanning: true })) {
 			console.warn("Panning should be handled by the canvas component");
 			return;
-		} else if (uiState.matches({ editType: "addingComponent" })) {
+		} else if (uiState.matches({ editType: "addingComponent", activePointerId: e.pointerId })) {
 			// Select the component that was added
 			const clickedElement = $state.snapshot(uiState.clickedElement);
 			editorViewModel.setSelected(clickedElement);
@@ -125,11 +125,13 @@
 					graphManager.getComponentData(clickedElement.id).type,
 					{ x: e.clientX, y: e.clientY },
 					"keyboard",
+					e.pointerId
 				);
 			}
 		} else if (
 			uiState.matches({
 				editType: P.union("draggingWireHandle", "addingWire"),
+				activePointerId: e.pointerId,
 			})
 		) {
 			if (uiState.hoveredHandle === null) {
@@ -151,7 +153,7 @@
 				// Commit the changes made while dragging the wire
 				ChangesAction.commitChanges();
 			}
-		} else if (uiState.matches({ editType: "elementDown" })) {
+		} else if (uiState.matches({ editType: "elementDown", activePointerId: e.pointerId })) {
 			const clickedElement = $state.snapshot(uiState.clickedElement);
 
 			if (uiState.clickType === "ctrl") {
@@ -176,7 +178,7 @@
 			}
 			// Return to idle state
 			ChangesAction.abortEditing();
-		} else if (uiState.matches({ editType: "wireHandleDown" })) {
+		} else if (uiState.matches({ editType: "wireHandleDown", activePointerId: e.pointerId })) {
 			// A wire handle was clicked
 			const clickedHandle = $state.snapshot(uiState.clickedHandle);
 			if (uiState.clickType === "ctrl") {
@@ -204,6 +206,7 @@
 		} else if (
 			uiState.matches({
 				editType: "draggingElements",
+				activePointerId: e.pointerId,
 			})
 		) {
 			// An element was dragged

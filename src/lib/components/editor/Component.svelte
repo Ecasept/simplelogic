@@ -120,7 +120,7 @@
 			handleId,
 			handleType,
 			type: "component",
-		});
+		}, e.pointerId);
 	}
 
 	function onPointerDown(e: PointerEvent) {
@@ -156,7 +156,7 @@
 		};
 
 		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
-		editorViewModel.onElementDown(self, clickPosSvg, clickType);
+		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
 	}
 
 	function onHandleEnter(handle: ComponentHandle, identifier: string) {

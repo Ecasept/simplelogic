@@ -63,7 +63,7 @@
 	if (id === 10) {
 		$inspect(simData).with(debugLog(`Wire ${id} Simulation Data`));
 	}
-	function onHandleLongPress(handle: WireHandle, handleType: HandleType) {
+	function onHandleLongPress(handle: WireHandle, handleType: HandleType, pointerId: number) {
 		if (handleType === "input" && handle.connections.length > 0) {
 			// Cannot start a new wire from an input that already has a connection
 			return;
@@ -82,6 +82,7 @@
 				y: handle.y,
 			},
 			newWireHandleRef(id, handleType),
+			pointerId
 		);
 	}
 
@@ -114,7 +115,7 @@
 		};
 
 		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
-		editorViewModel.onElementDown(self, clickPosSvg, clickType);
+		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
 	}
 
 	function onHandleDown(clickedHandle: HandleType, e: SVGPointerEvent) {
@@ -141,7 +142,7 @@
 		const handle = clickedHandle === "input" ? input : output;
 
 		startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
-			onHandleLongPress(handle, clickedHandle);
+			onHandleLongPress(handle, clickedHandle, e.pointerId);
 		});
 
 		// If shift is held, add a new wire instead of moving existing one
@@ -156,6 +157,7 @@
 					y: handle.y,
 				},
 				newWireHandleRef(id, clickedHandle),
+				e.pointerId
 			);
 		} else {
 			const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
@@ -167,6 +169,7 @@
 				},
 				handle.connections.length,
 				clickType,
+				e.pointerId
 			);
 		}
 	}
