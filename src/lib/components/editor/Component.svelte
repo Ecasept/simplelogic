@@ -37,10 +37,11 @@
 		position: XYPair;
 		rotation: number;
 		handles: ComponentHandleList;
+		isPoweredInitially: boolean;
 		customData?: Record<string, unknown>;
 		uiState: EditorUiState;
 	};
-	let { id, size, type, position, rotation, handles, customData, uiState }: Props =
+	let { id, size, type, position, rotation, handles, isPoweredInitially, customData, uiState }: Props =
 		$props();
 
 	let rect = $state<SVGRectElement>();
@@ -59,7 +60,7 @@
 	let isSelected = $derived(editorViewModel.isSelectedId(id));
 
 	let isPowered = $derived(
-		simData ? simulating && isElementPowered(simData) : false,
+		isPoweredInitially || (simData ? simulating && isElementPowered(simData) : false),
 	);
 
 	let cursor = $derived.by(() => {
