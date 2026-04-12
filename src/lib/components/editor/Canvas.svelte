@@ -188,6 +188,17 @@
 				x: (p1.clientX + p2.clientX) / 2,
 				y: (p1.clientY + p2.clientY) / 2,
 			});
+
+			// Pan based on the movement of the center of the two pointers
+			const oldCenter = {
+				x: (oldP1.clientX + oldP2.clientX) / 2,
+				y: (oldP1.clientY + oldP2.clientY) / 2,
+			};
+			const newCenter = {
+				x: (p1.clientX + p2.clientX) / 2,
+				y: (p1.clientY + p2.clientY) / 2,
+			};
+			pan(newCenter.x - oldCenter.x, newCenter.y - oldCenter.y);
 		}
 	}
 
