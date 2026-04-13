@@ -382,3 +382,80 @@ test.describe("simulation: UI controls and sidebar", () => {
 		await expect(status).toContainText("Last update took");
 	});
 });
+
+
+test.describe('Simulation post-clone', () => {
+	test('Ensure simulation works fine, even after copy/pasting or duplicating', async ({ page, editor, pointer, sim }) => {
+		await editor.addComponent("IN", 500, 200);
+		await editor.addComponent("LED", 700, 200);
+		await editor.drag(editor.getHandle("IN", "out").first(), editor.getHandle("LED", "in").first(), true);
+		await editor.ctrlSelect(editor.getComponent("IN").first(), true);
+		await editor.ctrlSelect(editor.getComponent("LED").first(), true);
+
+		await page.keyboard.press("Control+C");
+		await pointer.moveTo(600, 300);
+		await page.keyboard.press("Control+V");
+
+		await editor.getSidebar("selection").getByRole("button", { name: "Duplicate" }).click();
+
+		// offset is not enough to prevent overlap, so move the duplicated elements
+		await editor.dragTo(editor.getComponent("IN").nth(2), 600, 400);
+
+		const in0 = editor.getComponent("IN").first();
+		const in1 = editor.getComponent("IN").nth(1);
+		const in2 = editor.getComponent("IN").nth(2);
+		const led0 = editor.getComponent("LED").first();
+		const led1 = editor.getComponent("LED").nth(1);
+		const led2 = editor.getComponent("LED").nth(2);
+
+		await expect(in0).toBeVisible();
+		await expect(in1).toBeVisible();
+		await expect(in2).toBeVisible();
+		await expect(led0).toBeVisible();
+		await expect(led1).toBeVisible();
+		await expect(led2).toBeVisible();
+
+		await editor.setMode("simulate");
+
+		await expect(led0).not.toBePowered();
+		await expect(led1).not.toBePowered();
+		await expect(led2).not.toBePowered();
+
+		await pointer.clickOn(in0, true);
+		await sim.waitForSimulationFinished();
+		await expect(led0).toBePowered();
+		await expect(led1).not.toBePowered();
+		await expect(led2).not.toBePowered();
+
+		await pointer.clickOn(in1, true);
+		await sim.waitForSimulationFinished();
+		await expect(led0).toBePowered();
+		await expect(led1).toBePowered();
+		await expect(led2).not.toBePowered();
+
+		await pointer.clickOn(in2, true);
+		await sim.waitForSimulationFinished();
+		await expect(led0).toBePowered();
+		await expect(led1).toBePowered();
+		await expect(led2).toBePowered();
+	});
+
+	test('body of the IN itself toggles the input (not just the inner part) when simulating', async ({ editor, pointer }) => {
+		await editor.addComponent("IN", 300, 300);
+		const input = editor.getComponent("IN").first();
+
+		await pointer.clickAt(300, 200);
+		// verify that component is selected when clicked in edit mode
+		await input.click({position: {x: 10, y: 10}});
+		await expect(input).toBeSelected();
+		await expect(input).not.toBePowered();
+
+		await editor.setMode("simulate");
+
+		await input.click({position: {x: 10, y: 10}});
+		await expect(input).toBePowered();
+
+		await input.click({position: {x: 10, y: 10}});
+		await expect(input).not.toBePowered();
+	});
+});

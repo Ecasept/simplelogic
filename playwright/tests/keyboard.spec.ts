@@ -164,6 +164,47 @@ test.describe("editor shortcuts", () => {
 		// Component should not be selected
 		await expect(editor.comps()).not.toBeSelected();
 	});
+
+	test("selected inputs can be toggled with space, including multiple selected", async ({ page, editor }) => {
+		await editor.addComponent("IN", 300, 200);
+		await editor.addComponent("IN", 420, 200);
+
+		const first = editor.getComponent("IN").first();
+		const second = editor.getComponent("IN").nth(1);
+
+		await editor.ctrlSelect(first);
+		await expect(first).toBeSelected();
+		await expect(second).toBeSelected();
+
+		await page.keyboard.press("Space");
+		await expect(first).toBePowered();
+		await expect(second).toBePowered();
+
+		await page.keyboard.press("Space");
+		await expect(first).not.toBePowered();
+		await expect(second).not.toBePowered();
+	});
+
+	test("space toggles only selected inputs when one is selected and one is not", async ({ page, editor, pointer }) => {
+		await editor.addComponent("IN", 300, 200);
+		await editor.addComponent("IN", 420, 200);
+
+		const first = editor.getComponent("IN").first();
+		const second = editor.getComponent("IN").nth(1);
+
+		await pointer.clickAt(100, 100);
+		await pointer.clickOn(first);
+		await expect(first).toBeSelected();
+		await expect(second).not.toBeSelected();
+
+		await page.keyboard.press("Space");
+		await expect(first).toBePowered();
+		await expect(second).not.toBePowered();
+
+		await page.keyboard.press("Space");
+		await expect(first).not.toBePowered();
+		await expect(second).not.toBePowered();
+	});
 });
 
 test.describe("shortcut interactions", () => {
