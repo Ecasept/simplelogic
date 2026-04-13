@@ -278,9 +278,9 @@ test.describe("simulation: UI controls and sidebar", () => {
 		// Wait for calculation to finish deterministically via status text
 		await sim.waitForSimulationFinished();
 
-		// Finished text should appear ("Finished in X ms")
+		// Finished text should appear
 		const status = editor.getSidebar("tools").locator(".status-text");
-		await expect(status).toContainText("Finished in");
+		await expect(status).toContainText("Last update took");
 
 		// Stopping when already finished should be a no-op
 		await sim.stopContinuous();
@@ -299,7 +299,7 @@ test.describe("simulation: UI controls and sidebar", () => {
 		await sim.startContinuous();
 		await sim.waitForSimulationFinished();
 		const status = editor.getSidebar("tools").locator(".status-text");
-		await expect(status).toContainText("Finished in");
+		await expect(status).toContainText("Last update took");
 	});
 
 	test("step forward consumes queue when stopped", async ({ editor, pointer, sim }) => {
@@ -379,6 +379,6 @@ test.describe("simulation: UI controls and sidebar", () => {
 		// Expect that the simulation immediately runs again (status shows Calculating... briefly then Finished)
 		await sim.waitForSimulationFinished();
 		const status = editor.getSidebar("tools").locator(".status-text");
-		await expect(status).toContainText("Finished in");
+		await expect(status).toContainText("Last update took");
 	});
 });
