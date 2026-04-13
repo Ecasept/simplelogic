@@ -52,6 +52,7 @@ const shortcuts = [
 			mode: "edit",
 			editType: P.union(
 				"addingComponent",
+				"addingElements",
 				"draggingElements",
 				"addingWire",
 				"draggingWireHandle",
@@ -348,6 +349,7 @@ const shortcuts = [
 			mode: "edit",
 			editType: P.union(
 				"addingComponent",
+				"addingElements",
 				"draggingElements",
 				"addingWire",
 				"draggingWireHandle",
