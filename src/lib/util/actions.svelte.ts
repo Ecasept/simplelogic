@@ -644,7 +644,6 @@ export class EditorAction {
 		newValue: unknown,
 	) {
 		graphManager.updateCustomDataReplaceable(id, property, newValue);
-		graphManager.notifyAll();
 	}
 
 	static updateTextAlignment(id: number, newAlignment: "left" | "center" | "right") {

@@ -122,25 +122,13 @@ export class GraphManager {
 			return;
 		}
 
-		if (!this.historyEmpty) {
-			const lastCommand = this.history[this.history.length - 1];
-			if (
-				lastCommand instanceof UpdateCustomDataCommand &&
-				lastCommand.property === property &&
-				lastCommand.componentId === id
-			) {
-				this.undoLastCommand();
-			}
-		}
-
 		const oldValue = component.customData?.[property];
 		if (oldValue === newValue) {
 			return;
 		}
 
 		const cmd = new UpdateCustomDataCommand(id, property, newValue);
-		this.executeCommand(cmd);
-		this.applyChanges();
+		(this.edit ?? this.beginEdit()).replacePreview(cmd);
 	}
 
 	getComponentData(id: number) {

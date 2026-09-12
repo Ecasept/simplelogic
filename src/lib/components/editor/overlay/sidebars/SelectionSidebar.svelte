@@ -113,6 +113,7 @@
 			return;
 		}
 		// Unfocus textbox
+		graphManager.applyChanges();
 		editorViewModel.clearSelection();
 	}
 
@@ -234,6 +235,7 @@
 										placeholder="Enter text"
 										value={info.data.customData?.text}
 										oninput={onTextInput}
+										onblur={() => graphManager.applyChanges()}
 										onkeypress={onEnter(onEnterPressed)}
 									></textarea>
 								</div>
@@ -247,6 +249,7 @@
 										placeholder="Label"
 										value={info.data.customData?.label ?? ""}
 										oninput={onIoLabelInput}
+										onblur={() => graphManager.applyChanges()}
 									/>
 									<Button
 										text={info.data.customData?.showLabel === false
