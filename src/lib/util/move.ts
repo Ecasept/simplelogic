@@ -1,72 +1,51 @@
-import { graphManager } from "./actions.svelte";
 import {
 	CommandGroup,
 	MoveComponentAndWiresCommand,
 	MoveWireHandleCommand,
 	type Command,
 } from "./commands";
-import { gridSnap } from "./global.svelte";
 import {
 	newWireHandleRef,
+	type GraphData,
 	type WireData,
 	type WireHandleReference,
 	type XYPair,
 } from "./types";
 import type { ElementType } from "./viewModels/editorViewModel.svelte";
 
-export class Mover {
-	/**
-	 * Used for move operations.
-	 * Stores the positions of all elements being moved before the move operation.
-	 *
-	 * key is of format `id` for components and `wireId:handleType` for wire handles.
-	 */
-	private oldPositions: Map<string, XYPair> | null = null;
-	private isFirstMove = true;
+export type MoveTargets = Map<number, ElementType> | WireHandleReference;
+
+/** Plan absolute movement from an interaction snapshot without mutating either graph. */
+export function planMove(
+	graph: GraphData,
+	origin: GraphData,
+	targets: MoveTargets,
+	offset: XYPair,
+	snap: (value: number) => number,
+) {
+	return new MovePlanner(graph, origin, snap).plan(offset, targets);
+}
+
+class MovePlanner {
 	private commands: Command[] = [];
-	private changed: boolean = false;
+	private changed = false;
 
-	moveElementsReplaceable(offset: XYPair, elements: Map<number, ElementType>) {
-		this.move(() => {
-			for (const [id, type] of elements.entries()) {
-				switch (type) {
-					case "component":
-						this._moveComponent(offset, id);
-						break;
-					case "wire":
-						this._moveWire(offset, id, elements);
-						break;
-				}
+	constructor(
+		private readonly graph: GraphData,
+		private readonly origin: GraphData,
+		private readonly snap: (value: number) => number,
+	) {}
+
+	plan(offset: XYPair, targets: MoveTargets) {
+		if (targets instanceof Map) {
+			for (const [id, type] of targets) {
+				if (type === "component") this._moveComponent(offset, id);
+				else this._moveWire(offset, id, targets);
 			}
-		});
-		return this.changed;
-	}
-
-	moveWireHandleReplaceable(offset: XYPair, ref: WireHandleReference) {
-		this.move(() => {
-			const wireData = graphManager.getWireData(ref.id);
-			this._moveWireHandle(offset, ref, wireData);
-		});
-		return this.changed;
-	}
-
-	private move(moveFn: () => void) {
-		if (this.isFirstMove) {
-			this.oldPositions = new Map();
+		} else {
+			this._moveWireHandle(offset, targets, this.graph.wires[targets.id]);
 		}
-		this.commands = [];
-		this.changed = false;
-		moveFn();
-		if (this.changed) {
-			// Undo the last move command if it exists,
-			// so that the user only has to undo once
-			// instead of every single move command
-			graphManager.undoLastMove();
-			const group = new CommandGroup(this.commands, "move");
-			graphManager.executeCommand(group, true);
-			graphManager.notifyAll();
-		}
-		this.isFirstMove = false;
+		return { command: new CommandGroup(this.commands, "move"), changed: this.changed };
 	}
 
 	private _moveSingleWireHandle(
@@ -82,8 +61,8 @@ export class Mover {
 			return;
 		}
 		const currentPos = { x: handle.x, y: handle.y };
-		const key = `${ref.id}:${ref.handleType}`;
-		const [moved, newPos] = this.getNewPos(offset, currentPos, key);
+		const oldPos = this.origin.wires[ref.id].handles[ref.handleType];
+		const [moved, newPos] = this.getNewPos(offset, currentPos, oldPos);
 		this.commands.push(
 			new MoveWireHandleCommand(newPos, ref.handleType, ref.id),
 		);
@@ -98,14 +77,13 @@ export class Mover {
 		this._moveSingleWireHandle(offset, ref, wireData);
 		// Move all connections of the handle
 		for (const connection of wireData.handles[ref.handleType].connections) {
-			const data = graphManager.getWireData(connection.id);
 			if (connection.type === "component") {
 				console.error(
 					"Tried to move a wire handle connected to a component, which is not supported.",
 				);
 				continue;
 			}
-			this._moveSingleWireHandle(offset, connection, data);
+			this._moveSingleWireHandle(offset, connection, this.graph.wires[connection.id]);
 		}
 	}
 	private _moveWire(
@@ -113,7 +91,7 @@ export class Mover {
 		wireId: number,
 		movedElements: Map<number, ElementType> = new Map(),
 	) {
-		const wireData = graphManager.getWireData(wireId);
+		const wireData = this.graph.wires[wireId];
 		thisHandle: for (const handle of Object.values(wireData.handles)) {
 			for (const connection of handle.connections) {
 				// Don't move this handle if it is connected to a component.
@@ -126,12 +104,12 @@ export class Mover {
 					// so we don't need to move this connection
 					continue;
 				}
-				const data = graphManager.getWireData(connection.id);
+				const data = this.graph.wires[connection.id];
 				this._moveSingleWireHandle(offset, connection, data);
 
 				// Check if this is a multiconnected handle,
 				// and if yes, move all other connections
-				const otherHandle = graphManager.getWireData(connection.id).handles[
+				const otherHandle = this.graph.wires[connection.id].handles[
 					connection.handleType
 				];
 				for (const otherConnection of otherHandle.connections) {
@@ -144,7 +122,7 @@ export class Mover {
 						// so we don't need to move this connection
 						continue;
 					}
-					const otherData = graphManager.getWireData(otherConnection.id);
+					const otherData = this.graph.wires[otherConnection.id];
 					this._moveSingleWireHandle(offset, otherConnection, otherData);
 				}
 			}
@@ -157,10 +135,10 @@ export class Mover {
 		}
 	}
 	private _moveComponent(offset: XYPair, componentId: number) {
-		const componentData = graphManager.getComponentData(componentId);
+		const componentData = this.graph.components[componentId];
 		const currentPos = componentData.position;
-		const key = `${componentId}`;
-		const [moved, newPos] = this.getNewPos(offset, currentPos, key);
+		const oldPos = this.origin.components[componentId].position;
+		const [moved, newPos] = this.getNewPos(offset, currentPos, oldPos);
 		this.commands.push(new MoveComponentAndWiresCommand(componentId, newPos));
 		this.changed ||= moved;
 	}
@@ -168,17 +146,11 @@ export class Mover {
 	private getNewPos(
 		offset: XYPair,
 		currentPos: XYPair,
-		key: string,
+		oldPos: XYPair,
 	): [boolean, XYPair] {
-		if (this.isFirstMove) {
-			this.oldPositions!.set(key, currentPos);
-		}
-
-		const oldPos = this.oldPositions!.get(key)!;
-
 		const newPos = {
-			x: gridSnap(oldPos.x + offset.x),
-			y: gridSnap(oldPos.y + offset.y),
+			x: this.snap(oldPos.x + offset.x),
+			y: this.snap(oldPos.y + offset.y),
 		};
 
 		// oldPos: Position before move operation began
@@ -193,10 +165,4 @@ export class Mover {
 		return [true, newPos];
 	}
 
-	reset() {
-		this.oldPositions = null;
-		this.isFirstMove = true;
-	}
 }
-
-export const mover = new Mover();

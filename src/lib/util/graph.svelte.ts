@@ -1,11 +1,10 @@
 import { canvasViewModel } from "./actions.svelte";
 import {
-	CommandGroup,
 	UpdateCustomDataCommand,
 	type Command
 } from "./commands";
 import { GRID_SIZE, linesIntersect } from "./global.svelte";
-import { mover } from "./move.svelte";
+import { GraphEditTransaction } from "./graphEdit";
 import {
 	ZGraphData,
 	type ComponentData,
@@ -20,10 +19,7 @@ export class GraphManager {
 	private _graphData: GraphData = { components: {}, wires: {}, nextId: 0 };
 	/** All commands that have been executed on the graph */
 	private history: Command[] = [];
-	/** All commands that have been executed since the last time the changes were applied.
-	 * They can be applied to the graph or discarded.
-	 */
-	private changes: Command[] = [];
+	private edit: GraphEditTransaction | null = null;
 
 	/** Publicly exposed rune state for the graph manager, that updates whenever a series of commands has been executed.
 	 * This ensures that edits to the graph that require multiple commands to be executed in one go
@@ -37,35 +33,28 @@ export class GraphManager {
 
 	public historyEmpty: boolean = $state(true);
 
-	/** Executes a specified command on the graph data and adds it to the current changes.
-	 *
-	 * @param command The command to execute
-	 * @param replace If true, the command will replace the last command in the history if it is of the same type.
-	 * This is useful for commands like moving components, where we don't want thousands of move commands in the history.
-	 * @returns The return value of the command's `execute` method
-	 */
-	executeCommand<C extends Command>(
-		command: C,
-		replace: boolean = false,
-	): ReturnType<C["execute"]> {
-		if (this.changes.length > 0) {
-			const lastChange = this.changes[this.changes.length - 1];
-			// If they are both command groups of the same type,
-			const canReplace =
-				lastChange instanceof CommandGroup &&
-				command instanceof CommandGroup &&
-				lastChange.type === command.type;
-			if (replace && canReplace) {
-				// If the command is replaceable and a previous command of the same type exists, undo it
-				lastChange.undo(this._graphData);
-				this.changes.pop();
-			}
-		}
+	/** Start an exclusive edit. Callers can share currentEdit within one interaction. */
+	beginEdit() {
+		if (this.edit) throw new Error("A graph edit transaction is already active");
+		const edit = new GraphEditTransaction(
+			this._graphData,
+			() => this.notifyAll(),
+			(command) => {
+				if (command) this.history.push(command);
+				this.edit = null;
+			},
+		);
+		this.edit = edit;
+		return edit;
+	}
 
-		const res = command.execute(this._graphData);
-		this.changes.push(command);
+	get currentEdit() {
+		return this.edit;
+	}
 
-		return res;
+	/** Append to the current edit; retained for immediate command-based actions. */
+	executeCommand<C extends Command>(command: C): ReturnType<C["execute"]> {
+		return (this.edit ?? this.beginEdit()).append(command);
 	}
 
 	/** Undoes the last command in the history, if there is one.
@@ -74,6 +63,7 @@ export class GraphManager {
 	 * - `deletedIds`: An array of the IDs of the components and wires that were deleted by the command (empty if no command was undone)
 	 */
 	undoLastCommand() {
+		this.edit?.cancel();
 		const command = this.history.pop();
 		if (command) {
 			const deletedIds = command.undo(this._graphData);
@@ -82,38 +72,14 @@ export class GraphManager {
 		return { didUndo: false, deletedIds: [] };
 	}
 
-	/** Undoes the last move operation */
-	undoLastMove() {
-		if (this.changes.length !== 0) {
-			const lastCommand = this.changes[this.changes.length - 1];
-			if (lastCommand instanceof CommandGroup && lastCommand.type === "move") {
-				lastCommand.undo(this._graphData);
-				this.changes.pop();
-			}
-		}
-	}
-
-	/** Discards all changes that have been made since the last time the changes were applied. */
+	/** Cancel the current edit, if any. */
 	discardChanges() {
-		for (let i = this.changes.length - 1; i >= 0; i--) {
-			this.changes[i].undo(this._graphData);
-		}
-		this.changes = [];
-		mover.reset();
+		this.edit?.cancel();
 	}
 
-	/** Applies all changes that have been made since the last time the changes were applied.
-	 * This will add a new history entry with all the changes that have been made.
-	 * This also means that these changes can't be discarded anymore but have to be undone.
-	 */
+	/** Commit the current edit as one undo entry. Empty edits add no history. */
 	applyChanges() {
-		const command =
-			this.changes.length > 1
-				? new CommandGroup(this.changes)
-				: this.changes[0];
-		this.history.push(command);
-		this.changes = [];
-		mover.reset();
+		this.edit?.commit();
 	}
 
 	/**
@@ -173,7 +139,7 @@ export class GraphManager {
 		}
 
 		const cmd = new UpdateCustomDataCommand(id, property, newValue);
-		this.executeCommand(cmd, true);
+		this.executeCommand(cmd);
 		this.applyChanges();
 	}
 
@@ -220,10 +186,9 @@ export class GraphManager {
 
 	/** Resets the current circuit to the initial state */
 	clear() {
+		this.edit?.cancel();
 		this._graphData = { components: {}, wires: {}, nextId: 0 };
 		this.history = [];
-		this.changes = [];
-		mover.reset();
 	}
 
 	notifyAll() {
@@ -236,6 +201,8 @@ export class GraphManager {
 	}
 
 	setGraphData(data: GraphData) {
+		this.edit?.cancel();
+		this.history = [];
 		this._graphData = data;
 	}
 	getGraphData() {

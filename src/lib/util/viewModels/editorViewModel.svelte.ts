@@ -1,6 +1,7 @@
 import { isMatching, P } from "ts-pattern";
 import type { PatternConstraint } from "../../../../node_modules/ts-pattern/dist/is-matching";
-import type { HandleReference, WireHandleReference, XYPair } from "../types";
+import type { GraphData, HandleReference, WireHandleReference, XYPair } from "../types";
+import type { GraphEditTransaction } from "../graphEdit";
 
 /** References an element, and including its type.
  * This is useful because, even though an element can be
@@ -209,6 +210,20 @@ function makeUiStateClone(state: EditorUiState): EditorUiState {
 }
 
 export class EditorViewModel {
+	// Interaction data stays outside the cloned, reactive UI state.
+	private moveSession: { edit: GraphEditTransaction; origin: GraphData } | null = null;
+
+	getMoveSession(edit: GraphEditTransaction, graph: GraphData) {
+		if (this.moveSession?.edit !== edit) {
+			this.moveSession = { edit, origin: structuredClone(graph) };
+		}
+		return this.moveSession;
+	}
+
+	private clearMoveSession() {
+		this.moveSession = null;
+	}
+
 	private initialUiState: EditorUiState = {
 		mode: "edit",
 		editType: "idle",
@@ -259,6 +274,7 @@ export class EditorViewModel {
 	}
 
 	private softReset() {
+		this.clearMoveSession();
 		this._uiState = {
 			mode: "edit",
 			editType: "idle",
@@ -275,6 +291,7 @@ export class EditorViewModel {
 
 	/** Completely resets the editor, as if the page was loaded again */
 	hardReset() {
+		this.clearMoveSession();
 		this._uiState = makeUiStateClone(this.initialUiState);
 		this.notifyAll();
 	}

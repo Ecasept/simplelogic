@@ -17,12 +17,13 @@ import {
 	calculateHandlePosition,
 	constructComponent,
 	GRID_SIZE,
+	gridSnap,
 	mousePosition,
 	rotateAroundBy,
 	setLastRotation,
 } from "./global.svelte";
 import { GraphManager } from "./graph.svelte";
-import { mover } from "./move.svelte";
+import { planMove, type MoveTargets } from "./move";
 import { simController } from "./simulation.svelte";
 import {
 	newWireHandleRef,
@@ -52,14 +53,12 @@ export const circuitModalViewModel = new CircuitModalViewModel();
 
 export class ChangesAction {
 	static commitChanges() {
-		editorViewModel.abortEditing();
 		graphManager.applyChanges();
-		graphManager.notifyAll();
+		editorViewModel.abortEditing();
 	}
 	static abortEditing() {
-		editorViewModel.abortEditing();
 		graphManager.discardChanges();
-		graphManager.notifyAll();
+		editorViewModel.abortEditing();
 	}
 }
 
@@ -418,23 +417,16 @@ export class AddAction {
 }
 
 export class MoveAction {
-	/** Moves a component to a new position
-	 *
-	 * While moving a component, this function can be called multiple times
-	 * to update the position of the component. This function is "replaceable",
-	 * which means that each time it is called, the previous move is undone
-	 * and replaced with the new move.
-	 *
-	 * @param mousePos The current mouse position, in client coordinates.
-	 *
-	 * The component will be moved to the new position. See `graphManager.moveElementsReplaceable`
-	 * for more details on how the movement is handled.
-	 *
-	 * This function calculates how much the mouse has moved since the click started.
-	 * This is passed to the `graphManager.moveElementsReplaceable` function.
-	 * It does all of the movement logic. It also tells us if a click on a component
-	 * has moved the component enough to start a drag operation.
-	 */
+	private static previewMove(offset: XYPair, targets: MoveTargets) {
+		const edit = graphManager.currentEdit ?? graphManager.beginEdit();
+		const graph = graphManager.getGraphData();
+		const session = editorViewModel.getMoveSession(edit, graph);
+		const plan = planMove(graph, session.origin, targets, offset, gridSnap);
+		if (plan.changed) session.edit.replacePreview(plan.command);
+		return plan.changed;
+	}
+
+	/** Plan movement from the click origin and replace the interaction's preview. */
 	static onMove(svgMousePos: XYPair, pointerId: number) {
 		const uiState = editorViewModel.uiState;
 
@@ -503,7 +495,7 @@ export class MoveAction {
 		}
 		const elements = new Map<number, ElementType>();
 		elements.set(uiState.clickedElement.id, uiState.clickedElement.type);
-		mover.moveElementsReplaceable(offset, elements);
+		this.previewMove(offset, elements);
 	}
 
 	private static addingElements(uiState: EditorUiState, offset: XYPair) {
@@ -512,7 +504,7 @@ export class MoveAction {
 		}
 
 
-		mover.moveElementsReplaceable(offset, uiState.elements);
+		this.previewMove(offset, uiState.elements);
 	}
 
 	private static draggingElements(uiState: EditorUiState, offset: XYPair) {
@@ -527,7 +519,7 @@ export class MoveAction {
 			elements = new Map<number, ElementType>();
 			elements.set(uiState.clickedElement.id, uiState.clickedElement.type);
 		}
-		mover.moveElementsReplaceable(offset, elements);
+		this.previewMove(offset, elements);
 	}
 
 	private static elementDown(uiState: EditorUiState, offset: XYPair) {
@@ -544,7 +536,7 @@ export class MoveAction {
 			elements = new Map<number, ElementType>();
 			elements.set(uiState.clickedElement.id, uiState.clickedElement.type);
 		}
-		const moved = mover.moveElementsReplaceable(offset, elements);
+		const moved = this.previewMove(offset, elements);
 		// If we're in elementDown state and this is the first move, transition to draggingElements
 		if (moved) {
 			// Start drag with the appropriate mode: drag selected elements if this element is selected
@@ -562,7 +554,7 @@ export class MoveAction {
 			throw new Error("wrong mode");
 		}
 		const ref = $state.snapshot(uiState.clickedHandle);
-		const moved = mover.moveWireHandleReplaceable(offset, ref);
+		const moved = this.previewMove(offset, ref);
 		if (moved) {
 			// Start dragging the wire handle
 			editorViewModel.startDragWireHandle(
@@ -579,7 +571,7 @@ export class MoveAction {
 			throw new Error("wrong mode");
 		}
 		const ref = uiState.draggedHandle;
-		mover.moveWireHandleReplaceable(offset, ref);
+		this.previewMove(offset, ref);
 	}
 
 	private static addingWire(uiState: EditorUiState, offset: XYPair) {
@@ -587,7 +579,7 @@ export class MoveAction {
 			throw new Error("wrong mode");
 		}
 		const ref = uiState.draggedHandle;
-		mover.moveWireHandleReplaceable(offset, ref);
+		this.previewMove(offset, ref);
 	}
 }
 
