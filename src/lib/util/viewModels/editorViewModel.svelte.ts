@@ -315,6 +315,7 @@ export class EditorViewModel {
 	setActivePointerId(pointerId: number) {
 		if ("activePointerId" in this._uiState) {
 			this._uiState.activePointerId = pointerId;
+			this.notifyAll();
 		}
 	}
 

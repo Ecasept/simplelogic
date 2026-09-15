@@ -3,28 +3,19 @@
 	import OnCanvas from "$lib/components/editor/overlay/OnCanvas.svelte";
 	import CircuitModal from "$lib/components/modal/CircuitModal.svelte";
 	import {
-		AddAction,
 		canvasViewModel,
-		ChangesAction,
 		circuitModalViewModel,
-		EditorAction,
 		editorViewModel,
 		graphManager,
-		MoveAction,
 		PersistenceAction,
+		interactionController,
 	} from "$lib/util/actions.svelte";
-	import {
-		debugLog,
-		mousePosition,
-		setAvailablePresets,
-		setMousePosition,
-	} from "$lib/util/global.svelte";
+	import { debugLog, setAvailablePresets } from "$lib/util/global.svelte";
 	import { handleKeyDown } from "$lib/util/keyboard";
-	import { cancelLongPress, cancelLongPressIfMoved } from "$lib/util/longpress";
+	import { normalizePointer } from "$lib/util/interaction.svelte";
 	import { getThemeClass } from "$lib/util/theme.svelte";
 	import { authViewModel } from "$lib/util/viewModels/authViewModel";
 	import { onMount } from "svelte";
-	import { P } from "ts-pattern";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -75,170 +66,20 @@
 			// Fresh load, show the load modal (onboarding)
 			PersistenceAction.loadGraph(true);
 		}
+		return () => interactionController.cancel();
 	});
 
 	$inspect(editorViewModel.uiState).with(debugLog("UISTATE"));
-
-	function updatePosition(e: PointerEvent) {
-		const pos = { x: e.clientX, y: e.clientY };
-		setMousePosition(pos);
-
-		const svgPos = canvasViewModel.clientToSVGCoords(pos);
-
-		MoveAction.onMove(svgPos, e.pointerId);
-	}
-
-	function onPointerMove(e: PointerEvent) {
-		updatePosition(e);
-		cancelLongPressIfMoved(mousePosition);
-	}
-
-	function onPointerUp(e: PointerEvent) {
-		const uiState = editorViewModel.uiState;
-
-		// on touch screens, no pointer move events are emitted for adding components
-		// so we need to update the position here
-		updatePosition(e);
-
-		cancelLongPress();
-
-		if (uiState.matches({ isPanning: true })) {
-			console.warn("Panning should be handled by the canvas component");
-			return;
-		} else if (
-			uiState.mode === "edit" &&
-			uiState.editType === "addingElements" &&
-			uiState.activePointerId === e.pointerId
-		) {
-			editorViewModel.setSelectedElements(uiState.elements);
-			ChangesAction.commitChanges();
-		} else if (
-			uiState.mode === "edit" &&
-			uiState.editType === "addingComponent" &&
-			uiState.activePointerId === e.pointerId
-		) {
-			// Select the component that was added
-			const clickedElement = $state.snapshot(uiState.clickedElement);
-			editorViewModel.setSelected(clickedElement);
-			// Complete the adding of the component
-			ChangesAction.commitChanges();
-
-			if (
-				uiState.matches({
-					settings: {
-						continuousPlacement: true,
-					},
-					initiator: "keyboard",
-				})
-			) {
-				// If continuous placement is enabled, start adding another component of the same type
-				AddAction.addComponent(
-					graphManager.getComponentData(clickedElement.id).type,
-					{ x: e.clientX, y: e.clientY },
-					"keyboard",
-					e.pointerId
-				);
-			}
-		} else if (
-			uiState.matches({
-				editType: P.union("draggingWireHandle", "addingWire"),
-				activePointerId: e.pointerId,
-			})
-		) {
-			if (uiState.hoveredHandle === null) {
-				// The wire was dragged but not connected to a handle
-
-				const handle = $state.snapshot(uiState.draggedHandle);
-				editorViewModel.setSelected(handle);
-				ChangesAction.commitChanges();
-			} else {
-				// We're currently dragging a wire and hovering over another handle
-				// -> connect them
-				EditorAction.connect(
-					$state.snapshot(uiState.draggedHandle),
-					$state.snapshot(uiState.hoveredHandle),
-				);
-				editorViewModel.removeHoveredHandle();
-				const handle = $state.snapshot(uiState.draggedHandle);
-				editorViewModel.setSelected(handle);
-				// Commit the changes made while dragging the wire
-				ChangesAction.commitChanges();
-			}
-		} else if (uiState.matches({ editType: "elementDown", activePointerId: e.pointerId })) {
-			const clickedElement = $state.snapshot(uiState.clickedElement);
-
-			if (uiState.clickType === "ctrl") {
-				// Ctrl+click: toggle selection
-				if (editorViewModel.isSelected(clickedElement)) {
-					editorViewModel.removeSelected(clickedElement);
-				} else {
-					editorViewModel.addSelected(clickedElement);
-				}
-			} else {
-				if (
-					editorViewModel.getSelectedCount() == 1 &&
-					editorViewModel.isSelected(clickedElement)
-				) {
-					// If the clicked element is the only selected element,
-					// toggle the selection
-					editorViewModel.removeSelected(clickedElement);
-				} else {
-					// Set it as the selected element
-					editorViewModel.setSelected(clickedElement);
-				}
-			}
-			// Return to idle state
-			ChangesAction.abortEditing();
-		} else if (uiState.matches({ editType: "wireHandleDown", activePointerId: e.pointerId })) {
-			// A wire handle was clicked
-			const clickedHandle = $state.snapshot(uiState.clickedHandle);
-			if (uiState.clickType === "ctrl") {
-				// Ctrl+click: toggle selection
-				if (editorViewModel.isSelected(clickedHandle)) {
-					editorViewModel.removeSelected(clickedHandle);
-				} else {
-					editorViewModel.addSelected(clickedHandle);
-				}
-			} else {
-				if (
-					editorViewModel.getSelectedCount() == 1 &&
-					editorViewModel.isSelected(clickedHandle)
-				) {
-					// If the clicked handle is the only selected element,
-					// toggle the selection
-					editorViewModel.removeSelected(clickedHandle);
-				} else {
-					// Set it as the selected element
-					editorViewModel.setSelected(clickedHandle);
-				}
-			}
-			// Return to idle state
-			ChangesAction.abortEditing();
-		} else if (
-			uiState.matches({
-				editType: "draggingElements",
-				activePointerId: e.pointerId,
-			})
-		) {
-			// An element was dragged
-			const clickedElement = $state.snapshot(uiState.clickedElement);
-			if (editorViewModel.isSelected(clickedElement)) {
-				// A selected element was moved
-				// -> do nothing, as it is already selected
-			} else {
-				// An unselected element was dragged
-				// -> set it as the only selected element
-				editorViewModel.setSelected(clickedElement);
-			}
-			// Commit the changes made while dragging the elements
-			ChangesAction.commitChanges();
-		}
-	}
 </script>
 
 <svelte:window
-	onpointermove={onPointerMove}
-	onpointerup={onPointerUp}
+	onpointermove={(e) => interactionController.pointerMove(normalizePointer(e))}
+	onpointerup={(e) => interactionController.pointerUp(normalizePointer(e))}
+	onpointercancel={(e) =>
+		interactionController.pointerCancel(normalizePointer(e))}
+	onlostpointercapture={(e) =>
+		interactionController.pointerCancel(normalizePointer(e))}
+	onblur={() => interactionController.cancel()}
 	onkeydown={handleKeyDown}
 />
 

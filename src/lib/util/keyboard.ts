@@ -8,6 +8,7 @@ import {
 	EditorAction,
 	editorViewModel,
 	graphManager,
+	interactionController,
 	ModeAction,
 	PersistenceAction,
 } from "./actions.svelte";
@@ -51,6 +52,8 @@ const shortcuts = [
 			env: "editor",
 			mode: "edit",
 			editType: P.union(
+				"elementDown",
+				"wireHandleDown",
 				"addingComponent",
 				"addingElements",
 				"draggingElements",
@@ -69,6 +72,7 @@ const shortcuts = [
 			env: "editor",
 			mode: "edit",
 			editType: "idle",
+			isPanning: false,
 			selected: P.when((s) => s.size > 0),
 		},
 		action: () => editorViewModel.clearSelection(),
@@ -112,7 +116,7 @@ const shortcuts = [
 			env: "editor",
 			isPanning: true,
 		},
-		action: EditorAction.abortPanning,
+		action: () => interactionController.cancel(),
 	}),
 	s({
 		name: "Add AND gate",

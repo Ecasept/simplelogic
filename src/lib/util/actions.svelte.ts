@@ -1,4 +1,5 @@
 import { P } from "ts-pattern";
+import { createInteractionController } from "./interaction.svelte";
 import {
 	CommandGroup,
 	ConnectCommand,
@@ -57,8 +58,7 @@ export class ChangesAction {
 		editorViewModel.abortEditing();
 	}
 	static abortEditing() {
-		graphManager.discardChanges();
-		editorViewModel.abortEditing();
+		interactionController.cancel();
 	}
 }
 
@@ -584,37 +584,8 @@ export class MoveAction {
 }
 
 export class EditorAction {
-	static startAreaSelection(pos: XYPair) {
-		editorViewModel.startAreaSelection();
-		canvasViewModel.startAreaSelection(pos);
-	}
-	static stopAreaSelection() {
-		if (!canvasViewModel.uiState.isAreaSelecting) {
-			console.warn("stopAreaSelection called when not area selecting");
-			return;
-		}
-		const startPos = canvasViewModel.uiState.startPos;
-		const endPos = canvasViewModel.uiState.currentPos;
-		editorViewModel.stopAreaSelection();
-		canvasViewModel.stopAreaSelection();
-		const areaSelectType = editorViewModel.uiState.settings.areaSelectType;
-		const elements = graphManager.getElementsInArea(startPos, endPos, areaSelectType);
-		editorViewModel.setSelectedElements(elements);
-	}
-	static startPanning() {
-		canvasViewModel.startPanning();
-		editorViewModel.startPanning();
-	}
-	static stopPanning() {
-		canvasViewModel.stopPanning();
-		editorViewModel.stopPanning();
-	}
-	static abortPanning() {
-		canvasViewModel.abortPanning();
-		editorViewModel.stopPanning();
-	}
-
 	static clearCanvas() {
+		interactionController.cancel();
 		editorViewModel.hardReset();
 		graphManager.clear();
 		graphManager.notifyAll();
@@ -810,7 +781,6 @@ export class ModeAction {
 export class PersistenceAction {
 	static saveGraph() {
 		ChangesAction.abortEditing();
-		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
 		circuitModalViewModel.open("save", () => { });
 	}
@@ -820,7 +790,6 @@ export class PersistenceAction {
 	}
 	static loadGraph(isOnboarding: boolean) {
 		ChangesAction.abortEditing();
-		canvasViewModel.stopPanning();
 		editorViewModel.setModalOpen(true);
 		circuitModalViewModel.open("load", (newGraphData, type) => {
 			PersistenceAction.setNewGraph(newGraphData);
@@ -843,3 +812,14 @@ export class PersistenceAction {
 		graphManager.notifyAll();
 	}
 }
+
+// Compose the interaction owner here while the remaining actions are still co-located.
+export const interactionController = createInteractionController({
+	graphManager,
+	editorViewModel,
+	canvasViewModel,
+	AddAction,
+	ChangesAction,
+	EditorAction,
+	MoveAction,
+});

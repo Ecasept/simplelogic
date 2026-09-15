@@ -2,124 +2,33 @@ import type { XYPair } from "../types";
 import { ViewModel } from "./viewModel";
 
 export type ViewBox = XYPair & { width: number; height: number };
+export type CanvasUiState = { viewBox: ViewBox };
 
-export type CanvasPanningState = {
-	isPanning: true;
-	/** How much the user has moved the viewBox
-	 * since the start of panning */
-	moveAmount: number;
-	originalViewBox: ViewBox;
-};
-
-export type CanvasNotPanningState = {
-	isPanning: false;
-};
-
-export type CanvasAreaSelectionState = {
-	isAreaSelecting: true;
-	startPos: XYPair;
-	currentPos: XYPair;
-};
-export type CanvasNotAreaSelectingState = {
-	isAreaSelecting: false;
-};
-
-export type CanvasUiState = {
-	viewBox: ViewBox;
-} & (CanvasPanningState | CanvasNotPanningState)
-	& (CanvasAreaSelectionState | CanvasNotAreaSelectingState);
-
+/** Viewport geometry and coordinate conversion, independent of active gestures. */
 export class CanvasViewModel extends ViewModel<CanvasUiState> {
 	protected _uiState: CanvasUiState = {
-		isPanning: false,
 		viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
-		isAreaSelecting: false,
 	};
-	protected resetUiState(): void {
-		this._uiState = {
-			isPanning: false,
-			viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
-			isAreaSelecting: false,
-		};
+	protected resetUiState() {
+		this.setViewBox({ x: 0, y: 0, width: 1000, height: 1000 });
 	}
-
 	svg: SVGSVGElement | null = null;
 
-	// ==== Canvas ====
-	startAreaSelection(startPos: XYPair) {
-		this._uiState = {
-			isAreaSelecting: true,
-			startPos,
-			currentPos: startPos,
-			isPanning: false,
-			viewBox: this._uiState.viewBox,
-		};
+	setViewBox(viewBox: ViewBox) {
+		this._uiState = { viewBox: { ...viewBox } };
 		this.notifyAll();
 	}
-	updateAreaSelection(currentPos: XYPair) {
-		if (!this._uiState.isAreaSelecting) {
-			console.warn("updateAreaSelection called when not area selecting");
-			return;
-		}
-		this._uiState.currentPos = currentPos;
-		this.notifyAll();
-	}
-	stopAreaSelection() {
-		this._uiState = {
-			isAreaSelecting: false,
-			isPanning: false,
-			viewBox: this._uiState.viewBox,
-		};
-		this.notifyAll();
-	}
-	startPanning() {
-		this._uiState = {
-			isPanning: true,
-			moveAmount: 0,
-			viewBox: this._uiState.viewBox,
-			originalViewBox: { ...this._uiState.viewBox },
-			isAreaSelecting: false,
-		};
-		this.notifyAll();
-	}
-	stopPanning() {
-		this._uiState = {
-			isPanning: false,
-			viewBox: this._uiState.viewBox,
-			isAreaSelecting: false,
-		};
-		this.notifyAll();
-	}
-	abortPanning() {
-		if (!this._uiState.isPanning) {
-			console.warn("abortPanning called when not panning");
-			return;
-		}
-		this._uiState = {
-			isPanning: false,
-			viewBox: this._uiState.originalViewBox,
-			isAreaSelecting: false,
-		};
-		this.notifyAll();
-	}
+
 	pan(movementX: number, movementY: number) {
-		if (!this._uiState.isPanning) {
-			console.warn("pan called when not panning");
-			return;
-		}
-
-		let p0 = this.clientToSVGCoords({ x: 0, y: 0 });
-		let p1 = this.clientToSVGCoords({ x: movementX, y: movementY });
-
-		let dx = p1.x - p0.x;
-		let dy = p1.y - p0.y;
-
-		this._uiState.viewBox.x -= dx;
-		this._uiState.viewBox.y -= dy;
-		this._uiState.moveAmount += Math.hypot(movementX, movementY);
+		const p0 = this.clientToSVGCoords({ x: 0, y: 0 });
+		const p1 = this.clientToSVGCoords({ x: movementX, y: movementY });
+		this._uiState.viewBox.x -= p1.x - p0.x;
+		this._uiState.viewBox.y -= p1.y - p0.y;
 		this.notifyAll();
 	}
+
 	zoom(factor: number, clientPos: XYPair) {
+		if (!Number.isFinite(factor) || factor <= 0) return;
 		const point = this.clientToSVGCoords(clientPos);
 
 		// Update the viewBox
