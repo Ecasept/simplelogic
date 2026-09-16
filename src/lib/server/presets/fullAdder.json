@@ -1,0 +1,1253 @@
+{
+  "wires": {
+    "10": {
+      "id": 10,
+      "handles": {
+        "input": {
+          "x": 360,
+          "y": 40,
+          "type": "input",
+          "connections": [
+            {
+              "id": 7,
+              "handleId": "out",
+              "handleType": "output",
+              "type": "component"
+            }
+          ]
+        },
+        "output": {
+          "x": 460,
+          "y": 40,
+          "type": "output",
+          "connections": [
+            {
+              "id": 12,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            },
+            {
+              "id": 17,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "11": {
+      "id": 11,
+      "handles": {
+        "input": {
+          "x": 360,
+          "y": 120,
+          "type": "input",
+          "connections": [
+            {
+              "id": 8,
+              "handleId": "out",
+              "handleType": "output",
+              "type": "component"
+            }
+          ]
+        },
+        "output": {
+          "x": 440,
+          "y": 120,
+          "type": "output",
+          "connections": [
+            {
+              "id": 13,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            },
+            {
+              "id": 19,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "12": {
+      "id": 12,
+      "handles": {
+        "input": {
+          "x": 460,
+          "y": 40,
+          "type": "input",
+          "connections": [
+            {
+              "id": 10,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 500,
+          "y": 60,
+          "type": "output",
+          "connections": [
+            {
+              "id": 6,
+              "handleId": "in1",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "13": {
+      "id": 13,
+      "handles": {
+        "input": {
+          "x": 440,
+          "y": 120,
+          "type": "input",
+          "connections": [
+            {
+              "id": 11,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 500,
+          "y": 100,
+          "type": "output",
+          "connections": [
+            {
+              "id": 6,
+              "handleId": "in2",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "17": {
+      "id": 17,
+      "handles": {
+        "input": {
+          "x": 460,
+          "y": 40,
+          "type": "input",
+          "connections": [
+            {
+              "id": 10,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 460,
+          "y": 240,
+          "type": "output",
+          "connections": [
+            {
+              "id": 18,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "18": {
+      "id": 18,
+      "handles": {
+        "input": {
+          "x": 460,
+          "y": 240,
+          "type": "input",
+          "connections": [
+            {
+              "id": 17,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 660,
+          "y": 240,
+          "type": "output",
+          "connections": [
+            {
+              "id": 16,
+              "handleId": "in1",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "19": {
+      "id": 19,
+      "handles": {
+        "input": {
+          "x": 440,
+          "y": 120,
+          "type": "input",
+          "connections": [
+            {
+              "id": 11,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 440,
+          "y": 280,
+          "type": "output",
+          "connections": [
+            {
+              "id": 20,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "20": {
+      "id": 20,
+      "handles": {
+        "input": {
+          "x": 440,
+          "y": 280,
+          "type": "input",
+          "connections": [
+            {
+              "id": 19,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 660,
+          "y": 280,
+          "type": "output",
+          "connections": [
+            {
+              "id": 16,
+              "handleId": "in2",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "22": {
+      "id": 22,
+      "handles": {
+        "input": {
+          "x": 580,
+          "y": 80,
+          "type": "input",
+          "connections": [
+            {
+              "id": 6,
+              "handleId": "out",
+              "handleType": "output",
+              "type": "component"
+            }
+          ]
+        },
+        "output": {
+          "x": 620,
+          "y": 80,
+          "type": "output",
+          "connections": [
+            {
+              "id": 23,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            },
+            {
+              "id": 32,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "23": {
+      "id": 23,
+      "handles": {
+        "input": {
+          "x": 620,
+          "y": 80,
+          "type": "input",
+          "connections": [
+            {
+              "id": 22,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 620,
+          "y": 160,
+          "type": "output",
+          "connections": [
+            {
+              "id": 24,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "24": {
+      "id": 24,
+      "handles": {
+        "input": {
+          "x": 620,
+          "y": 160,
+          "type": "input",
+          "connections": [
+            {
+              "id": 23,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 660,
+          "y": 160,
+          "type": "output",
+          "connections": [
+            {
+              "id": 21,
+              "handleId": "in1",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "25": {
+      "id": 25,
+      "handles": {
+        "input": {
+          "x": 360,
+          "y": 200,
+          "type": "input",
+          "connections": [
+            {
+              "id": 9,
+              "handleId": "out",
+              "handleType": "output",
+              "type": "component"
+            }
+          ]
+        },
+        "output": {
+          "x": 580,
+          "y": 200,
+          "type": "output",
+          "connections": [
+            {
+              "id": 26,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            },
+            {
+              "id": 27,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "26": {
+      "id": 26,
+      "handles": {
+        "input": {
+          "x": 580,
+          "y": 200,
+          "type": "input",
+          "connections": [
+            {
+              "id": 25,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 580,
+          "y": 140,
+          "type": "output",
+          "connections": [
+            {
+              "id": 29,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "27": {
+      "id": 27,
+      "handles": {
+        "input": {
+          "x": 580,
+          "y": 200,
+          "type": "input",
+          "connections": [
+            {
+              "id": 25,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 660,
+          "y": 200,
+          "type": "output",
+          "connections": [
+            {
+              "id": 21,
+              "handleId": "in2",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "29": {
+      "id": 29,
+      "handles": {
+        "input": {
+          "x": 580,
+          "y": 140,
+          "type": "input",
+          "connections": [
+            {
+              "id": 26,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 640,
+          "y": 140,
+          "type": "output",
+          "connections": [
+            {
+              "id": 30,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "30": {
+      "id": 30,
+      "handles": {
+        "input": {
+          "x": 640,
+          "y": 140,
+          "type": "input",
+          "connections": [
+            {
+              "id": 29,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 640,
+          "y": 120,
+          "type": "output",
+          "connections": [
+            {
+              "id": 31,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      }
+    },
+    "31": {
+      "id": 31,
+      "handles": {
+        "input": {
+          "x": 640,
+          "y": 120,
+          "type": "input",
+          "connections": [
+            {
+              "id": 30,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 660,
+          "y": 120,
+          "type": "output",
+          "connections": [
+            {
+              "id": 28,
+              "handleId": "in2",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "32": {
+      "id": 32,
+      "handles": {
+        "input": {
+          "x": 620,
+          "y": 80,
+          "type": "input",
+          "connections": [
+            {
+              "id": 22,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "output": {
+          "x": 660,
+          "y": 80,
+          "type": "output",
+          "connections": [
+            {
+              "id": 28,
+              "handleId": "in1",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "34": {
+      "id": 34,
+      "handles": {
+        "input": {
+          "x": 740,
+          "y": 260,
+          "type": "input",
+          "connections": [
+            {
+              "id": 16,
+              "handleId": "out",
+              "handleType": "output",
+              "type": "component"
+            }
+          ]
+        },
+        "output": {
+          "x": 780,
+          "y": 240,
+          "type": "output",
+          "connections": [
+            {
+              "id": 33,
+              "handleId": "in2",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "35": {
+      "id": 35,
+      "handles": {
+        "input": {
+          "x": 740,
+          "y": 180,
+          "type": "input",
+          "connections": [
+            {
+              "id": 21,
+              "handleId": "out",
+              "handleType": "output",
+              "type": "component"
+            }
+          ]
+        },
+        "output": {
+          "x": 780,
+          "y": 200,
+          "type": "output",
+          "connections": [
+            {
+              "id": 33,
+              "handleId": "in1",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "38": {
+      "id": 38,
+      "handles": {
+        "input": {
+          "x": 860,
+          "y": 220,
+          "type": "input",
+          "connections": [
+            {
+              "id": 33,
+              "handleId": "out",
+              "handleType": "output",
+              "type": "component"
+            }
+          ]
+        },
+        "output": {
+          "x": 920,
+          "y": 220,
+          "type": "output",
+          "connections": [
+            {
+              "id": 37,
+              "handleId": "in",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    },
+    "39": {
+      "id": 39,
+      "handles": {
+        "input": {
+          "x": 740,
+          "y": 100,
+          "type": "input",
+          "connections": [
+            {
+              "id": 28,
+              "handleId": "out",
+              "handleType": "output",
+              "type": "component"
+            }
+          ]
+        },
+        "output": {
+          "x": 920,
+          "y": 100,
+          "type": "output",
+          "connections": [
+            {
+              "id": 36,
+              "handleId": "in",
+              "handleType": "input",
+              "type": "component"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "components": {
+    "3": {
+      "id": 3,
+      "type": "TEXT",
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "position": {
+        "x": 280,
+        "y": 40
+      },
+      "handles": {},
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "text": "A",
+        "fontSize": 16
+      }
+    },
+    "4": {
+      "id": 4,
+      "type": "TEXT",
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "position": {
+        "x": 280,
+        "y": 120
+      },
+      "handles": {},
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "text": "B",
+        "fontSize": 16
+      }
+    },
+    "5": {
+      "id": 5,
+      "type": "TEXT",
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "position": {
+        "x": 280,
+        "y": 200
+      },
+      "handles": {},
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "text": "carry in",
+        "fontSize": 16
+      }
+    },
+    "6": {
+      "id": 6,
+      "type": "XOR",
+      "size": {
+        "x": 4,
+        "y": 4
+      },
+      "position": {
+        "x": 500,
+        "y": 40
+      },
+      "handles": {
+        "in1": {
+          "edge": "left",
+          "pos": 1,
+          "type": "input",
+          "connections": [
+            {
+              "id": 12,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "in2": {
+          "edge": "left",
+          "pos": 3,
+          "type": "input",
+          "connections": [
+            {
+              "id": 13,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "out": {
+          "edge": "right",
+          "pos": 2,
+          "type": "output",
+          "connections": [
+            {
+              "id": 22,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {}
+    },
+    "7": {
+      "id": 7,
+      "type": "IN",
+      "size": {
+        "x": 2,
+        "y": 2
+      },
+      "position": {
+        "x": 320,
+        "y": 20
+      },
+      "handles": {
+        "out": {
+          "edge": "right",
+          "pos": 1,
+          "type": "output",
+          "connections": [
+            {
+              "id": 10,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "label": "",
+        "showLabel": true
+      }
+    },
+    "8": {
+      "id": 8,
+      "type": "IN",
+      "size": {
+        "x": 2,
+        "y": 2
+      },
+      "position": {
+        "x": 320,
+        "y": 100
+      },
+      "handles": {
+        "out": {
+          "edge": "right",
+          "pos": 1,
+          "type": "output",
+          "connections": [
+            {
+              "id": 11,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "label": "",
+        "showLabel": true
+      }
+    },
+    "9": {
+      "id": 9,
+      "type": "IN",
+      "size": {
+        "x": 2,
+        "y": 2
+      },
+      "position": {
+        "x": 320,
+        "y": 180
+      },
+      "handles": {
+        "out": {
+          "edge": "right",
+          "pos": 1,
+          "type": "output",
+          "connections": [
+            {
+              "id": 25,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "label": "",
+        "showLabel": true
+      }
+    },
+    "16": {
+      "id": 16,
+      "type": "AND",
+      "size": {
+        "x": 4,
+        "y": 4
+      },
+      "position": {
+        "x": 660,
+        "y": 220
+      },
+      "handles": {
+        "in1": {
+          "edge": "left",
+          "pos": 1,
+          "type": "input",
+          "connections": [
+            {
+              "id": 18,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "in2": {
+          "edge": "left",
+          "pos": 3,
+          "type": "input",
+          "connections": [
+            {
+              "id": 20,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "out": {
+          "edge": "right",
+          "pos": 2,
+          "type": "output",
+          "connections": [
+            {
+              "id": 34,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {}
+    },
+    "21": {
+      "id": 21,
+      "type": "AND",
+      "size": {
+        "x": 4,
+        "y": 4
+      },
+      "position": {
+        "x": 660,
+        "y": 140
+      },
+      "handles": {
+        "in1": {
+          "edge": "left",
+          "pos": 1,
+          "type": "input",
+          "connections": [
+            {
+              "id": 24,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "in2": {
+          "edge": "left",
+          "pos": 3,
+          "type": "input",
+          "connections": [
+            {
+              "id": 27,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "out": {
+          "edge": "right",
+          "pos": 2,
+          "type": "output",
+          "connections": [
+            {
+              "id": 35,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {}
+    },
+    "28": {
+      "id": 28,
+      "type": "XOR",
+      "size": {
+        "x": 4,
+        "y": 4
+      },
+      "position": {
+        "x": 660,
+        "y": 60
+      },
+      "handles": {
+        "in1": {
+          "edge": "left",
+          "pos": 1,
+          "type": "input",
+          "connections": [
+            {
+              "id": 32,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "in2": {
+          "edge": "left",
+          "pos": 3,
+          "type": "input",
+          "connections": [
+            {
+              "id": 31,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "out": {
+          "edge": "right",
+          "pos": 2,
+          "type": "output",
+          "connections": [
+            {
+              "id": 39,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {}
+    },
+    "33": {
+      "id": 33,
+      "type": "OR",
+      "size": {
+        "x": 4,
+        "y": 4
+      },
+      "position": {
+        "x": 780,
+        "y": 180
+      },
+      "handles": {
+        "in1": {
+          "edge": "left",
+          "pos": 1,
+          "type": "input",
+          "connections": [
+            {
+              "id": 35,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "in2": {
+          "edge": "left",
+          "pos": 3,
+          "type": "input",
+          "connections": [
+            {
+              "id": 34,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        },
+        "out": {
+          "edge": "right",
+          "pos": 2,
+          "type": "output",
+          "connections": [
+            {
+              "id": 38,
+              "handleId": "input",
+              "handleType": "input",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {}
+    },
+    "36": {
+      "id": 36,
+      "type": "LED",
+      "size": {
+        "x": 2,
+        "y": 2
+      },
+      "position": {
+        "x": 920,
+        "y": 80
+      },
+      "handles": {
+        "in": {
+          "edge": "left",
+          "pos": 1,
+          "type": "input",
+          "connections": [
+            {
+              "id": 39,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "label": "",
+        "showLabel": true
+      }
+    },
+    "37": {
+      "id": 37,
+      "type": "LED",
+      "size": {
+        "x": 2,
+        "y": 2
+      },
+      "position": {
+        "x": 920,
+        "y": 200
+      },
+      "handles": {
+        "in": {
+          "edge": "left",
+          "pos": 1,
+          "type": "input",
+          "connections": [
+            {
+              "id": 38,
+              "handleId": "output",
+              "handleType": "output",
+              "type": "wire"
+            }
+          ]
+        }
+      },
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "label": "",
+        "showLabel": true
+      }
+    },
+    "40": {
+      "id": 40,
+      "type": "TEXT",
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "position": {
+        "x": 1000,
+        "y": 100
+      },
+      "handles": {},
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "text": "sum",
+        "fontSize": 16
+      }
+    },
+    "41": {
+      "id": 41,
+      "type": "TEXT",
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "position": {
+        "x": 1000,
+        "y": 220
+      },
+      "handles": {},
+      "isPoweredInitially": false,
+      "rotation": 0,
+      "customData": {
+        "text": "carry out",
+        "fontSize": 16
+      }
+    }
+  },
+  "nextId": 42
+}

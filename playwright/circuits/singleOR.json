@@ -1,0 +1,40 @@
+{
+  "components": {
+    "0": {
+      "type": "OR",
+      "size": {
+        "x": 4,
+        "y": 4
+      },
+      "position": {
+        "x": 380,
+        "y": 340
+      },
+      "handles": {
+        "in1": {
+          "edge": "left",
+          "pos": 1,
+          "type": "input",
+          "connections": []
+        },
+        "in2": {
+          "edge": "left",
+          "pos": 3,
+          "type": "input",
+          "connections": []
+        },
+        "out": {
+          "edge": "right",
+          "pos": 2,
+          "type": "output",
+          "connections": []
+        }
+      },
+      "isPoweredInitially": false,
+      "id": 0,
+      "rotation": 0
+    }
+  },
+  "wires": {},
+  "nextId": 1
+}
