@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { circuitModalViewModel } from "$lib/util/actions.svelte";
+	import { circuitModalViewModel } from "$lib/util/editor.svelte";
 	import { type ListRequestData } from "$lib/util/api";
 	import { onEnter } from "$lib/util/keyboard";
 	import { Calendar, Cpu, Trash2, Waypoints } from "lucide-svelte";

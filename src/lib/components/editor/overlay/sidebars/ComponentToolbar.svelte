@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Component from "$lib/components/editor/Component.svelte";
-	import { editorViewModel } from "$lib/util/actions.svelte";
+	import { editorUiState } from "$lib/util/editor.svelte";
 	import { COMPONENT_DATA, GRID_SIZE } from "$lib/util/global.svelte";
 	import type { ComponentType, SVGPointerEvent } from "$lib/util/types";
 	import TextBox from "../../TextBox.svelte";
@@ -13,8 +13,8 @@
 	// Make a copy of the uiState to prevent reactivity
 	// (we can't snapshot functions so we just copy it over)
 	const uiState = {
-		...$state.snapshot(editorViewModel.uiState),
-		matches: editorViewModel.uiState.matches,
+		...$state.snapshot(editorUiState.current),
+		matches: editorUiState.current.matches,
 	};
 </script>
 
@@ -60,6 +60,7 @@
 						handles={COMPONENT_DATA[type].handles}
 						{uiState}
 						rotation={0}
+						isPoweredInitially={false}
 					/>
 				{/if}
 			</g>

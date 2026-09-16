@@ -1,16 +1,17 @@
 <script lang="ts">
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
 	import Button from "$lib/components/reusable/Button.svelte";
 	import {
-		CloneAction,
-		DeleteAction,
-		EditorAction,
+		clipboardActions,
+		graphActions,
 		editorViewModel,
 		graphManager,
-	} from "$lib/util/actions.svelte";
+	} from "$lib/util/editor.svelte";
 	import { COMPONENT_DATA, debugLog } from "$lib/util/global.svelte";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { InputInputEvent, TextAreaInputEvent } from "$lib/util/types";
-	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+
 	import {
 		RotateCcw,
 		RotateCw,
@@ -75,7 +76,7 @@
 			console.error("No element selected to update text");
 			return;
 		}
-		EditorAction.updateCustomDataReplaceable(info.selectedId, "text", newText);
+		graphActions.updateCustomDataReplaceable(info.selectedId, "text", newText);
 	}
 
 	function onNumberInput(newSize: number) {
@@ -83,7 +84,7 @@
 			console.error("No element selected to update font size");
 			return;
 		}
-		EditorAction.updateTextFontSize(info.selectedId, newSize);
+		graphActions.updateTextFontSize(info.selectedId, newSize);
 	}
 
 	function onIoLabelInput(e: InputInputEvent) {
@@ -91,7 +92,7 @@
 			console.error("No element selected to update IO label");
 			return;
 		}
-		EditorAction.updateCustomDataReplaceable(
+		graphActions.updateCustomDataReplaceable(
 			info.selectedId,
 			"label",
 			e.currentTarget.value,
@@ -104,7 +105,7 @@
 			return;
 		}
 		const showLabel = info.data.customData?.showLabel !== false;
-		EditorAction.updateIoShowLabel(info.selectedId, !showLabel);
+		graphActions.updateIoShowLabel(info.selectedId, !showLabel);
 	}
 
 	function onEnterPressed(event: KeyboardEvent) {
@@ -137,7 +138,7 @@
 			.with("center", () => "right" as const)
 			.with("right", () => "left" as const)
 			.otherwise(() => "right" as const); // null defaults to center, so next is right
-		EditorAction.updateTextAlignment(info.selectedId, newAlign);
+		graphActions.updateTextAlignment(info.selectedId, newAlign);
 	}
 
 	$inspect(info).with(debugLog("INFO"));
@@ -147,7 +148,7 @@
 	<Button
 		title="Delete selected element"
 		text="Delete"
-		onClick={() => DeleteAction.deleteSelected()}
+		onClick={() => graphActions.deleteSelected()}
 		icon={Trash}
 		margin="0"
 		type="danger"
@@ -157,13 +158,13 @@
 	<Button
 		title="Duplicate selected element(s)"
 		text="Duplicate"
-		onClick={() => CloneAction.duplicateSelectedWithOffset()}
+		onClick={() => clipboardActions.duplicateSelectedWithOffset()}
 		margin="0"
 	/>
 {/snippet}
 
 {#if info.selectionCount > 0}
-	{#if uiState.matches( { mode: "edit", editType: P.union("idle", "elementDown") }, )}
+	{#if uiState.matches( { mode: "edit", kind: P.union("idle", "elementDown", "pan", "area") }, )}
 		<Sidebar
 			headerText="Element Settings"
 			uniqueName={"selection"}
@@ -183,7 +184,7 @@
 								{@const icon = powered ? ZapOff : Zap}
 								<Button
 									text={powerText}
-									onClick={() => EditorAction.togglePower(info.selectedId)}
+									onClick={() => graphActions.togglePower(info.selectedId)}
 									{icon}
 									margin="0"
 								/>
@@ -192,14 +193,14 @@
 								<Button
 									title="Rotate clockwise 90 degrees"
 									onClick={() =>
-										EditorAction.rotateComponent(info.selectedId, 90)}
+										graphActions.rotateComponent(info.selectedId, 90)}
 									icon={RotateCw}
 									margin="0"
 								/>
 								<Button
 									title="Rotate counter-clockwise 90 degrees"
 									onClick={() =>
-										EditorAction.rotateComponent(info.selectedId, -90)}
+										graphActions.rotateComponent(info.selectedId, -90)}
 									icon={RotateCcw}
 									margin="0"
 								/>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { circuitModalViewModel } from "$lib/util/actions.svelte";
+	import { circuitModalViewModel } from "$lib/util/editor.svelte";
 	import type { ListRequestData } from "$lib/util/api";
 	import { availablePresets, type Preset } from "$lib/util/global.svelte";
 	import type { FeedbackMessage } from "$lib/util/viewModels/circuitModalViewModel";

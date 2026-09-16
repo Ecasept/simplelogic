@@ -1,12 +1,12 @@
 <script lang="ts">
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
 	import {
-		AddAction,
+		interactionController,
 		canvasViewModel,
-		ChangesAction,
-		DeleteAction,
-		EditorAction,
+		graphActions,
 		editorViewModel,
-	} from "$lib/util/actions.svelte";
+	} from "$lib/util/editor.svelte";
 	import {
 		calculateHandlePosition,
 		GRID_SIZE,
@@ -24,10 +24,7 @@
 		SVGPointerEvent,
 		XYPair,
 	} from "$lib/util/types";
-	import type {
-		EditorUiState,
-		TypedReference,
-	} from "$lib/util/viewModels/editorViewModel.svelte";
+	import type { TypedReference } from "$lib/util/viewModels/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 	import ComponentInner from "./ComponentInner.svelte";
 	import Handle from "./Handle.svelte";
@@ -59,7 +56,7 @@
 
 	let editingThis = $derived(
 		uiState.matches({
-			editType: P.union("draggingElements", "addingComponent"),
+			kind: P.union("draggingElements", "addingComponent"),
 			clickedElement: { id, type: "component" },
 		}),
 	);
@@ -77,14 +74,14 @@
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
-			if (uiState.matches({ editType: "draggingElements" })) {
+			if (uiState.matches({ kind: "draggingElements" })) {
 				// If we are dragging this component, show grabbing cursor
 				return "grabbing";
 			} else {
 				return "default";
 			}
 		} else {
-			if (uiState.matches({ editType: "idle" })) {
+			if (uiState.matches({ mode: "edit", kind: "idle" })) {
 				// If we are in idle mode, show grab cursor
 				return "grab";
 			} else {
@@ -107,11 +104,11 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			DeleteAction.deleteComponent(id);
+			graphActions.deleteComponent(id);
 			e.stopPropagation();
 			return;
 		}
-		if (!uiState.matches({ editType: "idle" })) {
+		if (!uiState.matches({ mode: "edit", kind: "idle" })) {
 			return;
 		}
 		e.preventDefault();
@@ -129,7 +126,7 @@
 			rotation,
 		);
 
-		AddAction.addWire(
+		interactionController.addWire(
 			wirePos,
 			{
 				id,
@@ -145,7 +142,7 @@
 		if (e.button !== 0) {
 			return;
 		}
-		if (uiState.matches({ isPanning: true })) {
+		if (uiState.matches({ isCanvasGesture: true })) {
 			// Disable any component interaction while panning
 			return;
 		}
@@ -154,11 +151,11 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			DeleteAction.deleteComponent(id);
+			graphActions.deleteComponent(id);
 			e.stopPropagation();
 			return;
 		}
-		if (!uiState.matches({ editType: "idle" })) {
+		if (!uiState.matches({ mode: "edit", kind: "idle" })) {
 			return;
 		}
 
@@ -174,32 +171,37 @@
 		};
 
 		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
-		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
+		interactionController.elementPointerDown(
+			self,
+			clickPosSvg,
+			clickType,
+			e.pointerId,
+		);
 
 		startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
 			editorViewModel.addSelected({ id, type: "component" });
-			ChangesAction.abortEditing();
+			interactionController.cancel();
 		});
 	}
 
 	function onClick(e: MouseEvent) {
 		if (
 			type !== "IN" ||
-			!uiState.matches({ mode: "simulate", isPanning: false })
+			!uiState.matches({ mode: "simulate", isCanvasGesture: false })
 		) {
 			return;
 		}
 
 		// In simulate mode, repurpose whole-component clicks to toggle input power as selection is disabled.
 		e.stopPropagation();
-		EditorAction.togglePower(id);
+		graphActions.togglePower(id);
 	}
 
 	function onHandleEnter(handle: ComponentHandle, identifier: string) {
 		if (
 			!uiState.matches({
 				mode: P.union("edit", "simulate", "delete"),
-				isPanning: false,
+				isCanvasGesture: false,
 			})
 		) {
 			return;

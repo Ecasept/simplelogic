@@ -1,8 +1,13 @@
 <script lang="ts">
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
 	import Button from "$lib/components/reusable/Button.svelte";
-	import { AddAction, editorViewModel } from "$lib/util/actions.svelte";
+	import {
+		interactionController,
+		editorViewModel,
+	} from "$lib/util/editor.svelte";
 	import type { ComponentType } from "$lib/util/types";
-	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+
 	import { Magnet, ReplaceAll, SquareDashed } from "lucide-svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import Sidebar from "./Sidebar.svelte";
@@ -13,7 +18,7 @@
 	const { uiState }: { uiState: EditorUiState } = $props();
 
 	function addComponent(type: ComponentType, e: PointerEvent) {
-		AddAction.addComponent(
+		interactionController.addComponent(
 			type,
 			{ x: e.clientX, y: e.clientY },
 			"drag",
@@ -42,7 +47,7 @@
 	}
 </script>
 
-{#if uiState.matches( { mode: "edit", editType: P.union("idle", "elementDown") }, )}
+{#if uiState.matches( { mode: "edit", kind: P.union("idle", "elementDown", "pan", "area") }, )}
 	<Sidebar headerText="Tools" uniqueName={"tools"} {toggle} {open}>
 		<SidebarSection text="Components">
 			<ComponentToolbar onPointerDown={addComponent} />

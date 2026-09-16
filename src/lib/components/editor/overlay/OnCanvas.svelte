@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { ChangesAction } from "$lib/util/actions.svelte";
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
+	import { interactionController } from "$lib/util/editor.svelte";
 	import type { AuthUiState } from "$lib/util/viewModels/authViewModel";
-	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+
 	import CancelButton from "../CancelButton.svelte";
 	import AccountButton from "./account/AccountButton.svelte";
 	import Logo from "./Logo.svelte";
@@ -18,7 +20,7 @@
 
 	let addingComponent = $derived(
 		uiState.matches({
-			editType: "addingComponent",
+			kind: "addingComponent",
 		}),
 	);
 </script>
@@ -39,7 +41,7 @@
 		<div class="cancel-button nointeract">
 			<CancelButton
 				shouldShow={addingComponent}
-				cancel={ChangesAction.abortEditing}
+				cancel={interactionController.cancel}
 			/>
 		</div>
 		<SelectionSidebar {uiState} />

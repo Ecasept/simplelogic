@@ -1,12 +1,14 @@
 <script lang="ts">
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
 	import {
-		EditorAction,
+		graphActions,
 		graphManager,
-		ModeAction,
-		PersistenceAction,
-	} from "$lib/util/actions.svelte";
+		modeActions,
+		persistenceActions,
+	} from "$lib/util/editor.svelte";
 	import { onEnter } from "$lib/util/keyboard";
-	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+
 	import {
 		CopyX,
 		Download,
@@ -29,17 +31,17 @@
 		{
 			icon: MousePointer2,
 			name: "edit",
-			switchTo: ModeAction.switchToDefaultMode,
+			switchTo: modeActions.switchToDefaultMode,
 		},
 		{
 			icon: Play,
 			name: "simulate",
-			switchTo: ModeAction.switchToSimulateMode,
+			switchTo: modeActions.switchToSimulateMode,
 		},
 		{
 			icon: Trash2,
 			name: "delete",
-			switchTo: ModeAction.switchToDeleteMode,
+			switchTo: modeActions.switchToDeleteMode,
 		},
 	];
 
@@ -88,17 +90,17 @@
 	{@render toolbarButton(
 		"Undo",
 		Undo,
-		EditorAction.undo,
+		graphActions.undo,
 		simulating || graphManager.historyEmpty,
 	)}
 
-	{@render toolbarButton("Save circuit", Save, PersistenceAction.saveGraph)}
+	{@render toolbarButton("Save circuit", Save, persistenceActions.saveGraph)}
 	{@render toolbarButton(
 		"Load circuit",
 		Download,
-		PersistenceAction.loadGraphManually,
+		persistenceActions.loadGraphManually,
 	)}
-	{@render toolbarButton("Clear canvas", CopyX, EditorAction.clearCanvas)}
+	{@render toolbarButton("Clear canvas", CopyX, graphActions.clearCanvas)}
 </div>
 
 <style>

@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { CloneAction, editorViewModel, graphManager } from "./actions.svelte";
+import {
+	clipboardActions,
+	editorViewModel,
+	graphManager,
+	editorUiState,
+	interactionController,
+} from "./editor.svelte";
 import { newWireHandleRef, type GraphData } from "./types";
 import type { ElementType } from "./viewModels/editorViewModel.svelte";
 
@@ -66,6 +72,7 @@ if (typeof DOMPoint === "undefined") {
 
 describe("DuplicateAction", () => {
 	beforeEach(() => {
+		interactionController.cancel();
 		graphManager.clear();
 		editorViewModel.hardReset();
 	});
@@ -108,7 +115,7 @@ describe("DuplicateAction", () => {
 			]),
 		);
 
-		CloneAction.duplicateSelectedWithOffset();
+		clipboardActions.duplicateSelectedWithOffset();
 
 		const gd = graphManager.getGraphData();
 		// New ids should be 3 (for id0) and 4 (for id1) in insertion order
@@ -155,7 +162,7 @@ describe("DuplicateAction", () => {
 			]),
 		);
 
-		CloneAction.duplicateSelectedWithOffset();
+		clipboardActions.duplicateSelectedWithOffset();
 		const gd = graphManager.getGraphData();
 		// New ids: 6,7
 		expect(gd.wires[6]).toBeDefined();
@@ -180,12 +187,12 @@ describe("DuplicateAction", () => {
 		);
 
 		// Execute
-		CloneAction.duplicateSelectedAndDrag();
+		clipboardActions.duplicateSelectedAndDrag();
 
 		// Should be in addingElements mode
-		expect((editorViewModel.uiState as any).editType).toBe("addingElements");
+		expect((editorUiState.current as any).kind).toBe("addingElements");
 
-		const state = editorViewModel.uiState as any;
+		const state = editorUiState.current as any;
 		expect(state.elements.size).toBe(1);
 		expect(state.elements.get(1)).toBe("component"); // The duplicated id
 

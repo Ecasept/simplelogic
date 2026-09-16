@@ -28,7 +28,9 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 	}
 
 	zoom(factor: number, clientPos: XYPair) {
-		if (!Number.isFinite(factor) || factor <= 0) return;
+		if (!Number.isFinite(factor) || factor <= 0) {
+			return;
+		}
 		const point = this.clientToSVGCoords(clientPos);
 
 		// Update the viewBox
@@ -76,3 +78,5 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 		}
 	}
 }
+
+export const canvasViewModel = new CanvasViewModel();

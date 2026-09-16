@@ -1,4 +1,4 @@
-import { graphManager } from "../actions.svelte";
+import { graphManager } from "../graph.svelte";
 import { API } from "../api";
 import { calculateHandlePosition } from "../global.svelte";
 import type { ComponentData, GraphData } from "../types";
@@ -79,7 +79,9 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 	}
 
 	setFixConnections(val: boolean) {
-		if (this._uiState.mode !== "load") return;
+		if (this._uiState.mode !== "load") {
+			return;
+		}
 		this._uiState.fixConnections = val;
 		this.notifyAll();
 	}
@@ -313,3 +315,5 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		this._uiState.callback(preset.data.data, "preset");
 	}
 }
+
+export const circuitModalViewModel = new CircuitModalViewModel();

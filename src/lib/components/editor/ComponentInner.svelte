@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { EditorAction } from "$lib/util/actions.svelte";
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
+	import { graphActions } from "$lib/util/editor.svelte";
 	import { onEnter } from "$lib/util/keyboard";
 	import { RotationInfo } from "$lib/util/positioning";
 	import type { ComponentType } from "$lib/util/types";
-	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
 
 	type Props = {
 		componentId: number;
@@ -56,12 +57,12 @@
 			: "var(--component-outline-color)"}
 		onclick={() => {
 			// Allow toggling the input
-			if (uiState.matches({ mode: "simulate", isPanning: false })) {
-				EditorAction.togglePower(componentId);
+			if (uiState.matches({ mode: "simulate", isCanvasGesture: false })) {
+				graphActions.togglePower(componentId);
 			}
 		}}
 		onkeypress={onEnter(() => {
-			EditorAction.togglePower(componentId);
+			graphActions.togglePower(componentId);
 		})}
 		transform={rotationInfo.asRotate()}
 	/>

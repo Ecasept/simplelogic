@@ -1,11 +1,12 @@
 <script lang="ts">
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
 	import {
-		AddAction,
+		interactionController,
 		canvasViewModel,
-		ChangesAction,
-		DeleteAction,
+		graphActions,
 		editorViewModel,
-	} from "$lib/util/actions.svelte";
+	} from "$lib/util/editor.svelte";
 	import {
 		debugLog,
 		draggedHandleType,
@@ -21,10 +22,7 @@
 		type SVGPointerEvent,
 		type WireHandle,
 	} from "$lib/util/types";
-	import {
-		type EditorUiState,
-		type TypedReference,
-	} from "$lib/util/viewModels/editorViewModel.svelte";
+	import { type TypedReference } from "$lib/util/viewModels/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 	import Handle from "./Handle.svelte";
 
@@ -75,12 +73,12 @@
 
 		// Add new wire instead of moving existing one on long press
 		// Abort the previous move wire action
-		ChangesAction.abortEditing();
+		interactionController.cancel();
 
 		if (isVibrateSupported()) {
 			navigator.vibrate(10);
 		}
-		AddAction.addWire(
+		interactionController.addWire(
 			{
 				x: handle.x,
 				y: handle.y,
@@ -99,11 +97,11 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			DeleteAction.deleteWire(id);
+			graphActions.deleteWire(id);
 			e.stopPropagation();
 			return;
 		}
-		if (!uiState.matches({ editType: "idle" })) {
+		if (!uiState.matches({ mode: "edit", kind: "idle" })) {
 			return;
 		}
 		e.preventDefault();
@@ -119,11 +117,16 @@
 		};
 
 		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
-		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
+		interactionController.elementPointerDown(
+			self,
+			clickPosSvg,
+			clickType,
+			e.pointerId,
+		);
 
 		startLongPressTimer({ x: e.clientX, y: e.clientY }, () => {
 			editorViewModel.addSelected({ id, type: "wire" });
-			ChangesAction.abortEditing();
+			interactionController.cancel();
 		});
 	}
 
@@ -135,11 +138,11 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			DeleteAction.deleteWire(id);
+			graphActions.deleteWire(id);
 			e.stopPropagation();
 			return;
 		}
-		if (!uiState.matches({ editType: "idle" })) {
+		if (!uiState.matches({ mode: "edit", kind: "idle" })) {
 			return;
 		}
 		e.preventDefault();
@@ -160,7 +163,7 @@
 			e.shiftKey &&
 			(clickedHandle === "output" || handle.connections.length === 0)
 		) {
-			AddAction.addWire(
+			interactionController.addWire(
 				{
 					x: handle.x,
 					y: handle.y,
@@ -170,7 +173,7 @@
 			);
 		} else {
 			const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
-			editorViewModel.onWireHandleDown(
+			interactionController.wireHandlePointerDown(
 				newWireHandleRef(id, clickedHandle),
 				{
 					x: handle.x,
@@ -187,7 +190,7 @@
 		if (
 			!uiState.matches({
 				mode: P.union("edit", "simulate", "delete"),
-				isPanning: false,
+				isCanvasGesture: false,
 			})
 		) {
 			return;
@@ -216,7 +219,7 @@
 
 	let hitboxEnabled = $derived(
 		uiState.matches({ mode: "delete" }) ||
-			uiState.matches({ editType: "idle" }),
+			uiState.matches({ mode: "edit", kind: "idle" }),
 	);
 </script>
 

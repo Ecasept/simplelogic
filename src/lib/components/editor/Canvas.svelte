@@ -4,10 +4,10 @@
 	import TextBox from "./TextBox.svelte";
 	import {
 		canvasViewModel,
-		editorViewModel,
 		graphManager,
 		interactionController,
-	} from "$lib/util/actions.svelte";
+		editorUiState,
+	} from "$lib/util/editor.svelte";
 	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/global.svelte";
 	import { normalizePointer } from "$lib/util/interaction.svelte";
 	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
@@ -15,7 +15,7 @@
 	let { uiState }: { uiState: CanvasUiState } = $props();
 	let svg: SVGSVGElement;
 	let graphData = $derived(graphManager.graphData);
-	let gesture = $derived(interactionController.gesture);
+	let interactionState = $derived(interactionController.state);
 
 	$effect(() => {
 		canvasViewModel.svg = svg;
@@ -67,24 +67,23 @@
 		/>
 
 		{#each Object.entries(graphData.wires) as [id, data] (id)}
-			<Wire {...data} uiState={editorViewModel.uiState} renderMode="body"
-			></Wire>
+			<Wire {...data} uiState={editorUiState.current} renderMode="body"></Wire>
 		{/each}
 		{#each Object.entries(graphData.wires) as [id, data] (id)}
-			<Wire {...data} uiState={editorViewModel.uiState} renderMode="handles"
+			<Wire {...data} uiState={editorUiState.current} renderMode="handles"
 			></Wire>
 		{/each}
 		{#each Object.entries(graphData.components) as [id, data] (id)}
 			{#if data.type === "TEXT"}
-				<TextBox {...data} uiState={editorViewModel.uiState}></TextBox>
+				<TextBox {...data} uiState={editorUiState.current}></TextBox>
 			{:else}
-				<Component {...data} uiState={editorViewModel.uiState}></Component>
+				<Component {...data} uiState={editorUiState.current}></Component>
 			{/if}
 		{/each}
 
-		{#if gesture.kind === "area"}
-			{@const startPos = gesture.startPos}
-			{@const currentPos = gesture.currentPos}
+		{#if interactionState.kind === "area"}
+			{@const startPos = interactionState.startPos}
+			{@const currentPos = interactionState.currentPos}
 			<rect
 				x={Math.min(startPos.x, currentPos.x)}
 				y={Math.min(startPos.y, currentPos.y)}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { circuitModalViewModel } from "$lib/util/actions.svelte";
+	import { circuitModalViewModel } from "$lib/util/editor.svelte";
 	import type { FeedbackMessage } from "$lib/util/viewModels/circuitModalViewModel";
 	import { Trash } from "lucide-svelte";
 

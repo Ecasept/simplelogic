@@ -1,19 +1,19 @@
 <script lang="ts">
+	import { interactionController } from "$lib/util/editor.svelte";
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
 	import {
 		canvasViewModel,
-		DeleteAction,
+		graphActions,
 		editorViewModel,
-	} from "$lib/util/actions.svelte";
+	} from "$lib/util/editor.svelte";
 	import { RotationInfo } from "$lib/util/positioning";
 	import type {
 		ComponentHandleList,
 		ComponentType,
 		XYPair,
 	} from "$lib/util/types";
-	import type {
-		EditorUiState,
-		TypedReference,
-	} from "$lib/util/viewModels/editorViewModel.svelte";
+	import type { TypedReference } from "$lib/util/viewModels/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 
 	type Props = {
@@ -34,7 +34,7 @@
 
 	let editingThis = $derived(
 		uiState.matches({
-			editType: P.union("draggingElements", "addingComponent"),
+			kind: P.union("draggingElements", "addingComponent"),
 			clickedElement: { id, type: "component" },
 		}),
 	);
@@ -43,14 +43,14 @@
 
 	let cursor = $derived.by(() => {
 		if (editingThis) {
-			if (uiState.matches({ editType: "draggingElements" })) {
+			if (uiState.matches({ kind: "draggingElements" })) {
 				// If we are dragging this component, show grabbing cursor
 				return "grabbing";
 			} else {
 				return "default";
 			}
 		} else {
-			if (uiState.matches({ editType: "idle" })) {
+			if (uiState.matches({ mode: "edit", kind: "idle" })) {
 				// If we are in idle mode, show grab cursor
 				return "grab";
 			} else {
@@ -63,7 +63,7 @@
 		if (e.button !== 0) {
 			return;
 		}
-		if (uiState.matches({ isPanning: true })) {
+		if (uiState.matches({ isCanvasGesture: true })) {
 			// Disable any component interaction while panning
 			return;
 		}
@@ -72,11 +72,11 @@
 			// Because this element will be removed,
 			// we need to remove the hovered element (this one)
 			editorViewModel.removeHoveredElement();
-			DeleteAction.deleteComponent(id);
+			graphActions.deleteComponent(id);
 			e.stopPropagation();
 			return;
 		}
-		if (!uiState.matches({ editType: "idle" })) {
+		if (!uiState.matches({ mode: "edit", kind: "idle" })) {
 			return;
 		}
 
@@ -92,7 +92,12 @@
 		};
 
 		const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
-		editorViewModel.onElementDown(self, clickPosSvg, clickType, e.pointerId);
+		interactionController.elementPointerDown(
+			self,
+			clickPosSvg,
+			clickType,
+			e.pointerId,
+		);
 	}
 
 	// If we are in delete mode, and either

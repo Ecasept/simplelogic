@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
 	canvasViewModel,
-	CloneAction,
+	clipboardActions,
 	editorViewModel,
 	graphManager,
-} from "./actions.svelte";
+	editorUiState,
+	interactionController,
+} from "./editor.svelte";
 import { GRID_SIZE, setMousePosition } from "./global.svelte";
 import {
 	newWireHandleRef,
@@ -14,7 +16,7 @@ import {
 } from "./types";
 import type { ElementType } from "./viewModels/editorViewModel.svelte";
 
-type CloneEntries = Parameters<typeof CloneAction.getBoundingBox>[0];
+type CloneEntries = Parameters<typeof clipboardActions.getBoundingBox>[0];
 
 function comp(
 	id: number,
@@ -80,11 +82,12 @@ if (typeof DOMPoint === "undefined") {
 	};
 }
 
-describe("CloneAction", () => {
+describe("clipboardActions", () => {
 	beforeEach(() => {
+		interactionController.cancel();
 		graphManager.clear();
 		editorViewModel.hardReset();
-		CloneAction.clipboard = [];
+		clipboardActions.clipboard = [];
 	});
 
 	it("getCopies prunes external connections but keeps internal", () => {
@@ -120,7 +123,7 @@ describe("CloneAction", () => {
 			[1, "wire"],
 		]);
 
-		const copies = CloneAction.getCopies(selected, data);
+		const copies = clipboardActions.getCopies(selected, data);
 		expect(copies).toHaveLength(2);
 
 		const copiedComp = copies.find(
@@ -152,7 +155,7 @@ describe("CloneAction", () => {
 			[structuredClone(c0), "component"],
 			[structuredClone(w1), "wire"],
 		];
-		const [remapped] = CloneAction.remapIds(clones, 10);
+		const [remapped] = clipboardActions.remapIds(clones, 10);
 
 		const remappedComp = remapped.find(
 			([, type]) => type === "component",
@@ -184,9 +187,9 @@ describe("CloneAction", () => {
 			[0, "component"],
 			[1, "wire"],
 		]);
-		const clones = CloneAction.getCopies(selected, data);
+		const clones = clipboardActions.getCopies(selected, data);
 
-		CloneAction.shiftBy(clones, { x: 20, y: -10 });
+		clipboardActions.shiftBy(clones, { x: 20, y: -10 });
 
 		expect((clones[0][0] as ComponentData).position).toEqual({
 			x: 120,
@@ -218,9 +221,9 @@ describe("CloneAction", () => {
 			[0, "component"],
 			[1, "wire"],
 		]);
-		const mixed = CloneAction.getCopies(selected, data);
+		const mixed = clipboardActions.getCopies(selected, data);
 
-		const box = CloneAction.getBoundingBox(mixed);
+		const box = clipboardActions.getBoundingBox(mixed);
 		expect(box).toEqual({ minX: 20, minY: 80, maxX: 220, maxY: 200 });
 	});
 
@@ -228,28 +231,28 @@ describe("CloneAction", () => {
 		const c0 = comp(0, { position: { x: 120, y: 140 } });
 		const data: GraphData = { components: { 0: c0 }, wires: {}, nextId: 1 };
 
-		graphManager.setProjectData(data);
+		graphManager.setGraphData(data);
 		editorViewModel.setSelectedElements(
 			new Map<number, ElementType>([[0, "component"]]),
 		);
 
-		CloneAction.copySelected();
-		expect(CloneAction.clipboard).toHaveLength(1);
+		clipboardActions.copySelected();
+		expect(clipboardActions.clipboard).toHaveLength(1);
 
 		data.components[0].position.x = 999;
-		const copied = CloneAction.clipboard[0][0] as ComponentData;
+		const copied = clipboardActions.clipboard[0][0] as ComponentData;
 		expect(copied.position.x).toBe(120);
 	});
 
 	it("pasteClipboard remaps ids and inserts selected clones", () => {
 		const c0 = comp(0, { position: { x: 100, y: 100 } });
 		const data: GraphData = { components: { 0: c0 }, wires: {}, nextId: 1 };
-		graphManager.setProjectData(data);
+		graphManager.setGraphData(data);
 
 		editorViewModel.setSelectedElements(
 			new Map<number, ElementType>([[0, "component"]]),
 		);
-		CloneAction.copySelected();
+		clipboardActions.copySelected();
 
 		const originalClientToSVG =
 			canvasViewModel.clientToSVGCoords.bind(canvasViewModel);
@@ -257,12 +260,12 @@ describe("CloneAction", () => {
 		setMousePosition({ x: 400, y: 300 });
 
 		try {
-			CloneAction.pasteClipboard();
+			clipboardActions.pasteClipboard();
 		} finally {
 			(canvasViewModel as any).clientToSVGCoords = originalClientToSVG;
 		}
 
-		const gd = graphManager.getProjectData();
+		const gd = graphManager.getGraphData();
 		expect(gd.components[1]).toBeDefined();
 		expect(gd.nextId).toBe(2);
 		expect(editorViewModel.getSelectedCount()).toBe(1);
@@ -272,14 +275,14 @@ describe("CloneAction", () => {
 	it("duplicateSelectedWithOffset applies one grid offset and selects clones", () => {
 		const c0 = comp(0, { position: { x: 100, y: 120 } });
 		const data: GraphData = { components: { 0: c0 }, wires: {}, nextId: 1 };
-		graphManager.setProjectData(data);
+		graphManager.setGraphData(data);
 		editorViewModel.setSelectedElements(
 			new Map<number, ElementType>([[0, "component"]]),
 		);
 
-		CloneAction.duplicateSelectedWithOffset();
+		clipboardActions.duplicateSelectedWithOffset();
 
-		const gd = graphManager.getProjectData();
+		const gd = graphManager.getGraphData();
 		expect(gd.components[1]).toBeDefined();
 		expect(gd.components[1].position.x).toBe(100 + GRID_SIZE);
 		expect(gd.components[1].position.y).toBe(120 + GRID_SIZE);
@@ -290,7 +293,7 @@ describe("CloneAction", () => {
 	it("duplicateSelectedAndDrag enters addingElements with cloned id map", () => {
 		const c0 = comp(0, { position: { x: 100, y: 120 } });
 		const data: GraphData = { components: { 0: c0 }, wires: {}, nextId: 1 };
-		graphManager.setProjectData(data);
+		graphManager.setGraphData(data);
 		editorViewModel.setSelectedElements(
 			new Map<number, ElementType>([[0, "component"]]),
 		);
@@ -301,20 +304,20 @@ describe("CloneAction", () => {
 		setMousePosition({ x: 220, y: 210 });
 
 		try {
-			CloneAction.duplicateSelectedAndDrag();
+			clipboardActions.duplicateSelectedAndDrag();
 		} finally {
 			(canvasViewModel as any).clientToSVGCoords = originalClientToSVG;
 		}
 
-		const state: any = editorViewModel.uiState;
-		expect(state.matches({ editType: "addingElements" })).toBe(true);
-		if (!state.matches({ editType: "addingElements" })) {
+		const state: any = editorUiState.current;
+		expect(state.matches({ kind: "addingElements" })).toBe(true);
+		if (!state.matches({ kind: "addingElements" })) {
 			throw new Error("Expected addingElements state");
 		}
 		expect(state.elements.get(1)).toBe("component");
 		expect(state.clickPosition).toEqual({ x: 220, y: 210 });
 
-		const gd = graphManager.getProjectData();
+		const gd = graphManager.getGraphData();
 		expect(gd.components[1]).toBeDefined();
 		expect(gd.nextId).toBe(2);
 	});

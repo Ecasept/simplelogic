@@ -1,4 +1,4 @@
-import { canvasViewModel } from "./actions.svelte";
+import { canvasViewModel } from "./viewModels/canvasViewModel";
 import { UpdateCustomDataCommand, type Command } from "./commands";
 import { GRID_SIZE, linesIntersect } from "./global.svelte";
 import { GraphEditTransaction } from "./graphEdit";
@@ -11,7 +11,6 @@ import {
 } from "./types";
 import type {
 	AreaSelectType,
-	TypedReference,
 	ElementType,
 } from "./viewModels/editorViewModel.svelte";
 
@@ -36,13 +35,16 @@ export class GraphManager {
 
 	/** Start an exclusive edit. Callers can share currentEdit within one interaction. */
 	beginEdit() {
-		if (this.edit)
+		if (this.edit) {
 			throw new Error("A graph edit transaction is already active");
+		}
 		const edit = new GraphEditTransaction(
 			this._graphData,
 			() => this.notifyAll(),
 			(command) => {
-				if (command) this.history.push(command);
+				if (command) {
+					this.history.push(command);
+				}
 				this.edit = null;
 			},
 		);
@@ -305,3 +307,5 @@ class AreaSelect {
 		return this.doesComponentIntersectArea(textBox, x1, y1, x2, y2, type);
 	}
 }
+
+export const graphManager = new GraphManager();

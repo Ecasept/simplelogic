@@ -1,23 +1,19 @@
+import type { EditorUiState } from "./editorUiState";
 import { isMatching, P } from "ts-pattern";
 import type { Pattern } from "ts-pattern/types";
 import {
-	AddAction,
-	ChangesAction,
-	CloneAction,
-	DeleteAction,
-	EditorAction,
+	interactionController,
+	clipboardActions,
+	graphActions,
 	editorViewModel,
 	graphManager,
-	interactionController,
-	ModeAction,
-	PersistenceAction,
-} from "./actions.svelte";
+	modeActions,
+	persistenceActions,
+	editorUiState,
+} from "./editor.svelte";
 import { mousePosition } from "./global.svelte";
 import type { ComponentType } from "./types";
-import type {
-	EditorUiState,
-	ElementType,
-} from "./viewModels/editorViewModel.svelte";
+import type { ElementType } from "./viewModels/editorViewModel.svelte";
 
 type Environment = { env: "editor" | "modal" };
 type Key = { key: string; mod: string | null };
@@ -60,7 +56,7 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: P.union(
+			kind: P.union(
 				"elementDown",
 				"wireHandleDown",
 				"addingComponent",
@@ -69,9 +65,9 @@ const shortcuts = [
 				"addingWire",
 				"draggingWireHandle",
 			),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: ChangesAction.abortEditing,
+		action: interactionController.cancel,
 	}),
 	s({
 		name: "Clear selection",
@@ -80,8 +76,8 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 			selected: P.when((s) => s.size > 0),
 		},
 		action: () => editorViewModel.clearSelection(),
@@ -93,9 +89,9 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "delete",
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: ModeAction.toggleDelete,
+		action: modeActions.toggleDelete,
 	}),
 	s({
 		name: "Exit simulation mode",
@@ -104,9 +100,9 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "simulate",
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: ModeAction.toggleSimulate,
+		action: modeActions.toggleSimulate,
 	}),
 	s({
 		name: "Close modal",
@@ -115,7 +111,7 @@ const shortcuts = [
 			mod: null,
 			env: "modal",
 		},
-		action: PersistenceAction.closeModal,
+		action: persistenceActions.closeModal,
 	}),
 	s({
 		name: "Cancel panning",
@@ -123,7 +119,7 @@ const shortcuts = [
 			key: "escape",
 			mod: null,
 			env: "editor",
-			isPanning: true,
+			isCanvasGesture: true,
 		},
 		action: () => interactionController.cancel(),
 	}),
@@ -134,11 +130,16 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
 		action: () => {
-			AddAction.addComponent("AND", mousePosition, "keyboard", null);
+			interactionController.addComponent(
+				"AND",
+				mousePosition,
+				"keyboard",
+				null,
+			);
 		},
 	}),
 	s({
@@ -148,11 +149,11 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
 		action: () => {
-			AddAction.addComponent("IN", mousePosition, "keyboard", null);
+			interactionController.addComponent("IN", mousePosition, "keyboard", null);
 		},
 	}),
 	s({
@@ -162,11 +163,16 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
 		action: () => {
-			AddAction.addComponent("LED", mousePosition, "keyboard", null);
+			interactionController.addComponent(
+				"LED",
+				mousePosition,
+				"keyboard",
+				null,
+			);
 		},
 	}),
 	s({
@@ -176,11 +182,16 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
 		action: () => {
-			AddAction.addComponent("NOT", mousePosition, "keyboard", null);
+			interactionController.addComponent(
+				"NOT",
+				mousePosition,
+				"keyboard",
+				null,
+			);
 		},
 	}),
 	s({
@@ -190,11 +201,16 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
 		action: () => {
-			AddAction.addComponent("XOR", mousePosition, "keyboard", null);
+			interactionController.addComponent(
+				"XOR",
+				mousePosition,
+				"keyboard",
+				null,
+			);
 		},
 	}),
 	s({
@@ -204,11 +220,11 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
 		action: () => {
-			AddAction.addComponent("OR", mousePosition, "keyboard", null);
+			interactionController.addComponent("OR", mousePosition, "keyboard", null);
 		},
 	}),
 	s({
@@ -218,11 +234,16 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
 		action: () => {
-			AddAction.addComponent("TEXT", mousePosition, "keyboard", null);
+			interactionController.addComponent(
+				"TEXT",
+				mousePosition,
+				"keyboard",
+				null,
+			);
 		},
 	}),
 	s({
@@ -232,9 +253,9 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: P.union("edit", "simulate", "delete"),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: ModeAction.toggleDelete,
+		action: modeActions.toggleDelete,
 	}),
 	s({
 		name: "Toggle simulation mode",
@@ -243,9 +264,9 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: P.union("edit", "simulate", "delete"),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: ModeAction.toggleSimulate,
+		action: modeActions.toggleSimulate,
 	}),
 	s({
 		name: "Save circuit",
@@ -254,9 +275,9 @@ const shortcuts = [
 			mod: "ctrl",
 			env: "editor",
 			mode: P.union("edit", "simulate", "delete"),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: PersistenceAction.saveGraph,
+		action: persistenceActions.saveGraph,
 	}),
 	s({
 		name: "Load circuit",
@@ -265,9 +286,9 @@ const shortcuts = [
 			mod: "ctrl",
 			env: "editor",
 			mode: P.union("edit", "simulate", "delete"),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: PersistenceAction.loadGraphManually,
+		action: persistenceActions.loadGraphManually,
 	}),
 	s({
 		name: "Undo edit",
@@ -276,10 +297,10 @@ const shortcuts = [
 			mod: "ctrl",
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
-		action: EditorAction.undo,
+		action: graphActions.undo,
 	}),
 	s({
 		name: "Undo deletion",
@@ -288,9 +309,9 @@ const shortcuts = [
 			mod: "ctrl",
 			env: "editor",
 			mode: "delete",
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: EditorAction.undo,
+		action: graphActions.undo,
 	}),
 	s({
 		name: "Delete selected",
@@ -299,11 +320,11 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
+			kind: "idle",
 			selected: P.when((s) => s.size > 0),
 		},
 		action: () => {
-			DeleteAction.deleteSelected();
+			graphActions.deleteSelected();
 		},
 	}),
 	s({
@@ -313,15 +334,15 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
+			kind: "idle",
 			selected: P.when((selected) =>
 				isOnlyComponentsSelected({ selected }, "IN"),
 			),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
 		action: (uiState) => {
 			for (const inputId of uiState.selected.keys()) {
-				EditorAction.togglePower(inputId);
+				graphActions.togglePower(inputId);
 			}
 		},
 	}),
@@ -332,12 +353,12 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
+			kind: "idle",
 			selected: P.when((s) => s.size === 1),
 		},
 		action: (uiState) => {
 			const [selectedId] = uiState.selected.keys();
-			EditorAction.rotateComponent(selectedId, 90);
+			graphActions.rotateComponent(selectedId, 90);
 		},
 	}),
 	s({
@@ -347,12 +368,12 @@ const shortcuts = [
 			mod: "shift",
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
+			kind: "idle",
 			selected: P.when((s) => s.size === 1),
 		},
 		action: (uiState) => {
 			const [selectedId] = uiState.selected.keys();
-			EditorAction.rotateComponent(selectedId, -90);
+			graphActions.rotateComponent(selectedId, -90);
 		},
 	}),
 	s({
@@ -362,16 +383,16 @@ const shortcuts = [
 			mod: "ctrl",
 			env: "editor",
 			mode: "edit",
-			editType: P.union(
+			kind: P.union(
 				"addingComponent",
 				"addingElements",
 				"draggingElements",
 				"addingWire",
 				"draggingWireHandle",
 			),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: ChangesAction.abortEditing,
+		action: interactionController.cancel,
 	}),
 	s({
 		name: "Clear canvas",
@@ -380,9 +401,9 @@ const shortcuts = [
 			mod: "shift",
 			env: "editor",
 			mode: P.union("edit", "simulate", "delete"),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
-		action: EditorAction.clearCanvas,
+		action: graphActions.clearCanvas,
 	}),
 	s({
 		name: "Rotate dragged/adding clockwise",
@@ -391,11 +412,11 @@ const shortcuts = [
 			mod: null,
 			env: "editor",
 			mode: "edit",
-			editType: P.union("draggingElements", "addingComponent"),
-			isPanning: false,
+			kind: P.union("draggingElements", "addingComponent"),
+			isCanvasGesture: false,
 		},
 		action: (uiState) => {
-			EditorAction.rotateComponent(uiState.clickedElement.id, 90, false);
+			graphActions.rotateComponent(uiState.clickedElement.id, 90, false);
 		},
 	}),
 	s({
@@ -405,11 +426,11 @@ const shortcuts = [
 			mod: "shift",
 			env: "editor",
 			mode: "edit",
-			editType: P.union("draggingElements", "addingComponent"),
-			isPanning: false,
+			kind: P.union("draggingElements", "addingComponent"),
+			isCanvasGesture: false,
 		},
 		action: (uiState) => {
-			EditorAction.rotateComponent(uiState.clickedElement.id, -90, false);
+			graphActions.rotateComponent(uiState.clickedElement.id, -90, false);
 		},
 	}),
 	s({
@@ -419,12 +440,12 @@ const shortcuts = [
 			mod: "ctrl",
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
+			kind: "idle",
 			selected: P.when((s) => s.size > 0),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
 		action: () => {
-			CloneAction.duplicateSelectedAndDrag();
+			clipboardActions.duplicateSelectedAndDrag();
 		},
 	}),
 	s({
@@ -434,12 +455,12 @@ const shortcuts = [
 			mod: "ctrl",
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
+			kind: "idle",
 			selected: P.when((s) => s.size > 0),
-			isPanning: false,
+			isCanvasGesture: false,
 		},
 		action: () => {
-			CloneAction.copySelected();
+			clipboardActions.copySelected();
 		},
 	}),
 	s({
@@ -449,11 +470,11 @@ const shortcuts = [
 			mod: "ctrl",
 			env: "editor",
 			mode: "edit",
-			editType: "idle",
-			isPanning: false,
+			kind: "idle",
+			isCanvasGesture: false,
 		},
 		action: () => {
-			CloneAction.pasteClipboard();
+			clipboardActions.pasteClipboard();
 		},
 	}),
 ];
@@ -470,10 +491,10 @@ function getPressedMod(e: KeyboardEvent) {
 
 function constructValue(e: KeyboardEvent): State {
 	return {
-		...editorViewModel.uiState,
+		...editorUiState.current,
 		key: e.key.toLowerCase(),
 		mod: getPressedMod(e),
-		env: editorViewModel.uiState.isModalOpen ? "modal" : "editor",
+		env: editorUiState.current.isModalOpen ? "modal" : "editor",
 	};
 }
 

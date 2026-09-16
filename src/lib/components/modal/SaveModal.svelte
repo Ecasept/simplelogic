@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { circuitModalViewModel } from "$lib/util/actions.svelte";
+	import { circuitModalViewModel } from "$lib/util/editor.svelte";
 	import { onEnter } from "$lib/util/keyboard";
 	import type { FeedbackMessage } from "$lib/util/viewModels/circuitModalViewModel";
 	import { LogIn } from "lucide-svelte";

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import {
 		circuitModalViewModel,
-		PersistenceAction,
-	} from "$lib/util/actions.svelte";
+		persistenceActions,
+	} from "$lib/util/editor.svelte";
 	import type { CircuitModalUiState } from "$lib/util/viewModels/circuitModalViewModel";
 	import { Download, Save } from "lucide-svelte";
 	import BaseModal from "./BaseModal.svelte";
@@ -12,7 +12,7 @@
 	let { uiState }: { uiState: CircuitModalUiState } = $props();
 
 	function close() {
-		PersistenceAction.closeModal();
+		persistenceActions.closeModal();
 	}
 
 	function chooseGraph(id: number) {

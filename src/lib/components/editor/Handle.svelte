@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { EditorUiState } from "$lib/util/editorUiState";
+
 	import {
 		isComponentHandleRef,
 		isVibrateSupported,
@@ -12,7 +14,7 @@
 		SVGPointerEvent,
 		XYPair,
 	} from "$lib/util/types";
-	import type { EditorUiState } from "$lib/util/viewModels/editorViewModel.svelte";
+
 	import { Tween } from "svelte/motion";
 	type Props = {
 		uiState: EditorUiState;

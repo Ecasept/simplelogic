@@ -7,9 +7,10 @@
 		circuitModalViewModel,
 		editorViewModel,
 		graphManager,
-		PersistenceAction,
+		persistenceActions,
 		interactionController,
-	} from "$lib/util/actions.svelte";
+		editorUiState,
+	} from "$lib/util/editor.svelte";
 	import { debugLog, setAvailablePresets } from "$lib/util/global.svelte";
 	import { handleKeyDown } from "$lib/util/keyboard";
 	import { normalizePointer } from "$lib/util/interaction.svelte";
@@ -36,10 +37,10 @@
 			sessionStorage.removeItem("signInSource");
 			switch (source) {
 				case "saveModal":
-					PersistenceAction.saveGraph();
+					persistenceActions.saveGraph();
 					break;
 				case "loadModal":
-					PersistenceAction.loadGraphManually();
+					persistenceActions.loadGraphManually();
 					break;
 				case "authPopup":
 					authViewModel.toggleOpen();
@@ -64,12 +65,12 @@
 
 		if (!source && !sessionCircuit && !skipOnboarding) {
 			// Fresh load, show the load modal (onboarding)
-			PersistenceAction.loadGraph(true);
+			persistenceActions.loadGraph(true);
 		}
 		return () => interactionController.cancel();
 	});
 
-	$inspect(editorViewModel.uiState).with(debugLog("UISTATE"));
+	$inspect(editorUiState.current).with(debugLog("UISTATE"));
 </script>
 
 <svelte:window
@@ -84,7 +85,7 @@
 />
 
 <div class="wrapper theme-host {themeClass}">
-	<OnCanvas uiState={editorViewModel.uiState} authUiState={$authViewModel}
+	<OnCanvas uiState={editorUiState.current} authUiState={$authViewModel}
 	></OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>
 
