@@ -1,8 +1,45 @@
 import { z } from "zod";
+import { MAX_GRAPH_ELEMENTS, validateGraph } from "./graphValidation";
+
+const MAX_GRAPH_ID = Number.MAX_SAFE_INTEGER - 1;
+const MIN_COORDINATE = -10_000_000;
+const MAX_COORDINATE = 10_000_000;
+const GRAPH_KEY_PATTERN = /^(0|[1-9]\d*)$/;
+const MIN_COMPONENT_HANDLE_ID_LENGTH = 1;
+const MAX_COMPONENT_HANDLE_ID_LENGTH = 32;
+const MIN_HANDLE_POSITION = 0;
+const MAX_HANDLE_POSITION = 10_000;
+const MAX_CONNECTIONS_PER_HANDLE = 20_000;
+const MIN_COMPONENT_SIZE = 0;
+const MAX_COMPONENT_SIZE = 10_000;
+const MIN_ROTATION = 0;
+const MAX_ROTATION = 360;
+
+const ZId = z.number().int().nonnegative().max(MAX_GRAPH_ID);
+const ZCoordinate = z.number().min(MIN_COORDINATE).max(MAX_COORDINATE);
+const ZGraphKey = z.string().regex(GRAPH_KEY_PATTERN);
+// Check raw keys before Zod's record parser drops special keys such as __proto__.
+const ZGraphRecordInput = z.unknown().superRefine((value, ctx) => {
+	if (typeof value !== "object" || value === null || Array.isArray(value)) {
+		return;
+	}
+	const keys = Object.keys(value);
+	if (
+		keys.length > MAX_GRAPH_ELEMENTS ||
+		keys.some((key) => !GRAPH_KEY_PATTERN.test(key))
+	) {
+		ctx.addIssue({
+			code: "custom",
+			message: "Invalid element keys or too many elements",
+			// Do not run semantic validation on a record whose value parsing was skipped.
+			fatal: true,
+		});
+	}
+});
 
 export const ZXYPair = z.object({
-	x: z.number(),
-	y: z.number(),
+	x: ZCoordinate,
+	y: ZCoordinate,
 });
 
 export const ZHandleEdge = z.enum(["top", "bottom", "left", "right"]);
@@ -19,14 +56,17 @@ export const ZComponentType = z.enum([
 ]);
 
 export const ZComponentHandleReference = z.object({
-	id: z.number(),
-	handleId: z.string(),
+	id: ZId,
+	handleId: z
+		.string()
+		.min(MIN_COMPONENT_HANDLE_ID_LENGTH)
+		.max(MAX_COMPONENT_HANDLE_ID_LENGTH),
 	handleType: ZHandleType,
 	type: z.literal("component"),
 });
 
 export const ZWireHandleReference = z.object({
-	id: z.number(),
+	id: ZId,
 	handleId: ZHandleType,
 	handleType: ZHandleType,
 	type: z.literal("wire"),
@@ -37,16 +77,18 @@ export const ZHandleReference =
 
 export const ZComponentHandle = z.object({
 	edge: ZHandleEdge,
-	pos: z.number(),
+	pos: z.number().min(MIN_HANDLE_POSITION).max(MAX_HANDLE_POSITION),
 	type: ZHandleType,
-	connections: z.array(ZWireHandleReference),
+	connections: z.array(ZWireHandleReference).max(MAX_CONNECTIONS_PER_HANDLE),
 });
 
 export const ZWireHandle = z.object({
-	x: z.number(),
-	y: z.number(),
+	x: ZCoordinate,
+	y: ZCoordinate,
 	type: ZHandleType,
-	connections: z.array(ZWireHandleReference.or(ZComponentHandleReference)),
+	connections: z
+		.array(ZWireHandleReference.or(ZComponentHandleReference))
+		.max(MAX_CONNECTIONS_PER_HANDLE),
 });
 
 export const ZComponentHandleList = z.record(z.string(), ZComponentHandle);
@@ -67,26 +109,31 @@ export const ZWireHandleList = z
 
 // ==== Graph Types ====
 export const ZWireData = z.object({
-	id: z.number(),
+	id: ZId,
 	handles: ZWireHandleList,
 });
 
 export const ZComponentData = z.object({
-	id: z.number(),
+	id: ZId,
 	type: ZComponentType,
-	size: ZXYPair,
+	size: z.object({
+		x: z.number().gt(MIN_COMPONENT_SIZE).max(MAX_COMPONENT_SIZE),
+		y: z.number().gt(MIN_COMPONENT_SIZE).max(MAX_COMPONENT_SIZE),
+	}),
 	position: ZXYPair,
 	handles: ZComponentHandleList,
 	isPoweredInitially: z.boolean(),
-	rotation: z.number().gte(0).lt(360),
+	rotation: z.number().gte(MIN_ROTATION).lt(MAX_ROTATION),
 	customData: z.record(z.string(), z.any()).optional(),
 });
 
-export const ZGraphData = z.object({
-	wires: z.record(z.string(), ZWireData),
-	components: z.record(z.string(), ZComponentData),
-	nextId: z.number(),
+const ZGraphShape = z.object({
+	wires: ZGraphRecordInput.pipe(z.record(ZGraphKey, ZWireData)),
+	components: ZGraphRecordInput.pipe(z.record(ZGraphKey, ZComponentData)),
+	nextId: z.number().int().nonnegative().max(MAX_GRAPH_ID),
 });
+
+export const ZGraphData = ZGraphShape.superRefine(validateGraph);
 
 export type HandleEdge = z.infer<typeof ZHandleEdge>;
 export type HandleType = z.infer<typeof ZHandleType>;
@@ -107,7 +154,7 @@ export type ComponentHandle = z.infer<typeof ZComponentHandle>;
 
 export type WireData = z.infer<typeof ZWireData>;
 export type ComponentData = z.infer<typeof ZComponentData>;
-export type GraphData = z.infer<typeof ZGraphData>;
+export type GraphData = z.infer<typeof ZGraphShape>;
 
 export interface SVGPointerEvent extends PointerEvent {
 	currentTarget: EventTarget & SVGElement;

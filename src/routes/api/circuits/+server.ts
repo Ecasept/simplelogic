@@ -1,7 +1,6 @@
 import { err } from "$lib/util/error";
-import { ZGraphData } from "$lib/util/types";
+import { readCircuitInput } from "$lib/server/circuitInput";
 import { error, json } from "@sveltejs/kit";
-import { z } from "zod";
 
 /** @type {import("./$types").RequestHandler} */
 /** Create a new circuit */
@@ -12,18 +11,7 @@ export async function POST({ request, locals: { prisma, auth } }) {
 		return error(401, err("Unauthorized"));
 	}
 
-	// Validate input
-	const schema = z.object({ name: z.string(), data: ZGraphData });
-	const validationResult = schema.safeParse(await request.json());
-	if (!validationResult.success) {
-		// Don't expose the valid schema in production
-		if (import.meta.env.DEV) {
-			return error(400, err(validationResult.error.message));
-		} else {
-			return error(400);
-		}
-	}
-	const { name, data } = validationResult.data;
+	const { name, data } = await readCircuitInput(request);
 
 	// Check for empty data
 	if (
@@ -31,9 +19,6 @@ export async function POST({ request, locals: { prisma, auth } }) {
 		Object.keys(data.wires).length === 0
 	) {
 		return json(err("No data to save - please create a circuit"));
-	}
-	if (name === "") {
-		return json(err("Please enter a name"));
 	}
 
 	const existingGraph = await prisma.circuits.findUnique({
