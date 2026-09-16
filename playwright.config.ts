@@ -37,7 +37,9 @@ export default defineConfig({
 
 	use: {
 		/* Base URL to use in actions like `await page.goto('/')`. */
-		baseURL: (process.env.CI ? "http://localhost:8788" : "http://localhost:5173") + "/?no-onboarding",
+		baseURL:
+			(process.env.CI ? "http://localhost:8788" : "http://localhost:5173") +
+			"/?no-onboarding",
 
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: "on-first-retry",

@@ -10,7 +10,7 @@ export class Editor {
 		private readonly pointer: Pointer,
 		private readonly browserName: string,
 		private readonly baseURL: string,
-	) { }
+	) {}
 
 	async waitForNetworkIdle() {
 		if (this.browserName !== "firefox" || process.env.CI) {
@@ -61,7 +61,9 @@ export class Editor {
 	}
 
 	async clickGoogleLoginButton() {
-		const button = this.page.getByRole("button", { name: "Continue with Google" });
+		const button = this.page.getByRole("button", {
+			name: "Continue with Google",
+		});
 		await expect(button).toBeVisible();
 		await button.click();
 		await expect(button).not.toBeVisible();
@@ -69,11 +71,15 @@ export class Editor {
 		await this.waitForNetworkIdle();
 	}
 	async openLoadModal() {
-		await this.pointer.clickOn(this.page.getByRole("button", { name: "Load circuit" }));
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Load circuit" }),
+		);
 		await expect(this.getModal()).toBeVisible();
 	}
 	async openSaveModal() {
-		await this.pointer.clickOn(this.page.getByRole("button", { name: "Save circuit" }));
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Save circuit" }),
+		);
 		await expect(this.getModal()).toBeVisible();
 	}
 	async signIn() {
@@ -104,7 +110,9 @@ export class Editor {
 	}
 
 	async toggleSidebar(uniqueName: SidebarUniqueName) {
-		const button = this.page.locator(`[aria-controls="sidebar-${uniqueName}-content"]`);
+		const button = this.page.locator(
+			`[aria-controls="sidebar-${uniqueName}-content"]`,
+		);
 		const expanded = await button.getAttribute("aria-expanded");
 		await button.click();
 		const sidebar = this.getSidebar(uniqueName);
@@ -119,11 +127,15 @@ export class Editor {
 	}
 
 	async deleteSelected() {
-		const button = this.getSidebar("selection").getByRole("button", { name: "Delete" });
+		const button = this.getSidebar("selection").getByRole("button", {
+			name: "Delete",
+		});
 		await this.pointer.clickOn(button);
 	}
 	async toggleDelete() {
-		const button = this.page.getByRole("button", { name: "Switch to delete mode" });
+		const button = this.page.getByRole("button", {
+			name: "Switch to delete mode",
+		});
 		const ariaPressed = await button.getAttribute("aria-pressed");
 		if (ariaPressed === "false") {
 			await this.setMode("delete");
@@ -133,7 +145,9 @@ export class Editor {
 		await expect(this.page).toHaveMode("delete");
 	}
 	async toggleComponentToolbar() {
-		await this.pointer.clickOn(this.page.getByRole("button", { name: "Show components" }));
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Show components" }),
+		);
 	}
 	async undo() {
 		await this.pointer.clickOn(this.page.getByRole("button", { name: "Undo" }));
@@ -149,28 +163,47 @@ export class Editor {
 	}
 
 	async loadCircuitUsingClipboard(circuit: string) {
-		await this.page.evaluate((text) => navigator.clipboard.writeText(text), circuit);
+		await this.page.evaluate(
+			(text) => navigator.clipboard.writeText(text),
+			circuit,
+		);
 		await this.openLoadModal();
-		await this.pointer.clickOn(this.page.getByRole("button", { name: "Paste from clipboard" }));
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Paste from clipboard" }),
+		);
 		await this.closeModal();
 	}
 	async saveCircuitUsingClipboard() {
 		await this.openSaveModal();
-		await this.pointer.clickOn(this.page.getByRole("button", { name: "Copy to clipboard" }));
+		await this.pointer.clickOn(
+			this.page.getByRole("button", { name: "Copy to clipboard" }),
+		);
 		const text = await this.page.evaluate(() => navigator.clipboard.readText());
 		await this.closeModal();
 		return text;
 	}
 
 	getHandle(type: string, id: string) {
-		return { nth: (n: number) => this.page.locator(`handle=${type}:${id}:${n}`), first: () => this.page.locator(`handle=${type}:${id}:0`) };
+		return {
+			nth: (n: number) => this.page.locator(`handle=${type}:${id}:${n}`),
+			first: () => this.page.locator(`handle=${type}:${id}:0`),
+		};
 	}
 	getComponent(type: string) {
-		return { nth: (n: number) => this.page.locator(`component=${type}:${n}`), first: () => this.page.locator(`component=${type}:0`) };
+		return {
+			nth: (n: number) => this.page.locator(`component=${type}:${n}`),
+			first: () => this.page.locator(`component=${type}:0`),
+		};
 	}
-	comps() { return this.page.locator(".canvasWrapper .component-body"); }
-	wires() { return this.page.locator(".canvasWrapper .wire"); }
-	handles() { return this.page.locator(".canvasWrapper .handle"); }
+	comps() {
+		return this.page.locator(".canvasWrapper .component-body");
+	}
+	wires() {
+		return this.page.locator(".canvasWrapper .wire");
+	}
+	handles() {
+		return this.page.locator(".canvasWrapper .handle");
+	}
 
 	async initiateAddComponent(type: string) {
 		await this.pointer.downOn(this.page.getByLabel(`Add ${type}`));
@@ -185,17 +218,29 @@ export class Editor {
 		await this.pointer.moveOnto(dst, force);
 		await this.pointer.up();
 	}
-	async dragToNoRelease(src: Locator, x: number, y: number, force?: boolean): Promise<void> {
+	async dragToNoRelease(
+		src: Locator,
+		x: number,
+		y: number,
+		force?: boolean,
+	): Promise<void> {
 		await this.pointer.downOn(src, force);
 		await this.pointer.moveTo(x, y);
 	}
-	async dragTo(src: Locator, x: number, y: number, force?: boolean): Promise<void> {
+	async dragTo(
+		src: Locator,
+		x: number,
+		y: number,
+		force?: boolean,
+	): Promise<void> {
 		await this.dragToNoRelease(src, x, y, force);
 		await this.pointer.up();
 	}
 
 	async toggleSimulate(): Promise<void> {
-		const simulateButton = this.page.getByRole("button", { name: "Switch to simulate mode" });
+		const simulateButton = this.page.getByRole("button", {
+			name: "Switch to simulate mode",
+		});
 		const ariaPressed = await simulateButton.getAttribute("aria-pressed");
 		if (ariaPressed === "false") {
 			await this.setMode("simulate");
@@ -204,7 +249,9 @@ export class Editor {
 		}
 	}
 	async setMode(mode: "edit" | "delete" | "simulate") {
-		const button = this.page.getByRole("button", { name: `Switch to ${mode} mode` });
+		const button = this.page.getByRole("button", {
+			name: `Switch to ${mode} mode`,
+		});
 		expect(await button.getAttribute("aria-pressed")).toBe("false");
 		await this.pointer.clickOn(button);
 		await expect(this.page).toHaveMode(mode);
@@ -221,7 +268,9 @@ export class Editor {
 			if (await enableButton.isVisible()) {
 				await this.pointer.clickOn(enableButton);
 			} else {
-				await expect(this.page.getByRole("button", { name: disableLabel })).toBeVisible();
+				await expect(
+					this.page.getByRole("button", { name: disableLabel }),
+				).toBeVisible();
 			}
 			return;
 		}
@@ -229,7 +278,9 @@ export class Editor {
 		if (await disableButton.isVisible()) {
 			await this.pointer.clickOn(disableButton);
 		} else {
-			await expect(this.page.getByRole("button", { name: enableLabel })).toBeVisible();
+			await expect(
+				this.page.getByRole("button", { name: enableLabel }),
+			).toBeVisible();
 		}
 	}
 	async rotateSelected(dir: "cw" | "ccw") {
@@ -238,6 +289,6 @@ export class Editor {
 		await this.pointer.clickOn(button);
 	}
 	getSelectedCount() {
-		return this.page.locator('.canvasWrapper .selected').count();
+		return this.page.locator(".canvasWrapper .selected").count();
 	}
 }

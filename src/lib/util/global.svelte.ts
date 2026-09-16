@@ -24,12 +24,11 @@ export type Preset = {
 	id: number;
 	name: string;
 	img: string; // URL to a preview image
-}
+};
 export let availablePresets: Preset[] = []; // Filled on page load with data from server
 export function setAvailablePresets(presets: Preset[]) {
 	availablePresets = presets;
 }
-
 
 /** The distance between the centers of the dots in the grid in px */
 export const GRID_SIZE = 20;
@@ -387,7 +386,6 @@ export function rotateAroundBy(
 		y: dx * sin + dy * cos + center.y,
 	};
 }
-
 
 /** Checks if two lines defined by four points intersect. */
 export function linesIntersect(

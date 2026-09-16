@@ -12,7 +12,7 @@ export interface Pointer {
 }
 
 export class DesktopPointer implements Pointer {
-	constructor(private readonly page: Page) { }
+	constructor(private readonly page: Page) {}
 
 	async down(options: { button: "right" }) {
 		await this.page.mouse.down(options);

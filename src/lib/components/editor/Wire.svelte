@@ -63,7 +63,11 @@
 	if (id === 10) {
 		$inspect(simData).with(debugLog(`Wire ${id} Simulation Data`));
 	}
-	function onHandleLongPress(handle: WireHandle, handleType: HandleType, pointerId: number) {
+	function onHandleLongPress(
+		handle: WireHandle,
+		handleType: HandleType,
+		pointerId: number,
+	) {
 		if (handleType === "input" && handle.connections.length > 0) {
 			// Cannot start a new wire from an input that already has a connection
 			return;
@@ -82,7 +86,7 @@
 				y: handle.y,
 			},
 			newWireHandleRef(id, handleType),
-			pointerId
+			pointerId,
 		);
 	}
 
@@ -162,7 +166,7 @@
 					y: handle.y,
 				},
 				newWireHandleRef(id, clickedHandle),
-				e.pointerId
+				e.pointerId,
 			);
 		} else {
 			const clickType = e.ctrlKey || e.metaKey ? "ctrl" : "none";
@@ -174,7 +178,7 @@
 				},
 				handle.connections.length,
 				clickType,
-				e.pointerId
+				e.pointerId,
 			);
 		}
 	}

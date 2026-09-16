@@ -11,34 +11,34 @@ export type FeedbackMessage = {
 
 export type CircuitModalUiState =
 	| {
-		mode: null;
-		callback: null;
-		message: null;
-		listRequestData: null;
-		loadMode: null;
-		fixConnections: null;
-		isOnboarding: null,
-	}
+			mode: null;
+			callback: null;
+			message: null;
+			listRequestData: null;
+			loadMode: null;
+			fixConnections: null;
+			isOnboarding: null;
+	  }
 	| {
-		mode: "load";
-		message: FeedbackMessage | null;
-		callback: (graphData: GraphData, type: "preset" | "custom") => void;
-		listRequestData: ListRequestData | null;
-		isLoadingList: boolean;
-		loadMode: "select" | "list";
-		fixConnections: boolean;
-		isOnboarding: boolean,
-	}
+			mode: "load";
+			message: FeedbackMessage | null;
+			callback: (graphData: GraphData, type: "preset" | "custom") => void;
+			listRequestData: ListRequestData | null;
+			isLoadingList: boolean;
+			loadMode: "select" | "list";
+			fixConnections: boolean;
+			isOnboarding: boolean;
+	  }
 	| {
-		mode: "save";
-		message: FeedbackMessage | null;
-		callback: () => void;
-		listRequestData: null;
-		isLoadingList: false;
-		loadMode: null;
-		fixConnections: null;
-		isOnboarding: null,
-	};
+			mode: "save";
+			message: FeedbackMessage | null;
+			callback: () => void;
+			listRequestData: null;
+			isLoadingList: false;
+			loadMode: null;
+			fixConnections: null;
+			isOnboarding: null;
+	  };
 
 type ListRequestData = {
 	circuits: {
@@ -128,7 +128,9 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 
 			// ---- OUTPUT END FIX ----
 			const outputHandle = wire.handles.output;
-			const compConn = outputHandle.connections.find(c => c.type === "component");
+			const compConn = outputHandle.connections.find(
+				(c) => c.type === "component",
+			);
 			if (compConn) {
 				// If the wire drives a component input, snap its output endpoint there
 				const comp = data.components[compConn.id];
@@ -241,7 +243,9 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 
 	open(
 		mode: "save" | "load",
-		callback: ((graphData: GraphData, type: "custom" | "preset") => void) | null,
+		callback:
+			| ((graphData: GraphData, type: "custom" | "preset") => void)
+			| null,
 		{ isOnboarding = true }: { isOnboarding?: boolean } = {},
 	) {
 		this._uiState.mode = mode;
@@ -294,7 +298,10 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		}
 		if (id === "empty") {
 			this.setSuccess("Empty preset loaded");
-			this._uiState.callback({ components: {}, wires: {}, nextId: 0 }, "preset");
+			this._uiState.callback(
+				{ components: {}, wires: {}, nextId: 0 },
+				"preset",
+			);
 			return;
 		}
 		const preset = await API.getPresetById(id);

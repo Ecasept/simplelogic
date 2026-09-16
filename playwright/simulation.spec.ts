@@ -100,7 +100,11 @@ test.describe("simulation: logic correctness (moved)", () => {
 		await expect(carry).not.toBePowered();
 	});
 
-	test("simulate 2-bit ripple carry adder", async ({ editor, pointer, sim }) => {
+	test("simulate 2-bit ripple carry adder", async ({
+		editor,
+		pointer,
+		sim,
+	}) => {
 		await editor.loadCircuitUsingClipboard(circuits.rippleCarryAdder);
 
 		// move canvas to the right
@@ -254,7 +258,9 @@ test.describe("simulation: logic correctness (moved)", () => {
 });
 
 test.describe("simulation: UI controls and sidebar", () => {
-	test("tools sidebar shows simulation content in simulate mode", async ({ editor }) => {
+	test("tools sidebar shows simulation content in simulate mode", async ({
+		editor,
+	}) => {
 		// Edit mode: tools should show components/settings
 		await expect(editor.getSidebar("tools")).toBeExpanded();
 
@@ -265,13 +271,22 @@ test.describe("simulation: UI controls and sidebar", () => {
 		const simSidebar = editor.getSidebar("tools");
 		await expect(simSidebar.getByText("Simulation")).toBeVisible();
 		// When switching to simulate mode, simulation starts automatically; expect Stop button
-		await expect(simSidebar.getByRole("button", { name: "Stop" })).toBeVisible();
+		await expect(
+			simSidebar.getByRole("button", { name: "Stop" }),
+		).toBeVisible();
 		await expect(simSidebar.getByText("Step Delay")).toBeVisible();
-		await expect(simSidebar.getByRole("button", { name: "Step Forward" })).toBeVisible();
-		await expect(simSidebar.getByRole("button", { name: "Reset" })).toBeVisible();
+		await expect(
+			simSidebar.getByRole("button", { name: "Step Forward" }),
+		).toBeVisible();
+		await expect(
+			simSidebar.getByRole("button", { name: "Reset" }),
+		).toBeVisible();
 	});
 
-	test("start/stop shows calculating and then finished time", async ({ editor, sim }) => {
+	test("start/stop shows calculating and then finished time", async ({
+		editor,
+		sim,
+	}) => {
 		await editor.setMode("simulate");
 
 		await sim.startContinuous();
@@ -286,7 +301,10 @@ test.describe("simulation: UI controls and sidebar", () => {
 		await sim.stopContinuous();
 	});
 
-	test("delay slider updates label and simulation completes", async ({ editor, sim }) => {
+	test("delay slider updates label and simulation completes", async ({
+		editor,
+		sim,
+	}) => {
 		await editor.setMode("simulate");
 
 		await sim.setUpdateDelay(0);
@@ -302,7 +320,11 @@ test.describe("simulation: UI controls and sidebar", () => {
 		await expect(status).toContainText("Last update took");
 	});
 
-	test("step forward consumes queue when stopped", async ({ editor, pointer, sim }) => {
+	test("step forward consumes queue when stopped", async ({
+		editor,
+		pointer,
+		sim,
+	}) => {
 		// Build minimal circuit IN -> LED
 		await editor.addComponent("IN", 400, 400);
 		await editor.addComponent("LED", 600, 200);
@@ -353,12 +375,18 @@ test.describe("simulation: UI controls and sidebar", () => {
 		await sim.reset();
 
 		// After reset, status should not show Calculating and queue should be 0
-		await expect(editor.getSidebar("tools").getByText("Calculating...", { exact: false })).not.toBeVisible();
+		await expect(
+			editor.getSidebar("tools").getByText("Calculating...", { exact: false }),
+		).not.toBeVisible();
 		const q = await sim.getQueueCount();
 		expect(q).toBeGreaterThanOrEqual(0); // At least non-negative and usually 0
 	});
 
-	test("reset while continuous is on restarts continuous simulation", async ({ editor, pointer, sim }) => {
+	test("reset while continuous is on restarts continuous simulation", async ({
+		editor,
+		pointer,
+		sim,
+	}) => {
 		// Minimal circuit to ensure there is something to process
 		await editor.addComponent("IN", 400, 400);
 		await editor.addComponent("LED", 600, 200);
@@ -383,12 +411,20 @@ test.describe("simulation: UI controls and sidebar", () => {
 	});
 });
 
-
-test.describe('Simulation post-clone', () => {
-	test('Ensure simulation works fine, even after copy/pasting or duplicating', async ({ page, editor, pointer, sim }) => {
+test.describe("Simulation post-clone", () => {
+	test("Ensure simulation works fine, even after copy/pasting or duplicating", async ({
+		page,
+		editor,
+		pointer,
+		sim,
+	}) => {
 		await editor.addComponent("IN", 500, 200);
 		await editor.addComponent("LED", 700, 200);
-		await editor.drag(editor.getHandle("IN", "out").first(), editor.getHandle("LED", "in").first(), true);
+		await editor.drag(
+			editor.getHandle("IN", "out").first(),
+			editor.getHandle("LED", "in").first(),
+			true,
+		);
 		await editor.ctrlSelect(editor.getComponent("IN").first(), true);
 		await editor.ctrlSelect(editor.getComponent("LED").first(), true);
 
@@ -396,7 +432,10 @@ test.describe('Simulation post-clone', () => {
 		await pointer.moveTo(600, 300);
 		await page.keyboard.press("Control+V");
 
-		await editor.getSidebar("selection").getByRole("button", { name: "Duplicate" }).click();
+		await editor
+			.getSidebar("selection")
+			.getByRole("button", { name: "Duplicate" })
+			.click();
 
 		// offset is not enough to prevent overlap, so move the duplicated elements
 		await editor.dragTo(editor.getComponent("IN").nth(2), 600, 400);
@@ -440,22 +479,25 @@ test.describe('Simulation post-clone', () => {
 		await expect(led2).toBePowered();
 	});
 
-	test('body of the IN itself toggles the input (not just the inner part) when simulating', async ({ editor, pointer }) => {
+	test("body of the IN itself toggles the input (not just the inner part) when simulating", async ({
+		editor,
+		pointer,
+	}) => {
 		await editor.addComponent("IN", 300, 300);
 		const input = editor.getComponent("IN").first();
 
 		await pointer.clickAt(300, 200);
 		// verify that component is selected when clicked in edit mode
-		await input.click({position: {x: 10, y: 10}});
+		await input.click({ position: { x: 10, y: 10 } });
 		await expect(input).toBeSelected();
 		await expect(input).not.toBePowered();
 
 		await editor.setMode("simulate");
 
-		await input.click({position: {x: 10, y: 10}});
+		await input.click({ position: { x: 10, y: 10 } });
 		await expect(input).toBePowered();
 
-		await input.click({position: {x: 10, y: 10}});
+		await input.click({ position: { x: 10, y: 10 } });
 		await expect(input).not.toBePowered();
 	});
 });

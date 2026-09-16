@@ -544,7 +544,11 @@ test.describe("adding and dragging/moving", async () => {
 			await checkWires(d_initial);
 		});
 	});
-	test("can branch from wire input with shift after dragging from component input", async ({ editor, page, pointer }) => {
+	test("can branch from wire input with shift after dragging from component input", async ({
+		editor,
+		page,
+		pointer,
+	}) => {
 		// Place a single component
 		await editor.addComponent("AND", 400, 200);
 
@@ -574,18 +578,22 @@ test.describe("input/output labels", () => {
 	}) => {
 		await editor.addComponent("IN", 280, 240);
 
-		const labelInput = page.getByRole('textbox', { name: 'Label' });
+		const labelInput = page.getByRole("textbox", { name: "Label" });
 		await labelInput.click();
 		await labelInput.pressSequentially("CLK");
 		await expect(labelInput).toHaveValue("CLK");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "CLK" })).toBeVisible();
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "CLK" }),
+		).toBeVisible();
 
 		await pointer.clickAt(200, 20);
 		await editor.undo();
 
 		await pointer.clickOn(editor.getComponent("IN").first(), true);
 		await expect(labelInput).toHaveValue("");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "CLK" })).toHaveCount(0);
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "CLK" }),
+		).toHaveCount(0);
 	});
 
 	test("label visibility toggle persists across selection and mode changes", async ({
@@ -594,7 +602,7 @@ test.describe("input/output labels", () => {
 		pointer,
 	}) => {
 		await editor.addComponent("IN", 360, 220);
-		await page.getByRole('textbox', { name: 'Label' }).fill("A");
+		await page.getByRole("textbox", { name: "Label" }).fill("A");
 
 		const visibilityButton = page.getByRole("button", {
 			name: "Toggle label visibility",
@@ -602,21 +610,30 @@ test.describe("input/output labels", () => {
 		await expect(visibilityButton).toHaveText("Hide Label");
 		await visibilityButton.click();
 		await expect(visibilityButton).toHaveText("Show Label");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "A" })).toHaveCount(0);
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "A" }),
+		).toHaveCount(0);
 
 		await editor.addComponent("LED", 520, 220);
 		await pointer.clickOn(editor.getComponent("IN").first(), true);
 		await expect(visibilityButton).toHaveText("Show Label");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "A" })).toHaveCount(0);
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "A" }),
+		).toHaveCount(0);
 
 		await editor.toggleSimulate();
 		await editor.toggleSimulate();
 		await pointer.clickOn(editor.getComponent("IN").first(), true);
 		await expect(visibilityButton).toHaveText("Show Label");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "A" })).toHaveCount(0);
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "A" }),
+		).toHaveCount(0);
 	});
 
-	test("renders label only when non-empty and visible", async ({ editor, page }) => {
+	test("renders label only when non-empty and visible", async ({
+		editor,
+		page,
+	}) => {
 		await editor.addComponent("LED", 320, 240);
 		const visibilityButton = page.getByRole("button", {
 			name: "Toggle label visibility",
@@ -624,21 +641,29 @@ test.describe("input/output labels", () => {
 
 		await expect(page.locator(".canvasWrapper .io-name")).toHaveCount(0);
 
-		await page.getByRole('textbox', { name: 'Label' }).fill("OUT");
+		await page.getByRole("textbox", { name: "Label" }).fill("OUT");
 		await expect(visibilityButton).toHaveText("Hide Label");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "OUT" })).toBeVisible();
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "OUT" }),
+		).toBeVisible();
 
 		await visibilityButton.click();
 		await expect(visibilityButton).toHaveText("Show Label");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "OUT" })).toHaveCount(0);
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "OUT" }),
+		).toHaveCount(0);
 
 		await visibilityButton.click();
 		await expect(visibilityButton).toHaveText("Hide Label");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "OUT" })).toBeVisible();
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "OUT" }),
+		).toBeVisible();
 
-		await page.getByRole('textbox', { name: 'Label' }).clear();
+		await page.getByRole("textbox", { name: "Label" }).clear();
 		await expect(visibilityButton).toHaveText("Hide Label");
-		await expect(page.locator(".canvasWrapper .io-name", { hasText: "OUT" })).toHaveCount(0);
+		await expect(
+			page.locator(".canvasWrapper .io-name", { hasText: "OUT" }),
+		).toHaveCount(0);
 	});
 });
 
@@ -1153,7 +1178,6 @@ test.describe("panning and zooming", () => {
 	});
 });
 
-
 test.describe("sidebars", () => {
 	test("tools sidebar can be toggled", async ({ editor }) => {
 		await expect(editor.getSidebar("tools")).toBeExpanded();
@@ -1163,7 +1187,10 @@ test.describe("sidebars", () => {
 		await expect(editor.getSidebar("tools")).toBeExpanded();
 	});
 
-	test("remain visible on elementDown, hide while dragging, reappear after drop", async ({ editor, pointer }) => {
+	test("remain visible on elementDown, hide while dragging, reappear after drop", async ({
+		editor,
+		pointer,
+	}) => {
 		// Ensure tools sidebar is visible initially
 		await expect(editor.getSidebar("tools")).toBeExpanded();
 
@@ -1509,7 +1536,7 @@ test.describe("text component", () => {
 		await expect(textComp).toHaveAttribute("font-size", "32");
 
 		// Edit text
-		const textInput = selectionSidebar.getByRole('textbox', { name: 'Text' });
+		const textInput = selectionSidebar.getByRole("textbox", { name: "Text" });
 		await textInput.fill("Hello World");
 		await expect(textComp).toHaveText("Hello World");
 
@@ -1534,7 +1561,7 @@ test.describe("text component", () => {
 		const selectionSidebar = editor.getSidebar("selection");
 
 		// Undo text change
-		const textInput = selectionSidebar.getByRole('textbox', { name: 'Text' });
+		const textInput = selectionSidebar.getByRole("textbox", { name: "Text" });
 		await expect(textComp).toHaveText("Text");
 		await textInput.fill("New Text");
 		await textInput.blur(); // Commit changes

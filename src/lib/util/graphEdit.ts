@@ -18,7 +18,8 @@ export class GraphEditTransaction {
 	}
 
 	private assertActive() {
-		if (this.closed) throw new Error("Graph edit transaction is already closed");
+		if (this.closed)
+			throw new Error("Graph edit transaction is already closed");
 	}
 
 	/** Append a fixed step, preserving earlier previews (e.g. rotate during placement). */
@@ -66,9 +67,10 @@ export class GraphEditTransaction {
 
 	commit() {
 		if (this.closed) return;
-		const command = this.commands.length > 1
-			? new CommandGroup(this.commands)
-			: this.commands[0];
+		const command =
+			this.commands.length > 1
+				? new CommandGroup(this.commands)
+				: this.commands[0];
 		this.close(command);
 	}
 

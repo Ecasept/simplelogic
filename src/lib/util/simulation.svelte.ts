@@ -24,8 +24,6 @@ export function getSimData(id: number): SimulationData | null {
 const SIMULATION_MAX_TIME_WITHOUT_YIELD = 10;
 
 class SimulationController {
-
-
 	public continuousExecution: boolean = $state(true);
 
 	/** The time that the simulation was started */
@@ -112,7 +110,6 @@ class SimulationController {
 
 		await new Promise(requestAnimationFrame);
 
-
 		while (true) {
 			if (this.onStopped) {
 				// If the processing was stopped, exit the loop
@@ -134,18 +131,18 @@ class SimulationController {
 			}
 
 			const now = performance.now();
-			const maxTimeExceeded = now - stepStart > SIMULATION_MAX_TIME_WITHOUT_YIELD;
+			const maxTimeExceeded =
+				now - stepStart > SIMULATION_MAX_TIME_WITHOUT_YIELD;
 			const aheadOfSchedule = stepEnd > now;
 			const shouldYield = maxTimeExceeded || aheadOfSchedule;
 
 			if (shouldYield) {
 				// Yield back to the event loop
 				const timeLeft = Math.max(0, stepEnd - now);
-				await new Promise<void>(
-					(r) => {
-						this.skipLoopDelay = r;
-						setTimeout(r, timeLeft);
-					});
+				await new Promise<void>((r) => {
+					this.skipLoopDelay = r;
+					setTimeout(r, timeLeft);
+				});
 				this.skipLoopDelay = null;
 				stepEnd += this.updateDelay;
 				stepStart = performance.now();

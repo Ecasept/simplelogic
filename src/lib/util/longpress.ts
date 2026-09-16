@@ -8,7 +8,6 @@ let pressPos: XYPair | null = null;
 /** How many pixels a mouse needs to move for it to no longer count as a long press */
 const MOVE_THRESHOLD = 5;
 
-
 function hasMouse() {
 	return matchMedia("(pointer:fine)").matches;
 }

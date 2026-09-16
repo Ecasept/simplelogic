@@ -168,7 +168,7 @@ const customTest = base.extend<
 		},
 		{ scope: "worker", auto: true },
 	],
-	clipboard: async ({ }, use) => {
+	clipboard: async ({}, use) => {
 		const clipboard = {
 			content: "",
 		};
@@ -215,7 +215,6 @@ const customTest = base.extend<
 		await use(new Simulation(editor));
 	},
 });
-
 
 export const test = Object.assign(customTest, {
 	/** Ensures that the test gets its own account without any circuits from other tests */
@@ -308,12 +307,12 @@ const createMatcher = <TReceived extends unknown, TArgs extends unknown[]>(
 			pass
 				? "Test passed"
 				: this.utils.matcherHint(assertionName, undefined, undefined, {
-					isNot: this.isNot,
-				}) +
-				"\n\n" +
-				`${toString(received)}\n` +
-				`Expected: ${this.utils.printExpected((this.isNot ? "not " : "") + matcherResult?.expected)}\n` +
-				`Received: ${this.utils.printReceived(matcherResult?.actual)}`;
+						isNot: this.isNot,
+					}) +
+					"\n\n" +
+					`${toString(received)}\n` +
+					`Expected: ${this.utils.printExpected((this.isNot ? "not " : "") + matcherResult?.expected)}\n` +
+					`Received: ${this.utils.printReceived(matcherResult?.actual)}`;
 
 		if (this.isNot) {
 			pass = !pass;

@@ -32,18 +32,35 @@ function wire(id: number, overrides: Partial<any> = {}) {
 	return {
 		id,
 		handles: {
-			input: { x: 0, y: id * 10, type: "input" as const, connections: [] as any[] },
-			output: { x: 20, y: id * 10, type: "output" as const, connections: [] as any[] },
+			input: {
+				x: 0,
+				y: id * 10,
+				type: "input" as const,
+				connections: [] as any[],
+			},
+			output: {
+				x: 20,
+				y: id * 10,
+				type: "output" as const,
+				connections: [] as any[],
+			},
 		},
 		...overrides,
 	};
 }
 
 // Mock DOMPoint for clientToSVGCoords since it's not defined in the test environment natively
-if (typeof DOMPoint === 'undefined') {
+if (typeof DOMPoint === "undefined") {
 	(global as any).DOMPoint = class DOMPoint {
-		constructor(public x = 0, public y = 0, public z = 0, public w = 1) {}
-		matrixTransform() { return this; }
+		constructor(
+			public x = 0,
+			public y = 0,
+			public z = 0,
+			public w = 1,
+		) {}
+		matrixTransform() {
+			return this;
+		}
 	};
 }
 
@@ -59,11 +76,28 @@ describe("DuplicateAction", () => {
 		const w1 = wire(1);
 		const w2 = wire(2);
 		// Connect c0.out -> w1.input & w2.input
-		c0.handles.out.connections.push(newWireHandleRef(1, "input"), newWireHandleRef(2, "input"));
-		w1.handles.input.connections.push({ id: 0, handleId: "out", handleType: "output", type: "component" });
-		w2.handles.input.connections.push({ id: 0, handleId: "out", handleType: "output", type: "component" });
+		c0.handles.out.connections.push(
+			newWireHandleRef(1, "input"),
+			newWireHandleRef(2, "input"),
+		);
+		w1.handles.input.connections.push({
+			id: 0,
+			handleId: "out",
+			handleType: "output",
+			type: "component",
+		});
+		w2.handles.input.connections.push({
+			id: 0,
+			handleId: "out",
+			handleType: "output",
+			type: "component",
+		});
 
-		const data: GraphData = { components: { 0: c0 }, wires: { 1: w1, 2: w2 }, nextId: 3 };
+		const data: GraphData = {
+			components: { 0: c0 },
+			wires: { 1: w1, 2: w2 },
+			nextId: 3,
+		};
 		graphManager.setGraphData(data);
 
 		// Select component 0 and wire 1 only
@@ -71,7 +105,7 @@ describe("DuplicateAction", () => {
 			new Map<number, ElementType>([
 				[0, "component"],
 				[1, "wire"],
-			])
+			]),
 		);
 
 		CloneAction.duplicateSelectedWithOffset();
@@ -102,16 +136,23 @@ describe("DuplicateAction", () => {
 		const w3 = wire(3);
 		const w4 = wire(4);
 		const w5 = wire(5);
-		w3.handles.output.connections.push(newWireHandleRef(4, "input"), newWireHandleRef(5, "input"));
+		w3.handles.output.connections.push(
+			newWireHandleRef(4, "input"),
+			newWireHandleRef(5, "input"),
+		);
 		w4.handles.input.connections.push(newWireHandleRef(3, "output"));
 		w5.handles.input.connections.push(newWireHandleRef(3, "output"));
-		const data: GraphData = { components: {}, wires: { 3: w3, 4: w4, 5: w5 }, nextId: 6 };
+		const data: GraphData = {
+			components: {},
+			wires: { 3: w3, 4: w4, 5: w5 },
+			nextId: 6,
+		};
 		graphManager.setGraphData(data);
 		editorViewModel.setSelectedElements(
 			new Map<number, ElementType>([
 				[3, "wire"],
 				[4, "wire"],
-			])
+			]),
 		);
 
 		CloneAction.duplicateSelectedWithOffset();
@@ -134,18 +175,20 @@ describe("DuplicateAction", () => {
 		const c0 = comp(0);
 		const data: GraphData = { components: { 0: c0 }, wires: {}, nextId: 1 };
 		graphManager.setGraphData(data);
-		editorViewModel.setSelectedElements(new Map<number, ElementType>([[0, "component"]]));
+		editorViewModel.setSelectedElements(
+			new Map<number, ElementType>([[0, "component"]]),
+		);
 
 		// Execute
 		CloneAction.duplicateSelectedAndDrag();
 
 		// Should be in addingElements mode
 		expect((editorViewModel.uiState as any).editType).toBe("addingElements");
-		
+
 		const state = editorViewModel.uiState as any;
 		expect(state.elements.size).toBe(1);
 		expect(state.elements.get(1)).toBe("component"); // The duplicated id
-		
+
 		// Ensure graph state correctly updated
 		const gd = graphManager.getGraphData();
 		expect(gd.components[1]).toBeDefined();

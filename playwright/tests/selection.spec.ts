@@ -261,7 +261,11 @@ test.describe("selection", () => {
 		// Assert that both components are removed
 		await expect(editor.comps()).toHaveCount(0);
 	});
-	test("area selection intersect vs contain", async ({ editor, pointer, page }) => {
+	test("area selection intersect vs contain", async ({
+		editor,
+		pointer,
+		page,
+	}) => {
 		await editor.loadCircuitUsingClipboard(circuits.areaSelectTest);
 
 		// move canvas 30 left and 150 up
@@ -286,7 +290,9 @@ test.describe("selection", () => {
 
 		// Switch to contain area select via tools sidebar toggle button
 		// Button label changes dynamically; we look for the one that contains 'contain area select'
-		const containBtn = page.getByRole("button", { name: /contain area select/i });
+		const containBtn = page.getByRole("button", {
+			name: /contain area select/i,
+		});
 		await containBtn.click();
 
 		// Redo same area selection
@@ -300,24 +306,34 @@ test.describe("selection", () => {
 		expect(await editor.getSelectedCount()).toBe(3);
 
 		// Switch back again
-		const intersectBtn = page.getByRole("button", { name: /intersect area select/i });
+		const intersectBtn = page.getByRole("button", {
+			name: /intersect area select/i,
+		});
 		await intersectBtn.click();
 	});
 });
 
 test.describe("duplicate selection", () => {
-	test("duplicates selected component and wire, prunes external connections", async ({ editor, pointer }) => {
+	test("duplicates selected component and wire, prunes external connections", async ({
+		editor,
+		pointer,
+	}) => {
 		await editor.addComponent("IN", 400, 200); // id 0
 		await editor.addComponent("LED", 500, 200); // id 1
 		// Connect OUT of input to IN of led via wire
-		await editor.drag(editor.getHandle("IN", "out").first(), editor.getHandle("LED", "in").first());
+		await editor.drag(
+			editor.getHandle("IN", "out").first(),
+			editor.getHandle("LED", "in").first(),
+		);
 		// Unselect wire
 		await pointer.clickOn(editor.wires(), true);
 		// Select both components (multi-select via ctrl)
 		await editor.ctrlSelect(editor.getComponent("IN").first());
 		await editor.ctrlSelect(editor.getComponent("LED").first());
 		// Duplicate via sidebar button (SelectionSidebar Duplicate button)
-		const duplicateBtn = editor.getSidebar("selection").getByRole("button", { name: "Duplicate" });
+		const duplicateBtn = editor
+			.getSidebar("selection")
+			.getByRole("button", { name: "Duplicate" });
 		await duplicateBtn.click();
 		// Expect component count doubled
 		await expect(editor.comps()).toHaveCount(4);

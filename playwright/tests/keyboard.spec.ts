@@ -165,7 +165,10 @@ test.describe("editor shortcuts", () => {
 		await expect(editor.comps()).not.toBeSelected();
 	});
 
-	test("selected inputs can be toggled with space, including multiple selected", async ({ page, editor }) => {
+	test("selected inputs can be toggled with space, including multiple selected", async ({
+		page,
+		editor,
+	}) => {
 		await editor.addComponent("IN", 300, 200);
 		await editor.addComponent("IN", 420, 200);
 
@@ -185,7 +188,11 @@ test.describe("editor shortcuts", () => {
 		await expect(second).not.toBePowered();
 	});
 
-	test("space toggles only selected inputs when one is selected and one is not", async ({ page, editor, pointer }) => {
+	test("space toggles only selected inputs when one is selected and one is not", async ({
+		page,
+		editor,
+		pointer,
+	}) => {
 		await editor.addComponent("IN", 300, 200);
 		await editor.addComponent("IN", 420, 200);
 

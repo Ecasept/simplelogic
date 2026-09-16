@@ -4,8 +4,7 @@ import { SvelteKitAuth } from "@auth/sveltekit";
 import type { Provider } from "@auth/sveltekit/providers";
 import GitHub from "@auth/sveltekit/providers/github";
 
-const TEST_OAUTH_ISSUER =
-	env.TEST_OAUTH_ISSUER ?? "http://localhost:58080";
+const TEST_OAUTH_ISSUER = env.TEST_OAUTH_ISSUER ?? "http://localhost:58080";
 
 /** Creates a testing provider for testing purposes.
  * It is connected to a locally running OAuth server

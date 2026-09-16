@@ -1,7 +1,10 @@
 import type { XYPair } from "./types";
 
 export class RotationInfo {
-	constructor(public rotation: number, public center: XYPair) { }
+	constructor(
+		public rotation: number,
+		public center: XYPair,
+	) {}
 
 	asRotate(): string {
 		return `rotate(${this.rotation} ${this.center.x} ${this.center.y})`;

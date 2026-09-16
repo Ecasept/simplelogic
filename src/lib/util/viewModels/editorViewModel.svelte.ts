@@ -1,6 +1,11 @@
 import { isMatching, P } from "ts-pattern";
 import type { PatternConstraint } from "../../../../node_modules/ts-pattern/dist/is-matching";
-import type { GraphData, HandleReference, WireHandleReference, XYPair } from "../types";
+import type {
+	GraphData,
+	HandleReference,
+	WireHandleReference,
+	XYPair,
+} from "../types";
 import type { GraphEditTransaction } from "../graphEdit";
 
 /** References an element, and including its type.
@@ -34,7 +39,7 @@ export type SettingsState = {
 		areaSelectType: AreaSelectType;
 		/** Whether when selecting a component to place with the keyboard shortcut, you can place multiple of them in a row without having to re-select it each time */
 		continuousPlacement: boolean;
-	}
+	};
 };
 
 // ==== Edit Mode states ====
@@ -62,7 +67,7 @@ export type EditAddingElements = {
 	elements: Map<number, ElementType>;
 	/** The position of the mouse when the component was created */
 	clickPosition: XYPair;
-}
+};
 
 /** When the user clicked the mouse down on an element,
  * but has not yet released or moved the mouse.
@@ -211,7 +216,10 @@ function makeUiStateClone(state: EditorUiState): EditorUiState {
 
 export class EditorViewModel {
 	// Interaction data stays outside the cloned, reactive UI state.
-	private moveSession: { edit: GraphEditTransaction; origin: GraphData } | null = null;
+	private moveSession: {
+		edit: GraphEditTransaction;
+		origin: GraphData;
+	} | null = null;
 
 	getMoveSession(edit: GraphEditTransaction, graph: GraphData) {
 		if (this.moveSession?.edit !== edit) {
@@ -390,7 +398,12 @@ export class EditorViewModel {
 	 * @param pos The svg position where dragging started
 	 * @param dragSelected Whether to drag all selected elements, or just the clicked one
 	 */
-	startDrag(clicked: TypedReference, pos: XYPair, dragSelected: boolean, pointerId: number) {
+	startDrag(
+		clicked: TypedReference,
+		pos: XYPair,
+		dragSelected: boolean,
+		pointerId: number,
+	) {
 		this.setUiState({
 			mode: "edit",
 			editType: "draggingElements",
@@ -429,10 +442,7 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 
-	startAddElements(
-		elements: Map<number, ElementType>,
-		clickPosition: XYPair,
-	) {
+	startAddElements(elements: Map<number, ElementType>, clickPosition: XYPair) {
 		this.setUiState({
 			mode: "edit",
 			editType: "addingElements",

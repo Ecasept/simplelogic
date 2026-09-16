@@ -45,7 +45,10 @@ class MovePlanner {
 		} else {
 			this._moveWireHandle(offset, targets, this.graph.wires[targets.id]);
 		}
-		return { command: new CommandGroup(this.commands, "move"), changed: this.changed };
+		return {
+			command: new CommandGroup(this.commands, "move"),
+			changed: this.changed,
+		};
 	}
 
 	private _moveSingleWireHandle(
@@ -83,7 +86,11 @@ class MovePlanner {
 				);
 				continue;
 			}
-			this._moveSingleWireHandle(offset, connection, this.graph.wires[connection.id]);
+			this._moveSingleWireHandle(
+				offset,
+				connection,
+				this.graph.wires[connection.id],
+			);
 		}
 	}
 	private _moveWire(
@@ -109,9 +116,8 @@ class MovePlanner {
 
 				// Check if this is a multiconnected handle,
 				// and if yes, move all other connections
-				const otherHandle = this.graph.wires[connection.id].handles[
-					connection.handleType
-				];
+				const otherHandle =
+					this.graph.wires[connection.id].handles[connection.handleType];
 				for (const otherConnection of otherHandle.connections) {
 					if (otherConnection.type === "component") {
 						// Shouldn't be able to happen
@@ -164,5 +170,4 @@ class MovePlanner {
 		// and we need to update the graph by executing the commands
 		return [true, newPos];
 	}
-
 }

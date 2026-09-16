@@ -5,7 +5,7 @@
 		ChangesAction,
 		DeleteAction,
 		EditorAction,
-		editorViewModel
+		editorViewModel,
 	} from "$lib/util/actions.svelte";
 	import {
 		calculateHandlePosition,
@@ -43,8 +43,17 @@
 		customData?: Record<string, unknown>;
 		uiState: EditorUiState;
 	};
-	let { id, size, type, position, rotation, handles, isPoweredInitially, customData, uiState }: Props =
-		$props();
+	let {
+		id,
+		size,
+		type,
+		position,
+		rotation,
+		handles,
+		isPoweredInitially,
+		customData,
+		uiState,
+	}: Props = $props();
 
 	let rect = $state<SVGRectElement>();
 
@@ -62,7 +71,8 @@
 	let isSelected = $derived(editorViewModel.isSelectedId(id));
 
 	let isPowered = $derived(
-		isPoweredInitially || (simData ? simulating && isElementPowered(simData) : false),
+		isPoweredInitially ||
+			(simData ? simulating && isElementPowered(simData) : false),
 	);
 
 	let cursor = $derived.by(() => {
@@ -119,12 +129,16 @@
 			rotation,
 		);
 
-		AddAction.addWire(wirePos, {
-			id,
-			handleId,
-			handleType,
-			type: "component",
-		}, e.pointerId);
+		AddAction.addWire(
+			wirePos,
+			{
+				id,
+				handleId,
+				handleType,
+				type: "component",
+			},
+			e.pointerId,
+		);
 	}
 
 	function onPointerDown(e: PointerEvent) {
@@ -169,7 +183,10 @@
 	}
 
 	function onClick(e: MouseEvent) {
-		if (type !== "IN" || !uiState.matches({ mode: "simulate", isPanning: false })) {
+		if (
+			type !== "IN" ||
+			!uiState.matches({ mode: "simulate", isPanning: false })
+		) {
 			return;
 		}
 

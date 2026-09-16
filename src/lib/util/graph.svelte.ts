@@ -1,8 +1,5 @@
 import { canvasViewModel } from "./actions.svelte";
-import {
-	UpdateCustomDataCommand,
-	type Command
-} from "./commands";
+import { UpdateCustomDataCommand, type Command } from "./commands";
 import { GRID_SIZE, linesIntersect } from "./global.svelte";
 import { GraphEditTransaction } from "./graphEdit";
 import {
@@ -10,9 +7,13 @@ import {
 	type ComponentData,
 	type GraphData,
 	type WireData,
-	type XYPair
+	type XYPair,
 } from "./types";
-import type { AreaSelectType, TypedReference, ElementType } from "./viewModels/editorViewModel.svelte";
+import type {
+	AreaSelectType,
+	TypedReference,
+	ElementType,
+} from "./viewModels/editorViewModel.svelte";
 
 export class GraphManager {
 	/** Private state of the graph manager, that gets published with the notifyAll() method */
@@ -35,7 +36,8 @@ export class GraphManager {
 
 	/** Start an exclusive edit. Callers can share currentEdit within one interaction. */
 	beginEdit() {
-		if (this.edit) throw new Error("A graph edit transaction is already active");
+		if (this.edit)
+			throw new Error("A graph edit transaction is already active");
 		const edit = new GraphEditTransaction(
 			this._graphData,
 			() => this.notifyAll(),
@@ -97,12 +99,16 @@ export class GraphManager {
 			const component = this._graphData.components[compId];
 			if (component.type === "TEXT") {
 				// Text components are a special case, as their size is dynamic
-				if (AreaSelect.doesTextBoxIntersectArea(component, x1, y1, x2, y2, type)) {
+				if (
+					AreaSelect.doesTextBoxIntersectArea(component, x1, y1, x2, y2, type)
+				) {
 					selected.set(component.id, "component");
 				}
 				continue;
 			}
-			if (AreaSelect.doesComponentIntersectArea(component, x1, y1, x2, y2, type)) {
+			if (
+				AreaSelect.doesComponentIntersectArea(component, x1, y1, x2, y2, type)
+			) {
 				selected.set(component.id, "component");
 			}
 		}
@@ -199,7 +205,14 @@ export class GraphManager {
 }
 
 class AreaSelect {
-	static doesComponentIntersectArea(component: ComponentData, x1: number, y1: number, x2: number, y2: number, type: AreaSelectType) {
+	static doesComponentIntersectArea(
+		component: ComponentData,
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		type: AreaSelectType,
+	) {
 		const cx1 = component.position.x;
 		const cy1 = component.position.y;
 		const cx2 = component.position.x + component.size.x * GRID_SIZE;
@@ -217,7 +230,14 @@ class AreaSelect {
 		}
 		return false;
 	}
-	static doesWireIntersectArea(wire: WireData, x1: number, y1: number, x2: number, y2: number, type: AreaSelectType) {
+	static doesWireIntersectArea(
+		wire: WireData,
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		type: AreaSelectType,
+	) {
 		const startX = wire.handles.input.x;
 		const startY = wire.handles.input.y;
 		const endX = wire.handles.output.x;
@@ -239,20 +259,31 @@ class AreaSelect {
 		} else if (type === "intersect") {
 			const start = { x: startX, y: startY };
 			const end = { x: endX, y: endY };
-			if (linesIntersect(start, end, { x: x1, y: y1 }, { x: x2, y: y1 }) ||
+			if (
+				linesIntersect(start, end, { x: x1, y: y1 }, { x: x2, y: y1 }) ||
 				linesIntersect(start, end, { x: x2, y: y1 }, { x: x2, y: y2 }) ||
 				linesIntersect(start, end, { x: x2, y: y2 }, { x: x1, y: y2 }) ||
-				linesIntersect(start, end, { x: x1, y: y2 }, { x: x1, y: y1 })) {
+				linesIntersect(start, end, { x: x1, y: y2 }, { x: x1, y: y1 })
+			) {
 				return true;
 			}
 		}
 		return false;
 	}
-	static doesTextBoxIntersectArea(textBox: ComponentData, x1: number, y1: number, x2: number, y2: number, type: AreaSelectType) {
+	static doesTextBoxIntersectArea(
+		textBox: ComponentData,
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		type: AreaSelectType,
+	) {
 		// Try to find the text box in the DOM
-		const element = document.querySelector(`[data-testcomponenttype="TEXT"][data-testcomponentid="${textBox.id}"]`);
+		const element = document.querySelector(
+			`[data-testcomponenttype="TEXT"][data-testcomponentid="${textBox.id}"]`,
+		);
 		if (element) {
-			console.log("found")
+			console.log("found");
 			const rect = element.getBoundingClientRect();
 			const topLeftClient = { x: rect.left, y: rect.top };
 			const bottomRightClient = { x: rect.right, y: rect.bottom };
@@ -260,13 +291,13 @@ class AreaSelect {
 			const bottomRight = canvasViewModel.clientToSVGCoords(bottomRightClient);
 			const size = {
 				x: (bottomRight.x - topLeft.x) / GRID_SIZE,
-				y: (bottomRight.y - topLeft.y) / GRID_SIZE
-			}
+				y: (bottomRight.y - topLeft.y) / GRID_SIZE,
+			};
 			console.log("size", size);
 			const textBoxData: ComponentData = {
 				...textBox,
 				position: topLeft,
-				size
+				size,
 			};
 			return this.doesComponentIntersectArea(textBoxData, x1, y1, x2, y2, type);
 		}

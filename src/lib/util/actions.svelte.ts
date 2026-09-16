@@ -119,17 +119,10 @@ export class DeleteAction {
 	}
 }
 
-
-
-type CloneEntry =
-	| [ComponentData, "component"]
-	| [WireData, "wire"];
-
+type CloneEntry = [ComponentData, "component"] | [WireData, "wire"];
 
 export class CloneAction {
-
 	static clipboard: CloneEntry[] = [];
-
 
 	static getBoundingBox(elements: CloneEntry[]) {
 		let minX = Infinity;
@@ -195,15 +188,20 @@ export class CloneAction {
 		const selectedIds = new Set(elements.keys());
 		const clones: CloneEntry[] = [];
 		for (const [oldId, type] of elements) {
-			const orig = type === "component" ? data.components[oldId] : data.wires[oldId];
+			const orig =
+				type === "component" ? data.components[oldId] : data.wires[oldId];
 			if (!orig) continue;
 
 			const clone = structuredClone(orig);
 
 			// Filter connections to only those inside subset
-			for (const handle of Object.values(clone.handles) as (WireHandle | ComponentHandle)[]) {
-				handle.connections = handle.connections
-					.filter((c) => selectedIds.has(c.id));
+			for (const handle of Object.values(clone.handles) as (
+				| WireHandle
+				| ComponentHandle
+			)[]) {
+				handle.connections = handle.connections.filter((c) =>
+					selectedIds.has(c.id),
+				);
 			}
 			clones.push([clone, type] as CloneEntry);
 		}
@@ -218,7 +216,10 @@ export class CloneAction {
 
 		for (const [clone] of clones) {
 			clone.id = idMap.get(clone.id)!;
-			for (const handle of Object.values(clone.handles) as (WireHandle | ComponentHandle)[]) {
+			for (const handle of Object.values(clone.handles) as (
+				| WireHandle
+				| ComponentHandle
+			)[]) {
 				handle.connections = handle.connections
 					.filter((c) => idMap.has(c.id))
 					.map((c) => ({ ...c, id: idMap.get(c.id)! }));
@@ -257,7 +258,6 @@ export class CloneAction {
 
 		const clones = this.getCopies(uiState.selected, data);
 		this.clipboard = clones;
-
 	}
 
 	static pasteClipboard() {
@@ -266,7 +266,6 @@ export class CloneAction {
 		}
 		ChangesAction.abortEditing();
 		const data = graphManager.getGraphData();
-
 
 		const mpSVG = canvasViewModel.clientToSVGCoords(mousePosition);
 		const { minX, minY, maxX, maxY } = this.getBoundingBox(this.clipboard);
@@ -278,7 +277,6 @@ export class CloneAction {
 		this.shiftBy(clones, offset);
 		this.insert(remappedClones, data, nextId);
 		this.selectAll(remappedClones);
-
 	}
 
 	static duplicateSelectedWithOffset() {
@@ -306,13 +304,11 @@ export class CloneAction {
 		const clones = this.getCopies(uiState.selected, data);
 		const [remappedClones, _, nextId] = this.remapIds(clones, data.nextId);
 
-
 		const mpSVG = canvasViewModel.clientToSVGCoords(mousePosition);
 		const { minX, minY, maxX, maxY } = this.getBoundingBox(remappedClones);
 		const center = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 		const offset = { x: mpSVG.x - center.x, y: mpSVG.y - center.y };
 		this.shiftBy(remappedClones, offset);
-
 
 		// Actually insert clones
 		const commands: Command[] = [];
@@ -358,7 +354,12 @@ export class AddAction {
 		const element: TypedReference = { id, type: "component" };
 
 		// Start adding component mode
-		editorViewModel.startAddComponent(element, clickSvgPos, initiator, pointerId);
+		editorViewModel.startAddComponent(
+			element,
+			clickSvgPos,
+			initiator,
+			pointerId,
+		);
 
 		// Snap the component to the grid
 		if (pointerId != null) {
@@ -372,7 +373,11 @@ export class AddAction {
 	 * @param clickPos
 	 * @param clickedHandle The handle that was clicked, which will be connected to the wire.
 	 */
-	static addWire(clickSvgPos: XYPair, clickedHandle: HandleReference, pointerId: number) {
+	static addWire(
+		clickSvgPos: XYPair,
+		clickedHandle: HandleReference,
+		pointerId: number,
+	) {
 		ChangesAction.abortEditing();
 
 		const wireData: ValidWireInitData = {
@@ -447,7 +452,10 @@ export class MoveAction {
 			return;
 		}
 
-		if (uiState.activePointerId !== null && uiState.activePointerId !== pointerId) {
+		if (
+			uiState.activePointerId !== null &&
+			uiState.activePointerId !== pointerId
+		) {
 			return; // Only respond to the pointer that initiated the drag
 		}
 
@@ -502,7 +510,6 @@ export class MoveAction {
 		if (!uiState.matches({ editType: "addingElements" })) {
 			throw new Error("wrong mode");
 		}
-
 
 		this.previewMove(offset, uiState.elements);
 	}
@@ -617,7 +624,10 @@ export class EditorAction {
 		graphManager.updateCustomDataReplaceable(id, property, newValue);
 	}
 
-	static updateTextAlignment(id: number, newAlignment: "left" | "center" | "right") {
+	static updateTextAlignment(
+		id: number,
+		newAlignment: "left" | "center" | "right",
+	) {
 		const command = new UpdateCustomDataCommand(id, "alignment", newAlignment);
 		graphManager.executeCommand(command);
 		graphManager.applyChanges();
@@ -653,14 +663,9 @@ export class EditorAction {
 	}
 
 	static connect(conn1: HandleReference, conn2: HandleReference) {
-
 		// Move conn1 to the position of conn2 before connecting
 		const pos2 = this.getPos(conn2);
-		const cmdMove = new MoveWireHandleCommand(
-			pos2,
-			conn1.handleType,
-			conn1.id,
-		);
+		const cmdMove = new MoveWireHandleCommand(pos2, conn1.handleType, conn1.id);
 
 		// Connect the two handles
 		const cmd = new ConnectCommand(conn1, conn2);
@@ -782,7 +787,7 @@ export class PersistenceAction {
 	static saveGraph() {
 		ChangesAction.abortEditing();
 		editorViewModel.setModalOpen(true);
-		circuitModalViewModel.open("save", () => { });
+		circuitModalViewModel.open("save", () => {});
 	}
 	/** Opens the load modal in non-fresh mode (i.e. not onboarding). */
 	static loadGraphManually() {
@@ -791,14 +796,18 @@ export class PersistenceAction {
 	static loadGraph(isOnboarding: boolean) {
 		ChangesAction.abortEditing();
 		editorViewModel.setModalOpen(true);
-		circuitModalViewModel.open("load", (newGraphData, type) => {
-			PersistenceAction.setNewGraph(newGraphData);
-			if (isOnboarding && type === "preset") {
-				// If the user is new and selected a preset,
-				// show him the circuit immediately for better onboarding
-				PersistenceAction.closeModal();
-			}
-		}, { isOnboarding });
+		circuitModalViewModel.open(
+			"load",
+			(newGraphData, type) => {
+				PersistenceAction.setNewGraph(newGraphData);
+				if (isOnboarding && type === "preset") {
+					// If the user is new and selected a preset,
+					// show him the circuit immediately for better onboarding
+					PersistenceAction.closeModal();
+				}
+			},
+			{ isOnboarding },
+		);
 	}
 	static closeModal() {
 		circuitModalViewModel.close();

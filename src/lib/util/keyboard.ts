@@ -14,7 +14,10 @@ import {
 } from "./actions.svelte";
 import { mousePosition } from "./global.svelte";
 import type { ComponentType } from "./types";
-import type { EditorUiState, ElementType } from "./viewModels/editorViewModel.svelte";
+import type {
+	EditorUiState,
+	ElementType,
+} from "./viewModels/editorViewModel.svelte";
 
 type Environment = { env: "editor" | "modal" };
 type Key = { key: string; mod: string | null };
@@ -34,13 +37,19 @@ function s<TPattern extends ShortcutPattern>(
 	return shortcut;
 }
 
-function isOnlyComponentsSelected(state: { selected: Map<number, ElementType> }, t: ComponentType) {
+function isOnlyComponentsSelected(
+	state: { selected: Map<number, ElementType> },
+	t: ComponentType,
+) {
 	if (state.selected.size === 0) {
 		return false;
 	}
 
 	const graphData = graphManager.getGraphData();
-	return [...state.selected.entries()].every(([id, type]) => type === "component" && graphData.components[id]?.type === t);
+	return [...state.selected.entries()].every(
+		([id, type]) =>
+			type === "component" && graphData.components[id]?.type === t,
+	);
 }
 
 const shortcuts = [
@@ -305,7 +314,9 @@ const shortcuts = [
 			env: "editor",
 			mode: "edit",
 			editType: "idle",
-			selected: P.when((selected) => isOnlyComponentsSelected({ selected }, "IN")),
+			selected: P.when((selected) =>
+				isOnlyComponentsSelected({ selected }, "IN"),
+			),
 			isPanning: false,
 		},
 		action: (uiState) => {
@@ -467,7 +478,10 @@ function constructValue(e: KeyboardEvent): State {
 }
 
 export async function handleKeyDown(e: KeyboardEvent) {
-	if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+	if (
+		e.target instanceof HTMLInputElement ||
+		e.target instanceof HTMLTextAreaElement
+	) {
 		return;
 	}
 

@@ -2,17 +2,15 @@ import { z } from "zod";
 import { err } from "./error";
 import { type GraphData, ZGraphData } from "./types";
 
-const stringToJSONSchema = z.string()
-	.transform((str, ctx) => {
-		try {
-			return JSON.parse(str)
-		} catch (e) {
-			console.error('JSON parse error:', e)
-			ctx.addIssue({ code: 'custom', message: 'Invalid JSON' })
-			return z.NEVER
-		}
-	})
-
+const stringToJSONSchema = z.string().transform((str, ctx) => {
+	try {
+		return JSON.parse(str);
+	} catch (e) {
+		console.error("JSON parse error:", e);
+		ctx.addIssue({ code: "custom", message: "Invalid JSON" });
+		return z.NEVER;
+	}
+});
 
 const PaginationSchema = z.object({
 	page: z.number(),
@@ -33,14 +31,12 @@ const ListRequestDataSchema = z.object({
 	pagination: PaginationSchema,
 });
 
-const PresetResponseSchema = z
-	.object({
-		id: z.number().int().nonnegative(),
-		name: z.string(),
-		img: z
-			.string(),
-		data: stringToJSONSchema.pipe(ZGraphData),
-	});
+const PresetResponseSchema = z.object({
+	id: z.number().int().nonnegative(),
+	name: z.string(),
+	img: z.string(),
+	data: stringToJSONSchema.pipe(ZGraphData),
+});
 
 const APIResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
 	z.discriminatedUnion("success", [
@@ -59,7 +55,9 @@ const APIResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
 
 export type ListRequestData = z.infer<typeof ListRequestDataSchema>;
 
-export type APIResponse<T> = z.infer<ReturnType<typeof APIResponseSchema<z.ZodType<T>>>>;
+export type APIResponse<T> = z.infer<
+	ReturnType<typeof APIResponseSchema<z.ZodType<T>>>
+>;
 
 export namespace API {
 	interface FetchOptions {
@@ -109,19 +107,14 @@ export namespace API {
 		}
 	}
 
-	export function saveCircuit(
-		name: string,
-		circuitData: GraphData,
-	) {
+	export function saveCircuit(name: string, circuitData: GraphData) {
 		return makeAPIRequest("/api/circuits", z.null(), {
 			method: "POST",
 			body: { name, data: circuitData },
 		});
 	}
 
-	export function loadCircuitList(
-		page: number,
-	) {
+	export function loadCircuitList(page: number) {
 		return makeAPIRequest(
 			`/api/circuits?page=${page}&perPage=10`,
 			ListRequestDataSchema,
