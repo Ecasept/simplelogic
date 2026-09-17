@@ -44,39 +44,30 @@ export function throwOnConsoleError(page: Page) {
 	});
 }
 
-/** Mocks the clipboard for webkit by saving the clipboard to the `page` object and overwriting the websites `navigator.clipboard` object
- *
- * This is necessary because webkit doesn't play nicely with clipboard permissions with playwright
- */
-export async function mockWebkitClipboard(
-	page: Page,
-	browserName: string,
-	clipboard: MockClipboard,
-) {
-	if (browserName === "webkit") {
-		// These persist even after page reloads
-		await page.exposeFunction("playwrightReadClipboard", () => {
-			return clipboard.content;
-		});
-		await page.exposeFunction("playwrightWriteClipboard", (text: string) => {
-			clipboard.content = text;
-		});
+/** Each test owns its clipboard; exposed functions preserve it across reloads. */
+export async function mockClipboard(page: Page, clipboard: MockClipboard) {
+	// These persist even after page reloads
+	await page.exposeFunction("playwrightReadClipboard", () => {
+		return clipboard.content;
+	});
+	await page.exposeFunction("playwrightWriteClipboard", (text: string) => {
+		clipboard.content = text;
+	});
 
-		const mockClipboard = async () => {
-			const clipboard = {
-				writeText: async (text: string) => {
-					await (window as any).playwrightWriteClipboard(text);
-				},
-				readText: async () => {
-					return await (window as any).playwrightReadClipboard();
-				},
-			};
-			Object.defineProperty(navigator, "clipboard", {
-				value: clipboard,
-			});
+	const mockClipboard = async () => {
+		const clipboard = {
+			writeText: async (text: string) => {
+				await (window as any).playwrightWriteClipboard(text);
+			},
+			readText: async () => {
+				return await (window as any).playwrightReadClipboard();
+			},
 		};
-		await page.addInitScript(mockClipboard);
-	}
+		Object.defineProperty(navigator, "clipboard", {
+			value: clipboard,
+		});
+	};
+	await page.addInitScript(mockClipboard);
 }
 
 /**
@@ -181,7 +172,7 @@ const customTest = base.extend<
 
 		await context.clearCookies();
 		throwOnConsoleError(page);
-		await mockWebkitClipboard(page, browserName, clipboard);
+		await mockClipboard(page, clipboard);
 
 		await page.goto(baseURL);
 		if (browserName !== "firefox" || process.env.CI) {

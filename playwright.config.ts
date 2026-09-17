@@ -50,9 +50,6 @@ export default defineConfig({
 		{
 			name: "chromium",
 			use: {
-				contextOptions: {
-					permissions: ["clipboard-read", "clipboard-write"],
-				},
 				...devices["Desktop Chrome"],
 				userAgent:
 					`client_chrome_${testId} ` + devices["Desktop Chrome"].userAgent,
