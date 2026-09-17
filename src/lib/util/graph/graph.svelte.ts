@@ -20,6 +20,20 @@ export class GraphManager {
 	/** All commands that have been executed on the graph */
 	private history: Command[] = [];
 	private edit: GraphEditTransaction | null = null;
+	/**
+	 * Only this history entry may absorb subsequent inputs to the same field.
+	 * Graph edit boundaries are owned here: beginning a transaction, undoing,
+	 * discarding an interaction, replacing the document, or changing fields
+	 * closes the group. Starting a transaction closes it even if later cancelled.
+	 * Text fields may also explicitly end their session on focus/blur/Enter.
+	 * Pointer events alone are not graph edit boundaries.
+	 */
+	private customDataGroup: UpdateCustomDataCommand | null = null;
+
+	/** Stop merging accepted field edits. Their history entry is already complete. */
+	closeCustomDataGroup() {
+		this.customDataGroup = null;
+	}
 
 	/** Publicly exposed rune state for the graph manager, that updates whenever a series of commands has been executed.
 	 * This ensures that edits to the graph that require multiple commands to be executed in one go
@@ -38,6 +52,7 @@ export class GraphManager {
 		if (this.edit) {
 			throw new Error("A graph edit transaction is already active");
 		}
+		this.closeCustomDataGroup();
 		const edit = new GraphEditTransaction(
 			this._graphData,
 			() => this.notifyAll(),
@@ -67,6 +82,7 @@ export class GraphManager {
 	 * - `deletedIds`: An array of the IDs of the components and wires that were deleted by the command (empty if no command was undone)
 	 */
 	undoLastCommand() {
+		this.closeCustomDataGroup();
 		this.edit?.cancel();
 		const command = this.history.pop();
 		if (command) {
@@ -78,6 +94,7 @@ export class GraphManager {
 
 	/** Cancel the current edit, if any. */
 	discardChanges() {
+		this.closeCustomDataGroup();
 		this.edit?.cancel();
 	}
 
@@ -123,7 +140,17 @@ export class GraphManager {
 		return selected;
 	}
 
-	updateCustomDataReplaceable(id: number, property: string, newValue: unknown) {
+	/** Accept each input immediately, merging only uninterrupted edits to one field. */
+	updateCustomDataMerged(id: number, property: string, newValue: unknown) {
+		if (this.edit) {
+			throw new Error("Cannot update a field during a graph preview");
+		}
+		if (
+			this.customDataGroup?.componentId !== id ||
+			this.customDataGroup?.property !== property
+		) {
+			this.closeCustomDataGroup();
+		}
 		const component = this.getComponentData(id);
 		if (!component) {
 			console.error(`Tried to update customData of missing component ${id}`);
@@ -136,7 +163,16 @@ export class GraphManager {
 		}
 
 		const cmd = new UpdateCustomDataCommand(id, property, newValue);
-		(this.edit ?? this.beginEdit()).replacePreview(cmd);
+		cmd.execute(this._graphData);
+		if (
+			this.customDataGroup == null ||
+			this.history.at(-1) !== this.customDataGroup ||
+			!this.customDataGroup.merge(cmd)
+		) {
+			this.history.push(cmd);
+			this.customDataGroup = cmd;
+		}
+		this.notifyAll();
 	}
 
 	getComponentData(id: number) {
@@ -182,6 +218,7 @@ export class GraphManager {
 
 	/** Resets the current circuit to the initial state */
 	clear() {
+		this.closeCustomDataGroup();
 		this.edit?.cancel();
 		this._graphData = { components: {}, wires: {}, nextId: 0 };
 		this.history = [];
@@ -197,6 +234,7 @@ export class GraphManager {
 	}
 
 	setGraphData(data: GraphData) {
+		this.closeCustomDataGroup();
 		this.edit?.cancel();
 		this.history = [];
 		this._graphData = data;

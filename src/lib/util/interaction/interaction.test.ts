@@ -309,3 +309,35 @@ describe("canvas gestures", () => {
 		).toBe(true);
 	});
 });
+
+describe("text history during pointer interactions", () => {
+	it("preserves typing through a cancelled drag and undoes text before creation", () => {
+		controller.addComponent("TEXT", { x: 100, y: 100 }, "drag", 1);
+		controller.pointerUp(pointer());
+		const component = Object.values(graphManager.getGraphData().components)[0];
+		const originalText = component.customData?.text;
+		graphActions.updateCustomDataMerged(component.id, "text", "H");
+		graphActions.updateCustomDataMerged(component.id, "text", "Hi");
+		controller.elementPointerDown(
+			{ id: component.id, type: "component" },
+			{ x: 100, y: 100 },
+			"none",
+			1,
+		);
+		controller.pointerMove(pointer(1, 200, 200));
+		controller.pointerCancel(pointer());
+		expect(graphManager.getComponentData(component.id).position).toEqual({
+			x: 100,
+			y: 100,
+		});
+		expect(graphManager.getComponentData(component.id).customData?.text).toBe(
+			"Hi",
+		);
+		graphActions.undo();
+		expect(graphManager.getComponentData(component.id).customData?.text).toBe(
+			originalText,
+		);
+		graphActions.undo();
+		expect(graphManager.getComponentData(component.id)).toBeUndefined();
+	});
+});

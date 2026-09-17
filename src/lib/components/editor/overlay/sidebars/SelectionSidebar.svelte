@@ -10,7 +10,10 @@
 	} from "$lib/util/editor/editor.svelte";
 	import { COMPONENT_DATA, debugLog } from "$lib/util/shared/global.svelte";
 	import { onEnter } from "$lib/util/editor/keyboard";
-	import type { InputInputEvent, TextAreaInputEvent } from "$lib/util/shared/types";
+	import type {
+		InputInputEvent,
+		TextAreaInputEvent,
+	} from "$lib/util/shared/types";
 
 	import {
 		RotateCcw,
@@ -76,7 +79,7 @@
 			console.error("No element selected to update text");
 			return;
 		}
-		graphActions.updateCustomDataReplaceable(info.selectedId, "text", newText);
+		graphActions.updateCustomDataMerged(info.selectedId, "text", newText);
 	}
 
 	function onNumberInput(newSize: number) {
@@ -92,7 +95,7 @@
 			console.error("No element selected to update IO label");
 			return;
 		}
-		graphActions.updateCustomDataReplaceable(
+		graphActions.updateCustomDataMerged(
 			info.selectedId,
 			"label",
 			e.currentTarget.value,
@@ -114,7 +117,7 @@
 			return;
 		}
 		// Unfocus textbox
-		graphManager.applyChanges();
+		graphManager.closeCustomDataGroup();
 		editorViewModel.clearSelection();
 	}
 
@@ -236,7 +239,8 @@
 										placeholder="Enter text"
 										value={info.data.customData?.text}
 										oninput={onTextInput}
-										onblur={() => graphManager.applyChanges()}
+										onfocus={() => graphManager.closeCustomDataGroup()}
+										onblur={() => graphManager.closeCustomDataGroup()}
 										onkeypress={onEnter(onEnterPressed)}
 									></textarea>
 								</div>
@@ -250,7 +254,8 @@
 										placeholder="Label"
 										value={info.data.customData?.label ?? ""}
 										oninput={onIoLabelInput}
-										onblur={() => graphManager.applyChanges()}
+										onfocus={() => graphManager.closeCustomDataGroup()}
+										onblur={() => graphManager.closeCustomDataGroup()}
 									/>
 									<Button
 										text={info.data.customData?.showLabel === false

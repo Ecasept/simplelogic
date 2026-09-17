@@ -8,12 +8,13 @@ import {
 	UpdateCustomDataCommand,
 	type Command,
 } from "../graph/commands";
-import { GRID_SIZE, rotateAroundBy, setLastRotation } from "../shared/global.svelte";
+import {
+	GRID_SIZE,
+	rotateAroundBy,
+	setLastRotation,
+} from "../shared/global.svelte";
 import type { GraphManager } from "../graph/graph.svelte";
-import type {
-	EditorViewModel,
-	ElementType,
-} from "./editorViewModel.svelte";
+import type { EditorViewModel, ElementType } from "./editorViewModel.svelte";
 import type { InteractionController } from "../interaction/interaction.svelte";
 import { simController } from "../graph/simulation.svelte";
 
@@ -103,12 +104,12 @@ export function createGraphActions(
 		graphManager.notifyAll();
 	}
 
-	function updateCustomDataReplaceable(
+	function updateCustomDataMerged(
 		id: number,
 		property: string,
 		newValue: unknown,
 	) {
-		graphManager.updateCustomDataReplaceable(id, property, newValue);
+		graphManager.updateCustomDataMerged(id, property, newValue);
 	}
 
 	function updateTextAlignment(
@@ -213,7 +214,7 @@ export function createGraphActions(
 		clearCanvas,
 		togglePower,
 		updateTextFontSize,
-		updateCustomDataReplaceable,
+		updateCustomDataMerged,
 		updateTextAlignment,
 		updateIoShowLabel,
 		undo,

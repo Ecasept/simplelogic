@@ -543,7 +543,7 @@ export class UpdateCustomDataCommand implements Command {
 	constructor(
 		public componentId: number,
 		public property: string,
-		private readonly newValue: unknown,
+		private newValue: unknown,
 	) {}
 
 	execute(graphData: GraphData) {
@@ -560,6 +560,18 @@ export class UpdateCustomDataCommand implements Command {
 
 		// Set the new value
 		component.customData[this.property] = this.newValue;
+	}
+
+	/** Merge an already executed update without changing the original undo value. */
+	merge(next: UpdateCustomDataCommand) {
+		if (
+			this.componentId !== next.componentId ||
+			this.property !== next.property
+		) {
+			return false;
+		}
+		this.newValue = next.newValue;
+		return true;
 	}
 
 	undo(graphData: GraphData) {
