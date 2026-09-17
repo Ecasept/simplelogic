@@ -1,4 +1,4 @@
-import type { XYPair } from "./types";
+import type { XYPair } from "../shared/types";
 
 export class RotationInfo {
 	constructor(

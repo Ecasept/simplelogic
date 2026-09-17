@@ -1,5 +1,5 @@
 import { presets } from "$lib/server/presets";
-import { err } from "$lib/util/error";
+import { err } from "$lib/util/shared/error";
 import { json } from "@sveltejs/kit";
 
 /** Return the specified preset */

@@ -1,4 +1,4 @@
-import { err } from "$lib/util/error.js";
+import { err } from "$lib/util/shared/error.js";
 import { error, json } from "@sveltejs/kit";
 
 /** @type {import("./$types").RequestHandler} */

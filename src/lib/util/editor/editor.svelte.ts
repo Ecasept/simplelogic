@@ -1,12 +1,12 @@
-import { graphManager } from "./graph.svelte";
-import { editorViewModel } from "./viewModels/editorViewModel.svelte";
-import { canvasViewModel } from "./viewModels/canvasViewModel";
-import { circuitModalViewModel } from "./viewModels/circuitModalViewModel";
-import { createInteractionController } from "./interaction.svelte";
+import { graphManager } from "../graph/graph.svelte";
+import { editorViewModel } from "./editorViewModel.svelte";
+import { canvasViewModel } from "../interaction/canvasViewModel";
+import { circuitModalViewModel } from "../persistence/circuitModalViewModel";
+import { createInteractionController } from "../interaction/interaction.svelte";
 import { createGraphActions } from "./graphActions";
 import { createClipboardActions } from "./clipboard";
 import { createModeActions } from "./editorMode";
-import { createPersistenceActions } from "./persistence";
+import { createPersistenceActions } from "../persistence/persistence";
 import { composeEditorUiState } from "./editorUiState";
 
 export {

@@ -1,5 +1,5 @@
-import type { XYPair } from "../types";
-import { ViewModel } from "./viewModel";
+import type { XYPair } from "../shared/types";
+import { ViewModel } from "../ui/viewModel";
 
 export type ViewBox = XYPair & { width: number; height: number };
 export type CanvasUiState = { viewBox: ViewBox };

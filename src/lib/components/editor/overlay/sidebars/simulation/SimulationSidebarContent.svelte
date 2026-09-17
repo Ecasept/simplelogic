@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from "$lib/components/reusable/Button.svelte";
-	import { getSimData, simController } from "$lib/util/simulation.svelte";
+	import { getSimData, simController } from "$lib/util/graph/simulation.svelte";
 	import { RotateCcw } from "lucide-svelte";
 	import ProcessingQueue from "./ProcessingQueue.svelte";
 	import SimulationControls from "./SimulationControls.svelte";

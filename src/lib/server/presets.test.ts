@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { presets } from "./presets";
 import { circuits } from "../../../playwright/circuits";
-import { ZGraphData } from "$lib/util/types";
+import { ZGraphData } from "$lib/util/shared/types";
 
 it.each(Object.entries(presets))(
 	"validates production preset %s",

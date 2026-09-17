@@ -1,4 +1,4 @@
-import { err } from "$lib/util/error";
+import { err } from "$lib/util/shared/error";
 import { readCircuitInput } from "$lib/server/circuitInput";
 import { error, json } from "@sveltejs/kit";
 

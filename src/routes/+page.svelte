@@ -10,12 +10,12 @@
 		persistenceActions,
 		interactionController,
 		editorUiState,
-	} from "$lib/util/editor.svelte";
-	import { debugLog, setAvailablePresets } from "$lib/util/global.svelte";
-	import { handleKeyDown } from "$lib/util/keyboard";
-	import { normalizePointer } from "$lib/util/interaction.svelte";
-	import { getThemeClass } from "$lib/util/theme.svelte";
-	import { authViewModel } from "$lib/util/viewModels/authViewModel";
+	} from "$lib/util/editor/editor.svelte";
+	import { debugLog, setAvailablePresets } from "$lib/util/shared/global.svelte";
+	import { handleKeyDown } from "$lib/util/editor/keyboard";
+	import { normalizePointer } from "$lib/util/interaction/interaction.svelte";
+	import { getThemeClass } from "$lib/util/ui/theme.svelte";
+	import { authViewModel } from "$lib/util/ui/authViewModel";
 	import { onMount } from "svelte";
 	import type { PageData } from "./$types";
 

@@ -1,6 +1,6 @@
-import { canvasViewModel } from "./viewModels/canvasViewModel";
+import { canvasViewModel } from "../interaction/canvasViewModel";
 import { UpdateCustomDataCommand, type Command } from "./commands";
-import { GRID_SIZE, linesIntersect } from "./global.svelte";
+import { GRID_SIZE, linesIntersect } from "../shared/global.svelte";
 import { GraphEditTransaction } from "./graphEdit";
 import {
 	ZGraphData,
@@ -8,11 +8,11 @@ import {
 	type GraphData,
 	type WireData,
 	type XYPair,
-} from "./types";
+} from "../shared/types";
 import type {
 	AreaSelectType,
 	ElementType,
-} from "./viewModels/editorViewModel.svelte";
+} from "../editor/editorViewModel.svelte";
 
 export class GraphManager {
 	/** Private state of the graph manager, that gets published with the notifyAll() method */

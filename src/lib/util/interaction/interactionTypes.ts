@@ -1,9 +1,9 @@
-import type { GraphData, WireHandleReference, XYPair } from "./types";
-import type { GraphEditTransaction } from "./graphEdit";
+import type { GraphData, WireHandleReference, XYPair } from "../shared/types";
+import type { GraphEditTransaction } from "../graph/graphEdit";
 import type {
 	TypedReference,
 	ElementType,
-} from "./viewModels/editorViewModel.svelte";
+} from "../editor/editorViewModel.svelte";
 
 // ==== Edit Mode states ====
 export type EditIdle = {

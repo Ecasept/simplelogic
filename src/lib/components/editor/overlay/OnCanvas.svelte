@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
-	import { interactionController } from "$lib/util/editor.svelte";
-	import type { AuthUiState } from "$lib/util/viewModels/authViewModel";
+	import { interactionController } from "$lib/util/editor/editor.svelte";
+	import type { AuthUiState } from "$lib/util/ui/authViewModel";
 
 	import CancelButton from "../CancelButton.svelte";
 	import AccountButton from "./account/AccountButton.svelte";

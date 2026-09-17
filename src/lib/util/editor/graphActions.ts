@@ -7,15 +7,15 @@ import {
 	ToggleInputPowerStateCommand,
 	UpdateCustomDataCommand,
 	type Command,
-} from "./commands";
-import { GRID_SIZE, rotateAroundBy, setLastRotation } from "./global.svelte";
-import type { GraphManager } from "./graph.svelte";
+} from "../graph/commands";
+import { GRID_SIZE, rotateAroundBy, setLastRotation } from "../shared/global.svelte";
+import type { GraphManager } from "../graph/graph.svelte";
 import type {
 	EditorViewModel,
 	ElementType,
-} from "./viewModels/editorViewModel.svelte";
-import type { InteractionController } from "./interaction.svelte";
-import { simController } from "./simulation.svelte";
+} from "./editorViewModel.svelte";
+import type { InteractionController } from "../interaction/interaction.svelte";
+import { simController } from "../graph/simulation.svelte";
 
 /** Immediate graph edits and history commands. Pointer-driven edits live in the controller. */
 export function createGraphActions(

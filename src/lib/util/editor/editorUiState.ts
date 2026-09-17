@@ -1,7 +1,7 @@
 import { isMatching, type P } from "ts-pattern";
 import type { Pattern } from "ts-pattern/types";
-import type { InteractionState } from "./interactionTypes";
-import type { EditorState } from "./viewModels/editorViewModel.svelte";
+import type { InteractionState } from "../interaction/interactionTypes";
+import type { EditorState } from "./editorViewModel.svelte";
 
 /** Read-only composition for rendering and shortcut matching; it owns no state. */
 export type EditorUiState = Readonly<

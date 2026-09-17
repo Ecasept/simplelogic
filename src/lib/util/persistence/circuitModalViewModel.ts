@@ -1,8 +1,8 @@
-import { graphManager } from "../graph.svelte";
-import { API } from "../api";
-import { calculateHandlePosition } from "../global.svelte";
-import type { ComponentData, GraphData } from "../types";
-import { ViewModel } from "./viewModel";
+import { graphManager } from "../graph/graph.svelte";
+import { API } from "./api";
+import { calculateHandlePosition } from "../shared/global.svelte";
+import type { ComponentData, GraphData } from "../shared/types";
+import { ViewModel } from "../ui/viewModel";
 
 export type FeedbackMessage = {
 	type: "error" | "success";

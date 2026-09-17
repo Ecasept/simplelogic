@@ -1,5 +1,5 @@
 import { CommandGroup, type Command } from "./commands";
-import type { GraphData } from "./types";
+import type { GraphData } from "../shared/types";
 
 /** Owns provisional commands until they become one undo entry or are cancelled. */
 export class GraphEditTransaction {

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import Button from "$lib/components/reusable/Button.svelte";
 	import {
 		interactionController,
 		editorViewModel,
-	} from "$lib/util/editor.svelte";
-	import type { ComponentType } from "$lib/util/types";
+	} from "$lib/util/editor/editor.svelte";
+	import type { ComponentType } from "$lib/util/shared/types";
 
 	import { Magnet, ReplaceAll, SquareDashed } from "lucide-svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";

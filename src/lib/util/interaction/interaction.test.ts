@@ -8,9 +8,9 @@ import {
 	graphActions,
 	modeActions,
 	persistenceActions,
-} from "./editor.svelte";
-import { handleKeyDown } from "./keyboard";
-import { LONG_PRESS_MS } from "./global.svelte";
+} from "../editor/editor.svelte";
+import { handleKeyDown } from "../editor/keyboard";
+import { LONG_PRESS_MS } from "../shared/global.svelte";
 import type { PointerInput } from "./interaction.svelte";
 
 const pointer = (

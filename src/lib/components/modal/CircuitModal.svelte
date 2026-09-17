@@ -2,8 +2,8 @@
 	import {
 		circuitModalViewModel,
 		persistenceActions,
-	} from "$lib/util/editor.svelte";
-	import type { CircuitModalUiState } from "$lib/util/viewModels/circuitModalViewModel";
+	} from "$lib/util/editor/editor.svelte";
+	import type { CircuitModalUiState } from "$lib/util/persistence/circuitModalViewModel";
 	import { Download, Save } from "lucide-svelte";
 	import BaseModal from "./BaseModal.svelte";
 	import LoadModal from "./LoadModal.svelte";

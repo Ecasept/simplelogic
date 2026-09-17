@@ -1,6 +1,6 @@
-import type { EditorViewModel } from "./viewModels/editorViewModel.svelte";
-import type { InteractionController } from "./interaction.svelte";
-import { simController } from "./simulation.svelte";
+import type { EditorViewModel } from "./editorViewModel.svelte";
+import type { InteractionController } from "../interaction/interaction.svelte";
+import { simController } from "../graph/simulation.svelte";
 
 /** Coordinates mode changes with simulation and interaction teardown. */
 export function createModeActions(

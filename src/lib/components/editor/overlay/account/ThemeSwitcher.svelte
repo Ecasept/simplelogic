@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getThemeSetting, setThemeSetting } from "$lib/util/theme.svelte";
+	import { getThemeSetting, setThemeSetting } from "$lib/util/ui/theme.svelte";
 	import { Moon, SunDim, SunMoon } from "lucide-svelte";
 
 	let theme = $derived.by(getThemeSetting);

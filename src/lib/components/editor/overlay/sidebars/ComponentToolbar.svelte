@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Component from "$lib/components/editor/Component.svelte";
-	import { editorUiState } from "$lib/util/editor.svelte";
-	import { COMPONENT_DATA, GRID_SIZE } from "$lib/util/global.svelte";
-	import type { ComponentType, SVGPointerEvent } from "$lib/util/types";
+	import { editorUiState } from "$lib/util/editor/editor.svelte";
+	import { COMPONENT_DATA, GRID_SIZE } from "$lib/util/shared/global.svelte";
+	import type { ComponentType, SVGPointerEvent } from "$lib/util/shared/types";
 	import TextBox from "../../TextBox.svelte";
 
 	type Props = {

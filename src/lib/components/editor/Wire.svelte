@@ -1,28 +1,28 @@
 <script lang="ts">
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import {
 		interactionController,
 		canvasViewModel,
 		graphActions,
 		editorViewModel,
-	} from "$lib/util/editor.svelte";
+	} from "$lib/util/editor/editor.svelte";
 	import {
 		debugLog,
 		draggedHandleType,
 		isComponentHandleRef,
 		isElementPowered,
 		isVibrateSupported,
-	} from "$lib/util/global.svelte";
-	import { startLongPressTimer } from "$lib/util/longpress";
-	import { getSimData } from "$lib/util/simulation.svelte";
+	} from "$lib/util/shared/global.svelte";
+	import { startLongPressTimer } from "$lib/util/interaction/longpress";
+	import { getSimData } from "$lib/util/graph/simulation.svelte";
 	import {
 		newWireHandleRef,
 		type HandleType,
 		type SVGPointerEvent,
 		type WireHandle,
-	} from "$lib/util/types";
-	import { type TypedReference } from "$lib/util/viewModels/editorViewModel.svelte";
+	} from "$lib/util/shared/types";
+	import { type TypedReference } from "$lib/util/editor/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 	import Handle from "./Handle.svelte";
 

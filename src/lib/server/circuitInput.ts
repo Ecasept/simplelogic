@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit";
 import { z } from "zod";
-import { ZGraphData } from "$lib/util/types";
-import { err } from "$lib/util/error";
+import { ZGraphData } from "$lib/util/shared/types";
+import { err } from "$lib/util/shared/error";
 
 export const MAX_CIRCUIT_BODY_BYTES = 8 * 1024 * 1024;
 export const ZCircuitInput = z.strictObject({

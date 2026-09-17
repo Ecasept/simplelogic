@@ -1,6 +1,6 @@
 import { graphManager } from "./graph.svelte";
-import { COMPONENT_DATA, isComponentHandleRef } from "./global.svelte";
-import type { ComponentData, ComponentType } from "./types";
+import { COMPONENT_DATA, isComponentHandleRef } from "../shared/global.svelte";
+import type { ComponentData, ComponentType } from "../shared/types";
 
 /** The simulation data for a component or wire. */
 export type SimulationData = {

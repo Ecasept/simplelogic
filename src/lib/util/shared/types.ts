@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_GRAPH_ELEMENTS, validateGraph } from "./graphValidation";
+import { MAX_GRAPH_ELEMENTS, validateGraph } from "../graph/graphValidation";
 
 const MAX_GRAPH_ID = Number.MAX_SAFE_INTEGER - 1;
 const MIN_COORDINATE = -10_000_000;

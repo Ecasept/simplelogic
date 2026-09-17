@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { circuitModalViewModel } from "$lib/util/editor.svelte";
-	import { type ListRequestData } from "$lib/util/api";
-	import { onEnter } from "$lib/util/keyboard";
+	import { circuitModalViewModel } from "$lib/util/editor/editor.svelte";
+	import { type ListRequestData } from "$lib/util/persistence/api";
+	import { onEnter } from "$lib/util/editor/keyboard";
 	import { Calendar, Cpu, Trash2, Waypoints } from "lucide-svelte";
 
 	type Props = {

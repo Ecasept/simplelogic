@@ -3,15 +3,15 @@ import {
 	MoveComponentAndWiresCommand,
 	MoveWireHandleCommand,
 	type Command,
-} from "./commands";
+} from "../graph/commands";
 import {
 	newWireHandleRef,
 	type GraphData,
 	type WireData,
 	type WireHandleReference,
 	type XYPair,
-} from "./types";
-import type { ElementType } from "./viewModels/editorViewModel.svelte";
+} from "../shared/types";
+import type { ElementType } from "../editor/editorViewModel.svelte";
 
 export type MoveTargets = Map<number, ElementType> | WireHandleReference;
 

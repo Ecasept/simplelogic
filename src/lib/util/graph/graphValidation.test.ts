@@ -5,7 +5,7 @@ import {
 	MAX_LABEL_LENGTH,
 	MAX_TEXT_LENGTH,
 } from "./graphValidation";
-import { ZGraphData, type GraphData } from "./types";
+import { ZGraphData, type GraphData } from "../shared/types";
 
 function graph(): GraphData {
 	return {

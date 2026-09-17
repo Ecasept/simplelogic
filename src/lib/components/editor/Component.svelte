@@ -1,20 +1,20 @@
 <script lang="ts">
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import {
 		interactionController,
 		canvasViewModel,
 		graphActions,
 		editorViewModel,
-	} from "$lib/util/editor.svelte";
+	} from "$lib/util/editor/editor.svelte";
 	import {
 		calculateHandlePosition,
 		GRID_SIZE,
 		isElementPowered,
-	} from "$lib/util/global.svelte";
-	import { startLongPressTimer } from "$lib/util/longpress";
-	import { RotationInfo } from "$lib/util/positioning";
-	import { getSimData } from "$lib/util/simulation.svelte";
+	} from "$lib/util/shared/global.svelte";
+	import { startLongPressTimer } from "$lib/util/interaction/longpress";
+	import { RotationInfo } from "$lib/util/interaction/positioning";
+	import { getSimData } from "$lib/util/graph/simulation.svelte";
 	import type {
 		ComponentHandle,
 		ComponentHandleList,
@@ -23,8 +23,8 @@
 		HandleType,
 		SVGPointerEvent,
 		XYPair,
-	} from "$lib/util/types";
-	import type { TypedReference } from "$lib/util/viewModels/editorViewModel.svelte";
+	} from "$lib/util/shared/types";
+	import type { TypedReference } from "$lib/util/editor/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 	import ComponentInner from "./ComponentInner.svelte";
 	import Handle from "./Handle.svelte";

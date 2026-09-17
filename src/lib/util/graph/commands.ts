@@ -5,7 +5,7 @@ import {
 	indexOfHandle,
 	isComponentHandleRef,
 	isWireHandleRef,
-} from "./global.svelte";
+} from "../shared/global.svelte";
 import {
 	newWireHandleRef,
 	type ComponentData,
@@ -16,7 +16,7 @@ import {
 	type ValidWireInitData,
 	type WireData,
 	type XYPair,
-} from "./types";
+} from "../shared/types";
 
 export interface Command {
 	/** Executes the command on the given `graphData`. */

@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import {
 		graphActions,
 		graphManager,
 		modeActions,
 		persistenceActions,
-	} from "$lib/util/editor.svelte";
-	import { onEnter } from "$lib/util/keyboard";
+	} from "$lib/util/editor/editor.svelte";
+	import { onEnter } from "$lib/util/editor/keyboard";
 
 	import {
 		CopyX,

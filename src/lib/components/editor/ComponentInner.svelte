@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
-	import { graphActions } from "$lib/util/editor.svelte";
-	import { onEnter } from "$lib/util/keyboard";
-	import { RotationInfo } from "$lib/util/positioning";
-	import type { ComponentType } from "$lib/util/types";
+	import { graphActions } from "$lib/util/editor/editor.svelte";
+	import { onEnter } from "$lib/util/editor/keyboard";
+	import { RotationInfo } from "$lib/util/interaction/positioning";
+	import type { ComponentType } from "$lib/util/shared/types";
 
 	type Props = {
 		componentId: number;

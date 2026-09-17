@@ -11,9 +11,9 @@ import {
 	persistenceActions,
 	editorUiState,
 } from "./editor.svelte";
-import { mousePosition } from "./global.svelte";
-import type { ComponentType } from "./types";
-import type { ElementType } from "./viewModels/editorViewModel.svelte";
+import { mousePosition } from "../shared/global.svelte";
+import type { ComponentType } from "../shared/types";
+import type { ElementType } from "./editorViewModel.svelte";
 
 type Environment = { env: "editor" | "modal" };
 type Key = { key: string; mod: string | null };

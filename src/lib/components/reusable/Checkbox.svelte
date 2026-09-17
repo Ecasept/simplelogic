@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { debugLog } from "$lib/util/global.svelte";
+	import { debugLog } from "$lib/util/shared/global.svelte";
 	import { Check } from "lucide-svelte";
 
 	let {

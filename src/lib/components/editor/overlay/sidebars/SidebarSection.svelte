@@ -2,7 +2,7 @@
 	import {
 		collapseAnimation,
 		collapseAnimationInit,
-	} from "$lib/util/global.svelte";
+	} from "$lib/util/shared/global.svelte";
 	import { ChevronDown } from "lucide-svelte";
 	import type { Snippet } from "svelte";
 

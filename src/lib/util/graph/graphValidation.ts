@@ -5,7 +5,7 @@ import type {
 	HandleReference,
 	HandleType,
 	WireHandle,
-} from "./types";
+} from "../shared/types";
 
 export const MAX_GRAPH_ELEMENTS = 20_000;
 export const MAX_GRAPH_CONNECTIONS = 40_000;

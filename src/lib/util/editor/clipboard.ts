@@ -1,5 +1,5 @@
-import { CommandGroup, RawAddCommand, type Command } from "./commands";
-import { GRID_SIZE, mousePosition } from "./global.svelte";
+import { CommandGroup, RawAddCommand, type Command } from "../graph/commands";
+import { GRID_SIZE, mousePosition } from "../shared/global.svelte";
 import type {
 	ComponentData,
 	ComponentHandle,
@@ -7,14 +7,14 @@ import type {
 	WireData,
 	WireHandle,
 	XYPair,
-} from "./types";
-import type { GraphManager } from "./graph.svelte";
+} from "../shared/types";
+import type { GraphManager } from "../graph/graph.svelte";
 import type {
 	EditorViewModel,
 	ElementType,
-} from "./viewModels/editorViewModel.svelte";
-import type { CanvasViewModel } from "./viewModels/canvasViewModel";
-import type { InteractionController } from "./interaction.svelte";
+} from "./editorViewModel.svelte";
+import type { CanvasViewModel } from "../interaction/canvasViewModel";
+import type { InteractionController } from "../interaction/interaction.svelte";
 type CloneEntry = [ComponentData, "component"] | [WireData, "wire"];
 
 /** Owns the element clipboard, copying, ID remapping and duplication. */

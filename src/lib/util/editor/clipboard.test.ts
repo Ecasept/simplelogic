@@ -7,14 +7,14 @@ import {
 	editorUiState,
 	interactionController,
 } from "./editor.svelte";
-import { GRID_SIZE, setMousePosition } from "./global.svelte";
+import { GRID_SIZE, setMousePosition } from "../shared/global.svelte";
 import {
 	newWireHandleRef,
 	type ComponentData,
 	type GraphData,
 	type WireData,
-} from "./types";
-import type { ElementType } from "./viewModels/editorViewModel.svelte";
+} from "../shared/types";
+import type { ElementType } from "./editorViewModel.svelte";
 
 type CloneEntries = Parameters<typeof clipboardActions.getBoundingBox>[0];
 

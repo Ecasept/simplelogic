@@ -7,10 +7,10 @@
 		graphManager,
 		interactionController,
 		editorUiState,
-	} from "$lib/util/editor.svelte";
-	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/global.svelte";
-	import { normalizePointer } from "$lib/util/interaction.svelte";
-	import type { CanvasUiState } from "$lib/util/viewModels/canvasViewModel";
+	} from "$lib/util/editor/editor.svelte";
+	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/shared/global.svelte";
+	import { normalizePointer } from "$lib/util/interaction/interaction.svelte";
+	import type { CanvasUiState } from "$lib/util/interaction/canvasViewModel";
 
 	let { uiState }: { uiState: CanvasUiState } = $props();
 	let svg: SVGSVGElement;

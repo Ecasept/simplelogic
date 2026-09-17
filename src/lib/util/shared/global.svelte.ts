@@ -1,5 +1,5 @@
-import { editorViewModel } from "./viewModels/editorViewModel.svelte";
-import type { SimulationData } from "./simulation.svelte";
+import { editorViewModel } from "../editor/editorViewModel.svelte";
+import type { SimulationData } from "../graph/simulation.svelte";
 import type {
 	ComponentHandle,
 	ComponentHandleList,
@@ -13,7 +13,7 @@ import type {
 	WireHandleReference,
 	XYPair,
 } from "./types";
-import type { EditorUiState } from "./editorUiState";
+import type { EditorUiState } from "../editor/editorUiState";
 
 export let mousePosition = { x: 0, y: 0 };
 export function setMousePosition(pos: XYPair) {

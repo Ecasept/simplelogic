@@ -6,8 +6,8 @@ import {
 	editorUiState,
 	interactionController,
 } from "./editor.svelte";
-import { newWireHandleRef, type GraphData } from "./types";
-import type { ElementType } from "./viewModels/editorViewModel.svelte";
+import { newWireHandleRef, type GraphData } from "../shared/types";
+import type { ElementType } from "./editorViewModel.svelte";
 
 function comp(id: number, overrides: Partial<any> = {}) {
 	return {

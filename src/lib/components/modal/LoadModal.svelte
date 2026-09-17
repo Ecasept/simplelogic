@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { circuitModalViewModel } from "$lib/util/editor.svelte";
-	import type { ListRequestData } from "$lib/util/api";
-	import { availablePresets, type Preset } from "$lib/util/global.svelte";
-	import type { FeedbackMessage } from "$lib/util/viewModels/circuitModalViewModel";
+	import { circuitModalViewModel } from "$lib/util/editor/editor.svelte";
+	import type { ListRequestData } from "$lib/util/persistence/api";
+	import { availablePresets, type Preset } from "$lib/util/shared/global.svelte";
+	import type { FeedbackMessage } from "$lib/util/persistence/circuitModalViewModel";
 	import { ArrowBigLeft, LogIn, Plus } from "lucide-svelte";
 	import Button from "../reusable/Button.svelte";
 	import Checkbox from "../reusable/Checkbox.svelte";

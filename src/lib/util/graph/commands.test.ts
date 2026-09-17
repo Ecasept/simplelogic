@@ -14,7 +14,7 @@ import {
 	UpdateCustomDataCommand,
 	RawAddCommand,
 } from "./commands";
-import { GRID_SIZE, calculateHandlePosition } from "./global.svelte";
+import { GRID_SIZE, calculateHandlePosition } from "../shared/global.svelte";
 import {
 	newWireHandleRef,
 	type ComponentData,
@@ -25,7 +25,7 @@ import {
 	type WireData,
 	type WireHandleReference,
 	type XYPair,
-} from "./types";
+} from "../shared/types";
 
 describe("Command Tests", () => {
 	let graphData: GraphData;

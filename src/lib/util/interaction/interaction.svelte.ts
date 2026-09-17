@@ -5,7 +5,7 @@ import {
 	CreateWireCommand,
 	MoveWireHandleCommand,
 	type Command,
-} from "./commands";
+} from "../graph/commands";
 import {
 	calculateHandlePosition,
 	constructComponent,
@@ -13,7 +13,7 @@ import {
 	isVibrateSupported,
 	PAN_THRESHOLD,
 	setMousePosition,
-} from "./global.svelte";
+} from "../shared/global.svelte";
 import {
 	cancelLongPress,
 	cancelLongPressIfMoved,
@@ -26,14 +26,14 @@ import {
 	type HandleReference,
 	type WireHandleReference,
 	type XYPair,
-} from "./types";
-import type { GraphManager } from "./graph.svelte";
+} from "../shared/types";
+import type { GraphManager } from "../graph/graph.svelte";
 import type {
 	EditorViewModel,
 	ElementType,
 	TypedReference,
-} from "./viewModels/editorViewModel.svelte";
-import type { CanvasViewModel, ViewBox } from "./viewModels/canvasViewModel";
+} from "../editor/editorViewModel.svelte";
+import type { CanvasViewModel, ViewBox } from "./canvasViewModel";
 import type {
 	EditInteraction,
 	InteractionState,

@@ -4,8 +4,8 @@
 		COMPONENT_DATA,
 		debugLog,
 		isElementPowered,
-	} from "$lib/util/global.svelte";
-	import type { SimulationData } from "$lib/util/simulation.svelte";
+	} from "$lib/util/shared/global.svelte";
+	import type { SimulationData } from "$lib/util/graph/simulation.svelte";
 	import { FastForward } from "lucide-svelte";
 
 	let {

@@ -1,4 +1,4 @@
-import type { HandleReference } from "../types";
+import type { HandleReference } from "../shared/types";
 /** References an element, and including its type.
  * This is useful because, even though an element can be
  * uniquely identified by its ID, many operations behave differently

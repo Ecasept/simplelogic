@@ -1,19 +1,19 @@
 <script lang="ts">
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import {
 		isComponentHandleRef,
 		isVibrateSupported,
 		isWireHandleRef,
-	} from "$lib/util/global.svelte";
-	import { RotationInfo } from "$lib/util/positioning";
-	import type { SimulationData } from "$lib/util/simulation.svelte";
+	} from "$lib/util/shared/global.svelte";
+	import { RotationInfo } from "$lib/util/interaction/positioning";
+	import type { SimulationData } from "$lib/util/graph/simulation.svelte";
 	import type {
 		HandleReference,
 		HandleType,
 		SVGPointerEvent,
 		XYPair,
-	} from "$lib/util/types";
+	} from "$lib/util/shared/types";
 
 	import { Tween } from "svelte/motion";
 	type Props = {

@@ -1,5 +1,5 @@
-import { LONG_PRESS_MS } from "./global.svelte";
-import type { XYPair } from "./types";
+import { LONG_PRESS_MS } from "../shared/global.svelte";
+import type { XYPair } from "../shared/types";
 
 let callback: (() => void) | null = null;
 let timeoutCancel: NodeJS.Timeout | null = null;

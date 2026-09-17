@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { graphManager } from "$lib/util/editor.svelte";
-	import { getTheme } from "$lib/util/theme.svelte";
+	import { graphManager } from "$lib/util/editor/editor.svelte";
+	import { getTheme } from "$lib/util/ui/theme.svelte";
 	import { signIn } from "@auth/sveltekit/client";
 
 	type Provider = "github" | "google";

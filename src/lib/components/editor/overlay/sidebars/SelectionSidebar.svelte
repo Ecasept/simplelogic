@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import Button from "$lib/components/reusable/Button.svelte";
 	import {
@@ -7,10 +7,10 @@
 		graphActions,
 		editorViewModel,
 		graphManager,
-	} from "$lib/util/editor.svelte";
-	import { COMPONENT_DATA, debugLog } from "$lib/util/global.svelte";
-	import { onEnter } from "$lib/util/keyboard";
-	import type { InputInputEvent, TextAreaInputEvent } from "$lib/util/types";
+	} from "$lib/util/editor/editor.svelte";
+	import { COMPONENT_DATA, debugLog } from "$lib/util/shared/global.svelte";
+	import { onEnter } from "$lib/util/editor/keyboard";
+	import type { InputInputEvent, TextAreaInputEvent } from "$lib/util/shared/types";
 
 	import {
 		RotateCcw,

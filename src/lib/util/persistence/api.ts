@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { err } from "./error";
-import { type GraphData, ZGraphData } from "./types";
+import { err } from "../shared/error";
+import { type GraphData, ZGraphData } from "../shared/types";
 
 const stringToJSONSchema = z.string().transform((str, ctx) => {
 	try {

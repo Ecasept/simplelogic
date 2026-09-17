@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { interactionController } from "$lib/util/editor.svelte";
-	import type { EditorUiState } from "$lib/util/editorUiState";
+	import { interactionController } from "$lib/util/editor/editor.svelte";
+	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import {
 		canvasViewModel,
 		graphActions,
 		editorViewModel,
-	} from "$lib/util/editor.svelte";
-	import { RotationInfo } from "$lib/util/positioning";
+	} from "$lib/util/editor/editor.svelte";
+	import { RotationInfo } from "$lib/util/interaction/positioning";
 	import type {
 		ComponentHandleList,
 		ComponentType,
 		XYPair,
-	} from "$lib/util/types";
-	import type { TypedReference } from "$lib/util/viewModels/editorViewModel.svelte";
+	} from "$lib/util/shared/types";
+	import type { TypedReference } from "$lib/util/editor/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 
 	type Props = {

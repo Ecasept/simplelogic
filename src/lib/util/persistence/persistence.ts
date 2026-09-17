@@ -1,9 +1,9 @@
-import type { GraphData } from "./types";
-import type { GraphManager } from "./graph.svelte";
-import type { EditorViewModel } from "./viewModels/editorViewModel.svelte";
-import type { CircuitModalViewModel } from "./viewModels/circuitModalViewModel";
-import type { InteractionController } from "./interaction.svelte";
-import { simController } from "./simulation.svelte";
+import type { GraphData } from "../shared/types";
+import type { GraphManager } from "../graph/graph.svelte";
+import type { EditorViewModel } from "../editor/editorViewModel.svelte";
+import type { CircuitModalViewModel } from "./circuitModalViewModel";
+import type { InteractionController } from "../interaction/interaction.svelte";
+import { simController } from "../graph/simulation.svelte";
 
 /** Opens persistence UI and replaces the active document after cancelling interactions. */
 export function createPersistenceActions(
