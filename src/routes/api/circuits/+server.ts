@@ -67,6 +67,7 @@ export async function GET({ url, locals: { prisma, auth } }) {
 			componentCount: true,
 		},
 		where: { userId },
+		orderBy: { createdAt: "asc" },
 		skip: offset,
 		take: perPage + 1,
 	});
