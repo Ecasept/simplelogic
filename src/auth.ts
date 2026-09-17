@@ -8,17 +8,9 @@ const TEST_OAUTH_ISSUER = env.TEST_OAUTH_ISSUER ?? "http://localhost:58080";
 
 /** Creates a testing provider for testing purposes.
  * It is connected to a locally running OAuth server
- * and returns a mock user profile based on the user agent.
+ * and returns a stable profile for the test's unique account ID.
  */
-function createTestingProvider(
-	provider: string,
-	userAgent: string,
-	testId: string,
-): Provider {
-	// Each project can configure its own ID to get a unique account,
-	// and each test inside of the project get its own account through the testId.
-	const projectId = userAgent.split(" ")[0].toLowerCase();
-	const testingClient = `${projectId}_${testId}`;
+function createTestingProvider(provider: string, testId: string): Provider {
 	return {
 		id: provider,
 		name: `${provider} Testing`,
@@ -28,13 +20,11 @@ function createTestingProvider(
 		clientSecret: "abc",
 		userinfo: `${TEST_OAUTH_ISSUER}/userinfo`,
 		token: `${TEST_OAUTH_ISSUER}/token`,
-		profile(profile) {
+		profile() {
 			return {
-				name: `John Doe (${testingClient})`,
-				email: `${testingClient}@example.com`,
-				// Each playwright browser has a unique ID
-				// so we can use it to differentiate users in tests
-				id: `__test_${testingClient}__`,
+				name: `John Doe (${testId})`,
+				email: `${testId}@example.com`,
+				id: `__test_${testId}__`,
 				image: "/icon.svg",
 			};
 		},
@@ -58,7 +48,6 @@ export const {
 		providers.push(
 			createTestingProvider(
 				"google",
-				event.request.headers.get("user-agent") || "default",
 				event.request.headers.get("test-id") || "default",
 			),
 		);

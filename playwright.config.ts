@@ -13,10 +13,6 @@ dotenv.config({ path: "./.dev.vars" });
 
 type WebServer = ReturnType<typeof defineConfig>["webServer"];
 
-// Create a unique uuid for each test run
-// to differentiate users in tests
-import { v4 as uuidv4 } from "uuid";
-const testId = uuidv4();
 const testOauthIssuer =
 	process.env.TEST_OAUTH_ISSUER ??
 	`http://localhost:${process.env.TEST_OAUTH_PORT ?? "58080"}`;
@@ -51,8 +47,6 @@ export default defineConfig({
 			name: "chromium",
 			use: {
 				...devices["Desktop Chrome"],
-				userAgent:
-					`client_chrome_${testId} ` + devices["Desktop Chrome"].userAgent,
 			},
 			testIgnore: "**/mobile/**",
 		},
@@ -61,8 +55,6 @@ export default defineConfig({
 			name: "firefox",
 			use: {
 				...devices["Desktop Firefox"],
-				userAgent:
-					`client_firefox_${testId} ` + devices["Desktop Firefox"].userAgent,
 			},
 			testIgnore: "**/mobile/**",
 		},
@@ -71,8 +63,6 @@ export default defineConfig({
 		// 	name: "webkit",
 		// 	use: {
 		// 		...devices["Desktop Safari"],
-		// 		userAgent:
-		// 			`client_safari_${testId} ` + devices["Desktop Chrome"].userAgent,
 		// 	},
 		// 	testIgnore: "**/mobile/**",
 		// },
@@ -80,9 +70,6 @@ export default defineConfig({
 		// 	name: "Mobile Chrome",
 		// 	use: {
 		// 		...devices["Pixel 5"],
-		// 		contextOptions: {
-		// 			permissions: ["clipboard-read", "clipboard-write"],
-		// 		},
 		// 		viewport: devices["Desktop Chrome"].viewport,
 		// 	},
 		// 	testDir: "./playwright/mobile",

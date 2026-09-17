@@ -1,6 +1,17 @@
-import { expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { circuits } from "../circuits";
 import { getAttr, test } from "../common";
+
+// Pagination tests need saved rows; the save-modal tests cover creating them in the UI.
+async function seedCircuits(page: Page, prefix: string, count: number) {
+	for (let i = 0; i < count; i++) {
+		const response = await page.request.post("/api/circuits", {
+			data: { name: prefix + i, data: JSON.parse(circuits.singleAnd) },
+		});
+		expect(response.ok()).toBe(true);
+		expect(await response.json()).toEqual({ success: true, data: null });
+	}
+}
 
 test.describe("modal login", () => {
 	test("save modal login flow", async ({ page, editor }) => {
@@ -285,8 +296,6 @@ test.describe("save modal", () => {
 });
 
 test.describe("deleting circuits", () => {
-	test.accountId("deleting-circuits");
-
 	test.beforeEach(async ({ editor }) => {
 		await editor.signIn();
 		await editor.toggleAccountButton();
@@ -314,10 +323,7 @@ test.describe("deleting circuits", () => {
 	test("deleting circuit wraps page", async ({ page, editor }) => {
 		const PER_PAGE = 10; // Number of circuits per page
 		const circuitName = "test_delete_wrap_";
-		for (let i = 0; i < PER_PAGE * 2; i++) {
-			await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
-			await editor.saveAs(circuitName + i);
-		}
+		await seedCircuits(page, circuitName, PER_PAGE * 2);
 		await editor.openLoadModal();
 		await editor.getLoadButton().click();
 
@@ -326,72 +332,54 @@ test.describe("deleting circuits", () => {
 		await expect(page.getByText(circuitName + PER_PAGE)).toBeVisible();
 	});
 
-	test.describe("account wrapper", () => {
-		test.accountId("delete-circuit-1");
-		test("click delete on page when next page only has one, next page button goes to disabled", async ({
-			page,
-			editor,
-		}) => {
-			const PER_PAGE = 10;
-			const circuitName = "test_delete_next_disable_";
-			// Create exactly 11 circuits (10 on first page, 1 on second page)
-			for (let i = 0; i < PER_PAGE + 1; i++) {
-				await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
-				await editor.saveAs(circuitName + i);
-			}
-			await editor.openLoadModal();
-			await editor.getLoadButton().click();
+	test("click delete on page when next page only has one, next page button goes to disabled", async ({
+		page,
+		editor,
+	}) => {
+		const PER_PAGE = 10;
+		const circuitName = "test_delete_next_disable_";
+		// Create exactly 11 circuits (10 on first page, 1 on second page)
+		await seedCircuits(page, circuitName, PER_PAGE + 1);
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
 
-			const nextButton = page.getByRole("button", { name: "Next page" });
-			await expect(nextButton).not.toBeDisabled();
+		const nextButton = page.getByRole("button", { name: "Next page" });
+		await expect(nextButton).not.toBeDisabled();
 
-			// Delete a circuit
-			await editor.deleteCircuit(circuitName + 1);
+		// Delete a circuit
+		await editor.deleteCircuit(circuitName + 1);
 
-			// Only one page left
-			await expect(nextButton).toBeDisabled();
-		});
+		// Only one page left
+		await expect(nextButton).toBeDisabled();
 	});
 
-	test.describe("account wrapper", () => {
-		test.accountId("delete-circuit-2");
-		test("click delete on page when page only has one circuit, goes to prev page", async ({
-			page,
-			editor,
-		}) => {
-			const PER_PAGE = 10;
-			const circuitName = "test_delete_prev_page_";
-			// Create exactly 11 circuits (10 on first page, 1 on second page)
-			for (let i = 0; i < PER_PAGE + 1; i++) {
-				await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
-				await editor.saveAs(circuitName + i);
-			}
-			await editor.openLoadModal();
-			await editor.getLoadButton().click();
+	test("click delete on page when page only has one circuit, goes to prev page", async ({
+		page,
+		editor,
+	}) => {
+		const PER_PAGE = 10;
+		const circuitName = "test_delete_prev_page_";
+		// Create exactly 11 circuits (10 on first page, 1 on second page)
+		await seedCircuits(page, circuitName, PER_PAGE + 1);
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
 
-			// Go to second page
-			const nextButton = page.getByRole("button", { name: "Next page" });
-			await nextButton.click();
-			await expect(page.getByLabel("Pagination").getByText("2")).toBeVisible(); // Current page indicator
-			await expect(page.getByText(circuitName + PER_PAGE)).toBeVisible();
+		// Go to second page
+		const nextButton = page.getByRole("button", { name: "Next page" });
+		await nextButton.click();
+		await expect(page.getByLabel("Pagination").getByText("2")).toBeVisible(); // Current page indicator
+		await expect(page.getByText(circuitName + PER_PAGE)).toBeVisible();
 
-			// Delete the only circuit on page 2 - should go back to page 1
-			await editor.deleteCircuit(circuitName + PER_PAGE);
+		// Delete the only circuit on page 2 - should go back to page 1
+		await editor.deleteCircuit(circuitName + PER_PAGE);
 
-			// Should now be on page 1
-			await expect(page.getByLabel("Pagination").getByText("1")).toBeVisible(); // Current page indicator
-			await expect(page.getByText(circuitName + "0")).toBeVisible(); // First circuit should be visible
-		});
+		// Should now be on page 1
+		await expect(page.getByLabel("Pagination").getByText("1")).toBeVisible(); // Current page indicator
+		await expect(page.getByText(circuitName + "0")).toBeVisible(); // First circuit should be visible
 	});
 });
 
 test.describe("pagination", () => {
-	// Ensure empty circuit list
-	test.use({
-		extraHTTPHeaders: {
-			"test-id": "pagination",
-		},
-	});
 	test.beforeEach(async ({ editor }) => {
 		await editor.signIn();
 		await editor.toggleAccountButton();
@@ -415,10 +403,7 @@ test.describe("pagination", () => {
 	test("pagination flow", async ({ page, editor }) => {
 		const circuitName = "test_pagination_";
 		// Add 11 circuits to test pagination
-		for (let i = 0; i < 11; i++) {
-			await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
-			await editor.saveAs(circuitName + i);
-		}
+		await seedCircuits(page, circuitName, 11);
 		await editor.openLoadModal();
 		await editor.getLoadButton().click();
 
@@ -449,40 +434,31 @@ test.describe("pagination", () => {
 		await expect(nextButton).not.toBeDisabled();
 	});
 
-	test.describe("account wrapper", () => {
-		test.accountId("pagination-1");
-		test("pagination state resets on modal re-open", async ({
-			page,
-			editor,
-		}) => {
-			const circuitName = "test_pagination_reset_";
-			// Add 11 circuits to test pagination
-			for (let i = 0; i < 11; i++) {
-				await editor.addComponent("AND", 100 + i * 10, 200 + i * 10);
-				await editor.saveAs(circuitName + i);
-			}
-			await editor.openLoadModal();
-			await editor.getLoadButton().click();
+	test("pagination state resets on modal re-open", async ({ page, editor }) => {
+		const circuitName = "test_pagination_reset_";
+		// Add 11 circuits to test pagination
+		await seedCircuits(page, circuitName, 11);
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
 
-			// Go to second page
-			const nextButton = page.getByRole("button", { name: "Next page" });
-			await nextButton.click();
-			await expect(
-				page.getByLabel("Pagination controls").getByText("2"),
-			).toBeVisible(); // Current page indicator
+		// Go to second page
+		const nextButton = page.getByRole("button", { name: "Next page" });
+		await nextButton.click();
+		await expect(
+			page.getByLabel("Pagination controls").getByText("2"),
+		).toBeVisible(); // Current page indicator
 
-			// Close and reopen modal
-			await editor.closeModal();
-			await editor.openLoadModal();
-			await editor.getLoadButton().click();
+		// Close and reopen modal
+		await editor.closeModal();
+		await editor.openLoadModal();
+		await editor.getLoadButton().click();
 
-			// Should be back on page 1
-			await expect(
-				page.getByLabel("Pagination controls").getByText("1"),
-			).toBeVisible(); // Current page indicator
-			const prevButton = page.getByRole("button", { name: "Previous page" });
-			await expect(prevButton).toBeDisabled();
-		});
+		// Should be back on page 1
+		await expect(
+			page.getByLabel("Pagination controls").getByText("1"),
+		).toBeVisible(); // Current page indicator
+		const prevButton = page.getByRole("button", { name: "Previous page" });
+		await expect(prevButton).toBeDisabled();
 	});
 });
 

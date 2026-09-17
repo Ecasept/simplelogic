@@ -7,6 +7,7 @@ import {
 	Page,
 } from "@playwright/test";
 import playwrightConfig from "../playwright.config";
+import { randomUUID } from "node:crypto";
 import { Editor } from "./fixtures/editor";
 import { DesktopPointer, Pointer } from "./fixtures/pointer";
 import { Simulation } from "./fixtures/simulation";
@@ -148,6 +149,10 @@ const customTest = base.extend<
 	},
 	{ selectorRegistration: void }
 >({
+	// Test-scoped: retries, repeats, projects and concurrent runs all get fresh accounts.
+	extraHTTPHeaders: async ({ extraHTTPHeaders }, use) => {
+		await use({ ...extraHTTPHeaders, "test-id": randomUUID() });
+	},
 	selectorRegistration: [
 		async ({ playwright }, use) => {
 			await playwright.selectors.register("handle", createHandleSelectorEngine);
@@ -165,12 +170,11 @@ const customTest = base.extend<
 		};
 		await use(clipboard);
 	},
-	page: async ({ baseURL, page, browserName, context, clipboard }, use) => {
+	page: async ({ baseURL, page, browserName, clipboard }, use) => {
 		if (baseURL === undefined) {
 			throw new Error("baseURL is not defined");
 		}
 
-		await context.clearCookies();
 		throwOnConsoleError(page);
 		await mockClipboard(page, clipboard);
 
@@ -208,18 +212,8 @@ const customTest = base.extend<
 });
 
 export const test = Object.assign(customTest, {
-	/** Ensures that the test gets its own account without any circuits from other tests */
-	accountId: configureAccountId,
 	withOnboarding: configureOnboarding,
 });
-
-function configureAccountId(id: string) {
-	test.use({
-		extraHTTPHeaders: {
-			"test-id": id,
-		},
-	});
-}
 
 /** Restores the default onboarding behavior */
 function configureOnboarding() {
