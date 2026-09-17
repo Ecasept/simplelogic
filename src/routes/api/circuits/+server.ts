@@ -18,7 +18,7 @@ export async function POST({ request, locals: { prisma, auth } }) {
 		Object.keys(data.components).length === 0 &&
 		Object.keys(data.wires).length === 0
 	) {
-		return json(err("No data to save - please create a circuit"));
+		return json(err("Empty circuit"));
 	}
 
 	const existingGraph = await prisma.circuits.findUnique({

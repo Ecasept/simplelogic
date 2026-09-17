@@ -190,6 +190,17 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			throw new Error("Invalid mode");
 		}
 		const graphData = graphManager.getGraphData();
+		if (
+			Object.keys(graphData.components).length === 0 &&
+			Object.keys(graphData.wires).length === 0
+		) {
+			this.setError("No data to save - please create a circuit");
+			return;
+		}
+		if (currentName.trim() === "") {
+			this.setError("Please enter a name");
+			return;
+		}
 		const data = await API.saveCircuit(currentName, graphData);
 		if (data.success) {
 			this.setSuccess("Circuit saved successfully");
