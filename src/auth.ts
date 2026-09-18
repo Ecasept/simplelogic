@@ -40,6 +40,8 @@ export const {
 
 	let providers: Provider[] = [
 		GitHub({
+			// GitHub includes this issuer in its OAuth authorization response.
+			issuer: "https://github.com/login/oauth",
 			clientId: env.GH_CLIENT_ID,
 			clientSecret: env.GH_CLIENT_SECRET,
 		}),
