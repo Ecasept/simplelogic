@@ -11,7 +11,10 @@
 		interactionController,
 		editorUiState,
 	} from "$lib/util/editor/editor.svelte";
-	import { debugLog, setAvailablePresets } from "$lib/util/shared/global.svelte";
+	import {
+		debugLog,
+		setAvailablePresets,
+	} from "$lib/util/shared/global.svelte";
 	import { handleKeyDown } from "$lib/util/editor/keyboard";
 	import { normalizePointer } from "$lib/util/interaction/interaction.svelte";
 	import { getThemeClass } from "$lib/util/ui/theme.svelte";
@@ -21,6 +24,7 @@
 
 	let { data }: { data: PageData } = $props();
 	let themeClass = $derived.by(getThemeClass);
+	let ready = $state(false);
 
 	onMount(() => {
 		// Check if there is a circuit in the session storage from a previous sign in
@@ -67,6 +71,7 @@
 			// Fresh load, show the load modal (onboarding)
 			persistenceActions.loadGraph(true);
 		}
+		ready = true;
 		return () => interactionController.cancel();
 	});
 
@@ -84,7 +89,7 @@
 	onkeydown={handleKeyDown}
 />
 
-<div class="wrapper theme-host {themeClass}">
+<div class="wrapper theme-host {themeClass}" data-ready={ready} inert={!ready}>
 	<OnCanvas uiState={editorUiState.current} authUiState={$authViewModel}
 	></OnCanvas>
 	<Canvas uiState={$canvasViewModel}></Canvas>

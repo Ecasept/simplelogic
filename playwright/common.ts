@@ -9,7 +9,7 @@ import {
 } from "@playwright/test";
 import playwrightConfig from "../playwright.config";
 import { randomUUID } from "node:crypto";
-import { Editor } from "./fixtures/editor";
+import { Editor, waitForEditorReady } from "./fixtures/editor";
 import { DesktopPointer, Pointer } from "./fixtures/pointer";
 import { Simulation } from "./fixtures/simulation";
 import { Touchscreen } from "./mobile/touchscreen";
@@ -206,7 +206,7 @@ const customTest = base.extend<
 		};
 		await use(clipboard);
 	},
-	page: async ({ baseURL, page, browserName, clipboard }, use) => {
+	page: async ({ baseURL, page, clipboard }, use) => {
 		if (baseURL === undefined) {
 			throw new Error("baseURL is not defined");
 		}
@@ -214,9 +214,7 @@ const customTest = base.extend<
 		await mockClipboard(page, clipboard);
 
 		await page.goto(baseURL);
-		if (browserName !== "firefox" || process.env.CI) {
-			await page.waitForLoadState("networkidle");
-		}
+		await waitForEditorReady(page);
 		await use(page);
 	},
 	touchscreen: async ({ page, hasTouch }, use) => {
@@ -238,8 +236,8 @@ const customTest = base.extend<
 			await use(new DesktopPointer(page));
 		}
 	},
-	editor: async ({ page, pointer, browserName, baseURL }, use) => {
-		await use(new Editor(page, pointer, browserName, baseURL));
+	editor: async ({ page, pointer, baseURL }, use) => {
+		await use(new Editor(page, pointer, baseURL));
 	},
 	sim: async ({ editor }, use) => {
 		await use(new Simulation(editor));

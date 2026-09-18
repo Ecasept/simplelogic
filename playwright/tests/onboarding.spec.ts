@@ -1,5 +1,6 @@
 import { Page } from "@playwright/test";
 import { expect, test } from "../common";
+import { waitForEditorReady } from "../fixtures/editor";
 
 // Tests A, B, C, D from plan:
 // A: onboarding shows (fresh) unless no-onboarding param present.
@@ -31,6 +32,7 @@ test.describe("onboarding modal", () => {
 
 		test("no-onboarding param skips modal", async ({ page }) => {
 			await page.goto("/?no-onboarding");
+			await waitForEditorReady(page);
 			await expect(page.locator(".modal-bg")).not.toBeVisible();
 		});
 	});
@@ -75,6 +77,7 @@ test.describe("onboarding modal", () => {
 	}) => {
 		// Skip onboarding via param then open load modal manually
 		await page.goto("/?no-onboarding");
+		await waitForEditorReady(page);
 		await expect(page.locator(".modal-bg")).not.toBeVisible();
 		// Open load modal (toolbar button)
 		await page.getByRole("button", { name: /load circuit/i }).click();
@@ -117,6 +120,7 @@ test.describe("onboarding modal", () => {
 
 		test("navigation buttons work in non-fresh flow", async ({ page }) => {
 			await page.goto("/?no-onboarding");
+			await waitForEditorReady(page);
 			await page.getByRole("button", { name: /load circuit/i }).click();
 			// On options screen
 			await page.getByRole("button", { name: /load preset/i }).click();

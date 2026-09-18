@@ -2,25 +2,32 @@ import { Locator, Page } from "@playwright/test";
 import { expect } from "../common";
 import type { Pointer } from "./pointer";
 
+export async function waitForEditorReady(page: Page) {
+	await expect(page.locator(".theme-host[data-ready]")).toHaveAttribute(
+		"data-ready",
+		"true",
+	);
+	// Fonts start loading after hydration. Navigating away before they finish
+	// makes Firefox report a cancelled font download as a console error.
+	await page.evaluate(() => document.fonts.ready.then(() => undefined));
+}
+
 type SidebarUniqueName = "tools" | "selection";
 
 export class Editor {
 	constructor(
 		private readonly page: Page,
 		private readonly pointer: Pointer,
-		private readonly browserName: string,
 		private readonly baseURL: string,
 	) {}
 
-	async waitForNetworkIdle() {
-		if (this.browserName !== "firefox" || process.env.CI) {
-			await this.page.waitForLoadState("networkidle");
-		}
+	async waitForReady() {
+		await waitForEditorReady(this.page);
 	}
 
 	async reload() {
 		await this.page.goto(this.baseURL);
-		await this.waitForNetworkIdle();
+		await this.waitForReady();
 	}
 
 	async ctrlSelect(locator: Locator, force?: boolean) {
@@ -68,7 +75,7 @@ export class Editor {
 		await button.click();
 		await expect(button).not.toBeVisible();
 		await this.page.waitForURL(this.baseURL);
-		await this.waitForNetworkIdle();
+		await this.waitForReady();
 	}
 	async openLoadModal() {
 		await this.pointer.clickOn(
@@ -92,7 +99,7 @@ export class Editor {
 		await btn.click();
 		await expect(btn).not.toBeVisible();
 		await this.page.waitForURL(this.baseURL);
-		await this.waitForNetworkIdle();
+		await this.waitForReady();
 	}
 	getAccountMenu() {
 		return this.page.locator("#auth-popup");
