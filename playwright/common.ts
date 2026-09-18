@@ -5,6 +5,7 @@ import {
 	Locator,
 	MatcherReturnType,
 	Page,
+	type ConsoleMessage,
 } from "@playwright/test";
 import playwrightConfig from "../playwright.config";
 import { randomUUID } from "node:crypto";
@@ -37,12 +38,18 @@ export async function getAttrs(locator: Locator, ...attrs: string[]) {
 	return values;
 }
 
-export function throwOnConsoleError(page: Page) {
-	page.on("console", (message) => {
-		if (message.type() === "error") {
-			throw new Error("Error in console: " + message.text());
-		}
-	});
+function formatConsoleError(message: ConsoleMessage) {
+	const location = message.location();
+	const source = location.url
+		? `${location.url}:${location.lineNumber + 1}:${location.columnNumber + 1}`
+		: "Not provided by the browser";
+	const details = [
+		message.text(),
+		`Page: ${message.page()?.url() ?? "Unknown"}`,
+		`Source: ${source}`,
+	];
+
+	return details.join("\n");
 }
 
 /** Each test owns its clipboard; exposed functions preserve it across reloads. */
@@ -140,6 +147,7 @@ export type MockClipboard = {
 const customTest = base.extend<
 	{
 		page: Page;
+		consoleErrors: void;
 		clipboard: MockClipboard;
 		editor: Editor;
 		sim: Simulation;
@@ -149,6 +157,34 @@ const customTest = base.extend<
 	},
 	{ selectorRegistration: void }
 >({
+	consoleErrors: [
+		async ({ context }, use, testInfo) => {
+			const errors: string[] = [];
+			const recordError = (message: ConsoleMessage) => {
+				if (message.type() === "error")
+					errors.push(formatConsoleError(message));
+			};
+			context.on("console", recordError);
+			try {
+				await use();
+			} finally {
+				context.off("console", recordError);
+				if (errors.length > 0) {
+					const report = [
+						`Browser console errors (${errors.length}) in ${testInfo.project.name}: ${testInfo.title}`,
+						...errors.map((error, index) => `${index + 1}. ${error}`),
+					].join("\n\n");
+					await testInfo.attach("browser-console-errors", {
+						body: report,
+						contentType: "text/plain",
+					});
+					// Fail this test during teardown, not an unrelated in-flight assertion.
+					throw new Error(report);
+				}
+			}
+		},
+		{ auto: true },
+	],
 	// Test-scoped: retries, repeats, projects and concurrent runs all get fresh accounts.
 	extraHTTPHeaders: async ({ extraHTTPHeaders }, use) => {
 		await use({ ...extraHTTPHeaders, "test-id": randomUUID() });
@@ -175,7 +211,6 @@ const customTest = base.extend<
 			throw new Error("baseURL is not defined");
 		}
 
-		throwOnConsoleError(page);
 		await mockClipboard(page, clipboard);
 
 		await page.goto(baseURL);
