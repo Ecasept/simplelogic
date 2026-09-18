@@ -17,7 +17,7 @@
 {#if feedback !== null}
 	<div class={feedback.type} id="error-msg">
 		<span>{feedback.message}</span>
-		<button id="close-btn" onclick={closeFeedback}>
+		<button id="close-btn" aria-label="Close message" onclick={closeFeedback}>
 			<Trash size="20" />
 		</button>
 	</div>
