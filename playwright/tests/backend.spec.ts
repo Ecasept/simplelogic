@@ -148,10 +148,11 @@ test.describe("load modal", () => {
 
 		// Close the success message
 		const closeButton = page.getByRole("button", {
-			name: "Close",
+			name: "Close message",
 			exact: true,
 		});
 		await closeButton.click();
+		await expect(editor.getModal()).toBeVisible();
 		await expect(
 			page.getByText("Circuit loaded successfully"),
 		).not.toBeVisible();
@@ -178,10 +179,11 @@ test.describe("save modal", () => {
 
 		// Test that we can close the error message
 		const closeButton = page.getByRole("button", {
-			name: "Close",
+			name: "Close message",
 			exact: true,
 		});
 		await closeButton.click();
+		await expect(editor.getModal()).toBeVisible();
 		await expect(page.getByText("No data to save - please")).not.toBeVisible();
 	});
 
@@ -272,10 +274,11 @@ test.describe("save modal", () => {
 
 		// Test that we can close the success message
 		const closeButton = page.getByRole("button", {
-			name: "Close",
+			name: "Close message",
 			exact: true,
 		});
 		await closeButton.click();
+		await expect(editor.getModal()).toBeVisible();
 		await expect(
 			page.getByText("Circuit saved successfully"),
 		).not.toBeVisible();

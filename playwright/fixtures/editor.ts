@@ -60,7 +60,9 @@ export class Editor {
 		return this.getModal().getByRole("button", { name: "Load saved circuits" });
 	}
 	async closeModal() {
-		await this.getModal().getByRole("button", { name: "Close" }).click();
+		await this.getModal()
+			.getByRole("button", { name: "Close", exact: true })
+			.click();
 		await expect(this.getModal()).not.toBeVisible();
 	}
 	getModal() {
