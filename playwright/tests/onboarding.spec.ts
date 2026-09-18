@@ -55,7 +55,6 @@ test.describe("onboarding modal", () => {
 
 		test("selecting a non-empty preset closes modal", async ({ page }) => {
 			// Need at least one preset card besides empty.
-			await page.goto("/");
 			await expect(page.locator(".modal-bg")).toBeVisible();
 			// Find first preset card that is not "New Circuit"
 			const presetCard = page
@@ -104,7 +103,6 @@ test.describe("onboarding modal", () => {
 
 	test.describe("navigation", async () => {
 		test("navigation buttons work in fresh flow", async ({ page }) => {
-			await page.goto("/");
 			await expect(page.locator(".modal-bg")).toBeVisible();
 			// On presets screen -> click Other options
 			await page.getByRole("button", { name: /other options/i }).click();
