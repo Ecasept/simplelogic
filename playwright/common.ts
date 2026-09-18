@@ -106,7 +106,7 @@ const createHandleSelectorEngine = () => ({
 		);
 	},
 	query(root: Element, selector: string) {
-		this.queryAll(root, selector)[0];
+		return this.queryAll(root, selector)[0];
 	},
 	queryAll(root: Element, selector: string) {
 		const [type, id, nth] = selector.split(":");
@@ -123,7 +123,7 @@ const createHandleSelectorEngine = () => ({
 });
 const createComponentSelectorEngine = () => ({
 	query(root: Element, selector: string) {
-		this.queryAll(root, selector)[0];
+		return this.queryAll(root, selector)[0];
 	},
 	queryAll(root: Element, selector: string) {
 		const [type, nth] = selector.split(":");
