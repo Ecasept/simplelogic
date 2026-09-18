@@ -45,8 +45,8 @@
 		</div>
 		<span>Sign in to save your circuit to your account</span>
 		<div class="signin-buttons-container">
-			<SignInButton provider="github" source="loadModal" />
-			<SignInButton provider="google" source="loadModal" />
+			<SignInButton provider="github" source="saveModal" />
+			<SignInButton provider="google" source="saveModal" />
 		</div>
 	</div>
 {:else}
