@@ -243,6 +243,7 @@ test.describe("save modal", () => {
 		await editor.openSaveModal();
 		await editor.getNameInput().fill(circuitName);
 		await editor.getSaveButton().click();
+		await expect(page.getByText("Circuit saved successfully")).toBeVisible();
 		await editor.closeModal();
 
 		// Second save with same name - should show error
@@ -498,7 +499,9 @@ test.describe("basic login", async () => {
 		// Save modal should stay open
 		await editor.openSaveModal();
 		await editor.clickGoogleLoginButton();
-		await expect(editor.getModal()).toBeVisible();
+		await expect(
+			editor.getModal().getByRole("heading", { name: "Save your circuit" }),
+		).toBeVisible();
 		await editor.closeModal();
 		await editor.signOut();
 		// Load modal should stay open
