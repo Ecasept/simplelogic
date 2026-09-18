@@ -37,8 +37,8 @@ export default defineConfig({
 			(process.env.CI ? "http://localhost:8788" : "http://localhost:5173") +
 			"/?no-onboarding",
 
-		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-		trace: "on-first-retry",
+		/* Keep traces for local failures as well as CI retries. */
+		trace: "retain-on-failure",
 	},
 
 	/* Configure projects for major browsers */
