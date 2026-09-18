@@ -178,6 +178,9 @@ export class Editor {
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Paste from clipboard" }),
 		);
+		await expect(
+			this.page.getByText("Circuit pasted from clipboard"),
+		).toBeVisible();
 		await this.closeModal();
 	}
 	async saveCircuitUsingClipboard() {
@@ -185,6 +188,9 @@ export class Editor {
 		await this.pointer.clickOn(
 			this.page.getByRole("button", { name: "Copy to clipboard" }),
 		);
+		await expect(
+			this.page.getByText("Circuit copied to clipboard"),
+		).toBeVisible();
 		const text = await this.page.evaluate(() => navigator.clipboard.readText());
 		await this.closeModal();
 		return text;

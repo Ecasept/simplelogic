@@ -558,7 +558,7 @@ test.describe("clipboard", () => {
 	test("paste invalid data", async ({ page }) => {
 		// Copy invalid data to clipboard
 		await page.evaluate(() => {
-			navigator.clipboard.writeText("invalid data");
+			return navigator.clipboard.writeText("invalid data");
 		});
 
 		// Paste from clipboard
@@ -573,7 +573,7 @@ test.describe("clipboard", () => {
 
 		// Copy invalid data to clipboard
 		await page.evaluate((data) => {
-			navigator.clipboard.writeText(data);
+			return navigator.clipboard.writeText(data);
 		}, invalidData);
 
 		// Paste from clipboard
