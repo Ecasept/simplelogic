@@ -5,7 +5,7 @@ const port = Number(process.env.TEST_OAUTH_PORT ?? 58080);
 const issuerUrl = process.env.TEST_OAUTH_ISSUER ?? `http://localhost:${port}`;
 
 export async function startMockServer() {
-	server.issuer.keys.generate("RS256");
+	await server.issuer.keys.generate("RS256");
 	server.issuer.url = issuerUrl;
 	console.log("OAuth2 mock server started at", server.issuer.url);
 
