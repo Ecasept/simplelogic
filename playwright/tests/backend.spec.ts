@@ -557,11 +557,11 @@ test.describe("clipboard", () => {
 		);
 	});
 
-	test("copy and paste while logged in ", async ({ page, editor }) => {
+	test("copy and paste while logged in", async ({ editor }) => {
 		await editor.signIn();
 		await editor.loadCircuitUsingClipboard(circuits.SR_NOR_latch);
 		const circuit = await editor.saveCircuitUsingClipboard();
-		expect(circuit).toEqual(circuits.SR_NOR_latch);
+		expect(JSON.parse(circuit)).toEqual(JSON.parse(circuits.SR_NOR_latch));
 	});
 
 	test("paste invalid data", async ({ page }) => {
