@@ -17,6 +17,8 @@ export type BaseState = {
 	hoveredHandle: HandleReference | null;
 	hoveredElement: number | null;
 	isModalOpen: boolean;
+	// Is there an ongoing action blocking input
+	isProcessBlocked: boolean;
 };
 
 export type AreaSelectType = "intersect" | "contain";
@@ -48,6 +50,7 @@ export class EditorViewModel {
 		hoveredHandle: null,
 		hoveredElement: null,
 		isModalOpen: false,
+		isProcessBlocked: false,
 		settings: {
 			gridSnap: true,
 			areaSelectType: "intersect",
@@ -66,6 +69,30 @@ export class EditorViewModel {
 	hardReset() {
 		this._uiState = structuredClone(this.initialUiState);
 		this.notifyAll();
+	}
+	resetDocumentState() {
+		this._uiState.mode = "edit";
+		this._uiState.selected = new Map();
+		this._uiState.hoveredHandle = null;
+		this._uiState.hoveredElement = null;
+		this.notifyAll();
+	}
+	private blockingCount = 0;
+	get isBlocked() {
+		return this.uiState.isModalOpen || this.uiState.isProcessBlocked;
+	}
+	/** Keep input blocked until every overlapping operation has settled. */
+	async blocking<T>(fn: () => Promise<T> | T): Promise<T> {
+		this.blockingCount++;
+		this._uiState.isProcessBlocked = true;
+		this.notifyAll();
+		try {
+			return await fn();
+		} finally {
+			this.blockingCount--;
+			this._uiState.isProcessBlocked = this.blockingCount > 0;
+			this.notifyAll();
+		}
 	}
 	setMode(mode: EditorMode) {
 		if (this._uiState.mode === mode) {

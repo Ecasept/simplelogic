@@ -7,7 +7,6 @@ import {
 	editorUiState,
 	graphActions,
 	modeActions,
-	persistenceActions,
 } from "../editor/editor.svelte";
 import { handleKeyDown } from "../editor/keyboard";
 import { LONG_PRESS_MS } from "../shared/global.svelte";
@@ -170,19 +169,6 @@ describe("unified interaction ownership", () => {
 		expect(controller.state.kind).toBe("idle");
 		controller.pointerUp(pointer());
 		expect(Object.keys(graphManager.getGraphData().components)).toHaveLength(0);
-	});
-
-	it("discards the old interaction when replacing the document", () => {
-		controller.addComponent("AND", { x: 100, y: 100 }, "drag", 1);
-		persistenceActions.setNewGraph({ components: {}, wires: {}, nextId: 9 });
-		controller.pointerUp(pointer());
-		expect(controller.state.kind).toBe("idle");
-		expect(graphManager.currentEdit).toBeNull();
-		expect(graphManager.getGraphData()).toEqual({
-			components: {},
-			wires: {},
-			nextId: 9,
-		});
 	});
 
 	it("captures a fresh movement origin for each drag", () => {

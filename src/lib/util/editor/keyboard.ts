@@ -10,6 +10,7 @@ import {
 	modeActions,
 	persistenceActions,
 	editorUiState,
+	documentActions,
 } from "./editor.svelte";
 import { mousePosition } from "../shared/global.svelte";
 import type { ComponentType } from "../shared/types";
@@ -403,7 +404,7 @@ const shortcuts = [
 			mode: P.union("edit", "simulate", "delete"),
 			isCanvasGesture: false,
 		},
-		action: graphActions.clearCanvas,
+		action: documentActions.clearDocument,
 	}),
 	s({
 		name: "Rotate dragged/adding clockwise",
@@ -499,6 +500,7 @@ function constructValue(e: KeyboardEvent): State {
 }
 
 export async function handleKeyDown(e: KeyboardEvent) {
+	if (editorViewModel.uiState.isProcessBlocked) return;
 	if (
 		e.target instanceof HTMLInputElement ||
 		e.target instanceof HTMLTextAreaElement

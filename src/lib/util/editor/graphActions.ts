@@ -79,12 +79,6 @@ export function createGraphActions(
 		deleteMulti(uiState.selected);
 	}
 
-	function clearCanvas() {
-		interactionController.cancel();
-		editorViewModel.hardReset();
-		graphManager.clear();
-		graphManager.notifyAll();
-	}
 
 	function togglePower(id: number) {
 		const cmd = new ToggleInputPowerStateCommand(id);
@@ -211,7 +205,6 @@ export function createGraphActions(
 		deleteComponent,
 		deleteWire,
 		deleteSelected,
-		clearCanvas,
 		togglePower,
 		updateTextFontSize,
 		updateCustomDataMerged,

@@ -30,6 +30,7 @@ function comp(
 		isPoweredInitially: false,
 		rotation: 0,
 		handles: {
+			in2: { edge: "left", pos: 1, type: "input", connections: [] },
 			out: {
 				edge: "right",
 				pos: 0,

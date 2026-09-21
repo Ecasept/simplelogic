@@ -8,21 +8,36 @@ export function createModeActions(
 	interactionController: InteractionController,
 ) {
 	async function switchToDefaultMode() {
-		await simController.stopLoop();
-		interactionController.cancel();
-		editorViewModel.setMode("edit");
+		if (editorViewModel.isBlocked) {
+			return;
+		}
+		await editorViewModel.blocking(async () => {
+			await simController.stopLoop();
+			interactionController.cancel();
+			editorViewModel.setMode("edit");
+		});
 	}
 
 	async function switchToDeleteMode() {
-		await simController.stopLoop();
-		interactionController.cancel();
-		editorViewModel.setMode("delete");
+		if (editorViewModel.isBlocked) {
+			return;
+		}
+		await editorViewModel.blocking(async () => {
+			await simController.stopLoop();
+			interactionController.cancel();
+			editorViewModel.setMode("delete");
+		});
 	}
 
 	async function switchToSimulateMode() {
-		interactionController.cancel();
-		editorViewModel.setMode("simulate");
-		simController.start();
+		if (editorViewModel.isBlocked) {
+			return;
+		}
+		await editorViewModel.blocking(async () => {
+			interactionController.cancel();
+			editorViewModel.setMode("simulate");
+			simController.start();
+		});
 	}
 	async function toggleDelete() {
 		if (editorViewModel.uiState.mode === "delete") {

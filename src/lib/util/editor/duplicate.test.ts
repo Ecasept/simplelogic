@@ -18,6 +18,12 @@ function comp(id: number, overrides: Partial<any> = {}) {
 		isPoweredInitially: false,
 		rotation: 0,
 		handles: {
+			in2: {
+				edge: "left" as const,
+				pos: 1,
+				type: "input" as const,
+				connections: [],
+			},
 			out: {
 				edge: "right" as const,
 				pos: 0,

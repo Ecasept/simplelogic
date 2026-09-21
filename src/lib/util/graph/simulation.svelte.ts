@@ -1,6 +1,7 @@
-import { graphManager } from "./graph.svelte";
+import { cancellationDelay, cancellationFrame } from "../shared/cancellation";
 import { COMPONENT_DATA, isComponentHandleRef } from "../shared/global.svelte";
 import type { ComponentData, ComponentType } from "../shared/types";
+import { graphManager } from "./graph.svelte";
 
 /** The simulation data for a component or wire. */
 export type SimulationData = {
@@ -37,8 +38,8 @@ class SimulationController {
 	/** Whether the simulation is currently processing the queue. */
 	public loopRunning: boolean = $state(false);
 
-	private onStopped: (() => void) | null = null;
-	private skipLoopDelay: (() => void) | null = null;
+	private loop: { controller: AbortController; done: Promise<void> } | null =
+		null;
 
 	public startContinuousExecution() {
 		this.continuousExecution = true;
@@ -59,6 +60,16 @@ class SimulationController {
 		this.runContinuousLoopIfEnabled();
 	}
 
+	/** Stop completely and discard runtime data without restarting the old graph. */
+	public async clear(): Promise<void> {
+		await this.stopLoop();
+		simulation._state = {};
+		simulation._queue = [];
+		this.simulationStart = null;
+		this.simulationDuration = 0;
+		this.notifyAll();
+	}
+
 	public start() {
 		simulation.reset();
 		this.notifyAll();
@@ -66,22 +77,10 @@ class SimulationController {
 	}
 
 	public async stopLoop() {
-		if (!this.loopRunning) {
-			return;
-		}
-		this.loopRunning = false;
-
-		const onStoppedPromise = new Promise<void>((resolve) => {
-			// When the loop stops, this promise will be resolved
-			this.onStopped = resolve;
-		});
-
-		if (this.skipLoopDelay) {
-			// If we are currently waiting for the next step, skip the delay
-			this.skipLoopDelay();
-		}
-
-		return onStoppedPromise;
+		const loop = this.loop;
+		if (!loop) return;
+		loop.controller.abort();
+		await loop.done;
 	}
 
 	public stepForward() {
@@ -98,62 +97,56 @@ class SimulationController {
 		if (!this.continuousExecution || this.loopRunning) {
 			return;
 		}
-		this._runLoop();
+		const controller = new AbortController();
+		const done = this._runLoop(controller.signal).finally(() => {
+			this.loop = null;
+		});
+		this.loop = { controller, done };
 	}
 
-	private async _runLoop() {
+	private async _runLoop(signal: AbortSignal) {
 		this.loopRunning = true;
 		this.simulationStart = performance.now();
 
 		let stepStart = performance.now();
 		let stepEnd = performance.now() + this.updateDelay;
 
-		await new Promise(requestAnimationFrame);
+		try {
+			await cancellationFrame(signal);
 
-		while (true) {
-			if (this.onStopped) {
-				// If the processing was stopped, exit the loop
-				this.loopRunning = false;
-				this.onStopped();
-				this.onStopped = null;
-				break;
+			while (!signal.aborted) {
+				const hasMoreWork = this._step();
+				if (!hasMoreWork) {
+					break;
+				}
+
+				if (this.updateDelay !== 0) {
+					// Notify UI about changes.
+					// UI will not actually be updated until we yield back to the event loop.
+					this.notifyAll();
+				}
+
+				const now = performance.now();
+				const maxTimeExceeded =
+					now - stepStart > SIMULATION_MAX_TIME_WITHOUT_YIELD;
+				const aheadOfSchedule = stepEnd > now;
+				const shouldYield = maxTimeExceeded || aheadOfSchedule;
+
+				if (shouldYield) {
+					// Yield back to the event loop
+					const timeLeft = Math.max(0, stepEnd - now);
+					await cancellationDelay(timeLeft, signal);
+					stepEnd += this.updateDelay;
+					stepStart = performance.now();
+				}
 			}
+		} finally {
+			this.simulationDuration = performance.now() - this.simulationStart;
+			this.simulationStart = null;
+			this.loopRunning = false;
 
-			const hasMoreWork = this._step();
-			if (!hasMoreWork) {
-				break;
-			}
-
-			if (this.updateDelay !== 0) {
-				// Notify UI about changes.
-				// UI will not actually be updated until we yield back to the event loop.
-				this.notifyAll();
-			}
-
-			const now = performance.now();
-			const maxTimeExceeded =
-				now - stepStart > SIMULATION_MAX_TIME_WITHOUT_YIELD;
-			const aheadOfSchedule = stepEnd > now;
-			const shouldYield = maxTimeExceeded || aheadOfSchedule;
-
-			if (shouldYield) {
-				// Yield back to the event loop
-				const timeLeft = Math.max(0, stepEnd - now);
-				await new Promise<void>((r) => {
-					this.skipLoopDelay = r;
-					setTimeout(r, timeLeft);
-				});
-				this.skipLoopDelay = null;
-				stepEnd += this.updateDelay;
-				stepStart = performance.now();
-			}
+			this.notifyAll();
 		}
-
-		this.simulationDuration = performance.now() - this.simulationStart;
-		this.simulationStart = null;
-		this.loopRunning = false;
-
-		this.notifyAll();
 	}
 
 	public recomputeComponent(id: number) {
@@ -290,7 +283,7 @@ class Simulation {
 			if (handle.type !== "output") {
 				continue;
 			}
-			const outputPower = executeGate(data, handle.type);
+			const outputPower = executeGate(data, handleId);
 			// Output of the component has changed since last run
 			const powerChanged = this._state[id].outputs[handleId] !== outputPower;
 			this._state[id].outputs[handleId] = outputPower;

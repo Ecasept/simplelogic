@@ -1,5 +1,6 @@
 import { err } from "$lib/util/shared/error.js";
 import { error, json } from "@sveltejs/kit";
+import { ZGraphData } from "$lib/util/shared/types";
 
 /** @type {import("./$types").RequestHandler} */
 /** Get a specific circuit by ID */
@@ -31,7 +32,12 @@ export async function GET({ params, locals: { prisma, auth } }) {
 		return json(err("Selected circuit does not exist"));
 	}
 
-	return json({ success: true, data: JSON.parse(data.data) });
+	try {
+		const graph = ZGraphData.parse(JSON.parse(data.data));
+		return json({ success: true, data: graph });
+	} catch {
+		return json(err("Stored circuit is invalid and cannot be loaded"));
+	}
 }
 
 /** Delete a specific circuit by ID */

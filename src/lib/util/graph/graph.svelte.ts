@@ -212,7 +212,7 @@ export class GraphManager {
 	}
 
 	/** Parses the given data with zod and returns a valid graph data object if it is valid */
-	validateData(data: GraphData) {
+	validateData(data: unknown) {
 		return ZGraphData.safeParse(data);
 	}
 
@@ -233,6 +233,7 @@ export class GraphManager {
 		}
 	}
 
+	/** Low-level install; application callers must use replaceDocument for lifecycle teardown. */
 	setGraphData(data: GraphData) {
 		this.closeCustomDataGroup();
 		this.edit?.cancel();

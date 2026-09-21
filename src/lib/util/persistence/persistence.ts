@@ -1,9 +1,8 @@
-import type { GraphData } from "../shared/types";
 import type { GraphManager } from "../graph/graph.svelte";
 import type { EditorViewModel } from "../editor/editorViewModel.svelte";
 import type { CircuitModalViewModel } from "./circuitModalViewModel";
 import type { InteractionController } from "../interaction/interaction.svelte";
-import { simController } from "../graph/simulation.svelte";
+import type { DocumentActions } from "./document";
 
 /** Opens persistence UI and replaces the active document after cancelling interactions. */
 export function createPersistenceActions(
@@ -11,6 +10,7 @@ export function createPersistenceActions(
 	editorViewModel: EditorViewModel,
 	circuitModalViewModel: CircuitModalViewModel,
 	interactionController: InteractionController,
+	documents: DocumentActions,
 ) {
 	function saveGraph() {
 		interactionController.cancel();
@@ -26,8 +26,8 @@ export function createPersistenceActions(
 		editorViewModel.setModalOpen(true);
 		circuitModalViewModel.open(
 			"load",
-			(newGraphData, type) => {
-				setNewGraph(newGraphData);
+			async (newGraphData, type) => {
+				await documents.replaceDocument(newGraphData);
 				if (isOnboarding && type === "preset") {
 					// If the user is new and selected a preset,
 					// show him the circuit immediately for better onboarding
@@ -41,14 +41,10 @@ export function createPersistenceActions(
 		circuitModalViewModel.close();
 		editorViewModel.setModalOpen(false);
 	}
-	function setNewGraph(newGraphData: GraphData) {
-		interactionController.cancel();
-		editorViewModel.hardReset();
-		simController.reset();
-		graphManager.clear();
-		graphManager.setGraphData(newGraphData);
-		graphManager.notifyAll();
-	}
-
-	return { saveGraph, loadGraphManually, loadGraph, closeModal, setNewGraph };
+	return {
+		saveGraph,
+		loadGraphManually,
+		loadGraph,
+		closeModal,
+	};
 }

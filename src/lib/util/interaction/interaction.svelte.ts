@@ -109,7 +109,7 @@ export function createInteractionController({
 	function canStartEdit() {
 		return (
 			editorViewModel.uiState.mode === "edit" &&
-			!editorViewModel.uiState.isModalOpen &&
+			!editorViewModel.isBlocked &&
 			session.kind === "idle"
 		);
 	}
@@ -182,10 +182,7 @@ export function createInteractionController({
 		initiator: "drag" | "keyboard",
 		activePointerId: number | null,
 	) {
-		if (
-			editorViewModel.uiState.mode !== "edit" ||
-			editorViewModel.uiState.isModalOpen
-		) {
+		if (editorViewModel.uiState.mode !== "edit" || editorViewModel.isBlocked) {
 			return;
 		}
 		cancel();
@@ -210,10 +207,7 @@ export function createInteractionController({
 		clickPosition: XYPair,
 		command: Command,
 	) {
-		if (
-			editorViewModel.uiState.mode !== "edit" ||
-			editorViewModel.uiState.isModalOpen
-		) {
+		if (editorViewModel.uiState.mode !== "edit" || editorViewModel.isBlocked) {
 			return;
 		}
 		cancel();
@@ -231,10 +225,7 @@ export function createInteractionController({
 		clickedHandle: HandleReference,
 		activePointerId: number,
 	) {
-		if (
-			editorViewModel.uiState.mode !== "edit" ||
-			editorViewModel.uiState.isModalOpen
-		) {
+		if (editorViewModel.uiState.mode !== "edit" || editorViewModel.isBlocked) {
 			return;
 		}
 		cancel();
@@ -373,7 +364,7 @@ export function createInteractionController({
 		};
 	}
 	function canvasPointerDown(e: PointerInput) {
-		if (e.button !== 0 || editorViewModel.uiState.isModalOpen) {
+		if (e.button !== 0 || editorViewModel.isBlocked) {
 			return;
 		}
 		if (session.kind !== "idle" && session.kind !== "pan") {

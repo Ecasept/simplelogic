@@ -3,6 +3,7 @@ import { API } from "./api";
 import { calculateHandlePosition } from "../shared/global.svelte";
 import type { ComponentData, GraphData } from "../shared/types";
 import { ViewModel } from "../ui/viewModel";
+import { decodeDocument } from "./document";
 
 export type FeedbackMessage = {
 	type: "error" | "success";
@@ -22,7 +23,10 @@ export type CircuitModalUiState =
 	| {
 			mode: "load";
 			message: FeedbackMessage | null;
-			callback: (graphData: GraphData, type: "preset" | "custom") => void;
+			callback: (
+				graphData: GraphData,
+				type: "preset" | "custom",
+			) => Promise<unknown> | void;
 			listRequestData: ListRequestData | null;
 			isLoadingList: boolean;
 			loadMode: "select" | "list";
@@ -160,19 +164,15 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		if (this._uiState.mode !== "load") {
 			throw new Error("Invalid mode");
 		}
-		const json = await navigator.clipboard.readText();
 		try {
-			let graphData = JSON.parse(json);
-			const validationResult = graphManager.validateData(graphData);
-			if (!validationResult.success) {
-				this.setError("Invalid data: " + validationResult.error.message);
-				return;
-			}
+			const json = await navigator.clipboard.readText();
+			let graphData = decodeDocument(json);
 			if (this._uiState.fixConnections) {
 				graphData = this.fixGraphConnections(graphData);
 			}
-			this.setSuccess("Circuit pasted from clipboard");
-			this._uiState.callback(graphData, "custom");
+			await this._uiState.callback(graphData, "custom");
+			if (this._uiState.mode === "load")
+				this.setSuccess("Circuit pasted from clipboard");
 		} catch (e: unknown) {
 			if (e instanceof Error) {
 				console.warn(e);
@@ -180,7 +180,6 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			} else {
 				console.error(e);
 				this.setError("Unknown error");
-				throw e;
 			}
 		}
 	}
@@ -232,8 +231,13 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			if (this._uiState.fixConnections) {
 				graphData = this.fixGraphConnections(graphData);
 			}
-			this.setSuccess("Circuit loaded successfully");
-			this._uiState.callback(graphData, "custom");
+			try {
+				await this._uiState.callback(graphData, "custom");
+				if (this._uiState.mode === "load")
+					this.setSuccess("Circuit loaded successfully");
+			} catch {
+				this.setError("Unable to load circuit");
+			}
 		} else {
 			this.setError(data.error);
 		}
@@ -257,7 +261,10 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 	open(
 		mode: "save" | "load",
 		callback:
-			| ((graphData: GraphData, type: "custom" | "preset") => void)
+			| ((
+					graphData: GraphData,
+					type: "custom" | "preset",
+			  ) => Promise<unknown> | void)
 			| null,
 		{ isOnboarding = true }: { isOnboarding?: boolean } = {},
 	) {
@@ -310,8 +317,7 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			throw new Error("Invalid mode");
 		}
 		if (id === "empty") {
-			this.setSuccess("Empty preset loaded");
-			this._uiState.callback(
+			await this._uiState.callback(
 				{ components: {}, wires: {}, nextId: 0 },
 				"preset",
 			);
@@ -322,8 +328,12 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			this.setError(preset.error);
 			return;
 		}
-		this.setSuccess("Preset loaded");
-		this._uiState.callback(preset.data.data, "preset");
+		try {
+			await this._uiState.callback(preset.data.data, "preset");
+			if (this._uiState.mode === "load") this.setSuccess("Preset loaded");
+		} catch {
+			this.setError("Unable to load preset");
+		}
 	}
 }
 

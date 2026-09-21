@@ -8,6 +8,7 @@ import { createClipboardActions } from "./clipboard";
 import { createModeActions } from "./editorMode";
 import { createPersistenceActions } from "../persistence/persistence";
 import { composeEditorUiState } from "./editorUiState";
+import { createDocumentActions } from "../persistence/document";
 
 export {
 	graphManager,
@@ -22,6 +23,11 @@ export const interactionController = createInteractionController({
 	editorViewModel,
 	canvasViewModel,
 });
+export const documentActions = createDocumentActions(
+	graphManager,
+	editorViewModel,
+	interactionController,
+);
 export const graphActions = createGraphActions(
 	graphManager,
 	editorViewModel,
@@ -42,6 +48,7 @@ export const persistenceActions = createPersistenceActions(
 	editorViewModel,
 	circuitModalViewModel,
 	interactionController,
+	documentActions,
 );
 
 // A live, read-only projection. No independently writable interaction flags or edit states.

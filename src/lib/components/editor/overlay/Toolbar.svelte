@@ -3,6 +3,7 @@
 
 	import {
 		graphActions,
+		documentActions,
 		graphManager,
 		modeActions,
 		persistenceActions,
@@ -100,7 +101,7 @@
 		Download,
 		persistenceActions.loadGraphManually,
 	)}
-	{@render toolbarButton("Clear canvas", CopyX, graphActions.clearCanvas)}
+	{@render toolbarButton("Clear canvas", CopyX, documentActions.clearDocument)}
 </div>
 
 <style>

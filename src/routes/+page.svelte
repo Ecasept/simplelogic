@@ -6,7 +6,7 @@
 		canvasViewModel,
 		circuitModalViewModel,
 		editorViewModel,
-		graphManager,
+		documentActions,
 		persistenceActions,
 		interactionController,
 		editorUiState,
@@ -21,58 +21,71 @@
 	import { authViewModel } from "$lib/util/ui/authViewModel";
 	import { onMount } from "svelte";
 	import type { PageData } from "./$types";
+	import { restoreSession } from "$lib/util/persistence/session";
 
 	let { data }: { data: PageData } = $props();
 	let themeClass = $derived.by(getThemeClass);
 	let ready = $state(false);
 
 	onMount(() => {
-		// Check if there is a circuit in the session storage from a previous sign in
-		const sessionCircuit = sessionStorage.getItem("currentCircuit");
-		if (sessionCircuit) {
-			// If there is, load it into the editor
-			const circuit = JSON.parse(sessionCircuit);
-			graphManager.setGraphData(circuit);
-			graphManager.notifyAll();
-			sessionStorage.removeItem("currentCircuit");
-		}
-		const source = sessionStorage.getItem("signInSource");
-		if (source) {
-			sessionStorage.removeItem("signInSource");
-			switch (source) {
-				case "saveModal":
-					persistenceActions.saveGraph();
-					break;
-				case "loadModal":
-					persistenceActions.loadGraphManually();
-					break;
-				case "authPopup":
-					authViewModel.toggleOpen();
-					break;
+		const lifetime = new AbortController();
+		async function initialize() {
+			const { source, restored, error } = await restoreSession(
+				{
+					getItem: (key) => sessionStorage.getItem(key),
+					removeItem: (key) => sessionStorage.removeItem(key),
+				},
+				(input) => documentActions.replaceDocument(input, lifetime.signal),
+			);
+			if (lifetime.signal.aborted) return;
+			if (source) {
+				switch (source) {
+					case "saveModal":
+						persistenceActions.saveGraph();
+						break;
+					case "loadModal":
+						persistenceActions.loadGraphManually();
+						break;
+					case "authPopup":
+						authViewModel.toggleOpen();
+						break;
+				}
 			}
-		}
 
-		const storedSettings = localStorage.getItem("editorSettings");
-		if (storedSettings) {
 			try {
-				const settings = JSON.parse(storedSettings);
-				editorViewModel.applySettings(settings);
-			} catch (e) {
-				console.error("Failed to parse stored settings:", e);
+				const storedSettings = localStorage.getItem("editorSettings");
+				if (storedSettings) {
+					try {
+						const settings = JSON.parse(storedSettings);
+						editorViewModel.applySettings(settings);
+					} catch (e) {
+						console.error("Failed to parse stored settings:", e);
+					}
+				}
+			} catch {
+				/* Storage can be disabled by the browser. */
 			}
-		}
 
-		// Determine if onboarding should be skipped
-		const urlParams = new URL(window.location.href).searchParams;
-		const skipOnboarding = urlParams.has("no-onboarding");
-		setAvailablePresets(data.presets);
+			// Determine if onboarding should be skipped
+			const urlParams = new URL(window.location.href).searchParams;
+			const skipOnboarding = urlParams.has("no-onboarding");
+			setAvailablePresets(data.presets);
 
-		if (!source && !sessionCircuit && !skipOnboarding) {
-			// Fresh load, show the load modal (onboarding)
-			persistenceActions.loadGraph(true);
+			if (!source && !restored && !skipOnboarding) {
+				// Fresh load, show the load modal (onboarding)
+				persistenceActions.loadGraph(true);
+			}
+			if (error) {
+				persistenceActions.loadGraphManually();
+				circuitModalViewModel.setError(error);
+			}
+			ready = true;
 		}
-		ready = true;
-		return () => interactionController.cancel();
+		void initialize();
+		return () => {
+			lifetime.abort();
+			interactionController.cancel();
+		};
 	});
 
 	$inspect(editorUiState.current).with(debugLog("UISTATE"));
@@ -90,9 +103,11 @@
 />
 
 <div class="wrapper theme-host {themeClass}" data-ready={ready} inert={!ready}>
-	<OnCanvas uiState={editorUiState.current} authUiState={$authViewModel}
-	></OnCanvas>
-	<Canvas uiState={$canvasViewModel}></Canvas>
+	<div inert={editorUiState.current.isProcessBlocked}>
+		<OnCanvas uiState={editorUiState.current} authUiState={$authViewModel}
+		></OnCanvas>
+		<Canvas uiState={$canvasViewModel}></Canvas>
+	</div>
 
 	{#if $circuitModalViewModel.mode !== null}
 		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
