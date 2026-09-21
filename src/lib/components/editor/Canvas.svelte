@@ -11,11 +11,25 @@
 	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/shared/global.svelte";
 	import { normalizePointer } from "$lib/util/interaction/interaction.svelte";
 	import type { CanvasUiState } from "$lib/util/interaction/canvasViewModel";
+	import {
+		isComponentInViewport,
+		isWireInViewport,
+	} from "$lib/util/interaction/viewportCulling";
 
 	let { uiState }: { uiState: CanvasUiState } = $props();
 	let svg: SVGSVGElement;
 	let graphData = $derived(graphManager.graphData);
 	let interactionState = $derived(interactionController.state);
+	let visibleWires = $derived(
+		Object.entries(graphData.wires).filter(([, wire]) =>
+			isWireInViewport(wire, uiState.viewBox),
+		),
+	);
+	let visibleComponents = $derived(
+		Object.entries(graphData.components).filter(([, component]) =>
+			isComponentInViewport(component, uiState.viewBox),
+		),
+	);
 
 	$effect(() => {
 		canvasViewModel.svg = svg;
@@ -66,14 +80,14 @@
 			fill="url(#dot-pattern)"
 		/>
 
-		{#each Object.entries(graphData.wires) as [id, data] (id)}
+		{#each visibleWires as [id, data] (id)}
 			<Wire {...data} uiState={editorUiState.current} renderMode="body"></Wire>
 		{/each}
-		{#each Object.entries(graphData.wires) as [id, data] (id)}
+		{#each visibleWires as [id, data] (id)}
 			<Wire {...data} uiState={editorUiState.current} renderMode="handles"
 			></Wire>
 		{/each}
-		{#each Object.entries(graphData.components) as [id, data] (id)}
+		{#each visibleComponents as [id, data] (id)}
 			{#if data.type === "TEXT"}
 				<TextBox {...data} uiState={editorUiState.current}></TextBox>
 			{:else}
