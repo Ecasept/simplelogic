@@ -61,13 +61,16 @@ class SimulationController {
 	}
 
 	/** Stop completely and discard runtime data without restarting the old graph. */
-	public async clear(): Promise<void> {
+	public async clear(signal?: AbortSignal): Promise<boolean> {
+		if (signal?.aborted) return false;
 		await this.stopLoop();
+		if (signal?.aborted) return false;
 		simulation._state = {};
 		simulation._queue = [];
 		this.simulationStart = null;
 		this.simulationDuration = 0;
 		this.notifyAll();
+		return true;
 	}
 
 	public start() {

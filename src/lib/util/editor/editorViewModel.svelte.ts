@@ -1,3 +1,4 @@
+import { fromStore, type Readable } from "svelte/store";
 import type { HandleReference } from "../shared/types";
 /** References an element, and including its type.
  * This is useful because, even though an element can be
@@ -44,12 +45,11 @@ export type EditorState = BaseState &
 
 /** Persistent editor state. Active interactions belong exclusively to the controller. */
 export class EditorViewModel {
-	private initialUiState: EditorState = {
+	private initialUiState: Omit<EditorState, "isModalOpen"> = {
 		mode: "edit",
 		selected: new Map(),
 		hoveredHandle: null,
 		hoveredElement: null,
-		isModalOpen: false,
 		isProcessBlocked: false,
 		settings: {
 			gridSnap: true,
@@ -58,9 +58,20 @@ export class EditorViewModel {
 		},
 	};
 	private _uiState = structuredClone(this.initialUiState);
-	private published = $state.raw<EditorState>(structuredClone(this._uiState));
+	private published = $state.raw<Omit<EditorState, "isModalOpen">>(
+		structuredClone(this._uiState),
+	);
+	private modal: {
+		readonly current: { mode: "closed" | "load" | "save" };
+	} | null = null;
+	bindModal(source: Readable<{ mode: "closed" | "load" | "save" }>) {
+		this.modal = fromStore(source);
+	}
 	get uiState(): Readonly<EditorState> {
-		return this.published;
+		return {
+			...this.published,
+			isModalOpen: this.modal !== null && this.modal.current.mode !== "closed",
+		};
 	}
 	private notifyAll() {
 		this.published = structuredClone(this._uiState);
@@ -103,10 +114,6 @@ export class EditorViewModel {
 		this.notifyAll();
 	}
 	// ==== Persistent state setters ====
-	setModalOpen(val: boolean) {
-		this._uiState.isModalOpen = val;
-		this.notifyAll();
-	}
 
 	setHoveredElement(id: number) {
 		this._uiState.hoveredElement = id;

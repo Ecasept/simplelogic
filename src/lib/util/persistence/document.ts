@@ -28,8 +28,8 @@ export function createDocumentActions(
 		const replacement = editor.blocking(async () => {
 			interaction.cancel();
 			await previous;
+			if (!(await simController.clear(signal))) return false;
 			if (signal?.aborted) return false;
-			await simController.clear();
 			editor.resetDocumentState();
 			graph.setGraphData(document);
 			graph.notifyAll();

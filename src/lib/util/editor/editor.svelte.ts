@@ -17,6 +17,8 @@ export {
 	circuitModalViewModel,
 };
 
+editorViewModel.bindModal(circuitModalViewModel);
+
 // Application composition only. Owners receive dependencies and never import this module.
 export const interactionController = createInteractionController({
 	graphManager,
@@ -44,8 +46,6 @@ export const modeActions = createModeActions(
 	interactionController,
 );
 export const persistenceActions = createPersistenceActions(
-	graphManager,
-	editorViewModel,
 	circuitModalViewModel,
 	interactionController,
 	documentActions,

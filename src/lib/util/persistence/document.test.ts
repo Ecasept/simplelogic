@@ -9,6 +9,7 @@ import {
 	circuitModalViewModel,
 	persistenceActions,
 } from "../editor/editor.svelte";
+import { API } from "./api";
 import { simController } from "../graph/simulation.svelte";
 
 const empty = (nextId = 0) => ({ components: {}, wires: {}, nextId });
@@ -171,4 +172,29 @@ describe("document replacement", () => {
 		expect(await loading).toBe(false);
 		expect(graphManager.getGraphData()).toEqual(empty());
 	});
+});
+
+it("cancels modal document replacement during simulation shutdown", async () => {
+	const stopped = deferred();
+	vi.spyOn(simController, "stopLoop").mockReturnValueOnce(stopped.promise);
+	vi.spyOn(API, "loadCircuit").mockResolvedValue({
+		success: true,
+		data: empty(8),
+	});
+	persistenceActions.loadGraphManually();
+	const loading = circuitModalViewModel.loadCircuit(1);
+	await Promise.resolve();
+	await Promise.resolve();
+	expect(editorViewModel.uiState.isProcessBlocked).toBe(true);
+	persistenceActions.closeModal();
+	persistenceActions.saveGraph();
+	stopped.resolve();
+	await loading;
+	expect(graphManager.getGraphData()).toEqual(empty());
+	expect(circuitModalViewModel.uiState.mode).toBe("save");
+	expect(circuitModalViewModel.uiState).toMatchObject({
+		mode: "save",
+		action: { status: "idle" },
+	});
+	expect(editorViewModel.isBlocked).toBe(true);
 });

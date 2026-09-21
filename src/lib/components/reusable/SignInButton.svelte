@@ -1,22 +1,32 @@
 <script lang="ts">
 	import { graphManager } from "$lib/util/editor/editor.svelte";
 	import { getTheme } from "$lib/util/ui/theme.svelte";
+	import {
+		storeSignInSession,
+		type SignInSource,
+	} from "$lib/util/persistence/session";
 	import { signIn } from "@auth/sveltekit/client";
 
 	type Provider = "github" | "google";
 
-	const { provider, source }: { provider: Provider; source: string } = $props();
+	const { provider, source }: { provider: Provider; source: SignInSource } =
+		$props();
 
-	function _signIn(provider: Provider) {
-		// Temporarily save current circuit to session storage
-		// to restore it after sign-in
-		sessionStorage.setItem(
-			"currentCircuit",
-			JSON.stringify(graphManager.getGraphData()),
-		);
-		sessionStorage.setItem("signInSource", source);
-
-		signIn(provider);
+	let error = $state<string | null>(null);
+	async function _signIn(provider: Provider) {
+		error = null;
+		try {
+			storeSignInSession(sessionStorage, graphManager.getGraphData(), source);
+		} catch {
+			error =
+				"Could not preserve your circuit for sign-in. Allow browser storage and try again.";
+			return;
+		}
+		try {
+			await signIn(provider);
+		} catch {
+			error = "Unable to sign in. Please try again.";
+		}
 	}
 
 	const icons = {
@@ -47,6 +57,8 @@
 	/>
 	Continue with {capitalize(provider)}
 </button>
+
+{#if error}<p role="alert">{error}</p>{/if}
 
 <style lang="scss">
 	.signin-btn {

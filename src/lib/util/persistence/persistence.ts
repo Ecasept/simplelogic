@@ -1,21 +1,16 @@
-import type { GraphManager } from "../graph/graph.svelte";
-import type { EditorViewModel } from "../editor/editorViewModel.svelte";
 import type { CircuitModalViewModel } from "./circuitModalViewModel";
 import type { InteractionController } from "../interaction/interaction.svelte";
 import type { DocumentActions } from "./document";
 
 /** Opens persistence UI and replaces the active document after cancelling interactions. */
 export function createPersistenceActions(
-	graphManager: GraphManager,
-	editorViewModel: EditorViewModel,
 	circuitModalViewModel: CircuitModalViewModel,
 	interactionController: InteractionController,
 	documents: DocumentActions,
 ) {
 	function saveGraph() {
 		interactionController.cancel();
-		editorViewModel.setModalOpen(true);
-		circuitModalViewModel.open("save", () => {});
+		circuitModalViewModel.openSave();
 	}
 	/** Opens the load modal in non-fresh mode (i.e. not onboarding). */
 	function loadGraphManually() {
@@ -23,23 +18,13 @@ export function createPersistenceActions(
 	}
 	function loadGraph(isOnboarding: boolean) {
 		interactionController.cancel();
-		editorViewModel.setModalOpen(true);
-		circuitModalViewModel.open(
-			"load",
-			async (newGraphData, type) => {
-				await documents.replaceDocument(newGraphData);
-				if (isOnboarding && type === "preset") {
-					// If the user is new and selected a preset,
-					// show him the circuit immediately for better onboarding
-					closeModal();
-				}
-			},
-			{ isOnboarding },
-		);
+		circuitModalViewModel.openLoad({
+			isOnboarding,
+			onLoad: ({ graph }, signal) => documents.replaceDocument(graph, signal),
+		});
 	}
 	function closeModal() {
 		circuitModalViewModel.close();
-		editorViewModel.setModalOpen(false);
 	}
 	return {
 		saveGraph,

@@ -62,7 +62,8 @@ export type APIResponse<T> = z.infer<
 export namespace API {
 	interface FetchOptions {
 		method: "GET" | "POST" | "DELETE";
-		body?: any;
+		body?: unknown;
+		signal?: AbortSignal;
 		headers?: HeadersInit;
 	}
 
@@ -80,6 +81,7 @@ export namespace API {
 		try {
 			const fetchOptions: RequestInit = {
 				method: options.method,
+				signal: options.signal,
 				headers: {
 					"Content-Type": "application/json",
 					...options.headers,
@@ -102,39 +104,50 @@ export namespace API {
 
 			return validationResult.data;
 		} catch (error) {
+			if (options.signal?.aborted) throw error;
 			console.error(error);
 			return err("Network error");
 		}
 	}
 
-	export function saveCircuit(name: string, circuitData: GraphData) {
+	export function saveCircuit(
+		name: string,
+		circuitData: GraphData,
+		signal?: AbortSignal,
+	) {
 		return makeAPIRequest("/api/circuits", z.null(), {
 			method: "POST",
+			signal,
 			body: { name, data: circuitData },
 		});
 	}
 
-	export function loadCircuitList(page: number) {
+	export function loadCircuitList(page: number, signal?: AbortSignal) {
 		return makeAPIRequest(
 			`/api/circuits?page=${page}&perPage=10`,
 			ListRequestDataSchema,
-			{ method: "GET" },
+			{ method: "GET", signal },
 		);
 	}
 
-	export function loadCircuit(id: number) {
-		return makeAPIRequest(`/api/circuits/${id}`, ZGraphData, { method: "GET" });
-	}
-
-	export function deleteCircuit(id: number) {
-		return makeAPIRequest(`/api/circuits/${id}`, z.null(), {
-			method: "DELETE",
+	export function loadCircuit(id: number, signal?: AbortSignal) {
+		return makeAPIRequest(`/api/circuits/${id}`, ZGraphData, {
+			method: "GET",
+			signal,
 		});
 	}
 
-	export function getPresetById(id: number) {
+	export function deleteCircuit(id: number, signal?: AbortSignal) {
+		return makeAPIRequest(`/api/circuits/${id}`, z.null(), {
+			method: "DELETE",
+			signal,
+		});
+	}
+
+	export function getPresetById(id: number, signal?: AbortSignal) {
 		return makeAPIRequest(`/api/preset?id=${id}`, PresetResponseSchema, {
 			method: "GET",
+			signal,
 		});
 	}
 }

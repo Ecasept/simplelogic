@@ -84,6 +84,7 @@
 		void initialize();
 		return () => {
 			lifetime.abort();
+			circuitModalViewModel.close();
 			interactionController.cancel();
 		};
 	});
@@ -109,7 +110,7 @@
 		<Canvas uiState={$canvasViewModel}></Canvas>
 	</div>
 
-	{#if $circuitModalViewModel.mode !== null}
+	{#if $circuitModalViewModel.mode !== "closed"}
 		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
 	{/if}
 </div>

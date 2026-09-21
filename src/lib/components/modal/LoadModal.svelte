@@ -1,9 +1,14 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { circuitModalViewModel } from "$lib/util/editor/editor.svelte";
-	import type { ListRequestData } from "$lib/util/persistence/api";
-	import { availablePresets, type Preset } from "$lib/util/shared/global.svelte";
-	import type { FeedbackMessage } from "$lib/util/persistence/circuitModalViewModel";
+	import {
+		availablePresets,
+		type Preset,
+	} from "$lib/util/shared/global.svelte";
+	import type {
+		FeedbackMessage,
+		LoadScreen,
+	} from "$lib/util/persistence/circuitModalViewModel";
 	import { ArrowBigLeft, LogIn, Plus } from "lucide-svelte";
 	import Button from "../reusable/Button.svelte";
 	import Checkbox from "../reusable/Checkbox.svelte";
@@ -14,22 +19,15 @@
 	import PaginationControls from "./PaginationControls.svelte";
 
 	type Props = {
-		loadMode: "select" | "list";
+		screen: LoadScreen;
 		isOnboarding: boolean;
-		listRequestData: ListRequestData | null;
 		fixConnections: boolean;
 		message: FeedbackMessage | null;
 		onSelect: (id: number) => void;
 	};
 
-	let {
-		loadMode,
-		isOnboarding,
-		fixConnections,
-		listRequestData,
-		message,
-		onSelect,
-	}: Props = $props();
+	let { screen, isOnboarding, fixConnections, message, onSelect }: Props =
+		$props();
 
 	function pasteCircuitFromClipboard() {
 		circuitModalViewModel.pasteCircuitFromClipboard();
@@ -45,13 +43,11 @@
 
 	const isLoggedIn = $derived($page.data.session !== null);
 
-	let screen = $state(isOnboarding ? "presets" : "options"); // 'presets' | 'options'
-
 	function gotoPresets() {
-		screen = "presets";
+		circuitModalViewModel.showPresets();
 	}
 	function gotoOptions() {
-		screen = "options";
+		circuitModalViewModel.showOptions();
 	}
 
 	function loadPreset(id: number | "empty") {
@@ -168,20 +164,27 @@
 	</div>
 {/snippet}
 
-{#if loadMode === "select"}
-	{#if screen === "presets"}
-		{@render presetScreen()}
-	{:else if screen === "options"}
-		{@render optionsScreen()}
-	{/if}
+{#if screen.type === "presets"}
+	{@render presetScreen()}
+{:else if screen.type === "options"}
+	{@render optionsScreen()}
 {:else}
-	<!-- Existing list view -->
-	<div class="circuit-list-container">
-		<CircuitList listData={listRequestData} {onSelect} />
+	{@const request = screen.request}
+	{@const data =
+		request.status === "ready"
+			? request.data
+			: request.status === "loading" || request.status === "error"
+				? request.previous
+				: null}
+	<div class="circuit-list-container" aria-busy={request.status === "loading"}>
+		{#if request.status === "loading"}<p role="status">
+				Loading circuits…
+			</p>{/if}
+		<CircuitList listData={data} {onSelect} />
 	</div>
-	{#if listRequestData}
-		{@const currentPage = listRequestData.pagination.page}
-		{@const hasNextPage = listRequestData.pagination.hasNextPage}
+	{#if data}
+		{@const currentPage = data.pagination.page}
+		{@const hasNextPage = data.pagination.hasNextPage}
 		{@const hasPrevPage = currentPage > 1}
 		<PaginationControls
 			{currentPage}

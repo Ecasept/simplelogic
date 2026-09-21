@@ -19,6 +19,9 @@ test.describe("modal login", () => {
 		await expect(page.getByText("Sign in to")).toBeVisible();
 		await editor.clickGoogleLoginButton();
 		await expect(page.getByText("Sign in to")).not.toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Save your circuit" }),
+		).toBeVisible();
 		await editor.closeModal();
 		await editor.openLoadModal();
 		await expect(page.getByText("Sign in to")).not.toBeVisible();
@@ -529,7 +532,7 @@ test.describe("clipboard", () => {
 		// Copy to clipboard
 		await page.getByRole("button", { name: "Save" }).click();
 		await page.getByRole("button", { name: "Copy to clipboard" }).click();
-		await expect(page.getByText("Copied to clipboard")).toBeVisible();
+		await expect(page.getByText("Circuit copied to clipboard")).toBeVisible();
 
 		// Reload page
 		await editor.reload();

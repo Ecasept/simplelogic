@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { restoreSession } from "./session";
+import { restoreSession, storeSignInSession } from "./session";
 import { decodeDocument } from "./document";
 const empty = (nextId = 0) => ({ components: {}, wires: {}, nextId });
 const replaceDocument = vi.fn(async (input: unknown) => {
@@ -58,4 +58,32 @@ it("does not report a cancelled replacement as restored", async () => {
 	const result = await restoreSession(sessionStorage, async () => false);
 	expect(result.restored).toBe(false);
 	expect(result.error).toBeNull();
+});
+
+it("preserves a typed save return intent across authentication", async () => {
+	storeSignInSession(sessionStorage, empty(5), "saveModal");
+	const result = await restoreSession(sessionStorage, replaceDocument);
+	expect(result).toEqual({ restored: true, source: "saveModal", error: null });
+});
+
+it("ignores an unknown authentication return intent", async () => {
+	sessionStorage.setItem("signInSource", "unknown");
+	expect(
+		(await restoreSession(sessionStorage, replaceDocument)).source,
+	).toBeNull();
+	expect(sessionStorage.getItem("signInSource")).toBeNull();
+});
+
+it("reports storage write failures to the sign-in caller", () => {
+	expect(() =>
+		storeSignInSession(
+			{
+				setItem: () => {
+					throw new Error("denied");
+				},
+			},
+			empty(),
+			"saveModal",
+		),
+	).toThrow("denied");
 });
