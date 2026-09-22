@@ -2,7 +2,7 @@
 	import {
 		authViewModel,
 		type AuthUiState,
-	} from "$lib/util/ui/authViewModel";
+	} from "$lib/util/ui/authViewModel.svelte";
 	import { CircleUserRound } from "lucide-svelte";
 	import AuthenticationPopup from "./AuthenticationPopup.svelte";
 	let { uiState }: { uiState: AuthUiState } = $props();

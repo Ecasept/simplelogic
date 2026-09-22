@@ -1,5 +1,3 @@
-import { ViewModel } from "./viewModel";
-
 export type AuthUiState = {
 	open: boolean;
 	message: string | null;
@@ -7,15 +5,15 @@ export type AuthUiState = {
 	passwordInputValue: string;
 };
 
-export class AuthViewModel extends ViewModel<AuthUiState> {
-	protected _uiState: AuthUiState = {
+export class AuthViewModel {
+	public uiState: AuthUiState = $state({
 		open: false,
 		message: null,
 		loggedIn: false,
 		passwordInputValue: "",
-	};
+	});
 	protected resetUiState(): void {
-		this._uiState = {
+		this.uiState = {
 			open: false,
 			message: null,
 			loggedIn: false,
@@ -24,17 +22,14 @@ export class AuthViewModel extends ViewModel<AuthUiState> {
 	}
 
 	setPasswordInputValue(val: string) {
-		this._uiState.passwordInputValue = val;
-		this.notifyAll();
+		this.uiState.passwordInputValue = val;
 	}
 
 	setLoggedInState(state: boolean) {
-		this._uiState.loggedIn = state;
-		this.notifyAll();
+		this.uiState.loggedIn = state;
 	}
 	toggleOpen() {
-		this._uiState.open = !this._uiState.open;
-		this.notifyAll();
+		this.uiState.open = !this.uiState.open;
 	}
 }
 

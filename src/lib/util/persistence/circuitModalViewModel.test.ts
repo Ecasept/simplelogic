@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CircuitModalViewModel, feedbackFor } from "./circuitModalViewModel";
+import {
+	CircuitModalViewModel,
+	feedbackFor,
+} from "./circuitModalViewModel.svelte";
 import { API, type APIResponse, type ListRequestData } from "./api";
 import type { GraphData } from "../shared/types";
 import halfAdder from "../../server/presets/halfAdder.json";

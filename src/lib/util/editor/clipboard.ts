@@ -1,4 +1,5 @@
 import { CommandGroup, RawAddCommand, type Command } from "../graph/commands";
+import { snapshot } from "../shared/snapshot.svelte";
 import { GRID_SIZE, mousePosition } from "../shared/global.svelte";
 import type {
 	ComponentData,
@@ -9,11 +10,8 @@ import type {
 	XYPair,
 } from "../shared/types";
 import type { GraphManager } from "../graph/graph.svelte";
-import type {
-	EditorViewModel,
-	ElementType,
-} from "./editorViewModel.svelte";
-import type { CanvasViewModel } from "../interaction/canvasViewModel";
+import type { EditorViewModel, ElementType } from "./editorViewModel.svelte";
+import type { CanvasViewModel } from "../interaction/canvasViewModel.svelte";
 import type { InteractionController } from "../interaction/interaction.svelte";
 type CloneEntry = [ComponentData, "component"] | [WireData, "wire"];
 
@@ -96,7 +94,7 @@ export function createClipboardActions(
 				continue;
 			}
 
-			const clone = structuredClone(orig);
+			const clone = snapshot(orig);
 
 			// Filter connections to only those inside subset
 			for (const handle of Object.values(clone.handles) as (
@@ -145,7 +143,6 @@ export function createClipboardActions(
 		const group = new CommandGroup(commands, "duplicate");
 		graphManager.executeCommand(group);
 		graphManager.applyChanges();
-		graphManager.notifyAll();
 	}
 
 	function selectAll(clones: CloneEntry[]) {

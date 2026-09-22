@@ -1,4 +1,4 @@
-import type { CircuitModalViewModel } from "./circuitModalViewModel";
+import type { CircuitModalViewModel } from "./circuitModalViewModel.svelte";
 import type { InteractionController } from "../interaction/interaction.svelte";
 import type { DocumentActions } from "./document";
 

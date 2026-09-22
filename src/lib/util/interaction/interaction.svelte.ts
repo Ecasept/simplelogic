@@ -33,7 +33,7 @@ import type {
 	ElementType,
 	TypedReference,
 } from "../editor/editorViewModel.svelte";
-import type { CanvasViewModel, ViewBox } from "./canvasViewModel";
+import type { CanvasViewModel, ViewBox } from "./canvasViewModel.svelte";
 import type {
 	EditInteraction,
 	InteractionState,
@@ -266,7 +266,7 @@ export function createInteractionController({
 		const graph = graphManager.getGraphData();
 		let movement = current.movement;
 		if (!movement || movement.edit !== edit) {
-			movement = { edit, origin: structuredClone(graph) };
+			movement = { edit, origin: $state.snapshot(graph) };
 		}
 		const next = { ...current, movement };
 		session = next;

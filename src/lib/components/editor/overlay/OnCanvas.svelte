@@ -2,7 +2,7 @@
 	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import { interactionController } from "$lib/util/editor/editor.svelte";
-	import type { AuthUiState } from "$lib/util/ui/authViewModel";
+	import type { AuthUiState } from "$lib/util/ui/authViewModel.svelte";
 
 	import CancelButton from "../CancelButton.svelte";
 	import AccountButton from "./account/AccountButton.svelte";

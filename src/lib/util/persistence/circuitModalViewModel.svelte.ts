@@ -2,7 +2,6 @@ import { graphManager } from "../graph/graph.svelte";
 import { API, type ListRequestData } from "./api";
 import { calculateHandlePosition } from "../shared/global.svelte";
 import type { ComponentData, GraphData } from "../shared/types";
-import { ViewModel } from "../ui/viewModel";
 import { decodeDocument } from "./document";
 import { cancellationDelay } from "../shared/cancellation";
 
@@ -71,8 +70,8 @@ function listData(request: CircuitListState): ListRequestData | null {
 	return null;
 }
 
-export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
-	protected _uiState = closedState();
+export class CircuitModalViewModel {
+	public uiState = $state<CircuitModalUiState>(closedState());
 	private lifetime = new AbortController();
 	private requests = new Map<"action" | "list", AbortController>();
 	private onLoad: LoadHandler | null = null;
@@ -82,9 +81,9 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 		this.lifetime = new AbortController();
 		this.requests.clear();
 		this.onLoad = null;
-		this._uiState = {
+		this.uiState = {
 			...closedState(),
-			openingId: this._uiState.openingId + 1,
+			openingId: this.uiState.openingId + 1,
 		};
 	}
 
@@ -97,41 +96,37 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 	}) {
 		this.resetUiState();
 		this.onLoad = onLoad;
-		this._uiState = {
+		this.uiState = {
 			mode: "load",
-			openingId: this._uiState.openingId,
+			openingId: this.uiState.openingId,
 			action: idleAction(),
 			screen: { type: isOnboarding ? "presets" : "options" },
 			fixConnections: false,
 			isOnboarding,
 		};
-		this.notifyAll();
 	}
 
 	openSave() {
 		this.resetUiState();
-		this._uiState = {
+		this.uiState = {
 			mode: "save",
-			openingId: this._uiState.openingId,
+			openingId: this.uiState.openingId,
 			action: idleAction(),
 		};
-		this.notifyAll();
 	}
 
 	close() {
 		this.resetUiState();
-		this.notifyAll();
 	}
 
 	/** A newer request cancels its predecessor; closing cancels every request. */
 	private async runAction(work: (signal: AbortSignal) => Promise<void>) {
-		if (this._uiState.mode === "closed") return;
+		if (this.uiState.mode === "closed") return;
 		this.requests.get("action")?.abort();
 		const request = new AbortController();
 		this.requests.set("action", request);
 		const signal = AbortSignal.any([this.lifetime.signal, request.signal]);
-		this._uiState = { ...this._uiState, action: { status: "pending" } };
-		this.notifyAll();
+		this.uiState = { ...this.uiState, action: { status: "pending" } };
 		try {
 			if (!signal.aborted) await work(signal);
 		} catch (error) {
@@ -143,40 +138,36 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 			if (!signal.aborted) {
 				this.requests.delete("action");
 				if (
-					"action" in this._uiState &&
-					this._uiState.action.status === "pending"
+					"action" in this.uiState &&
+					this.uiState.action.status === "pending"
 				) {
-					this._uiState = { ...this._uiState, action: idleAction() };
-					this.notifyAll();
+					this.uiState = { ...this.uiState, action: idleAction() };
 				}
 			}
 		}
 	}
 
 	showOptions() {
-		if (this._uiState.mode !== "load") return;
-		this._uiState = { ...this._uiState, screen: { type: "options" } };
-		this.notifyAll();
+		if (this.uiState.mode !== "load") return;
+		this.uiState = { ...this.uiState, screen: { type: "options" } };
 	}
 
 	showPresets() {
-		if (this._uiState.mode !== "load") return;
-		this._uiState = { ...this._uiState, screen: { type: "presets" } };
-		this.notifyAll();
+		if (this.uiState.mode !== "load") return;
+		this.uiState = { ...this.uiState, screen: { type: "presets" } };
 	}
 
 	setFixConnections(value: boolean) {
-		if (this._uiState.mode !== "load") return;
-		this._uiState = { ...this._uiState, fixConnections: value };
-		this.notifyAll();
+		if (this.uiState.mode !== "load") return;
+		this.uiState = { ...this.uiState, fixConnections: value };
 	}
 
 	private loadOptions(): LoadOptions | null {
-		if (this._uiState.mode !== "load" || !this.onLoad) return null;
+		if (this.uiState.mode !== "load" || !this.onLoad) return null;
 		return {
 			onLoad: this.onLoad,
-			fixConnections: this._uiState.fixConnections,
-			isOnboarding: this._uiState.isOnboarding,
+			fixConnections: this.uiState.fixConnections,
+			isOnboarding: this.uiState.isOnboarding,
 		};
 	}
 
@@ -259,8 +250,8 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 
 	async copyCircuitToClipboard() {
 		if (
-			this._uiState.mode !== "save" ||
-			this._uiState.action.status === "pending"
+			this.uiState.mode !== "save" ||
+			this.uiState.action.status === "pending"
 		)
 			return;
 		await this.runAction(async (signal) => {
@@ -272,8 +263,8 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 
 	async saveCircuit(name: string) {
 		if (
-			this._uiState.mode !== "save" ||
-			this._uiState.action.status === "pending"
+			this.uiState.mode !== "save" ||
+			this.uiState.action.status === "pending"
 		)
 			return;
 		await this.runAction(async (signal) => {
@@ -295,44 +286,42 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 	}
 
 	async loadCircuitList(page: number) {
-		if (this._uiState.mode !== "load") return;
+		if (this.uiState.mode !== "load") return;
 		this.requests.get("list")?.abort();
 		const request = new AbortController();
 		this.requests.set("list", request);
 		const signal = AbortSignal.any([this.lifetime.signal, request.signal]);
 		const previous =
-			this._uiState.screen.type === "circuit-list"
-				? listData(this._uiState.screen.request)
+			this.uiState.screen.type === "circuit-list"
+				? listData(this.uiState.screen.request)
 				: null;
-		this._uiState = {
-			...this._uiState,
+		this.uiState = {
+			...this.uiState,
 			action:
-				this._uiState.action.status === "pending"
-					? this._uiState.action
+				this.uiState.action.status === "pending"
+					? this.uiState.action
 					: idleAction(),
 			screen: {
 				type: "circuit-list",
 				request: { status: "loading", previous },
 			},
 		};
-		this.notifyAll();
 		try {
 			const result = await API.loadCircuitList(page, signal);
 			if (signal.aborted) return;
 			if (!result.success) throw new Error(result.error);
-			if (this._uiState.mode !== "load") return;
-			this._uiState = {
-				...this._uiState,
+			if (this.uiState.mode !== "load") return;
+			this.uiState = {
+				...this.uiState,
 				screen: {
 					type: "circuit-list",
 					request: { status: "ready", data: result.data },
 				},
 			};
-			this.notifyAll();
 		} catch (error) {
-			if (signal.aborted || this._uiState.mode !== "load") return;
-			this._uiState = {
-				...this._uiState,
+			if (signal.aborted || this.uiState.mode !== "load") return;
+			this.uiState = {
+				...this.uiState,
 				screen: {
 					type: "circuit-list",
 					request: {
@@ -345,7 +334,6 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 					},
 				},
 			};
-			this.notifyAll();
 			void this.scrollToFeedback();
 		} finally {
 			if (!signal.aborted) this.requests.delete("list");
@@ -354,34 +342,34 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 
 	async deleteCircuit(id: number, goToPrevPage: boolean) {
 		if (
-			this._uiState.mode !== "load" ||
-			this._uiState.action.status === "pending"
+			this.uiState.mode !== "load" ||
+			this.uiState.action.status === "pending"
 		)
 			return;
 		const currentData =
-			this._uiState.screen.type === "circuit-list"
-				? listData(this._uiState.screen.request)
+			this.uiState.screen.type === "circuit-list"
+				? listData(this.uiState.screen.request)
 				: null;
 		const page = currentData?.pagination.page ?? 1;
 		// A delete completion must not navigate back after the user changes pages.
 		const listRequest = this.requests.get("list");
-		const screen = this._uiState.screen;
+		const screen = this.uiState.screen;
 		await this.runAction(async (signal) => {
 			const result = await API.deleteCircuit(id, signal);
 			if (signal.aborted) return;
 			if (!result.success) throw new Error(result.error);
 			if (
 				this.requests.get("list") === listRequest &&
-				this._uiState.mode === "load" &&
-				this._uiState.screen === screen
+				this.uiState.mode === "load" &&
+				this.uiState.screen === screen
 			) {
 				await this.loadCircuitList(Math.max(1, page - (goToPrevPage ? 1 : 0)));
 			}
 			if (
 				!signal.aborted &&
-				this._uiState.mode === "load" &&
-				(this._uiState.screen.type !== "circuit-list" ||
-					this._uiState.screen.request.status !== "error")
+				this.uiState.mode === "load" &&
+				(this.uiState.screen.type !== "circuit-list" ||
+					this.uiState.screen.request.status !== "error")
 			)
 				this.setSuccess("Circuit deleted successfully");
 		});
@@ -390,44 +378,42 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 	private async scrollToFeedback() {
 		const signal = this.lifetime.signal;
 		await cancellationDelay(0, signal);
-		if (!signal.aborted && feedbackFor(this._uiState))
+		if (!signal.aborted && feedbackFor(this.uiState))
 			document
 				.getElementById("error-msg")
 				?.scrollIntoView({ behavior: "smooth", block: "center" });
 	}
 
 	setError(message: string) {
-		if (this._uiState.mode === "closed") return;
-		this._uiState = { ...this._uiState, action: { status: "error", message } };
-		this.notifyAll();
+		if (this.uiState.mode === "closed") return;
+		this.uiState = { ...this.uiState, action: { status: "error", message } };
 		void this.scrollToFeedback();
 	}
 
 	setSuccess(message: string) {
-		if (this._uiState.mode === "closed") return;
-		this._uiState = {
-			...this._uiState,
+		if (this.uiState.mode === "closed") return;
+		this.uiState = {
+			...this.uiState,
 			action: { status: "success", message },
 		};
-		this.notifyAll();
 		void this.scrollToFeedback();
 	}
 
 	closeFeedback() {
-		if (this._uiState.mode === "closed") return;
+		if (this.uiState.mode === "closed") return;
 		if (
-			this._uiState.action.status === "error" ||
-			this._uiState.action.status === "success"
+			this.uiState.action.status === "error" ||
+			this.uiState.action.status === "success"
 		) {
-			this._uiState = { ...this._uiState, action: idleAction() };
+			this.uiState = { ...this.uiState, action: idleAction() };
 		} else if (
-			this._uiState.mode === "load" &&
-			this._uiState.screen.type === "circuit-list" &&
-			this._uiState.screen.request.status === "error"
+			this.uiState.mode === "load" &&
+			this.uiState.screen.type === "circuit-list" &&
+			this.uiState.screen.request.status === "error"
 		) {
-			const previous = this._uiState.screen.request.previous;
-			this._uiState = {
-				...this._uiState,
+			const previous = this.uiState.screen.request.previous;
+			this.uiState = {
+				...this.uiState,
 				screen: {
 					type: "circuit-list",
 					request: previous
@@ -436,7 +422,6 @@ export class CircuitModalViewModel extends ViewModel<CircuitModalUiState> {
 				},
 			};
 		}
-		this.notifyAll();
 	}
 	private computeComponentHandlePos(comp: ComponentData, handleId: string) {
 		const handle = comp.handles[handleId];

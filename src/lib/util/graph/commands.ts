@@ -1,3 +1,4 @@
+import { snapshot } from "../shared/snapshot.svelte";
 import {
 	calculateHandlePosition,
 	entries,
@@ -34,8 +35,17 @@ export class CommandGroup implements Command {
 		public readonly type: string = "none",
 	) {}
 	execute(graphData: GraphData) {
-		for (const command of this.commands) {
-			command.execute(graphData);
+		let completed = 0;
+		try {
+			for (const command of this.commands) {
+				command.execute(graphData);
+				completed++;
+			}
+		} catch (error) {
+			for (let i = completed - 1; i >= 0; i--) {
+				this.commands[i].undo(graphData);
+			}
+			throw error;
 		}
 	}
 	undo(graphData: GraphData) {
@@ -234,9 +244,7 @@ export class MoveComponentCommand implements Command {
 
 	execute(graphData: GraphData) {
 		// Store the old position and set the new position
-		this.oldPosition = structuredClone(
-			graphData.components[this.componentId].position,
-		);
+		this.oldPosition = { ...graphData.components[this.componentId].position };
 		graphData.components[this.componentId].position = this.newPosition;
 	}
 
@@ -292,10 +300,9 @@ export class MoveComponentAndWiresCommand implements Command {
 
 	execute(graphData: GraphData) {
 		this.prepare(graphData);
-		this.moveComponentCmd!.execute(graphData);
-		for (const cmd of this.moveWireCmds) {
-			cmd.execute(graphData);
-		}
+		new CommandGroup([this.moveComponentCmd!, ...this.moveWireCmds]).execute(
+			graphData,
+		);
 	}
 
 	undo(graphData: GraphData) {
@@ -556,7 +563,7 @@ export class UpdateCustomDataCommand implements Command {
 		component.customData ??= {};
 
 		// Store the old value for undo
-		this.oldValue = component.customData[this.property];
+		this.oldValue = snapshot(component.customData[this.property]);
 
 		// Set the new value
 		component.customData[this.property] = this.newValue;

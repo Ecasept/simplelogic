@@ -42,7 +42,6 @@ export function createGraphActions(
 		const group = new CommandGroup(commands);
 		graphManager.executeCommand(group);
 		graphManager.applyChanges();
-		graphManager.notifyAll();
 	}
 
 	/** Deletes one specific component by its ID. */
@@ -79,12 +78,10 @@ export function createGraphActions(
 		deleteMulti(uiState.selected);
 	}
 
-
 	function togglePower(id: number) {
 		const cmd = new ToggleInputPowerStateCommand(id);
 		graphManager.executeCommand(cmd);
 		graphManager.applyChanges();
-		graphManager.notifyAll();
 
 		if (editorViewModel.uiState.mode === "simulate") {
 			simController.recomputeComponent(id);
@@ -95,7 +92,6 @@ export function createGraphActions(
 		const command = new UpdateCustomDataCommand(id, "fontSize", newSize);
 		graphManager.executeCommand(command);
 		graphManager.applyChanges();
-		graphManager.notifyAll();
 	}
 
 	function updateCustomDataMerged(
@@ -113,14 +109,12 @@ export function createGraphActions(
 		const command = new UpdateCustomDataCommand(id, "alignment", newAlignment);
 		graphManager.executeCommand(command);
 		graphManager.applyChanges();
-		graphManager.notifyAll();
 	}
 
 	function updateIoShowLabel(id: number, showLabel: boolean) {
 		const command = new UpdateCustomDataCommand(id, "showLabel", showLabel);
 		graphManager.executeCommand(command);
 		graphManager.applyChanges();
-		graphManager.notifyAll();
 	}
 
 	function undo() {
@@ -135,12 +129,6 @@ export function createGraphActions(
 					editorViewModel.removeSelectedId(deletedId);
 				}
 			}
-		}
-
-		// Notify listeners after clearing selection
-		// to prevent selection from pointing to a deleted element
-		if (didUndo) {
-			graphManager.notifyAll();
 		}
 	}
 
@@ -197,7 +185,6 @@ export function createGraphActions(
 		if (apply) {
 			graphManager.applyChanges();
 		}
-		graphManager.notifyAll();
 	}
 
 	return {

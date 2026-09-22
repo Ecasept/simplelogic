@@ -9,7 +9,6 @@ export class GraphEditTransaction {
 
 	constructor(
 		private readonly graph: GraphData,
-		private readonly publish: () => void,
 		private readonly finish: (command?: Command) => void,
 	) {}
 
@@ -28,7 +27,6 @@ export class GraphEditTransaction {
 		const result = command.execute(this.graph);
 		this.commands.push(command);
 		this.replacement = null;
-		this.publish();
 		return result;
 	}
 
@@ -62,7 +60,6 @@ export class GraphEditTransaction {
 			}
 			throw error;
 		}
-		this.publish();
 	}
 
 	commit() {
@@ -87,6 +84,5 @@ export class GraphEditTransaction {
 		this.commands = [];
 		this.replacement = null;
 		this.finish(command);
-		this.publish();
 	}
 }

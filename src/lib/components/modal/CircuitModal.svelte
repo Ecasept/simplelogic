@@ -6,7 +6,7 @@
 	import {
 		feedbackFor,
 		type CircuitModalUiState,
-	} from "$lib/util/persistence/circuitModalViewModel";
+	} from "$lib/util/persistence/circuitModalViewModel.svelte";
 	import { Download, Save } from "lucide-svelte";
 	import BaseModal from "./BaseModal.svelte";
 	import LoadModal from "./LoadModal.svelte";

@@ -32,7 +32,6 @@ export function createDocumentActions(
 			if (signal?.aborted) return false;
 			editor.resetDocumentState();
 			graph.setGraphData(document);
-			graph.notifyAll();
 			return true;
 		});
 		queue = replacement.then(

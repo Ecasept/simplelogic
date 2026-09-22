@@ -1,7 +1,7 @@
 import { graphManager } from "../graph/graph.svelte";
 import { editorViewModel } from "./editorViewModel.svelte";
-import { canvasViewModel } from "../interaction/canvasViewModel";
-import { circuitModalViewModel } from "../persistence/circuitModalViewModel";
+import { canvasViewModel } from "../interaction/canvasViewModel.svelte";
+import { circuitModalViewModel } from "../persistence/circuitModalViewModel.svelte";
 import { createInteractionController } from "../interaction/interaction.svelte";
 import { createGraphActions } from "./graphActions";
 import { createClipboardActions } from "./clipboard";

@@ -10,7 +10,7 @@
 	} from "$lib/util/editor/editor.svelte";
 	import { CANVAS_DOT_RADIUS, GRID_SIZE } from "$lib/util/shared/global.svelte";
 	import { normalizePointer } from "$lib/util/interaction/interaction.svelte";
-	import type { CanvasUiState } from "$lib/util/interaction/canvasViewModel";
+	import type { CanvasUiState } from "$lib/util/interaction/canvasViewModel.svelte";
 	import {
 		isComponentInViewport,
 		isWireInViewport,

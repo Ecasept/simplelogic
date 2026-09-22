@@ -2,7 +2,7 @@
 	import { page } from "$app/stores";
 	import { circuitModalViewModel } from "$lib/util/editor/editor.svelte";
 	import { onEnter } from "$lib/util/editor/keyboard";
-	import type { FeedbackMessage } from "$lib/util/persistence/circuitModalViewModel";
+	import type { FeedbackMessage } from "$lib/util/persistence/circuitModalViewModel.svelte";
 	import { LogIn } from "lucide-svelte";
 	import Button from "../reusable/Button.svelte";
 	import HrText from "../reusable/HRText.svelte";

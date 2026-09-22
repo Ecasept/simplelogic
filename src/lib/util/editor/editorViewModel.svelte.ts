@@ -1,4 +1,4 @@
-import { fromStore, type Readable } from "svelte/store";
+import { SvelteMap } from "svelte/reactivity";
 import type { HandleReference } from "../shared/types";
 /** References an element, and including its type.
  * This is useful because, even though an element can be
@@ -45,48 +45,65 @@ export type EditorState = BaseState &
 
 /** Persistent editor state. Active interactions belong exclusively to the controller. */
 export class EditorViewModel {
-	private initialUiState: Omit<EditorState, "isModalOpen"> = {
-		mode: "edit",
-		selected: new Map(),
-		hoveredHandle: null,
-		hoveredElement: null,
-		isProcessBlocked: false,
-		settings: {
-			gridSnap: true,
-			areaSelectType: "intersect",
-			continuousPlacement: false,
-		},
-	};
-	private _uiState = structuredClone(this.initialUiState);
-	private published = $state.raw<Omit<EditorState, "isModalOpen">>(
-		structuredClone(this._uiState),
-	);
-	private modal: {
-		readonly current: { mode: "closed" | "load" | "save" };
-	} | null = null;
-	bindModal(source: Readable<{ mode: "closed" | "load" | "save" }>) {
-		this.modal = fromStore(source);
-	}
-	get uiState(): Readonly<EditorState> {
+	private createInitialState(): Omit<EditorState, "isModalOpen"> {
 		return {
-			...this.published,
-			isModalOpen: this.modal !== null && this.modal.current.mode !== "closed",
+			mode: "edit",
+			selected: new SvelteMap(),
+			hoveredHandle: null,
+			hoveredElement: null,
+			isProcessBlocked: false,
+			settings: {
+				gridSnap: true,
+				areaSelectType: "intersect",
+				continuousPlacement: false,
+			},
 		};
 	}
-	private notifyAll() {
-		this.published = structuredClone(this._uiState);
+	private state = $state(this.createInitialState());
+	private modal = $state.raw<{
+		readonly uiState: { mode: "closed" | "load" | "save" };
+	} | null>(null);
+	bindModal(source: {
+		readonly uiState: { mode: "closed" | "load" | "save" };
+	}) {
+		this.modal = source;
 	}
+	// Getters preserve field-level dependencies instead of spreading the entire state.
+	readonly uiState: Readonly<EditorState> = (() => {
+		const owner = this;
+		return {
+			get mode() {
+				return owner.state.mode;
+			},
+			get selected() {
+				return owner.state.selected;
+			},
+			get hoveredHandle() {
+				return owner.state.hoveredHandle;
+			},
+			get hoveredElement() {
+				return owner.state.hoveredElement;
+			},
+			get isProcessBlocked() {
+				return owner.state.isProcessBlocked;
+			},
+			get settings() {
+				return owner.state.settings;
+			},
+			get isModalOpen() {
+				return owner.modal !== null && owner.modal.uiState.mode !== "closed";
+			},
+		};
+	})();
 
 	hardReset() {
-		this._uiState = structuredClone(this.initialUiState);
-		this.notifyAll();
+		this.state = this.createInitialState();
 	}
 	resetDocumentState() {
-		this._uiState.mode = "edit";
-		this._uiState.selected = new Map();
-		this._uiState.hoveredHandle = null;
-		this._uiState.hoveredElement = null;
-		this.notifyAll();
+		this.state.mode = "edit";
+		this.state.selected = new SvelteMap();
+		this.state.hoveredHandle = null;
+		this.state.hoveredElement = null;
 	}
 	private blockingCount = 0;
 	get isBlocked() {
@@ -95,54 +112,46 @@ export class EditorViewModel {
 	/** Keep input blocked until every overlapping operation has settled. */
 	async blocking<T>(fn: () => Promise<T> | T): Promise<T> {
 		this.blockingCount++;
-		this._uiState.isProcessBlocked = true;
-		this.notifyAll();
+		this.state.isProcessBlocked = true;
 		try {
 			return await fn();
 		} finally {
 			this.blockingCount--;
-			this._uiState.isProcessBlocked = this.blockingCount > 0;
-			this.notifyAll();
+			this.state.isProcessBlocked = this.blockingCount > 0;
 		}
 	}
 	setMode(mode: EditorMode) {
-		if (this._uiState.mode === mode) {
+		if (this.state.mode === mode) {
 			return;
 		}
-		this._uiState.mode = mode;
-		this._uiState.selected = new Map();
-		this.notifyAll();
+		this.state.mode = mode;
+		this.state.selected = new SvelteMap();
 	}
 	// ==== Persistent state setters ====
 
 	setHoveredElement(id: number) {
-		this._uiState.hoveredElement = id;
-		this.notifyAll();
+		this.state.hoveredElement = id;
 	}
 
 	removeHoveredElement() {
-		this._uiState.hoveredElement = null;
-		this.notifyAll();
+		this.state.hoveredElement = null;
 	}
 	setHoveredHandle(handle: HandleReference) {
-		if (this._uiState.hoveredHandle !== null) {
+		if (this.state.hoveredHandle !== null) {
 			console.warn("hovered handle already set");
 		}
-		this._uiState.hoveredHandle = handle;
-		this.notifyAll();
+		this.state.hoveredHandle = handle;
 	}
 	removeHoveredHandle() {
-		this._uiState.hoveredHandle = null;
-		this.notifyAll();
+		this.state.hoveredHandle = null;
 	}
 	/** Add `element` to the selection */
 	addSelected(element: TypedReference) {
-		if (this._uiState.mode !== "edit") {
+		if (this.state.mode !== "edit") {
 			console.warn("Tried to select an element in an invalid mode");
 			return;
 		}
-		this._uiState.selected.set(element.id, element.type);
-		this.notifyAll();
+		this.state.selected.set(element.id, element.type);
 	}
 	/** Remove `element` from the selection */
 	removeSelected(element: TypedReference) {
@@ -150,39 +159,35 @@ export class EditorViewModel {
 	}
 	/** Remove the element with the given `id` from the selection */
 	removeSelectedId(id: number) {
-		if (this._uiState.mode !== "edit") {
+		if (this.state.mode !== "edit") {
 			console.warn("Tried to deselect an element in an invalid mode");
 			return;
 		}
-		this._uiState.selected.delete(id);
-		this.notifyAll();
+		this.state.selected.delete(id);
 	}
 	/** Set the selection to only contain the given element */
 	setSelected(element: TypedReference) {
-		if (this._uiState.mode !== "edit") {
+		if (this.state.mode !== "edit") {
 			console.warn("Tried to set selection in an invalid mode");
 			return;
 		}
-		this._uiState.selected = new Map<number, ElementType>();
-		this._uiState.selected.set(element.id, element.type);
-		this.notifyAll();
+		this.state.selected = new SvelteMap<number, ElementType>();
+		this.state.selected.set(element.id, element.type);
 	}
 	/** Set the selection to only contain the given elements */
 	setSelectedElements(elements: Map<number, ElementType>) {
-		if (this._uiState.mode !== "edit") {
+		if (this.state.mode !== "edit") {
 			console.warn("Tried to set selection in an invalid mode");
 			return;
 		}
-		this._uiState.selected = new Map(elements);
-		this.notifyAll();
+		this.state.selected = new SvelteMap(elements);
 	}
 	clearSelection() {
-		if (this._uiState.mode !== "edit") {
+		if (this.state.mode !== "edit") {
 			console.warn("Tried to clear selection in an invalid mode");
 			return;
 		}
-		this._uiState.selected.clear();
-		this.notifyAll();
+		this.state.selected.clear();
 	}
 	isSelected(element: TypedReference) {
 		return this.isSelectedId(element.id);
@@ -195,27 +200,22 @@ export class EditorViewModel {
 		return this.uiState.selected.size;
 	}
 	setGridSnap(val: boolean) {
-		this._uiState.settings.gridSnap = val;
+		this.state.settings.gridSnap = val;
 		this.updateSettings();
 	}
 	setAreaSelectType(val: AreaSelectType) {
-		this._uiState.settings.areaSelectType = val;
+		this.state.settings.areaSelectType = val;
 		this.updateSettings();
 	}
 	setContinuousPlacement(val: boolean) {
-		this._uiState.settings.continuousPlacement = val;
+		this.state.settings.continuousPlacement = val;
 		this.updateSettings();
 	}
 	updateSettings() {
-		localStorage.setItem(
-			"editorSettings",
-			JSON.stringify(this._uiState.settings),
-		);
-		this.notifyAll();
+		localStorage.setItem("editorSettings", JSON.stringify(this.state.settings));
 	}
 	applySettings(settings: Partial<SettingsState["settings"]>) {
-		this._uiState.settings = { ...this._uiState.settings, ...settings };
-		this.notifyAll();
+		this.state.settings = { ...this.state.settings, ...settings };
 	}
 }
 

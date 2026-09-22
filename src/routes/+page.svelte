@@ -18,7 +18,7 @@
 	import { handleKeyDown } from "$lib/util/editor/keyboard";
 	import { normalizePointer } from "$lib/util/interaction/interaction.svelte";
 	import { getThemeClass } from "$lib/util/ui/theme.svelte";
-	import { authViewModel } from "$lib/util/ui/authViewModel";
+	import { authViewModel } from "$lib/util/ui/authViewModel.svelte";
 	import { onMount } from "svelte";
 	import type { PageData } from "./$types";
 	import { restoreSession } from "$lib/util/persistence/session";
@@ -105,13 +105,15 @@
 
 <div class="wrapper theme-host {themeClass}" data-ready={ready} inert={!ready}>
 	<div inert={editorUiState.current.isProcessBlocked}>
-		<OnCanvas uiState={editorUiState.current} authUiState={$authViewModel}
+		<OnCanvas
+			uiState={editorUiState.current}
+			authUiState={authViewModel.uiState}
 		></OnCanvas>
-		<Canvas uiState={$canvasViewModel}></Canvas>
+		<Canvas uiState={canvasViewModel.uiState}></Canvas>
 	</div>
 
-	{#if $circuitModalViewModel.mode !== "closed"}
-		<CircuitModal uiState={$circuitModalViewModel}></CircuitModal>
+	{#if circuitModalViewModel.uiState.mode !== "closed"}
+		<CircuitModal uiState={circuitModalViewModel.uiState}></CircuitModal>
 	{/if}
 </div>
 

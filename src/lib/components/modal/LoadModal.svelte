@@ -8,7 +8,7 @@
 	import type {
 		FeedbackMessage,
 		LoadScreen,
-	} from "$lib/util/persistence/circuitModalViewModel";
+	} from "$lib/util/persistence/circuitModalViewModel.svelte";
 	import { ArrowBigLeft, LogIn, Plus } from "lucide-svelte";
 	import Button from "../reusable/Button.svelte";
 	import Checkbox from "../reusable/Checkbox.svelte";

@@ -55,7 +55,7 @@ class SimulationController {
 		simulation.reset();
 		this.simulationStart = null;
 		this.simulationDuration = 0;
-		this.notifyAll();
+		this.flushChanges();
 		// Start processing again if in continuous mode
 		this.runContinuousLoopIfEnabled();
 	}
@@ -67,15 +67,16 @@ class SimulationController {
 		if (signal?.aborted) return false;
 		simulation._state = {};
 		simulation._queue = [];
+		simulation.changed.clear();
 		this.simulationStart = null;
 		this.simulationDuration = 0;
-		this.notifyAll();
+		this.flushChanges();
 		return true;
 	}
 
 	public start() {
 		simulation.reset();
-		this.notifyAll();
+		this.flushChanges();
 		this.runContinuousLoopIfEnabled();
 	}
 
@@ -88,7 +89,7 @@ class SimulationController {
 
 	public stepForward() {
 		this._step();
-		this.notifyAll();
+		this.flushChanges();
 	}
 
 	private _step() {
@@ -126,7 +127,7 @@ class SimulationController {
 				if (this.updateDelay !== 0) {
 					// Notify UI about changes.
 					// UI will not actually be updated until we yield back to the event loop.
-					this.notifyAll();
+					this.flushChanges();
 				}
 
 				const now = performance.now();
@@ -148,14 +149,14 @@ class SimulationController {
 			this.simulationStart = null;
 			this.loopRunning = false;
 
-			this.notifyAll();
+			this.flushChanges();
 		}
 	}
 
 	public recomputeComponent(id: number) {
 		simulation.recomputeComponent(id);
 
-		this.notifyAll();
+		this.flushChanges();
 
 		this.runContinuousLoopIfEnabled();
 	}
@@ -163,13 +164,42 @@ class SimulationController {
 	public state: SimulationState = $state({});
 	public queue: number[] = $state([]);
 
-	private notifyAll() {
-		this.state = simulation._state;
-		this.queue = simulation._queue;
+	private publishedState: SimulationState | null = null;
+
+	/** Keep the solver plain and expose only changed entries at simulation boundaries. */
+	private flushChanges() {
+		if (this.publishedState !== simulation._state) {
+			this.publishedState = simulation._state;
+			for (const id of Object.keys(simulation._state)) {
+				simulation.changed.add(Number(id));
+			}
+		}
+		for (const id of simulation.changed) {
+			const source = simulation._state[id];
+			const target = this.state[id];
+			if (!target) {
+				this.state[id] = {
+					...source,
+					inputs: { ...source.inputs },
+					outputs: { ...source.outputs },
+				};
+			} else {
+				Object.assign(target.inputs, source.inputs);
+				Object.assign(target.outputs, source.outputs);
+				target.isPoweredInitially = source.isPoweredInitially;
+				target.ledPowered = source.ledPowered;
+			}
+		}
+		simulation.changed.clear();
+		for (let i = 0; i < simulation._queue.length; i++) {
+			this.queue[i] = simulation._queue[i];
+		}
+		this.queue.length = simulation._queue.length;
 	}
 }
 
 class Simulation {
+	readonly changed = new Set<number>();
 	/** The current state of the simulation.
 	 * Every component and wire has an entry in this object
 	 * that determines eg. whether it is powered or not.
@@ -221,6 +251,7 @@ class Simulation {
 	 */
 	private setupSimState() {
 		const data = graphManager.getGraphData();
+		this.changed.clear();
 		this._state = {};
 		for (const [id, component] of Object.entries(data.components)) {
 			this._state[id] = this.getComponentInitData(component);
@@ -251,6 +282,7 @@ class Simulation {
 	public recomputeComponent(id: number) {
 		const data = graphManager.getComponentData(id);
 		this._state[id].isPoweredInitially = data.isPoweredInitially;
+		this.changed.add(id);
 		this._queue.push(id);
 	}
 
@@ -264,6 +296,7 @@ class Simulation {
 			return false;
 		}
 		const data = this._state[id];
+		this.changed.add(id);
 		const isComponent = data.type !== "wire";
 
 		if (isComponent) {
@@ -295,6 +328,7 @@ class Simulation {
 				for (const connection of handle.connections) {
 					const targetId = connection.id;
 					this._state[targetId].inputs[connection.handleType] = outputPower;
+					this.changed.add(targetId);
 					this._queue.push(targetId);
 				}
 			}
@@ -323,6 +357,7 @@ class Simulation {
 					: connection.handleType;
 
 				this._state[targetId].inputs[targetHandleId] = outputPower;
+				this.changed.add(targetId);
 				this._queue.push(targetId);
 			}
 		}

@@ -29,7 +29,6 @@ beforeEach(() => {
 	circuitModalViewModel.close();
 	editorViewModel.hardReset();
 	graphManager.clear();
-	graphManager.notifyAll();
 	sessionStorage.clear();
 });
 afterEach(async () => {

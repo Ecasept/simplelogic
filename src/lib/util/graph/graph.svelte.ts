@@ -1,4 +1,4 @@
-import { canvasViewModel } from "../interaction/canvasViewModel";
+import { canvasViewModel } from "../interaction/canvasViewModel.svelte";
 import { UpdateCustomDataCommand, type Command } from "./commands";
 import { GRID_SIZE, linesIntersect } from "../shared/global.svelte";
 import { GraphEditTransaction } from "./graphEdit";
@@ -15,10 +15,8 @@ import type {
 } from "../editor/editorViewModel.svelte";
 
 export class GraphManager {
-	/** Private state of the graph manager, that gets published with the notifyAll() method */
-	private _graphData: GraphData = { components: {}, wires: {}, nextId: 0 };
 	/** All commands that have been executed on the graph */
-	private history: Command[] = [];
+	private history: Command[] = $state([]);
 	private edit: GraphEditTransaction | null = null;
 	/**
 	 * Only this history entry may absorb subsequent inputs to the same field.
@@ -35,17 +33,15 @@ export class GraphManager {
 		this.customDataGroup = null;
 	}
 
-	/** Publicly exposed rune state for the graph manager, that updates whenever a series of commands has been executed.
-	 * This ensures that edits to the graph that require multiple commands to be executed in one go
-	 * only update the UI once instead of multiple times.
-	 */
 	public graphData: GraphData = $state({
 		components: {},
 		wires: {},
 		nextId: 0,
 	});
 
-	public historyEmpty: boolean = $state(true);
+	public get historyEmpty() {
+		return this.history.length === 0;
+	}
 
 	/** Start an exclusive edit. Callers can share currentEdit within one interaction. */
 	beginEdit() {
@@ -53,16 +49,12 @@ export class GraphManager {
 			throw new Error("A graph edit transaction is already active");
 		}
 		this.closeCustomDataGroup();
-		const edit = new GraphEditTransaction(
-			this._graphData,
-			() => this.notifyAll(),
-			(command) => {
-				if (command) {
-					this.history.push(command);
-				}
-				this.edit = null;
-			},
-		);
+		const edit = new GraphEditTransaction(this.graphData, (command) => {
+			if (command) {
+				this.history.push(command);
+			}
+			this.edit = null;
+		});
 		this.edit = edit;
 		return edit;
 	}
@@ -86,7 +78,7 @@ export class GraphManager {
 		this.edit?.cancel();
 		const command = this.history.pop();
 		if (command) {
-			const deletedIds = command.undo(this._graphData);
+			const deletedIds = command.undo(this.graphData);
 			return { didUndo: true, deletedIds };
 		}
 		return { didUndo: false, deletedIds: [] };
@@ -114,8 +106,8 @@ export class GraphManager {
 
 		const selected = new Map<number, ElementType>();
 
-		for (const compId in this._graphData.components) {
-			const component = this._graphData.components[compId];
+		for (const compId in this.graphData.components) {
+			const component = this.graphData.components[compId];
 			if (component.type === "TEXT") {
 				// Text components are a special case, as their size is dynamic
 				if (
@@ -131,8 +123,8 @@ export class GraphManager {
 				selected.set(component.id, "component");
 			}
 		}
-		for (const wireId in this._graphData.wires) {
-			const wire = this._graphData.wires[wireId];
+		for (const wireId in this.graphData.wires) {
+			const wire = this.graphData.wires[wireId];
 			if (AreaSelect.doesWireIntersectArea(wire, x1, y1, x2, y2, type)) {
 				selected.set(wire.id, "wire");
 			}
@@ -163,7 +155,7 @@ export class GraphManager {
 		}
 
 		const cmd = new UpdateCustomDataCommand(id, property, newValue);
-		cmd.execute(this._graphData);
+		cmd.execute(this.graphData);
 		if (
 			this.customDataGroup == null ||
 			this.history.at(-1) !== this.customDataGroup ||
@@ -172,22 +164,21 @@ export class GraphManager {
 			this.history.push(cmd);
 			this.customDataGroup = cmd;
 		}
-		this.notifyAll();
 	}
 
 	getComponentData(id: number) {
-		return this._graphData.components[id];
+		return this.graphData.components[id];
 	}
 
 	getWireData(id: number) {
-		return this._graphData.wires[id];
+		return this.graphData.wires[id];
 	}
 
 	getElementType(id: number) {
-		if (this._graphData.components[id]) {
+		if (this.graphData.components[id]) {
 			return "component";
 		}
-		if (this._graphData.wires[id]) {
+		if (this.graphData.wires[id]) {
 			return "wire";
 		}
 		return null;
@@ -220,17 +211,8 @@ export class GraphManager {
 	clear() {
 		this.closeCustomDataGroup();
 		this.edit?.cancel();
-		this._graphData = { components: {}, wires: {}, nextId: 0 };
+		this.graphData = { components: {}, wires: {}, nextId: 0 };
 		this.history = [];
-	}
-
-	notifyAll() {
-		this.graphData = structuredClone(this._graphData);
-
-		const val = this.history.length === 0;
-		if (this.historyEmpty !== val) {
-			this.historyEmpty = val;
-		}
 	}
 
 	/** Low-level install; application callers must use replaceDocument for lifecycle teardown. */
@@ -238,10 +220,10 @@ export class GraphManager {
 		this.closeCustomDataGroup();
 		this.edit?.cancel();
 		this.history = [];
-		this._graphData = data;
+		this.graphData = data;
 	}
 	getGraphData() {
-		return this._graphData;
+		return this.graphData;
 	}
 }
 

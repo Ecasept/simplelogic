@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { circuitModalViewModel } from "$lib/util/editor/editor.svelte";
-	import type { FeedbackMessage } from "$lib/util/persistence/circuitModalViewModel";
+	import type { FeedbackMessage } from "$lib/util/persistence/circuitModalViewModel.svelte";
 	import { Trash } from "lucide-svelte";
 
 	type Props = {

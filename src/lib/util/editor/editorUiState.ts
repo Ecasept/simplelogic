@@ -24,7 +24,27 @@ export function composeEditorUiState(
 	interaction: Readonly<InteractionState>,
 ): EditorUiState {
 	return {
-		...editor,
+		get mode() {
+			return editor.mode;
+		},
+		get selected() {
+			return editor.selected;
+		},
+		get hoveredHandle() {
+			return editor.hoveredHandle;
+		},
+		get hoveredElement() {
+			return editor.hoveredElement;
+		},
+		get isModalOpen() {
+			return editor.isModalOpen;
+		},
+		get isProcessBlocked() {
+			return editor.isProcessBlocked;
+		},
+		get settings() {
+			return editor.settings;
+		},
 		...interaction,
 		isCanvasGesture: interaction.kind === "pan" || interaction.kind === "area",
 		matches,

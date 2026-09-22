@@ -2,7 +2,7 @@
 	import { page } from "$app/state";
 	import Button from "$lib/components/reusable/Button.svelte";
 	import SignInButton from "$lib/components/reusable/SignInButton.svelte";
-	import { type AuthUiState } from "$lib/util/ui/authViewModel";
+	import { type AuthUiState } from "$lib/util/ui/authViewModel.svelte";
 	import { signOut } from "@auth/sveltekit/client";
 	import ThemeSwitcher from "./ThemeSwitcher.svelte";
 

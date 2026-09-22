@@ -1,6 +1,6 @@
 import { GRID_SIZE } from "../shared/global.svelte";
 import type { ComponentData, WireData, XYPair } from "../shared/types";
-import type { ViewBox } from "./canvasViewModel";
+import type { ViewBox } from "./canvasViewModel.svelte";
 
 export const VIEWPORT_OVERSCAN = GRID_SIZE * 2;
 
