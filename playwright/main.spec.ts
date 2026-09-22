@@ -1048,7 +1048,8 @@ test.describe("panning and zooming", () => {
 		await page.mouse.wheel(0, -1);
 		await page.mouse.wheel(0, -1);
 		await page.mouse.wheel(0, -1);
-		await expectPosToBe(editor.comps(), 280, 280);
+		// Wheel steps are intentionally small, so three steps only move it to ~225.
+		await expectPosToBe(editor.comps(), 225, 225);
 
 		// Can't pan when adding component
 		await page.keyboard.press("a");

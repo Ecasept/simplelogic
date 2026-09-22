@@ -288,12 +288,10 @@ test.describe("selection", () => {
 		await pointer.clickAt(200, 50);
 		expect(await editor.getSelectedCount()).toBe(0);
 
-		// Switch to contain area select via tools sidebar toggle button
-		// Button label changes dynamically; we look for the one that contains 'contain area select'
-		const containBtn = page.getByRole("button", {
-			name: /contain area select/i,
-		});
+		// Switch to contain area selection via the segmented control
+		const containBtn = page.getByRole("radio", { name: "Contain" });
 		await containBtn.click();
+		await expect(containBtn).toBeChecked();
 
 		// Redo same area selection
 		await page.keyboard.down("Shift"); // Hold shift to do area select
@@ -306,10 +304,9 @@ test.describe("selection", () => {
 		expect(await editor.getSelectedCount()).toBe(3);
 
 		// Switch back again
-		const intersectBtn = page.getByRole("button", {
-			name: /intersect area select/i,
-		});
+		const intersectBtn = page.getByRole("radio", { name: "Intersect" });
 		await intersectBtn.click();
+		await expect(intersectBtn).toBeChecked();
 	});
 });
 

@@ -272,31 +272,31 @@ export class Editor {
 		await expect(this.page).toHaveMode(mode);
 	}
 	async setGridSnap(enable: boolean) {
-		const text = enable ? "Enable grid snap" : "Disable grid snap";
-		await this.pointer.clickOn(this.page.getByLabel(text));
+		const gridSnapSwitch = this.page.getByRole("switch", {
+			name: "Grid snap",
+		});
+		const isEnabled = (await gridSnapSwitch.getAttribute("aria-checked")) === "true";
+		if (isEnabled !== enable) {
+			await this.pointer.clickOn(gridSnapSwitch);
+		}
+		await expect(gridSnapSwitch).toHaveAttribute(
+			"aria-checked",
+			String(enable),
+		);
 	}
 	async setContinuousPlacement(enable: boolean) {
-		const enableLabel = "Enable continuous placement";
-		const disableLabel = "Disable continuous placement";
-		if (enable) {
-			const enableButton = this.page.getByRole("button", { name: enableLabel });
-			if (await enableButton.isVisible()) {
-				await this.pointer.clickOn(enableButton);
-			} else {
-				await expect(
-					this.page.getByRole("button", { name: disableLabel }),
-				).toBeVisible();
-			}
-			return;
+		const placementSwitch = this.page.getByRole("switch", {
+			name: "Continuous placement",
+		});
+		const isEnabled =
+			(await placementSwitch.getAttribute("aria-checked")) === "true";
+		if (isEnabled !== enable) {
+			await this.pointer.clickOn(placementSwitch);
 		}
-		const disableButton = this.page.getByRole("button", { name: disableLabel });
-		if (await disableButton.isVisible()) {
-			await this.pointer.clickOn(disableButton);
-		} else {
-			await expect(
-				this.page.getByRole("button", { name: enableLabel }),
-			).toBeVisible();
-		}
+		await expect(placementSwitch).toHaveAttribute(
+			"aria-checked",
+			String(enable),
+		);
 	}
 	async rotateSelected(dir: "cw" | "ccw") {
 		const dirText = dir === "cw" ? "clockwise" : "counter-clockwise";
