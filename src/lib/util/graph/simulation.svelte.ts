@@ -169,7 +169,13 @@ class SimulationController {
 	/** Keep the solver plain and expose only changed entries at simulation boundaries. */
 	private flushChanges() {
 		if (this.publishedState !== simulation._state) {
+			// Identities aren't equal, so everything changed
 			this.publishedState = simulation._state;
+			// Remove old keys
+			for (const id of Object.keys(this.state)) {
+				if (!(id in simulation._state)) delete this.state[id];
+			}
+			// Update every other key
 			for (const id of Object.keys(simulation._state)) {
 				simulation.changed.add(Number(id));
 			}
