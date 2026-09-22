@@ -8,7 +8,7 @@
 		editorViewModel,
 		graphManager,
 	} from "$lib/util/editor/editor.svelte";
-	import { COMPONENT_DATA, debugLog } from "$lib/util/shared/global.svelte";
+	import { COMPONENT_DATA } from "$lib/util/shared/global.svelte";
 	import { onEnter } from "$lib/util/editor/keyboard";
 	import type {
 		InputInputEvent,
@@ -143,8 +143,6 @@
 			.otherwise(() => "right" as const); // null defaults to center, so next is right
 		graphActions.updateTextAlignment(info.selectedId, newAlign);
 	}
-
-	$inspect(info).with(debugLog("INFO"));
 </script>
 
 {#snippet deleteButton()}
