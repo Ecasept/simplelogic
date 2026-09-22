@@ -4,6 +4,10 @@ import { ViewModel } from "../ui/viewModel";
 export type ViewBox = XYPair & { width: number; height: number };
 export type CanvasUiState = { viewBox: ViewBox };
 
+// Allow 25%–500% zoom relative to the initial 1000-unit viewport.
+const MIN_VIEWBOX_WIDTH = 200;
+const MAX_VIEWBOX_WIDTH = 4000;
+
 /** Viewport geometry and coordinate conversion, independent of active gestures. */
 export class CanvasViewModel extends ViewModel<CanvasUiState> {
 	protected _uiState: CanvasUiState = {
@@ -31,10 +35,15 @@ export class CanvasViewModel extends ViewModel<CanvasUiState> {
 		if (!Number.isFinite(factor) || factor <= 0) {
 			return;
 		}
+		const newWidth = Math.min(
+			MAX_VIEWBOX_WIDTH,
+			Math.max(MIN_VIEWBOX_WIDTH, this._uiState.viewBox.width * factor),
+		);
+		factor = newWidth / this._uiState.viewBox.width;
+		if (factor === 1) return;
 		const point = this.clientToSVGCoords(clientPos);
 
-		// Update the viewBox
-		const newWidth = this._uiState.viewBox.width * factor;
+		// Use the clamped factor to preserve the aspect ratio and zoom anchor.
 		const newHeight = this._uiState.viewBox.height * factor;
 
 		// Adjust the viewBox position to zoom towards/from the mouse position

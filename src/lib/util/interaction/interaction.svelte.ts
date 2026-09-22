@@ -593,7 +593,8 @@ export function createInteractionController({
 	}
 
 	function wheel(deltaY: number, clientPos: XYPair) {
-		canvasViewModel.zoom(deltaY > 0 ? 1.1 : 0.9, clientPos);
+		if (!Number.isFinite(deltaY) || deltaY === 0) return;
+		canvasViewModel.zoom(deltaY > 0 ? 1.04 : 1 / 1.04, clientPos);
 	}
 
 	return {
