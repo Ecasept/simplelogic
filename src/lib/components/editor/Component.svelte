@@ -2,19 +2,20 @@
 	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
 	import {
-		interactionController,
 		canvasViewModel,
-		graphActions,
 		editorViewModel,
+		graphActions,
+		interactionController,
 	} from "$lib/util/editor/editor.svelte";
+	import type { TypedReference } from "$lib/util/editor/editorViewModel.svelte";
+	import { getSimData } from "$lib/util/graph/simulation.svelte";
+	import { startLongPressTimer } from "$lib/util/interaction/longpress";
+	import { RotationInfo } from "$lib/util/interaction/positioning";
 	import {
 		calculateHandlePosition,
 		GRID_SIZE,
 		isElementPowered,
 	} from "$lib/util/shared/global.svelte";
-	import { startLongPressTimer } from "$lib/util/interaction/longpress";
-	import { RotationInfo } from "$lib/util/interaction/positioning";
-	import { getSimData } from "$lib/util/graph/simulation.svelte";
 	import type {
 		ComponentHandle,
 		ComponentHandleList,
@@ -24,7 +25,6 @@
 		SVGPointerEvent,
 		XYPair,
 	} from "$lib/util/shared/types";
-	import type { TypedReference } from "$lib/util/editor/editorViewModel.svelte";
 	import { P } from "ts-pattern";
 	import ComponentInner from "./ComponentInner.svelte";
 	import Handle from "./Handle.svelte";
@@ -291,22 +291,35 @@
 />
 
 {#each Object.entries(handles) as [identifier, handle]}
-	<!-- Hide connected inputs -->
-	{#if !(handle.connections.length !== 0 && handle.type === "input")}
+	{@const handlePosition = calculateHandlePosition(
+		handle.edge,
+		handle.pos,
+		size,
+		position,
+		rotation,
+		false,
+	)}
+	<!-- Small non-clickable indicator -->
+	{#if handle.connections.length !== 0 && handle.type === "input"}
+		<circle
+			class="junction-dot"
+			cx={handlePosition.x}
+			cy={handlePosition.y}
+			r={2.5}
+			fill={simulating && simData?.inputs[identifier]
+				? "var(--component-delete-color)"
+				: isSelected
+					? "var(--selected-outline-color)"
+					: "var(--component-outline-color)"}
+			pointer-events="none"
+			transform={rotationInfo.asRotate()}
+		/>
+	{:else}
 		<!-- Hide handles of same type as dragged handle -->
 		{#if !("draggedHandle" in uiState && uiState.draggedHandle.handleType === handle.type)}
 			<!-- Hide inputs if the dragged handle already has outgoing wires
 			 (wire outputs may only be connected to either 1 component input, or multiple wire inputs) -->
 			{#if !("draggedHandle" in uiState && uiState.draggedHandle.handleType === "output" && (uiState.connectionCount ?? 0) > 0)}
-				{@const handlePosition = calculateHandlePosition(
-					handle.edge,
-					handle.pos,
-					size,
-					position,
-					rotation,
-					false,
-				)}
-
 				<Handle
 					{uiState}
 					ref={{
