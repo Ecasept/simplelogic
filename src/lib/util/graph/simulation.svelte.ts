@@ -190,8 +190,15 @@ class SimulationController {
 					outputs: { ...source.outputs },
 				};
 			} else {
+				for (const input of Object.keys(target.inputs)) {
+					if (!(input in source.inputs)) delete target.inputs[input];
+				}
+				for (const output of Object.keys(target.outputs)) {
+					if (!(output in source.outputs)) delete target.outputs[output];
+				}
 				Object.assign(target.inputs, source.inputs);
 				Object.assign(target.outputs, source.outputs);
+				target.type = source.type;
 				target.isPoweredInitially = source.isPoweredInitially;
 				target.ledPowered = source.ledPowered;
 			}
