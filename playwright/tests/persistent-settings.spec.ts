@@ -8,40 +8,30 @@ test.describe("persistent settings", () => {
 		editor,
 		page,
 	}) => {
-		// Grid snap default: enabled -> button label should read 'Disable grid snap'
-		const gridSnapDisableButton = page.getByRole("button", {
-			name: "Disable grid snap",
-		});
-		await expect(gridSnapDisableButton).toBeVisible();
+		const gridSnapSwitch = page.getByRole("switch", { name: "Grid snap" });
+		await expect(gridSnapSwitch).toBeChecked();
 
-		// Area select default: intersect -> button label "Switch to contain area select"
-		const areaSelectContainButton = page.getByRole("button", {
-			name: "Switch to contain area select",
-		});
-		await expect(areaSelectContainButton).toBeVisible();
+		const intersectOption = page.getByRole("radio", { name: "Intersect" });
+		const containOption = page.getByRole("radio", { name: "Contain" });
+		await expect(intersectOption).toBeChecked();
+		await expect(containOption).not.toBeChecked();
 
 		// Toggle both settings
-		await gridSnapDisableButton.click(); // Disables grid snap -> label should become Enable grid snap
-		await areaSelectContainButton.click(); // Switch to contain -> label should become Switch to intersect area select
+		await gridSnapSwitch.click();
+		await containOption.click();
 
-		// Sanity check labels updated before reload
-		await expect(
-			page.getByRole("button", { name: "Enable grid snap" }),
-		).toBeVisible();
-		await expect(
-			page.getByRole("button", { name: "Switch to intersect area select" }),
-		).toBeVisible();
+		await expect(gridSnapSwitch).not.toBeChecked();
+		await expect(containOption).toBeChecked();
+		await expect(intersectOption).not.toBeChecked();
 
 		// Reload page (new Svelte mount should read from localStorage)
 		await editor.reload();
 
 		// After reload, the toggled settings should persist
 		await expect(
-			page.getByRole("button", { name: "Enable grid snap" }),
-		).toBeVisible();
-		await expect(
-			page.getByRole("button", { name: "Switch to intersect area select" }),
-		).toBeVisible();
+			page.getByRole("switch", { name: "Grid snap" }),
+		).not.toBeChecked();
+		await expect(page.getByRole("radio", { name: "Contain" })).toBeChecked();
 
 		// Functional verification for grid snap persistence:
 		// Add a component and move it 1px; with snap disabled this should change x attribute

@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { EditorUiState } from "$lib/util/editor/editorUiState";
 
-	import Button from "$lib/components/reusable/Button.svelte";
+	import Switch from "$lib/components/reusable/Switch.svelte";
+	import SegmentedControl from "$lib/components/reusable/SegmentedControl.svelte";
 	import {
 		interactionController,
 		editorViewModel,
 	} from "$lib/util/editor/editor.svelte";
 	import type { ComponentType } from "$lib/util/shared/types";
 
-	import { Magnet, ReplaceAll, SquareDashed } from "lucide-svelte";
 	import ComponentToolbar from "./ComponentToolbar.svelte";
 	import Sidebar from "./Sidebar.svelte";
 	import SidebarSection from "./SidebarSection.svelte";
@@ -31,20 +31,6 @@
 	function toggle() {
 		open = !open;
 	}
-
-	function toggleGridSnap() {
-		editorViewModel.setGridSnap(!uiState.settings.gridSnap);
-	}
-	function toggleAreaSelect() {
-		const newValue =
-			uiState.settings.areaSelectType === "contain" ? "intersect" : "contain";
-		editorViewModel.setAreaSelectType(newValue);
-	}
-	function toggleContinuousPlacement() {
-		editorViewModel.setContinuousPlacement(
-			!uiState.settings.continuousPlacement,
-		);
-	}
 </script>
 
 {#if uiState.matches( { mode: "edit", kind: P.union("idle", "elementDown", "pan", "area") }, )}
@@ -53,31 +39,25 @@
 			<ComponentToolbar onPointerDown={addComponent} />
 		</SidebarSection>
 		<SidebarSection text="Settings">
-			{@const gridSnapText = uiState.settings.gridSnap ? "Disable" : "Enable"}
-			{@const areaSelectText =
-				uiState.settings.areaSelectType === "contain"
-					? "Switch to intersect area select"
-					: "Switch to contain area select"}
-			{@const continousPlacementText = uiState.settings.continuousPlacement
-				? "Disable"
-				: "Enable"}
-			<Button
-				title="{continousPlacementText} continuous placement"
-				text="{continousPlacementText} continuous placement"
-				onClick={toggleContinuousPlacement}
-				icon={ReplaceAll}
+			<Switch
+				label="Continuous placement"
+				checked={uiState.settings.continuousPlacement}
+				onChange={(checked) => editorViewModel.setContinuousPlacement(checked)}
 			/>
-			<Button
-				title="{gridSnapText} grid snap"
-				text="{gridSnapText} grid snap"
-				onClick={toggleGridSnap}
-				icon={Magnet}
+			<Switch
+				label="Grid snap"
+				checked={uiState.settings.gridSnap}
+				onChange={(checked) => editorViewModel.setGridSnap(checked)}
 			/>
-			<Button
-				title={areaSelectText}
-				text={areaSelectText}
-				onClick={toggleAreaSelect}
-				icon={SquareDashed}
+			<SegmentedControl
+				label="Area selection"
+				value={uiState.settings.areaSelectType}
+				options={[
+					{ value: "intersect", label: "Intersect" },
+					{ value: "contain", label: "Contain" },
+				]}
+				onChange={(value) =>
+					editorViewModel.setAreaSelectType(value as "intersect" | "contain")}
 			/>
 		</SidebarSection>
 	</Sidebar>
